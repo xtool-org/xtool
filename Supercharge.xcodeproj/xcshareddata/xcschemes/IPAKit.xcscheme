@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "56FF3BF21EB3B1690086BFA1"
-               BuildableName = "Supercharge.app"
-               BlueprintName = "Supercharge"
+               BlueprintIdentifier = "56278A941EEE46590015199A"
+               BuildableName = "IPAKit.framework"
+               BlueprintName = "IPAKit"
                ReferencedContainer = "container:Supercharge.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -29,15 +29,6 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "56FF3BF21EB3B1690086BFA1"
-            BuildableName = "Supercharge.app"
-            BlueprintName = "Supercharge"
-            ReferencedContainer = "container:Supercharge.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </TestAction>
@@ -51,23 +42,15 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "56FF3BF21EB3B1690086BFA1"
-            BuildableName = "Supercharge.app"
-            BlueprintName = "Supercharge"
+            BlueprintIdentifier = "56278A941EEE46590015199A"
+            BuildableName = "IPAKit.framework"
+            BlueprintName = "IPAKit"
             ReferencedContainer = "container:Supercharge.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
-      <EnvironmentVariables>
-         <EnvironmentVariable
-            key = "OS_ACTIVITY_MODE"
-            value = "disable"
-            isEnabled = "NO">
-         </EnvironmentVariable>
-      </EnvironmentVariables>
+      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -77,16 +60,15 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "56FF3BF21EB3B1690086BFA1"
-            BuildableName = "Supercharge.app"
-            BlueprintName = "Supercharge"
+            BlueprintIdentifier = "56278A941EEE46590015199A"
+            BuildableName = "IPAKit.framework"
+            BlueprintName = "IPAKit"
             ReferencedContainer = "container:Supercharge.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
