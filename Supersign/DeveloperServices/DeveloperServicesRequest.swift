@@ -8,7 +8,7 @@
 
 import Foundation
 
-protocol DeveloperServicesRequest {
+public protocol DeveloperServicesRequest {
 
     associatedtype Response: Decodable
     associatedtype Value
@@ -21,11 +21,11 @@ protocol DeveloperServicesRequest {
     func parse(_ response: Response, completion: @escaping (Result<Value, Error>) -> Void)
 }
 
-extension DeveloperServicesRequest {
+public extension DeveloperServicesRequest {
     func configure(urlRequest: inout URLRequest) {}
 }
 
-extension DeveloperServicesRequest where Response == Value {
+public extension DeveloperServicesRequest where Response == Value {
     func parse(_ response: Response, completion: @escaping (Result<Value, Error>) -> Void) {
         completion(.success(response))
     }

@@ -8,19 +8,19 @@
 
 import Foundation
 
-enum DeveloperServicesPlatform: String, Decodable {
+public enum DeveloperServicesPlatform: String, Decodable {
     case iOS = "ios"
     case watchOS = "watchos"
     case tvOS = "tvos"
 
-    fileprivate var os: String {
+    var os: String {
         switch self {
         case .iOS, .watchOS: return "ios"
         case .tvOS: return "tvos"
         }
     }
 
-    fileprivate var subPlatform: String? {
+    var subPlatform: String? {
         switch self {
         case .iOS, .watchOS: return nil
         case .tvOS: return "tvOS"
@@ -37,9 +37,9 @@ protocol DeveloperServicesPlatformRequest: DeveloperServicesRequest {
 
 extension DeveloperServicesPlatformRequest {
 
-    var action: String { return "\(platform.os)/\(subAction)" }
+    public var action: String { return "\(platform.os)/\(subAction)" }
 
-    var parameters: [String: Any] {
+    public var parameters: [String: Any] {
         var parameters = subParameters
         parameters["DTDK_Platform"] = platform.rawValue
         parameters["subPlatform"] = platform.subPlatform
