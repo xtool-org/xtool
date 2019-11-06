@@ -36,11 +36,8 @@ public struct Signer {
     }
 
     public let context: SigningContext
-    public let provisioner: Provisioner
-
     public init(context: SigningContext) {
         self.context = context
-        self.provisioner = Provisioner(context: context)
     }
 
     private func sign(
@@ -48,16 +45,16 @@ public struct Signer {
         signingInfo: SigningInfo,
         provisioningDict: [URL: ProvisioningInfo],
         progress: @escaping (Double) -> Void,
-        completion: @escaping (Result<Void, Swift.Error>) -> Void
+        completion: @escaping (Result<(), Swift.Error>) -> Void
     ) {
         for (url, info) in provisioningDict {
             let infoPlist = url.appendingPathComponent("Info.plist")
             guard let dict = NSMutableDictionary(contentsOf: infoPlist) else {
-                return completion(.failure(Error.errorReading("Info.plist")))
+                return completion(.failure(Error.errorReading(infoPlist.lastPathComponent)))
             }
             dict[kCFBundleIdentifierKey as String] = info.newBundleID
             guard dict.write(to: infoPlist, atomically: true) else {
-                return completion(.failure(Error.errorWriting("Info.plist")))
+                return completion(.failure(Error.errorWriting(infoPlist.lastPathComponent)))
             }
 
             do {
@@ -72,7 +69,6 @@ public struct Signer {
         }
 
         let entitlements = provisioningDict.mapValues { $0.entitlements }
-
         context.signerImpl.sign(
             app: app,
             certificate: signingInfo.certificate,
@@ -86,14 +82,14 @@ public struct Signer {
     public func sign(
         app: URL,
         progress: @escaping (Double) -> Void,
-        completion: @escaping (Result<Void, Swift.Error>) -> Void
+        completion: @escaping (Result<(), Swift.Error>) -> Void
     ) {
-        provisioner.provision(app: app) { r in
-            guard let (signingInfo, provisioningDict) = r.get(withErrorHandler: completion) else { return }
+        DeveloperServicesProvisioningOperation(context: context, app: app).perform { result in
+            guard let response = result.get(withErrorHandler: completion) else { return }
             self.sign(
                 app: app,
-                signingInfo: signingInfo,
-                provisioningDict: provisioningDict,
+                signingInfo: response.signingInfo,
+                provisioningDict: response.provisioningDict,
                 progress: progress,
                 completion: completion
             )

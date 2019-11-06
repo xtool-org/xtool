@@ -9,6 +9,7 @@
 import Foundation
 
 enum DeveloperServicesAppIDRequestApplier {
+
     static func apply(
         entitlements: Entitlements, additionalFeatures: [DeveloperServicesFeature],
         to dict: inout [String: Any], isFree: Bool
@@ -28,4 +29,5 @@ enum DeveloperServicesAppIDRequestApplier {
             else { return }
         dict.merge(features) { a, _ in a }
     }
+
 }

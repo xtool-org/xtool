@@ -21,8 +21,7 @@ public struct SignerImpl {
 
     public enum Error: LocalizedError {
         case notFound
-        case signer(String)
-        case unknown
+        case signer(String?)
 
         public var errorDescription: String? {
             switch self {
@@ -30,9 +29,9 @@ public struct SignerImpl {
                 return NSLocalizedString(
                     "signer_impl.error.not_found", value: "No signer implementation found", comment: ""
                 )
-            case .signer(let error):
+            case .signer(let error?):
                 return error
-            case .unknown:
+            case .signer(nil):
                 return NSLocalizedString(
                     "signer_impl.error.unknown", value: "An unknown signing error occurred", comment: ""
                 )
@@ -85,7 +84,9 @@ public struct SignerImpl {
                     let privBound = privBytes.bindMemory(to: Int8.self)
 
                     var exception: UnsafeMutablePointer<Int8>?
-                    let ret = sign(
+                    defer { exception.map { free($0) } }
+
+                    guard sign(
                         app.path,
                         certBound.baseAddress,
                         certBound.count,
@@ -95,16 +96,9 @@ public struct SignerImpl {
                         ents.count,
                         progress,
                         &exception
-                    )
-                    guard ret == 0 else {
-                        defer { free(exception) }
-                        throw exception
-                            .map { UnsafePointer($0) }
-                            .map(String.init(cString:))
-                            .map(Error.signer)
-                            ?? .unknown
+                    ) == 0 else {
+                        throw Error.signer(exception.map { String(cString: $0) })
                     }
-                    if let exception = exception { free(exception) }
                 }
             }
         }
@@ -116,7 +110,7 @@ public struct SignerImpl {
         privateKey: PrivateKey,
         entitlementMapping: [URL: Entitlements],
         progress: @escaping (Double) -> Void,
-        completion: @escaping (Result<Void, Swift.Error>) -> Void
+        completion: @escaping (Result<(), Swift.Error>) -> Void
     ) {
         Self.signingQueue.async {
             do {

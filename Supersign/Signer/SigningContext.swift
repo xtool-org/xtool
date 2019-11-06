@@ -8,10 +8,6 @@
 
 import Foundation
 
-#if canImport(UIKit)
-import UIKit
-#endif
-
 public struct SigningContext {
 
     public let udid: String
@@ -24,7 +20,7 @@ public struct SigningContext {
         udid: String,
         team: DeveloperServicesTeam,
         signerImpl: SignerImpl? = nil,
-        platform: DeveloperServicesPlatform = .iOS,
+        platform: DeveloperServicesPlatform = .current,
         client: DeveloperServicesClient = .shared
     ) throws {
         self.udid = udid
@@ -34,6 +30,12 @@ public struct SigningContext {
         self.client = client
     }
 
+}
+
+#if canImport(UIKit)
+import UIKit
+#endif
+extension SigningContext {
     public var deviceName: String {
         #if targetEnvironment(simulator)
         return "Simulator"
@@ -45,5 +47,4 @@ public struct SigningContext {
         return "Supercharge Client"
         #endif
     }
-
 }

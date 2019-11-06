@@ -26,6 +26,16 @@ public enum DeveloperServicesPlatform: String, Decodable {
         case .tvOS: return "tvOS"
         }
     }
+
+    public static let current: DeveloperServicesPlatform = {
+        #if os(tvOS)
+        return .tvOS
+        #elseif os(watchOS)
+        return .watchOS
+        #else
+        return .iOS
+        #endif
+    }()
 }
 
 protocol DeveloperServicesPlatformRequest: DeveloperServicesRequest {

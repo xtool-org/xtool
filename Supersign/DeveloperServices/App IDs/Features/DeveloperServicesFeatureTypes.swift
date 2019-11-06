@@ -87,7 +87,7 @@ public struct DeveloperServicesAppGroupFeature: DeveloperServicesFeature, RawRep
 }
 extension AppGroupEntitlement: EntitlementWithFeature {
     func typedFeature() -> DeveloperServicesAppGroupFeature {
-        return .init(rawValue: !rawValue.isEmpty)
+        .init(rawValue: !rawValue.isEmpty)
     }
 }
 
@@ -103,6 +103,11 @@ public struct DeveloperServicesAssociatedDomainsFeature: DeveloperServicesFeatur
 
     public let rawValue: Bool
     public init(rawValue: Bool) { self.rawValue = rawValue }
+}
+extension AssociatedDomainsEntitlement: EntitlementWithFeature {
+    func typedFeature() -> DeveloperServicesAssociatedDomainsFeature {
+        .init(rawValue: true)
+    }
 }
 
 public struct DeveloperServicesClassKitFeature: DeveloperServicesFeature, RawRepresentable {
@@ -223,6 +228,11 @@ public struct DeveloperServicesPushNotificationFeature: DeveloperServicesFeature
 
     public let rawValue: Bool
     public init(rawValue: Bool) { self.rawValue = rawValue }
+}
+extension APSEnvironmentEntitlement: EntitlementWithFeature {
+    func typedFeature() -> DeveloperServicesPushNotificationFeature {
+        .init(rawValue: true)
+    }
 }
 
 public struct DeveloperServicesSiriKitFeature: DeveloperServicesFeature, RawRepresentable {

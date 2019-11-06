@@ -17,6 +17,8 @@ extension EntitlementContainer {
         TeamIdentifierEntitlement.self,
         KeychainAccessGroupsEntitlement.self,
         GetTaskAllowEntitlement.self,
+        AssociatedDomainsEntitlement.self,
+        APSEnvironmentEntitlement.self,
         AppGroupEntitlement.self,
         NetworkExtensionEntitlement.self,
         MultipathEntitlement.self,
@@ -28,8 +30,6 @@ extension EntitlementContainer {
         HealthKitEntitlement.self,
     ]
 }
-
-// MARK: - Entitlements without Features
 
 public struct ApplicationIdentifierEntitlement: Entitlement, RawRepresentable {
     public static let identifier = "application-identifier"
@@ -87,6 +87,30 @@ public struct GetTaskAllowEntitlement: Entitlement, RawRepresentable {
 
     public var rawValue: Bool
     public init(rawValue: Bool) { self.rawValue = rawValue }
+}
+
+public struct AssociatedDomainsEntitlement: Entitlement, RawRepresentable {
+    public static let identifier = "com.apple.developer.associated-domains"
+    public static let isFree = false
+
+    public var rawValue: [String]
+    public init(rawValue: [String]) { self.rawValue = rawValue }
+
+    public init(from decoder: Decoder) throws {
+        rawValue = try decoder.singleValueContainer().decode([String].self)
+    }
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+}
+
+public enum APSEnvironmentEntitlement: String, Entitlement {
+    public static let identifier = "aps-environment"
+    public static let isFree = false
+
+    case development
+    case production
 }
 
 public enum DataProtectionEntitlement: String, Entitlement {
