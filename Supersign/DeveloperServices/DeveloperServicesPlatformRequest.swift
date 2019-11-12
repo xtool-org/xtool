@@ -8,15 +8,26 @@
 
 import Foundation
 
-public enum DeveloperServicesPlatform: String, Decodable {
-    case iOS = "ios"
-    case watchOS = "watchos"
-    case tvOS = "tvos"
+public enum DeveloperServicesPlatform: Decodable, CaseIterable {
+    case unknown
+    case iOS
+    case watchOS
+    case tvOS
+
+    var rawValue: String {
+        switch self {
+        case .iOS: return "ios"
+        case .watchOS: return "watchos"
+        case .tvOS: return "tvos"
+        case .unknown: return ""
+        }
+    }
 
     var os: String {
         switch self {
         case .iOS, .watchOS: return "ios"
         case .tvOS: return "tvos"
+        case .unknown: return ""
         }
     }
 
@@ -24,6 +35,7 @@ public enum DeveloperServicesPlatform: String, Decodable {
         switch self {
         case .iOS, .watchOS: return nil
         case .tvOS: return "tvOS"
+        case .unknown: return ""
         }
     }
 
@@ -36,6 +48,11 @@ public enum DeveloperServicesPlatform: String, Decodable {
         return .iOS
         #endif
     }()
+
+    public init(from decoder: Decoder) throws {
+        let rawValue = try String(from: decoder)
+        self = Self.allCases.first { $0.rawValue == rawValue } ?? .unknown
+    }
 }
 
 protocol DeveloperServicesPlatformRequest: DeveloperServicesRequest {
