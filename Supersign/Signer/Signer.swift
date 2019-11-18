@@ -44,6 +44,7 @@ public struct Signer {
         app: URL,
         signingInfo: SigningInfo,
         provisioningDict: [URL: ProvisioningInfo],
+        status: @escaping (String) -> Void,
         progress: @escaping (Double) -> Void,
         completion: @escaping (Result<(), Swift.Error>) -> Void
     ) {
@@ -81,6 +82,7 @@ public struct Signer {
 
     public func sign(
         app: URL,
+        status: @escaping (String) -> Void,
         progress: @escaping (Double) -> Void,
         completion: @escaping (Result<(), Swift.Error>) -> Void
     ) {
@@ -90,6 +92,7 @@ public struct Signer {
                 app: app,
                 signingInfo: response.signingInfo,
                 provisioningDict: response.provisioningDict,
+                status: status,
                 progress: progress,
                 completion: completion
             )

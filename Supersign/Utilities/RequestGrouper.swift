@@ -23,7 +23,10 @@ public struct ErrorList<E: Error>: LocalizedError {
 
 class RequestGrouper<T, E: Error> {
 
-    private let waitQueue = DispatchQueue(label: "request-wait-queue", attributes: .concurrent)
+    private let waitQueue = DispatchQueue(
+        label: "com.kabiroberai.Supersign.request-wait-queue",
+        attributes: .concurrent
+    )
     private let group = DispatchGroup()
 
     private var values: [T] = []
