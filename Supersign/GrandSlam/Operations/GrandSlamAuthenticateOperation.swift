@@ -123,9 +123,9 @@ class GrandSlamAuthenticateOperation {
         initResponse: GrandSlamAuthInitRequest.Decoder.Value,
         completion: @escaping (Result<GrandSlamLoginData, Swift.Error>) -> Void
     ) {
-        let isS2K = initResponse.proto == .s2k
+        let isS2K = initResponse.selectedProtocol == .s2k
         helper.addString(toNegProt: "|")
-        initResponse.proto.map { helper.addString(toNegProt: $0.rawValue) }
+        helper.addString(toNegProt: initResponse.selectedProtocol.rawValue)
 
         let mDataRaw = helper.processChallenge(
             withUsername: username,

@@ -12,14 +12,14 @@ struct GrandSlamAuthInitRequest: GrandSlamOperationRequest {
 
     typealias Decoder = GrandSlamOperationDecoder<Value>
     struct Value: Decodable {
-        let proto: GrandSlamAuthProtocol?
+        let selectedProtocol: GrandSlamAuthProtocol
         let cookie: String
         let salt: Data
         let iterations: Int
         let bData: Data
 
         private enum CodingKeys: String, CodingKey {
-            case proto = "sp"
+            case selectedProtocol = "sp"
             case cookie = "c"
             case salt = "s"
             case iterations = "i"
