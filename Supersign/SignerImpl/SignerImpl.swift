@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import LegibleError
 
 extension signer_t: CLinkedListElement {}
 
