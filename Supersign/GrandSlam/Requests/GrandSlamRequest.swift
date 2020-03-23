@@ -20,18 +20,6 @@ enum GrandSlamMethod {
     }
 }
 
-//enum GrandSlamDecodeStrategy<T: Decodable> {
-//    case always(T)
-//    case plist
-//
-//    func decode(data: Data) throws -> T {
-//        switch self {
-//        case .always(let value): return value
-//        case .plist: return try PropertyListDecoder().decode(T.self, from: data)
-//        }
-//    }
-//}
-
 protocol GrandSlamDataDecoder {
     associatedtype Value
     static func decode(data: Data) throws -> Value
