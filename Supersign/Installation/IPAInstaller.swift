@@ -21,8 +21,7 @@ class IPAInstaller {
         bundleID: String,
         progress: @escaping (InstallationProxyClient.InstallProgress) -> Void
     ) throws {
-        let options = InstallationProxyClient.InstallOptions()
-        options["CFBundleIdentifier"] = bundleID
+        let options = InstallationProxyClient.Options(additionalOptions: ["CFBundleIdentifier": bundleID])
 
         var error: Error?
         let semaphore = DispatchSemaphore(value: 0)

@@ -13,9 +13,35 @@ class HeartbeatHandler {
 
     private struct Error: Swift.Error {}
 
+    private struct ReceivedPacket: Decodable {
+        enum Command: String, Decodable {
+            case marco = "Marco"
+        }
+
+        let command: Command
+        let interval: Int
+
+        private enum CodingKeys: String, CodingKey {
+            case command = "Command"
+            case interval = "Interval"
+        }
+    }
+
+    private struct SentPacket: Encodable {
+        enum Command: String, Encodable {
+            case polo = "Polo"
+        }
+
+        let command: Command
+
+        private enum CodingKeys: String, CodingKey {
+            case command = "Command"
+        }
+    }
+
     private static let restartInterval: TimeInterval = 1
-    private static let requestCommand = "Marco"
-    private static let responseCommand = "Polo"
+//    private static let requestCommand = "Marco"
+//    private static let responseCommand = "Polo"
 
     // each handler should have its own heartbeat queue
     private let heartbeatQueue = DispatchQueue(
@@ -33,18 +59,12 @@ class HeartbeatHandler {
 
     private func beat(client: HeartbeatClient, idx: Int) throws {
         // allow a 30 second timeout for the first heartbeat
-        let plist = try client.receive(timeout: idx == 0 ? 30 : 5)
-        guard case let .dictionary(dict) = plist,
-            case let .string(command) = dict["Command"],
-            case let .integer(interval) = dict["Interval"],
-            command == Self.requestCommand
-            else { throw Error() }
+        let received = try client.receive(ReceivedPacket.self, timeout: idx == 0 ? 30 : 5)
+        guard received.command == .marco else { throw Error() }
 
-        try client.send(.dictionary([
-            "Command": .string(Self.responseCommand)
-        ]))
+        try client.send(SentPacket(command: .polo))
 
-        sleep(.init(interval))
+        sleep(.init(received.interval))
     }
 
     private func start() {
