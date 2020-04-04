@@ -17,14 +17,10 @@ public struct EntitlementContainer: ProtoCodableContainer {
 // allows access to a parsable entitlements list while not losing unparsed entitlements when it's modified
 public struct Entitlements {
 
-    public enum Error: Swift.Error {
-        case dataCorrupted
-    }
-
     private let decoder = PropertyListDecoder()
     private let encoder = PropertyListEncoder()
 
-    private var dict: [String: PlistItem]
+    private var dict: [String: AnyEncodable]
 
     public init(entitlements: [Entitlement]) throws {
         dict = [:]
@@ -49,9 +45,7 @@ public struct Entitlements {
         let newEnts = Dictionary(uniqueKeysWithValues: new.map { (type(of: $0).identifier, $0) })
 
         oldEnts.keys.filter { newEnts[$0] == nil }.forEach { dict[$0] = nil }
-        try newEnts.forEach {
-            dict[$0] = try PlistItem(value: $1.plistValue(withEncoder: encoder))
-        }
+        newEnts.forEach { dict[$0] = AnyEncodable($1) }
     }
 
     public mutating func setEntitlements(_ new: [Entitlement]) throws {
@@ -64,7 +58,8 @@ extension Entitlements: Codable {
 
     public init(from decoder: Decoder) throws {
         self.dict = try decoder.singleValueContainer()
-            .decode([String: PlistItem].self)
+            .decode([String: CodableElement].self)
+            .mapValues(AnyEncodable.init)
     }
 
     public func encode(to encoder: Encoder) throws {

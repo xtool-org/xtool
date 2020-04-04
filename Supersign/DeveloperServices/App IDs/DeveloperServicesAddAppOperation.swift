@@ -87,7 +87,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
         var entitlements: Entitlements
         // if the executable doesn't already have entitlements, that's
         // okay. We don't have to throw an error.
-        if let entitlementsData = context.signerImpl.analyze(executable: executableURL),
+        if let entitlementsData = try? context.signerImpl.analyze(executable: executableURL),
             let decodedEntitlements = try? PropertyListDecoder().decode(Entitlements.self, from: entitlementsData) {
             entitlements = decodedEntitlements
 

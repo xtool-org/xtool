@@ -20,6 +20,7 @@ public struct SignerImpl {
 
     public enum Error: LocalizedError {
         case notFound
+        case badFilePath
         case signer(String?)
 
         public var errorDescription: String? {
@@ -27,6 +28,10 @@ public struct SignerImpl {
             case .notFound:
                 return NSLocalizedString(
                     "signer_impl.error.not_found", value: "No signer implementation found", comment: ""
+                )
+            case .badFilePath:
+                return NSLocalizedString(
+                    "signer_impl.error.bad_file_path", value: "A bad file path was provided", comment: ""
                 )
             case .signer(let error?):
                 return error
@@ -48,13 +53,12 @@ public struct SignerImpl {
         analyze = signer.analyze
     }
 
-    public static func all() -> [SignerImpl] {
-        CLinkedList(start: signer_list).map(SignerImpl.init)
+    private static func all() -> AnySequence<SignerImpl> {
+        .init(CLinkedList(first: signer_list).lazy.map(SignerImpl.init))
     }
 
     public static func first() throws -> SignerImpl {
-        guard let impl = all().first else { throw Error.notFound }
-        return impl
+        try all().makeIterator().next().orThrow(Error.notFound)
     }
 
     private func _sign(
@@ -68,10 +72,11 @@ public struct SignerImpl {
         encoder.outputFormat = .xml
         let entsArray: [entitlements_data_t] = try entitlementMapping.map { url, ents in
             try url.withUnsafeFileSystemRepresentation { bundlePath in
-                try encoder.encode(ents).withUnsafeBytes { bytes in
+                guard let bundlePath = bundlePath else { throw Error.badFilePath }
+                return try encoder.encode(ents).withUnsafeBytes { bytes in
                     let bound = bytes.bindMemory(to: Int8.self)
                     return entitlements_data_t(
-                        bundle_path: bundlePath, data: bound.baseAddress, len: bound.count
+                        bundle_path: bundlePath, data: bound.baseAddress!, len: bound.count
                     )
                 }
             }
@@ -87,11 +92,11 @@ public struct SignerImpl {
 
                     guard sign(
                         app.path,
-                        certBound.baseAddress,
+                        certBound.baseAddress!,
                         certBound.count,
-                        privBound.baseAddress,
+                        privBound.baseAddress!,
                         privBound.count,
-                        ents.baseAddress,
+                        ents.baseAddress!,
                         ents.count,
                         progress,
                         &exception
@@ -127,13 +132,17 @@ public struct SignerImpl {
         }
     }
 
-    public func analyze(executable: URL) -> Data? {
-        executable.withUnsafeFileSystemRepresentation({ (path: UnsafePointer<Int8>?) -> Data? in
+    public func analyze(executable: URL) throws -> Data {
+        try executable.withUnsafeFileSystemRepresentation { (path: UnsafePointer<Int8>?) -> Data in
+            var exception: UnsafeMutablePointer<Int8>?
+            defer { exception.map { free($0) } }
             var len = 0
-            guard let out = analyze(path, &len) else { return nil }
+            guard let out = analyze(path!, &len, &exception) else {
+                throw Error.signer(exception.map { String(cString: $0) })
+            }
             defer { free(out) }
-            return Data(bytes: UnsafeRawPointer(out), count: len)
-        })
+            return Data(bytes: out, count: len)
+        }
     }
 
 }
