@@ -47,12 +47,16 @@ class SupersignSigningTests: XCTestCase {
         let team = teams.first { $0.status == "active" && $0.memberships.contains { $0.platform == .iOS } }!
 
         let context = try XCTTry(SigningContext(
-            udid: "00008030-001409AA0298802E", team: team, signerImpl: signerImpl, client: client
+            udid: Config.current.udid,
+            team: team,
+            client: client,
+            signingInfoManager: TestSigningInfoManager(),
+            signerImpl: signerImpl
         ))
         let signer = Signer(context: context)
 
         let signingWaiter = ResultWaiter<()>(description: "Failed to sign app")
-        signer.sign(app: app, progress: { _ in }, completion: signingWaiter.completion)
+        signer.sign(app: app, status: { _ in }, progress: { _ in }, completion: signingWaiter.completion)
         try signingWaiter.wait(timeout: 10000)
 
         // TODO: Ensure entitlements are correct in new app, also codesign -vvvv

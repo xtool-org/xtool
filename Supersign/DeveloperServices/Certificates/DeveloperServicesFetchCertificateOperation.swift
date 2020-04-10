@@ -70,7 +70,7 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
     ) {
         createCertificate { result in
             guard let value = result.get(withErrorHandler: completion) else { return }
-            SigningKeychain[self.context.team.id] = value
+            self.context.signingInfoManager[self.context.team.id] = value
             completion(.success(value))
         }
     }
@@ -101,7 +101,7 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
                 return self.createAndSaveCertificate(completion: completion)
             }
 
-            guard let signingInfo = SigningKeychain[self.context.team.id],
+            guard let signingInfo = self.context.signingInfoManager[self.context.team.id],
                 let serialNumber = try? signingInfo.certificate.serialNumber(),
                 certificate.serialNumber.rawValue == serialNumber,
                 certificate.expiry > Date()

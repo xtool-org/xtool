@@ -61,10 +61,10 @@ public class AppInstaller {
             switch self {
             case .connecting(let progress):
                 return progress
-            case .installing(_, let progress):
-                return progress ?? 0
             case .uploading(let progress):
                 return progress
+            case .installing(_, let progress):
+                return progress ?? 0
             }
         }
     }
@@ -98,11 +98,12 @@ public class AppInstaller {
         let installer = try IPAInstaller(connection: connection)
         progress(.connecting(6/6))
 
-        let location = try uploader.upload(ipa: ipa, withBundleID: bundleID) { currentProgress in
+        let uploaded = try uploader.upload(ipa: ipa, withBundleID: bundleID) { currentProgress in
             progress(.uploading(currentProgress))
         }
+        defer { uploaded.delete() }
 
-        try installer.install(deviceLocation: location, bundleID: bundleID) { currentProgress in
+        try installer.install(uploaded: uploaded, bundleID: bundleID) { currentProgress in
             progress(.installing(currentProgress.details, currentProgress.progress))
         }
     }

@@ -12,22 +12,25 @@ public struct SigningContext {
 
     public let udid: String
     public let team: DeveloperServicesTeam
-    public let signerImpl: SignerImpl
-    public let platform: DeveloperServicesPlatform
     public let client: DeveloperServicesClient
+    public let signingInfoManager: SigningInfoManager
+    public let platform: DeveloperServicesPlatform
+    public let signerImpl: SignerImpl
 
     public init(
         udid: String,
         team: DeveloperServicesTeam,
-        signerImpl: SignerImpl? = nil,
+        client: DeveloperServicesClient,
+        signingInfoManager: SigningInfoManager,
         platform: DeveloperServicesPlatform = .current,
-        client: DeveloperServicesClient = .shared
+        signerImpl: SignerImpl? = nil
     ) throws {
         self.udid = udid
         self.team = team
-        self.signerImpl = try signerImpl ?? .first()
-        self.platform = platform
         self.client = client
+        self.signingInfoManager = signingInfoManager
+        self.platform = platform
+        self.signerImpl = try signerImpl ?? .first()
     }
 
 }

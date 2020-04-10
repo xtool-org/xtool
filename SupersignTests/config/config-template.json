@@ -4,5 +4,25 @@
         "password": "",
         "token": ""
     },
-    "preferredTeam": ""
+    "deviceInfo": {
+        "clientInfo": {
+            "macOSBuild": "",
+            "darwinVersion": "",
+            "macOSVersion": "",
+            "akdVersion": "",
+            "cfNetworkVersion": "",
+            "authKitVersion": "",
+            "modelID": "",
+        },
+        "xcodeInfo": {
+            "version": "",
+            "build": ""
+        },
+        "deviceID": "",
+        "mlbSerialNumber": "",
+        "romAddress": "",
+        "serialNumber": ""
+    },
+    "preferredTeam": "",
+    "udid": "",
 }

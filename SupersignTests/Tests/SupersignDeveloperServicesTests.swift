@@ -30,10 +30,13 @@ class SupersignDeveloperServicesTests: XCTestCase {
         let team = teams.first { $0.status == "active" && $0.memberships.contains { $0.platform == .iOS } }!
 
         let bundle = Bundle(for: Self.self)
-        let source = try! XCTUnwrap(bundle.url(forResource: "test", withExtension: "app"))
+        let source = try XCTUnwrap(bundle.url(forResource: "test", withExtension: "app"))
 
         let context = try XCTTry(SigningContext(
-            udid: "00008030-001409AA0298802E", team: team, signerImpl: .first(), client: client
+            udid: Config.current.udid,
+            team: team,
+            client: client,
+            signingInfoManager: TestSigningInfoManager()
         ))
 
         let waiter = ResultWaiter<DeveloperServicesProvisioningOperation.Response>(description: "Failed to provision")

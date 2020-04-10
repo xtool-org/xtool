@@ -9,7 +9,7 @@
 import Foundation
 import SwiftyMobileDevice
 
-class HeartbeatHandler {
+public class HeartbeatHandler {
 
     private struct Error: Swift.Error {}
 
@@ -39,32 +39,41 @@ class HeartbeatHandler {
         }
     }
 
+    // the duration to wait after a failed heartbeat, before restarting
     private static let restartInterval: TimeInterval = 1
-//    private static let requestCommand = "Marco"
-//    private static let responseCommand = "Polo"
+    // the timeout when receiving the first heartbeat packet
+    private static let initialTimeout: TimeInterval = 30
+    // the timeout when receiving subsequent heartbeat packets
+    private static let repeatedTimeout: TimeInterval = 5
 
     // each handler should have its own heartbeat queue
     private let heartbeatQueue = DispatchQueue(
         label: "com.kabiroberai.Supersign.heartbeat-queue"
     )
-    private(set) var isStopped = false
+    public private(set) var isStopped = false
 
-    let device: Device
-    let client: LockdownClient
-    init(device: Device, client: LockdownClient) {
+    public let device: Device
+    public let client: LockdownClient
+    public init(device: Device, client: LockdownClient) {
         self.device = device
         self.client = client
         start()
     }
 
-    private func beat(client: HeartbeatClient, idx: Int) throws {
+    // no need for a custom deinit because the `guard let self = self` in the loop stops it
+    // when the handler deinits
+
+    private func beat(client: HeartbeatClient, iteration: Int) throws {
         // allow a 30 second timeout for the first heartbeat
-        let received = try client.receive(ReceivedPacket.self, timeout: idx == 0 ? 30 : 5)
+        let received = try client.receive(
+            ReceivedPacket.self,
+            timeout: iteration == 0 ? Self.initialTimeout : Self.repeatedTimeout
+        )
         guard received.command == .marco else { throw Error() }
 
         try client.send(SentPacket(command: .polo))
 
-        sleep(.init(received.interval))
+        Thread.sleep(forTimeInterval: .init(received.interval))
     }
 
     private func start() {
@@ -74,40 +83,30 @@ class HeartbeatHandler {
         } catch {
             // we sleep instead of asyncAfter to allow the initial startHeartbeat
             // call to block until a connection is established
-            let timeInterval = Self.restartInterval
-            let sec = timeInterval.rounded(.down)
-            let nsec = (timeInterval - sec) * 1_000_000_000
-            var time = timespec(
-                tv_sec: .init(sec),
-                tv_nsec: .init(nsec)
-            )
-            nanosleep(&time, nil)
+            Thread.sleep(forTimeInterval: Self.restartInterval)
             start()
             return
         }
 
         self.heartbeatQueue.async { [weak self] in
-            var idx = 0
-            while true {
+            for iteration in 0... {
                 // only retains `self` for this iteration. This way, if the reference to
-                // the handler is dropped,
+                // the handler is dropped, the heartbeat stops
                 guard let self = self, !self.isStopped else { break }
                 do {
-                    try self.beat(client: heartbeatClient, idx: idx)
-                    idx += 1
+                    try self.beat(client: heartbeatClient, iteration: iteration)
                 } catch {
-                    // dispatching async should prevent stack overflows and allow the existing
-                    // heartbeatClient to deinit
-                    self.heartbeatQueue.asyncAfter(deadline: .now() + Self.restartInterval) {
+                    // dispatching async should prevent stack overflows.
+                    // We return to break out of the current loop.
+                    return self.heartbeatQueue.asyncAfter(deadline: .now() + Self.restartInterval) {
                         self.start()
                     }
-                    break
                 }
             }
         }
     }
 
-    func stop() {
+    public func stop() {
         isStopped = true
     }
 

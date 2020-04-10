@@ -10,7 +10,7 @@ import Foundation
 import XCTest
 import Supersign
 
-struct CredentialsManagerMock: DeveloperServicesCredentialsManagerProtocol {
+struct CredentialsManagerMock: DeveloperServicesCredentialsManager {
     // store login in memory
     public var token: DeveloperServicesCredentialsToken?
 }

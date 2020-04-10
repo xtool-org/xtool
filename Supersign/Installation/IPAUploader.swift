@@ -9,12 +9,29 @@
 import Foundation
 import SwiftyMobileDevice
 
-class IPAUploader {
+public class IPAUploader {
 
     private static let packagePath = URL(fileURLWithPath: "PublicStaging")
 
+    public class UploadedIPA {
+        public let uploader: IPAUploader
+        let location: URL
+        fileprivate init(uploader: IPAUploader, location: URL) {
+            self.uploader = uploader
+            self.location = location
+        }
+
+        public private(set) var isDeleted: Bool = false
+
+        deinit { delete() }
+        public func delete() {
+            guard !isDeleted else { return }
+            try? uploader.client.removeItem(at: location)
+        }
+    }
+
     private let client: AFCClient
-    init(connection: Connection) throws {
+    public init(connection: Connection) throws {
         self.client = try connection.startClient()
     }
 
@@ -39,7 +56,7 @@ class IPAUploader {
         } while !buf.isEmpty
     }
 
-    func upload(ipa: URL, withBundleID bundleID: String, progress: (Double) -> Void) throws -> URL {
+    public func upload(ipa: URL, withBundleID bundleID: String, progress: (Double) -> Void) throws -> UploadedIPA {
         if try !client.fileExists(at: Self.packagePath) {
             try client.createDirectory(at: Self.packagePath)
         }
@@ -47,7 +64,7 @@ class IPAUploader {
         let dest = Self.packagePath.appendingPathComponent(bundleID)
         try upload(ipa, to: dest, progress: progress)
 
-        return dest
+        return UploadedIPA(uploader: self, location: dest)
     }
 
 }

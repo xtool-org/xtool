@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Supersign
 
 struct Config: Decodable {
     struct AppleID: Decodable {
@@ -15,9 +16,11 @@ struct Config: Decodable {
         /// for non-login tests, just provide a token already so that the 2fa prompt isn't invoked
         let token: String
     }
-    let appleID: AppleID
 
+    let appleID: AppleID
+    let deviceInfo: DeviceInfo
     let preferredTeam: String
+    let udid: String
 
     static let current: Config = {
         class ConfigDummy {}

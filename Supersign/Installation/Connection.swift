@@ -9,19 +9,19 @@
 import Foundation
 import SwiftyMobileDevice
 
-class Connection {
+public class Connection {
 
     private static let label = "supersign"
 
-    private(set) var isClosed = false
+    public private(set) var isClosed = false
 
     private let usbmuxHandler: USBMuxHandler
-    let device: Device
-    let client: LockdownClient
+    public let device: Device
+    public let client: LockdownClient
     private let heartbeatHandler: HeartbeatHandler
 
-    init(udid: String, pairingKeys: URL, progress: (Double) -> Void) throws {
-        progress(0/0)
+    public init(udid: String, pairingKeys: URL, progress: (Double) -> Void) throws {
+        progress(0/4)
 
         usbmuxHandler = USBMuxHandler(udid: udid, pairingKeys: pairingKeys)
         progress(1/4)
@@ -38,7 +38,7 @@ class Connection {
 
     deinit { close() }
 
-    func close() {
+    public func close() {
         guard !isClosed else { return }
         isClosed = true
 
@@ -46,7 +46,7 @@ class Connection {
         usbmuxHandler.stop()
     }
 
-    func startClient<T: Service>(_ type: T.Type = T.self, sendEscrowBag: Bool = false) throws -> T {
+    public func startClient<T: Service>(_ type: T.Type = T.self, sendEscrowBag: Bool = false) throws -> T {
         try .init(device: device, service: .init(client: client, sendEscrowBag: sendEscrowBag))
     }
 

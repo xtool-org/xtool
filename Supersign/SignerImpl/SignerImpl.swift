@@ -53,12 +53,12 @@ public struct SignerImpl {
         analyze = signer.analyze
     }
 
-    private static func all() -> AnySequence<SignerImpl> {
-        .init(CLinkedList(first: signer_list).lazy.map(SignerImpl.init))
+    public static func all() -> AnyCollection<SignerImpl> {
+        return AnyCollection(CLinkedList(first: signer_list).lazy.map(SignerImpl.init))
     }
 
     public static func first() throws -> SignerImpl {
-        try all().makeIterator().next().orThrow(Error.notFound)
+        try all().first.orThrow(Error.notFound)
     }
 
     private func _sign(

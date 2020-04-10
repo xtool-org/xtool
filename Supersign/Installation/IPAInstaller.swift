@@ -9,15 +9,15 @@
 import Foundation
 import SwiftyMobileDevice
 
-class IPAInstaller {
+public class IPAInstaller {
 
     private let client: InstallationProxyClient
-    init(connection: Connection) throws {
+    public init(connection: Connection) throws {
         self.client = try connection.startClient()
     }
 
-    func install(
-        deviceLocation: URL,
+    public func install(
+        uploaded: IPAUploader.UploadedIPA,
         bundleID: String,
         progress: @escaping (InstallationProxyClient.InstallProgress) -> Void
     ) throws {
@@ -25,7 +25,7 @@ class IPAInstaller {
 
         var error: Error?
         let semaphore = DispatchSemaphore(value: 0)
-        client.install(package: deviceLocation, options: options, progress: progress) { result in
+        client.install(package: uploaded.location, options: options, progress: progress) { result in
             defer { semaphore.signal() }
             if case let .failure(e) = result { error = e }
         }
