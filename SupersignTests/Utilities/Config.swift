@@ -13,8 +13,8 @@ struct Config: Decodable {
     struct AppleID: Decodable {
         let username: String
         let password: String
-        /// for non-login tests, just provide a token already so that the 2fa prompt isn't invoked
-        let token: String
+        /// for non-login tests, just provide a token already
+        let token: DeveloperServicesLoginToken
     }
 
     let appleID: AppleID

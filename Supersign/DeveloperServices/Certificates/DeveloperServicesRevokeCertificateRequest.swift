@@ -9,28 +9,28 @@
 import Foundation
 
 // swiftlint:disable:next type_name
-public struct DeveloperServicesRevokeCertificateRequest: DeveloperServicesPlatformRequest {
+public struct DeveloperServicesRevokeCertificateRequest: DeveloperServicesRequest {
 
-    public struct Response: Decodable {}
+    public typealias Response = EmptyResponse
     public typealias Value = Response
 
-    public let platform: DeveloperServicesPlatform
-    public let teamID: DeveloperServicesTeam.ID
-    public let serialNumber: DeveloperServicesCertificate.SerialNumber
+    public var apiVersion: DeveloperServicesAPIVersion { DeveloperServicesAPIVersionV1() }
+    public var methodOverride: String? { "DELETE" }
 
-    var subAction: String { return "revokeDevelopmentCert" }
-    var subParameters: [String: Any] {
-        return ["teamId": teamID.rawValue, "serialNumber": serialNumber.rawValue]
+    public let teamID: DeveloperServicesTeam.ID
+    public let certificateID: DeveloperServicesCertificate.ID
+
+    public var action: String { "certificates/\(certificateID.rawValue)" }
+    public var parameters: [String: Any] {
+        ["teamId": teamID.rawValue]
     }
 
-    init(
-        platform: DeveloperServicesPlatform,
+    public init(
         teamID: DeveloperServicesTeam.ID,
-        serialNumber: DeveloperServicesCertificate.SerialNumber
+        certificateID: DeveloperServicesCertificate.ID
     ) {
-        self.platform = platform
         self.teamID = teamID
-        self.serialNumber = serialNumber
+        self.certificateID = certificateID
     }
 
 }

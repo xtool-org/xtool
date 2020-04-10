@@ -18,9 +18,11 @@ struct CredentialsManagerMock: DeveloperServicesCredentialsManager {
 extension DeveloperServicesClient {
 
     static func test() -> DeveloperServicesClient {
-        let client = DeveloperServicesClient(credentialsManager: CredentialsManagerMock())
-        client.credentialsManager.token = .init(rawValue: Config.current.appleID.token)
-        return client
+        DeveloperServicesClient(
+            loginToken: Config.current.appleID.token,
+            deviceInfo: Config.current.deviceInfo,
+            customAnisetteDataProvider: DirectAnisetteDataProvider()
+        )
     }
 
     func sendTest<T: DeveloperServicesRequest>(

@@ -8,11 +8,16 @@
 
 import Foundation
 
+public struct EmptyResponse: Decodable {}
+
 public protocol DeveloperServicesRequest {
 
     associatedtype Response: Decodable
     associatedtype Value
 
+    var apiVersion: DeveloperServicesAPIVersion { get }
+
+    var methodOverride: String? { get }
     var action: String { get }
     var parameters: [String: Any] { get }
 
@@ -22,6 +27,8 @@ public protocol DeveloperServicesRequest {
 }
 
 public extension DeveloperServicesRequest {
+    var apiVersion: DeveloperServicesAPIVersion { DeveloperServicesAPIVersionOld() }
+    var methodOverride: String? { nil }
     func configure(urlRequest: inout URLRequest) {}
 }
 

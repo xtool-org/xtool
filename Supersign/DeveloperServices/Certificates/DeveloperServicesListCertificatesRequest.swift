@@ -8,28 +8,28 @@
 
 import Foundation
 
-public struct DeveloperServicesListCertificatesRequest: DeveloperServicesPlatformRequest {
+public struct DeveloperServicesListCertificatesRequest: DeveloperServicesRequest {
 
-    public struct Response: Decodable {
-        public let certificates: [DeveloperServicesCertificate]
-    }
-    public typealias Value = [DeveloperServicesCertificate]
+    public typealias Response = [DeveloperServicesCertificate]
+    public typealias Value = Response
 
-    public let platform: DeveloperServicesPlatform
+    public var apiVersion: DeveloperServicesAPIVersion { DeveloperServicesAPIVersionV1() }
+    public var methodOverride: String? { "GET" }
+
     public let teamID: DeveloperServicesTeam.ID
+    public let certificateKind: DeveloperServicesCertificate.Kind
 
-    var subAction: String { return "listAllDevelopmentCerts" }
-    var subParameters: [String: Any] {
-        return ["teamId": teamID.rawValue]
+    public var action: String { "certificates" }
+    public var parameters: [String: Any] {
+        [
+            "teamId": teamID.rawValue,
+            "filter[certificateType]": certificateKind.rawValue
+        ]
     }
 
-    public func parse(_ response: Response, completion: @escaping (Result<Value, Error>) -> Void) {
-        completion(.success(response.certificates))
-    }
-
-    public init(platform: DeveloperServicesPlatform, teamID: DeveloperServicesTeam.ID) {
-        self.platform = platform
+    public init(teamID: DeveloperServicesTeam.ID, certificateKind: DeveloperServicesCertificate.Kind) {
         self.teamID = teamID
+        self.certificateKind = certificateKind
     }
 
 }

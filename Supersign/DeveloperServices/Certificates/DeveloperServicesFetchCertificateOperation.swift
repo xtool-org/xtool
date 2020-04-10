@@ -53,14 +53,13 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
             let serialNumber = partialCert.serialNumber
 
             let request = DeveloperServicesListCertificatesRequest(
-                platform: self.context.platform,
-                teamID: self.context.team.id
+                teamID: self.context.team.id, certificateKind: .init(platform: self.context.platform)
             )
             self.context.client.send(request) { result in
                 guard let certificates = result.get(withErrorHandler: completion) else { return }
-                guard let fullCert = certificates.first(where: { $0.serialNumber == serialNumber })
+                guard let fullCert = certificates.first(where: { $0.attributes.serialNumber == serialNumber })
                     else { return completion(.failure(Error.csrFailed)) }
-                completion(.success(.init(privateKey: privateKey, certificate: fullCert.content)))
+                completion(.success(.init(privateKey: privateKey, certificate: fullCert.attributes.content)))
             }
         }
     }
@@ -79,11 +78,7 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
         certificate: DeveloperServicesCertificate,
         completion: @escaping (Result<SigningInfo, Swift.Error>) -> Void
     ) {
-        let request = DeveloperServicesRevokeCertificateRequest(
-            platform: context.platform,
-            teamID: context.team.id,
-            serialNumber: certificate.serialNumber
-        )
+        let request = DeveloperServicesRevokeCertificateRequest(teamID: context.team.id, certificateID: certificate.id)
         context.client.send(request) { result in
             guard result.get(withErrorHandler: completion) != nil else { return }
             self.createAndSaveCertificate(completion: completion)
@@ -92,19 +87,19 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
 
     public func perform(completion: @escaping (Result<SigningInfo, Swift.Error>) -> Void) {
         let request = DeveloperServicesListCertificatesRequest(
-            platform: context.platform, teamID: context.team.id
+            teamID: context.team.id, certificateKind: .init(platform: context.platform)
         )
         context.client.send(request) { result in
             guard let certificates = result.get(withErrorHandler: completion) else { return }
 
-            guard let certificate = certificates.first(where: { $0.machineID == self.context.udid }) else {
+            guard let certificate = certificates.first(where: { $0.attributes.machineID == self.context.udid }) else {
                 return self.createAndSaveCertificate(completion: completion)
             }
 
             guard let signingInfo = self.context.signingInfoManager[self.context.team.id],
                 let serialNumber = try? signingInfo.certificate.serialNumber(),
-                certificate.serialNumber.rawValue == serialNumber,
-                certificate.expiry > Date()
+                certificate.attributes.serialNumber.rawValue == serialNumber,
+                certificate.attributes.expiry > Date()
                 else { return self.revokeCreateSaveCertificate(
                     certificate: certificate, completion: completion
                 ) }

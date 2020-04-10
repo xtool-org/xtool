@@ -37,7 +37,7 @@ class GrandSlamLookupManager {
         request.setValue(deviceInfo.clientInfo.clientString, forHTTPHeaderField: DeviceInfo.clientInfoKey)
         request.setValue(deviceInfo.deviceID, forHTTPHeaderField: DeviceInfo.deviceIDKey)
         request.setValue(Locale.current.regionCode, forHTTPHeaderField: "X-MMe-Country")
-        request.setValue(Locale.current.identifier, forHTTPHeaderField: AnisetteData.localeKey)
+        request.setValue(Locale.current.identifier, forHTTPHeaderField: AnisetteData.iLocaleKey)
         request.setValue(TimeZone.current.identifier, forHTTPHeaderField: AnisetteData.timeZoneKey)
         request.setValue("\(TimeZone.current.secondsFromGMT())", forHTTPHeaderField: "X-Apple-I-TimeZone-Offset")
 

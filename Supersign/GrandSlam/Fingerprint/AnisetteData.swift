@@ -19,6 +19,8 @@ public struct AnisetteData {
         return dateFormatter
     }()
 
+    /// `X-Apple-I-Locale`
+    static let iLocaleKey = "X-Apple-I-Locale"
     /// `X-Apple-Locale`
     static let localeKey = "X-Apple-Locale"
     public let locale: Locale = .current

@@ -19,39 +19,49 @@ public struct DeveloperServicesCertificate: Decodable {
         public let rawValue: String
         public init(rawValue: String) { self.rawValue = rawValue }
     }
-    public let serialNumber: SerialNumber
 
-    public struct CertificateType: Decodable {
-        public let displayID: String
-        public let name: String
-        public let maxActive: Int
+    public enum Kind: String, Decodable, CaseIterable {
+        case development = "DEVELOPMENT"
+        case distribution = "DISTRIBUTION"
+        case iOSDevelopment = "IOS_DEVELOPMENT"
+        case iOSDistribution = "IOS_DISTRIBUTION"
+        case macAppDistribution = "MAC_APP_DISTRIBUTION"
+        case macInstallerDistribution = "MAC_INSTALLER_DISTRIBUTION"
+        case developerIDKext = "DEVELOPER_ID_KEXT"
+        case developerIDApplication = "DEVELOPER_ID_APPLICATION"
+        case unknown
 
-        private enum CodingKeys: String, CodingKey {
-            case displayID = "certificateTypeDisplayId"
-            case name
-            case maxActive
+        public init(platform: DeveloperServicesPlatform) {
+            switch platform {
+            case .iOS: self = .iOSDevelopment
+            default: self = .development
+            }
+        }
+
+        public init(from decoder: Decoder) throws {
+            let rawValue = try String(from: decoder)
+            self = Self.allCases.first { $0.rawValue == rawValue } ?? .unknown
         }
     }
-    public let type: CertificateType
 
-    public let status: String
-    public let statusCode: Int
-    public let expiry: Date
-    public let platform: DeveloperServicesPlatform
-    public let machineID: String?
-    public let machineName: String?
-    public let content: Certificate
+    public struct Attributes: Decodable {
+        public let serialNumber: SerialNumber
+        public let name: String
+        public let kind: Kind
+        public let expiry: Date
+        public let machineID: String?
+        public let machineName: String?
+        public let content: Certificate
 
-    private enum CodingKeys: String, CodingKey {
-        case id = "certificateId"
-        case serialNumber
-        case type = "certificateType"
-        case status
-        case statusCode
-        case expiry = "expirationDate"
-        case platform = "certificatePlatform"
-        case content = "certContent"
-        case machineID = "machineId"
-        case machineName
+        private enum CodingKeys: String, CodingKey {
+            case serialNumber
+            case name
+            case kind = "certificateType"
+            case expiry = "expirationDate"
+            case content = "certificateContent"
+            case machineID = "machineId"
+            case machineName
+        }
     }
+    public let attributes: Attributes
 }

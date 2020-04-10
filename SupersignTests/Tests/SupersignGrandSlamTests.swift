@@ -53,16 +53,16 @@ class SupersignGrandSlamTests: XCTestCase {
 
         let now = Date() // *before* the actual request is made
 
-        let tokWaiter = ResultWaiter<[String: GrandSlamFetchAppTokensOperation.Token]>(
+        let tokWaiter = ResultWaiter<[AppTokenKey: GrandSlamFetchAppTokensOperation.Token]>(
             description: "Token request timed out"
         )
         GrandSlamFetchAppTokensOperation(
             client: client,
-            apps: ["com.apple.gs.xcode.auth"],
+            apps: [.xcode],
             loginData: loginData
         ).perform(completion: tokWaiter.completion)
         let tokens = try XCTTry(tokWaiter.wait(timeout: 10000))
-        let token = try XCTUnwrap(tokens["com.apple.gs.xcode.auth"], "Xcode token absent from response")
+        let token = try XCTUnwrap(tokens[.xcode], "Xcode token absent from response")
         XCTAssertGreaterThanOrEqual(token.expiry, now)
         XCTAssertFalse(token.value.isEmpty)
     }

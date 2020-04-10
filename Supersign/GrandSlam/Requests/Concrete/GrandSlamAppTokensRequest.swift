@@ -22,14 +22,14 @@ struct GrandSlamAppTokensRequest: GrandSlamOperationRequest {
     static let operation = "apptokens"
 
     let username: String
-    let apps: [String]
+    let apps: [AppTokenKey]
     let cookie: Data
     let idmsToken: String
     let checksum: Data
 
     var parameters: [String: Any] {
         [
-            "app": apps,
+            "app": apps.map { $0.rawValue },
             "c": cookie,
             "t": idmsToken,
             "checksum": checksum

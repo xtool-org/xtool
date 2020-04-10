@@ -16,7 +16,6 @@ public struct DeveloperServicesCSRResponse: Decodable {
     public let id: ID
     public let certificateID: DeveloperServicesCertificate.ID
     public let serialNumber: DeveloperServicesCertificate.SerialNumber
-    public let type: DeveloperServicesCertificate.CertificateType
     public let status: String
     public let statusCode: Int
     public let platform: DeveloperServicesPlatform
@@ -27,7 +26,6 @@ public struct DeveloperServicesCSRResponse: Decodable {
         case id = "certRequestId"
         case certificateID = "certificateId"
         case serialNumber = "serialNum"
-        case type = "certificateType"
         case status = "statusString"
         case statusCode
         case platform = "csrPlatform"

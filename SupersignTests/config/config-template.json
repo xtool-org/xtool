@@ -2,7 +2,11 @@
     "appleID": {
         "username": "",
         "password": "",
-        "token": ""
+        "token": {
+            "adsid": "",
+            "token": "",
+            "expiry": 0
+        }
     },
     "deviceInfo": {
         "clientInfo": {

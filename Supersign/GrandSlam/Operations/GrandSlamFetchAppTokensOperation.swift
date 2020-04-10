@@ -8,6 +8,15 @@
 
 import Foundation
 
+struct AppTokenKey: Hashable {
+    let rawValue: String
+    init(_ rawValue: String) { self.rawValue = rawValue }
+}
+
+extension AppTokenKey {
+    static let xcode = AppTokenKey("com.apple.gs.xcode.auth")
+}
+
 class GrandSlamFetchAppTokensOperation {
 
     enum Error: Swift.Error {
@@ -39,10 +48,10 @@ class GrandSlamFetchAppTokensOperation {
     private let decoder = PropertyListDecoder()
 
     let client: GrandSlamClient
-    let apps: [String]
+    let apps: [AppTokenKey]
     let loginData: GrandSlamLoginData
 
-    init(client: GrandSlamClient, apps: [String], loginData: GrandSlamLoginData) {
+    init(client: GrandSlamClient, apps: [AppTokenKey], loginData: GrandSlamLoginData) {
         self.client = client
         self.apps = apps
         self.loginData = loginData
@@ -50,18 +59,22 @@ class GrandSlamFetchAppTokensOperation {
 
     private func handle(
         response: GrandSlamAppTokensRequest.Decoder.Value,
-        completion: @escaping (Result<[String: Token], Swift.Error>) -> Void
+        completion: @escaping (Result<[AppTokenKey: Token], Swift.Error>) -> Void
     ) {
         guard let decrypted = AppTokensHelper.decryptGCM(response.encryptedToken, sk: self.loginData.sk)
             else { return completion(.failure(Error.invalidResponse)) }
         completion(Result {
-            try decoder.decode(Response.self, from: decrypted).tokens
+            let pairs = try decoder
+                .decode(Response.self, from: decrypted)
+                .tokens
+                .map { (AppTokenKey($0), $1) }
+            return Dictionary(uniqueKeysWithValues: pairs)
         })
     }
 
-    func perform(completion: @escaping (Result<[String: Token], Swift.Error>) -> Void) {
+    func perform(completion: @escaping (Result<[AppTokenKey: Token], Swift.Error>) -> Void) {
         let checksum = AppTokensHelper.createAppTokensChecksum(
-            withSK: loginData.sk, adsid: loginData.adsid, apps: apps
+            withSK: loginData.sk, adsid: loginData.adsid, apps: apps.map { $0.rawValue }
         )
         let appTokensRequest = GrandSlamAppTokensRequest(
             username: loginData.adsid,

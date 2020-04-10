@@ -57,7 +57,7 @@ class SupersignSigningTests: XCTestCase {
 
         let signingWaiter = ResultWaiter<()>(description: "Failed to sign app")
         signer.sign(app: app, status: { _ in }, progress: { _ in }, completion: signingWaiter.completion)
-        try signingWaiter.wait(timeout: 10000)
+        try XCTTry(signingWaiter.wait(timeout: 10000))
 
         // TODO: Ensure entitlements are correct in new app, also codesign -vvvv
     }
