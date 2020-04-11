@@ -27,7 +27,7 @@ class GrandSlamAuthenticateOperation {
         }
     }
 
-    private var helper = SRPHelper()
+    private var srpClient = SRPClient()
     private var isSecondAttempt = false
 
     private let decoder = PropertyListDecoder()
@@ -50,7 +50,7 @@ class GrandSlamAuthenticateOperation {
     }
 
     private func restartAuth(completion: @escaping (Result<GrandSlamLoginData, Swift.Error>) -> Void) {
-        helper = .init()
+        srpClient = .init()
         isSecondAttempt = true
         authenticate(completion: completion)
     }
@@ -77,17 +77,16 @@ class GrandSlamAuthenticateOperation {
         completeResponse: GrandSlamAuthCompleteRequest.Decoder.Value,
         completion: @escaping (Result<GrandSlamLoginData, Swift.Error>) -> Void
     ) {
-        helper.addString(toNegProt: "|")
-        helper.addData(toNegProt: completeResponse.encryptedResponse)
-        helper.addString(toNegProt: "|")
-        completeResponse.sc.map(helper.addData)
-        helper.addString(toNegProt: "|")
+        srpClient.add(string: "|")
+        srpClient.add(data: completeResponse.encryptedResponse)
+        srpClient.add(string: "|")
+        completeResponse.sc.map(srpClient.add(data:))
+        srpClient.add(string: "|")
 
-        guard helper.verifySession(withM2: completeResponse.m2Data) && helper.verifyNegProto(completeResponse.negProto) else {
-            return completion(.failure(Error.invalidSession))
-        }
+        guard srpClient.verify(m2: completeResponse.m2Data) && srpClient.verify(negProto: completeResponse.negProto)
+            else { return completion(.failure(Error.invalidSession)) }
 
-        guard let rawLoginResponse = helper.decryptCBC(completeResponse.encryptedResponse) else {
+        guard let rawLoginResponse = srpClient.decrypt(cbc: completeResponse.encryptedResponse) else {
             return completion(.failure(Error.invalidResponse))
         }
 
@@ -124,10 +123,10 @@ class GrandSlamAuthenticateOperation {
         completion: @escaping (Result<GrandSlamLoginData, Swift.Error>) -> Void
     ) {
         let isS2K = initResponse.selectedProtocol == .s2k
-        helper.addString(toNegProt: "|")
-        helper.addString(toNegProt: initResponse.selectedProtocol.rawValue)
+        srpClient.add(string: "|")
+        srpClient.add(string: initResponse.selectedProtocol.rawValue)
 
-        let mDataRaw = helper.processChallenge(
+        let mDataRaw = srpClient.processChallenge(
             withUsername: username,
             password: password,
             salt: initResponse.salt,
@@ -149,10 +148,10 @@ class GrandSlamAuthenticateOperation {
     func authenticate(
         completion: @escaping (Result<GrandSlamLoginData, Swift.Error>) -> Void
     ) {
-        helper.addString(toNegProt: GrandSlamAuthInitRequest.protocols.joined(separator: ","))
-        helper.addString(toNegProt: "|")
+        srpClient.add(string: GrandSlamAuthInitRequest.protocols.joined(separator: ","))
+        srpClient.add(string: "|")
 
-        let aData = helper.startAuthenticationAndGetA()
+        let aData = srpClient.startAuthenticationAndGetA()
 
         let initRequest = GrandSlamAuthInitRequest(username: username, aData: aData)
         client.send(initRequest) { result in

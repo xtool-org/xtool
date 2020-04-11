@@ -61,7 +61,7 @@ class GrandSlamFetchAppTokensOperation {
         response: GrandSlamAppTokensRequest.Decoder.Value,
         completion: @escaping (Result<[AppTokenKey: Token], Swift.Error>) -> Void
     ) {
-        guard let decrypted = AppTokensHelper.decryptGCM(response.encryptedToken, sk: self.loginData.sk)
+        guard let decrypted = AppTokens.decrypt(gcm: response.encryptedToken, sk: self.loginData.sk)
             else { return completion(.failure(Error.invalidResponse)) }
         completion(Result {
             let pairs = try decoder
@@ -73,9 +73,7 @@ class GrandSlamFetchAppTokensOperation {
     }
 
     func perform(completion: @escaping (Result<[AppTokenKey: Token], Swift.Error>) -> Void) {
-        let checksum = AppTokensHelper.createAppTokensChecksum(
-            withSK: loginData.sk, adsid: loginData.adsid, apps: apps.map { $0.rawValue }
-        )
+        let checksum = AppTokens.checksum(withSK: loginData.sk, adsid: loginData.adsid, apps: apps.map { $0.rawValue })
         let appTokensRequest = GrandSlamAppTokensRequest(
             username: loginData.adsid,
             apps: apps,
