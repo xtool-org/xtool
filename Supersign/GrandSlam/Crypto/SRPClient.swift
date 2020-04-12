@@ -61,6 +61,7 @@ class SRPClient {
                     saltBound.baseAddress!, saltBound.count,
                     .init(iterations),
                     bDataBound.baseAddress!,
+                    bDataBound.count,
                     isS2K,
                     &length
                 ).map { Data(bytesNoCopy: $0, count: length, deallocator: .free) }
