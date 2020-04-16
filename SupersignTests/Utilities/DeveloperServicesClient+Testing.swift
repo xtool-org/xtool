@@ -8,11 +8,25 @@
 
 import Foundation
 import XCTest
-import Supersign
+@testable import Supersign
 
-struct CredentialsManagerMock: DeveloperServicesCredentialsManager {
-    // store login in memory
-    public var token: DeveloperServicesCredentialsToken?
+extension TCPAnisetteDataProvider {
+
+    static func test() -> TCPAnisetteDataProvider {
+        TCPAnisetteDataProvider(localPort: 4321)
+    }
+
+}
+
+extension GrandSlamClient {
+
+    static func test() -> GrandSlamClient {
+        GrandSlamClient(
+            deviceInfo: Config.current.deviceInfo,
+            customAnisetteDataProvider: TCPAnisetteDataProvider.test()
+        )
+    }
+
 }
 
 extension DeveloperServicesClient {
@@ -21,7 +35,7 @@ extension DeveloperServicesClient {
         DeveloperServicesClient(
             loginToken: Config.current.appleID.token,
             deviceInfo: Config.current.deviceInfo,
-            customAnisetteDataProvider: DirectAnisetteDataProvider()
+            customAnisetteDataProvider: TCPAnisetteDataProvider.test()
         )
     }
 

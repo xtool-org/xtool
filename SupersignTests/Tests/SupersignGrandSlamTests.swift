@@ -23,10 +23,7 @@ class SupersignGrandSlamTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        client = GrandSlamClient(
-            deviceInfo: Config.current.deviceInfo,
-            customAnisetteDataProvider: DirectAnisetteDataProvider()
-        )
+        client = .test()
         authenticator = TwoFactorAuthenticator()
     }
 

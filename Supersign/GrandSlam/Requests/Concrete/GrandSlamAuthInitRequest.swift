@@ -16,14 +16,14 @@ struct GrandSlamAuthInitRequest: GrandSlamOperationRequest {
         let cookie: String
         let salt: Data
         let iterations: Int
-        let bData: Data
+        let serverPublicKey: Data
 
         private enum CodingKeys: String, CodingKey {
             case selectedProtocol = "sp"
             case cookie = "c"
             case salt = "s"
             case iterations = "i"
-            case bData = "B"
+            case serverPublicKey = "B"
         }
     }
 
@@ -32,12 +32,12 @@ struct GrandSlamAuthInitRequest: GrandSlamOperationRequest {
     static let protocols: [String] =  GrandSlamAuthProtocol.allCases.map { $0.rawValue }
 
     let username: String
-    let aData: Data
+    let publicKey: Data
 
     var parameters: [String: Any] {
         [
             "ps": Self.protocols,
-            "A2k": aData,
+            "A2k": publicKey,
         ]
     }
 

@@ -83,7 +83,7 @@ class GrandSlamAuthenticateOperation {
         completeResponse.sc.map(srpClient.add(data:))
         srpClient.add(string: "|")
 
-        guard srpClient.verify(m2: completeResponse.m2Data) && srpClient.verify(negProto: completeResponse.negProto)
+        guard srpClient.verify(hamk: completeResponse.hamk) && srpClient.verify(negProto: completeResponse.negProto)
             else { return completion(.failure(Error.invalidSession)) }
 
         guard let rawLoginResponse = srpClient.decrypt(cbc: completeResponse.encryptedResponse) else {
@@ -131,7 +131,7 @@ class GrandSlamAuthenticateOperation {
             password: password,
             salt: initResponse.salt,
             iterations: initResponse.iterations,
-            bData: initResponse.bData,
+            serverPublicKey: initResponse.serverPublicKey,
             isS2K: isS2K
         )
         guard let m1Data = mDataRaw else { return completion(.failure(Error.failedChallenge)) }
@@ -151,9 +151,9 @@ class GrandSlamAuthenticateOperation {
         srpClient.add(string: GrandSlamAuthInitRequest.protocols.joined(separator: ","))
         srpClient.add(string: "|")
 
-        let aData = srpClient.startAuthenticationAndGetA()
+        let publicKey = srpClient.publicKey()
 
-        let initRequest = GrandSlamAuthInitRequest(username: username, aData: aData)
+        let initRequest = GrandSlamAuthInitRequest(username: username, publicKey: publicKey)
         client.send(initRequest) { result in
             guard let response = result.get(withErrorHandler: completion) else { return }
             self.authenticateStage2(initResponse: response, completion: completion)

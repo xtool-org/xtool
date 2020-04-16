@@ -37,9 +37,9 @@ class SRPClient {
 
     // MARK: - SRP
 
-    func startAuthenticationAndGetA() -> Data {
+    func publicKey() -> Data {
         var length = 0
-        return Data(bytesNoCopy: srp_client_start_auth_and_get_a(raw, &length), count: length, deallocator: .free)
+        return Data(bytesNoCopy: srp_client_copy_public_key(raw, &length), count: length, deallocator: .free)
     }
 
     func processChallenge(
@@ -47,21 +47,21 @@ class SRPClient {
         password: String,
         salt: Data,
         iterations: Int,
-        bData: Data,
+        serverPublicKey key: Data,
         isS2K: Bool
     ) -> Data? {
         salt.withUnsafeBytes { saltBuf in
-            bData.withUnsafeBytes { bDataBuf in
+            key.withUnsafeBytes { keyBuf in
                 let saltBound = saltBuf.bindMemory(to: Int8.self)
-                let bDataBound = bDataBuf.bindMemory(to: Int8.self)
+                let keyBound = keyBuf.bindMemory(to: Int8.self)
                 var length = 0
                 return srp_client_process_challenge(
                     raw,
                     username, password,
                     saltBound.baseAddress!, saltBound.count,
                     .init(iterations),
-                    bDataBound.baseAddress!,
-                    bDataBound.count,
+                    keyBound.baseAddress!,
+                    keyBound.count,
                     isS2K,
                     &length
                 ).map { Data(bytesNoCopy: $0, count: length, deallocator: .free) }
@@ -69,10 +69,10 @@ class SRPClient {
         }
     }
 
-    func verify(m2: Data) -> Bool {
-        m2.withUnsafeBytes { buf in
+    func verify(hamk: Data) -> Bool {
+        hamk.withUnsafeBytes { buf in
             let bound = buf.bindMemory(to: Int8.self)
-            return srp_client_verify_session_m2(raw, bound.baseAddress!, bound.count)
+            return srp_client_verify_session_HAMK(raw, bound.baseAddress!, bound.count)
         }
     }
 
