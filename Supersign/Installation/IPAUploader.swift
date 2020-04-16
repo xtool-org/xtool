@@ -48,6 +48,7 @@ public class IPAUploader {
             buf = srcHandle.readData(ofLength: 1 << 20) // 1 MB
             var bufWritten = 0
             while bufWritten < buf.count {
+                // not sure if rewriting the same buf is a bug but ideviceinstaller does it this way
                 let written = try destFile.write(buf)
                 bufWritten += written
                 totalWritten += written

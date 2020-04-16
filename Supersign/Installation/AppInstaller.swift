@@ -45,14 +45,11 @@ public class AppInstaller {
                     value: "Uploading",
                     comment: ""
                 )
-            case .installing(let details, _):
-                return String.localizedStringWithFormat(
-                    NSLocalizedString(
-                        "app_installer.stage.installing",
-                        value: "Installing: %@",
-                        comment: "The %@ represents the stage reported by Apple (eg. VerifyingApplication)"
-                    ),
-                    details
+            case .installing:
+                return NSLocalizedString(
+                    "app_installer.stage.installing",
+                    value: "Installing",
+                    comment: ""
                 )
             }
         }

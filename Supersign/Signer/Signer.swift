@@ -86,6 +86,7 @@ public struct Signer {
         progress: @escaping (Double) -> Void,
         completion: @escaping (Result<(), Swift.Error>) -> Void
     ) {
+        status(NSLocalizedString("signer.signing", value: "Signing", comment: ""))
         DeveloperServicesProvisioningOperation(context: context, app: app).perform { result in
             guard let response = result.get(withErrorHandler: completion) else { return }
             self.sign(

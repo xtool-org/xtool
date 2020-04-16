@@ -46,7 +46,7 @@ extension KeyValueStorage {
 #if canImport(Security)
 import Security
 
-public struct KeychainKeyValueStorage: KeyValueStorage {
+public struct KeychainStorage: KeyValueStorage {
 
     public let service: String?
     public init(service: String? = nil) {
