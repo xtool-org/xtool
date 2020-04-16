@@ -70,6 +70,8 @@ public struct Signer {
         }
 
         let entitlements = provisioningDict.mapValues { $0.entitlements }
+
+        status(NSLocalizedString("signer.signing", value: "Signing", comment: ""))
         context.signerImpl.sign(
             app: app,
             certificate: signingInfo.certificate,
@@ -86,8 +88,8 @@ public struct Signer {
         progress: @escaping (Double) -> Void,
         completion: @escaping (Result<(), Swift.Error>) -> Void
     ) {
-        status(NSLocalizedString("signer.signing", value: "Signing", comment: ""))
-        DeveloperServicesProvisioningOperation(context: context, app: app).perform { result in
+        status(NSLocalizedString("signer.provisioning", value: "Provisioning", comment: ""))
+        DeveloperServicesProvisioningOperation(context: context, app: app, progress: progress).perform { result in
             guard let response = result.get(withErrorHandler: completion) else { return }
             self.sign(
                 app: app,

@@ -9,9 +9,10 @@
 import Foundation
 import SwiftyMobileDevice
 
-public class IPAUploader {
+public final class IPAUploader {
 
     private static let packagePath = URL(fileURLWithPath: "PublicStaging")
+    private static let bufferSize = 1 << 20 // 1 MB
 
     public class UploadedIPA {
         public let uploader: IPAUploader
@@ -36,25 +37,26 @@ public class IPAUploader {
     }
 
     private func upload(_ src: URL, to dest: URL, progress: (Double) -> Void) throws {
-        let srcHandle = try FileHandle(forReadingFrom: src)
-        let size = srcHandle.seekToEndOfFile()
-        srcHandle.seek(toFileOffset: 0)
-
+        let srcData = try Data(contentsOf: src)
+        let size = srcData.count
+        let sizeDouble = Double(size)
         let destFile = try client.open(dest, mode: .writeOnly)
 
+        let bufferSize = Self.bufferSize
+
         var totalWritten = 0
-        var buf: Data
-        repeat {
-            buf = srcHandle.readData(ofLength: 1 << 20) // 1 MB
+        while totalWritten != size {
+            let buf = srcData.dropFirst(totalWritten).prefix(bufferSize)
+            let bufSize = buf.count
             var bufWritten = 0
-            while bufWritten < buf.count {
+            while bufWritten < bufSize {
                 // not sure if rewriting the same buf is a bug but ideviceinstaller does it this way
                 let written = try destFile.write(buf)
                 bufWritten += written
                 totalWritten += written
-                progress(Double(totalWritten) / Double(size))
+                progress(Double(totalWritten) / sizeDouble)
             }
-        } while !buf.isEmpty
+        }
     }
 
     public func upload(ipa: URL, withBundleID bundleID: String, progress: (Double) -> Void) throws -> UploadedIPA {

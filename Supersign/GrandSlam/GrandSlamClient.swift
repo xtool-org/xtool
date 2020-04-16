@@ -32,8 +32,6 @@ class GrandSlamClient {
         url: URL,
         completion: @escaping (Result<R.Decoder.Value, Swift.Error>) -> Void
     ) {
-        print("Sending: \(request) to \(url)")
-
         var urlRequest = URLRequest(url: url)
         urlRequest.setValue("text/x-xml-plist", forHTTPHeaderField: "Content-Type")
         urlRequest.setValue(deviceInfo.clientInfo.clientString, forHTTPHeaderField: DeviceInfo.clientInfoKey)

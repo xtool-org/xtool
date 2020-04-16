@@ -79,7 +79,7 @@ public class AppInstaller {
         ipa: URL,
         bundleID: String,
         udid: String,
-        pairingKeys: URL,
+        pairingKeys: Data,
         progress: @escaping (Stage) -> Void
     ) throws {
         let connection = try Connection(udid: udid, pairingKeys: pairingKeys) {
@@ -109,7 +109,7 @@ public class AppInstaller {
         ipa: URL,
         bundleID: String,
         udid: String,
-        pairingKeys: URL,
+        pairingKeys: Data,
         progress: @escaping (Stage) -> Void,
         completion: @escaping (Result<(), Swift.Error>) -> Void
     ) {

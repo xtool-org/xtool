@@ -23,18 +23,24 @@ public struct DeveloperServicesProvisioningOperation: DeveloperServicesOperation
 
     public let context: SigningContext
     public let app: URL
-    public init(context: SigningContext, app: URL) {
+    public let progress: (Double) -> Void
+    public init(context: SigningContext, app: URL, progress: @escaping (Double) -> Void) {
         self.context = context
         self.app = app
+        self.progress = progress
     }
 
     public func perform(completion: @escaping (Result<Response, Error>) -> Void) {
+        progress(0/3)
         DeveloperServicesFetchDeviceOperation(context: context).perform { result in
             guard result.get(withErrorHandler: completion) != nil else { return }
+            self.progress(1/3)
             DeveloperServicesFetchCertificateOperation(context: self.context).perform { result in
                 guard let signingInfo = result.get(withErrorHandler: completion) else { return }
+                self.progress(2/3)
                 DeveloperServicesAddAppOperation(context: self.context, root: self.app).perform { result in
                     guard let provisioningDict = result.get(withErrorHandler: completion) else { return }
+                    self.progress(3/3)
                     completion(.success(.init(signingInfo: signingInfo, provisioningDict: provisioningDict)))
                 }
             }
