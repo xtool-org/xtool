@@ -11,7 +11,7 @@ import Foundation
 public struct SigningContext {
 
     public let udid: String
-    public let team: DeveloperServicesTeam
+    public let teamID: DeveloperServicesTeam.ID
     public let client: DeveloperServicesClient
     public let signingInfoManager: SigningInfoManager
     public let platform: DeveloperServicesPlatform
@@ -19,14 +19,14 @@ public struct SigningContext {
 
     public init(
         udid: String,
-        team: DeveloperServicesTeam,
+        teamID: DeveloperServicesTeam.ID,
         client: DeveloperServicesClient,
         signingInfoManager: SigningInfoManager,
         platform: DeveloperServicesPlatform = .current,
         signerImpl: SignerImpl? = nil
     ) throws {
         self.udid = udid
-        self.team = team
+        self.teamID = teamID
         self.client = client
         self.signingInfoManager = signingInfoManager
         self.platform = platform

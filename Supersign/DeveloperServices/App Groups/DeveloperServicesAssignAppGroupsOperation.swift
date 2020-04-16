@@ -25,7 +25,7 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
         completion: @escaping (Result<DeveloperServicesAppGroup.GroupID, Swift.Error>) -> Void
     ) {
         let request = DeveloperServicesAssignAppGroupRequest(
-            platform: context.platform, teamID: context.team.id, appIDID: appID.id, groupID: group.id
+            platform: context.platform, teamID: context.teamID, appIDID: appID.id, groupID: group.id
         )
         context.client.send(request) { result in
             guard result.get(withErrorHandler: completion) != nil else { return }
@@ -48,7 +48,7 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
             let groupID = ProvisioningIdentifiers.groupID(fromSanitized: sanitized)
             let name = ProvisioningIdentifiers.groupName(fromSanitized: sanitized)
             let request = DeveloperServicesAddAppGroupRequest(
-                platform: context.platform, teamID: context.team.id, name: name, groupID: groupID
+                platform: context.platform, teamID: context.teamID, name: name, groupID: groupID
             )
             context.client.send(request) { result in
                 guard let group = result.get(withErrorHandler: completion) else { return }
@@ -58,7 +58,7 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
     }
 
     public func perform(completion: @escaping (Result<[DeveloperServicesAppGroup.GroupID], Error>) -> Void) {
-        let request = DeveloperServicesListAppGroupsRequest(platform: context.platform, teamID: context.team.id)
+        let request = DeveloperServicesListAppGroupsRequest(platform: context.platform, teamID: context.teamID)
         context.client.send(request) { result in
             guard let existingGroups = result.get(withErrorHandler: completion) else { return }
 

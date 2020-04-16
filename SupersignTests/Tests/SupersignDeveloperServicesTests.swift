@@ -34,7 +34,7 @@ class SupersignDeveloperServicesTests: XCTestCase {
 
         let context = try XCTTry(SigningContext(
             udid: Config.current.udid,
-            team: team,
+            teamID: team.id,
             client: client,
             signingInfoManager: TestSigningInfoManager()
         ))

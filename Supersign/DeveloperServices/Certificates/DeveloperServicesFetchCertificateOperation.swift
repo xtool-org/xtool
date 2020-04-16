@@ -17,7 +17,7 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
             switch self {
             case .csrFailed:
                 return NSLocalizedString(
-                    "certificate_request_helper.error.csr_failed", value: "CSR request failed", comment: ""
+                    "fetch_certificate_operation.error.csr_failed", value: "CSR request failed", comment: ""
                 )
             }
         }
@@ -43,7 +43,7 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
 
         let request = DeveloperServicesSubmitCSRRequest(
             platform: context.platform,
-            teamID: context.team.id,
+            teamID: context.teamID,
             csr: csr,
             machineName: context.deviceName,
             machineID: context.udid
@@ -53,7 +53,7 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
             let serialNumber = partialCert.serialNumber
 
             let request = DeveloperServicesListCertificatesRequest(
-                teamID: self.context.team.id, certificateKind: .init(platform: self.context.platform)
+                teamID: self.context.teamID, certificateKind: .init(platform: self.context.platform)
             )
             self.context.client.send(request) { result in
                 guard let certificates = result.get(withErrorHandler: completion) else { return }
@@ -69,7 +69,7 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
     ) {
         createCertificate { result in
             guard let value = result.get(withErrorHandler: completion) else { return }
-            self.context.signingInfoManager[self.context.team.id] = value
+            self.context.signingInfoManager[self.context.teamID] = value
             completion(.success(value))
         }
     }
@@ -78,7 +78,7 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
         certificate: DeveloperServicesCertificate,
         completion: @escaping (Result<SigningInfo, Swift.Error>) -> Void
     ) {
-        let request = DeveloperServicesRevokeCertificateRequest(teamID: context.team.id, certificateID: certificate.id)
+        let request = DeveloperServicesRevokeCertificateRequest(teamID: context.teamID, certificateID: certificate.id)
         context.client.send(request) { result in
             guard result.get(withErrorHandler: completion) != nil else { return }
             self.createAndSaveCertificate(completion: completion)
@@ -87,7 +87,7 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
 
     public func perform(completion: @escaping (Result<SigningInfo, Swift.Error>) -> Void) {
         let request = DeveloperServicesListCertificatesRequest(
-            teamID: context.team.id, certificateKind: .init(platform: context.platform)
+            teamID: context.teamID, certificateKind: .init(platform: context.platform)
         )
         context.client.send(request) { result in
             guard let certificates = result.get(withErrorHandler: completion) else { return }
@@ -96,7 +96,7 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
                 return self.createAndSaveCertificate(completion: completion)
             }
 
-            guard let signingInfo = self.context.signingInfoManager[self.context.team.id],
+            guard let signingInfo = self.context.signingInfoManager[self.context.teamID],
                 let serialNumber = try? signingInfo.certificate.serialNumber(),
                 certificate.attributes.serialNumber.rawValue == serialNumber,
                 certificate.attributes.expiry > Date()

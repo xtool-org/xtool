@@ -22,18 +22,18 @@ public struct DeveloperServicesFetchProfileOperation: DeveloperServicesOperation
         completion: @escaping (Result<DeveloperServicesProfile, Swift.Error>) -> Void
     ) {
         let request = DeveloperServicesGetProfileRequest(
-            platform: context.platform, teamID: context.team.id, appIDID: appID.id
+            platform: context.platform, teamID: context.teamID, appIDID: appID.id
         )
         context.client.send(request, completion: completion)
     }
 
     public func perform(completion: @escaping (Result<DeveloperServicesProfile, Error>) -> Void) {
-        let request = DeveloperServicesListProfilesRequest(platform: context.platform, teamID: context.team.id)
+        let request = DeveloperServicesListProfilesRequest(platform: context.platform, teamID: context.teamID)
         context.client.send(request) { result in
             guard let profiles = result.get(withErrorHandler: completion) else { return }
             if let profile = profiles.first(where: { $0.appID.id == self.appID.id }) {
                 let request = DeveloperServicesDeleteProfileRequest(
-                    platform: self.context.platform, teamID: self.context.team.id, profileID: profile.id
+                    platform: self.context.platform, teamID: self.context.teamID, profileID: profile.id
                 )
                 self.context.client.send(request) { result in
                     guard result.get(withErrorHandler: completion) != nil else { return }

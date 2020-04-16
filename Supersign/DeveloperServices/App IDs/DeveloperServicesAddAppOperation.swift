@@ -12,14 +12,23 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
 
     public enum Error: LocalizedError {
         case invalidApp(URL)
+        case teamNotFound(DeveloperServicesTeam.ID)
 
         public var errorDescription: String? {
             switch self {
             case .invalidApp(let url):
                 return String.localizedStringWithFormat(
                     NSLocalizedString(
-                        "app_id_request_helper.error.invalid_app", value: "Invalid app: %@", comment: ""
+                        "add_app_operation.error.invalid_app", value: "Invalid app: %@", comment: ""
                     ), url.path
+                )
+            case .teamNotFound(let id):
+                return String.localizedStringWithFormat(
+                    NSLocalizedString(
+                        "add_app_operation.error.team_not_found",
+                        value: "A team with the ID '%@' could not be found. Please select another team.",
+                        comment: ""
+                    ), id.rawValue
                 )
             }
         }
@@ -36,9 +45,10 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
     private func addOrFetchApp(
         bundleID: String,
         entitlements: Entitlements,
+        team: DeveloperServicesTeam,
         completion: @escaping (Result<DeveloperServicesAppID, Swift.Error>) -> Void
     ) {
-        let request = DeveloperServicesListAppIDsRequest(platform: context.platform, teamID: context.team.id)
+        let request = DeveloperServicesListAppIDsRequest(platform: context.platform, teamID: context.teamID)
         context.client.send(request) { result in
             guard let appIDs = result.get(withErrorHandler: completion) else { return }
             if let appID = appIDs.first(where: {
@@ -46,11 +56,11 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
             }) {
                 let request = DeveloperServicesUpdateAppIDRequest(
                     platform: self.context.platform,
-                    teamID: self.context.team.id,
+                    teamID: self.context.teamID,
                     appIDID: appID.id,
                     entitlements: entitlements,
                     additionalFeatures: [],
-                    isFree: self.context.team.isFree
+                    isFree: team.isFree
                 )
                 self.context.client.send(request, completion: completion)
             } else {
@@ -58,12 +68,12 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
                 let name = ProvisioningIdentifiers.appName(fromSanitized: bundleID)
                 let request = DeveloperServicesAddAppIDRequest(
                     platform: self.context.platform,
-                    teamID: self.context.team.id,
+                    teamID: self.context.teamID,
                     bundleID: newBundleID,
                     appName: name,
                     entitlements: entitlements,
                     additionalFeatures: [],
-                    isFree: self.context.team.isFree
+                    isFree: team.isFree
                 )
                 self.context.client.send(request, completion: completion)
             }
@@ -73,6 +83,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
     /// Registers the app and returns the resultant entitlements
     private func addAppAndGetEntitlements(
         app: URL,
+        team: DeveloperServicesTeam,
         // old bundle id, app id, ents
         completion: @escaping (Result<(DeveloperServicesAppID, Entitlements), Swift.Error>) -> Void
     ) {
@@ -91,7 +102,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
             let decodedEntitlements = try? PropertyListDecoder().decode(Entitlements.self, from: entitlementsData) {
             entitlements = decodedEntitlements
 
-            if context.team.isFree {
+            if team.isFree {
                 do {
                     // re-assign rather than using updateEntitlements since the latter will
                     // retain unrecognized entitlements
@@ -109,11 +120,11 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
             }
         }
 
-        addOrFetchApp(bundleID: bundleID, entitlements: entitlements) { result in
+        addOrFetchApp(bundleID: bundleID, entitlements: entitlements, team: team) { result in
             guard let appID = result.get(withErrorHandler: completion) else { return }
 
             do {
-                try entitlements.update(teamID: self.context.team.id, bundleID: appID.bundleID)
+                try entitlements.update(teamID: self.context.teamID, bundleID: appID.bundleID)
             } catch {
                 return completion(.failure(error))
             }
@@ -150,9 +161,10 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
     /// that the app has).
     private func addApp(
         _ app: URL,
+        with team: DeveloperServicesTeam,
         completion: @escaping (Result<ProvisioningInfo, Swift.Error>) -> Void
     ) {
-        addAppAndGetEntitlements(app: app) { result in
+        addAppAndGetEntitlements(app: app, team: team) { result in
             guard let (appID, entitlements) = result.get(withErrorHandler: completion) else { return }
             DeveloperServicesFetchProfileOperation(context: self.context, appID: appID).perform { result in
                 guard let profile = result.get(withErrorHandler: completion) else { return }
@@ -165,8 +177,10 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
         }
     }
 
-    /// Registers the app + its extensions, returning the profile and entitlements of each
-    public func perform(completion: @escaping (Result<[URL: ProvisioningInfo], Swift.Error>) -> Void) {
+    private func perform(
+        with team: DeveloperServicesTeam,
+        completion: @escaping (Result<[URL: ProvisioningInfo], Swift.Error>) -> Void
+    ) {
         var apps: [URL] = [root]
         let plugins = root.appendingPathComponent("PlugIns")
         if plugins.dirExists {
@@ -176,10 +190,21 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
         let grouper = RequestGrouper<(URL, ProvisioningInfo), Swift.Error>()
         for app in apps {
             grouper.add { completion in
-                addApp(app) { completion($0.map { (app, $0) }) }
+                addApp(app, with: team) { completion($0.map { (app, $0) }) }
             }
         }
         grouper.onComplete { completion($0.map(Dictionary.init(uniqueKeysWithValues:))) }
+    }
+
+    /// Registers the app + its extensions, returning the profile and entitlements of each
+    public func perform(completion: @escaping (Result<[URL: ProvisioningInfo], Swift.Error>) -> Void) {
+        let request = DeveloperServicesListTeamsRequest()
+        context.client.send(request) { result in
+            guard let teams = result.get(withErrorHandler: completion) else { return }
+            guard let team = teams.first(where: { $0.id == self.context.teamID })
+                else { return completion(.failure(Error.teamNotFound(self.context.teamID))) }
+            self.perform(with: team, completion: completion)
+        }
     }
 
 }
