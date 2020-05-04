@@ -46,7 +46,7 @@ public class Connection {
         usbmuxHandler.stop()
     }
 
-    public func startClient<T: Service>(_ type: T.Type = T.self, sendEscrowBag: Bool = false) throws -> T {
+    public func startClient<T: LockdownService>(_ type: T.Type = T.self, sendEscrowBag: Bool = false) throws -> T {
         try .init(device: device, service: .init(client: client, sendEscrowBag: sendEscrowBag))
     }
 
