@@ -18,12 +18,28 @@ extension TCPAnisetteDataProvider {
 
 }
 
+extension NetcatAnisetteDataProvider {
+
+    static func test() -> NetcatAnisetteDataProvider {
+        NetcatAnisetteDataProvider(localPort: 4322, deviceInfo: Config.current.deviceInfo)
+    }
+
+}
+
+extension SupersetteDataProvider {
+
+    static func test() -> SupersetteDataProvider {
+        SupersetteDataProvider(deviceInfo: Config.current.deviceInfo)
+    }
+
+}
+
 extension GrandSlamClient {
 
     static func test() -> GrandSlamClient {
         GrandSlamClient(
             deviceInfo: Config.current.deviceInfo,
-            customAnisetteDataProvider: TCPAnisetteDataProvider.test()
+            customAnisetteDataProvider: SupersetteDataProvider.test()
         )
     }
 
@@ -35,7 +51,7 @@ extension DeveloperServicesClient {
         DeveloperServicesClient(
             loginToken: Config.current.appleID.token,
             deviceInfo: Config.current.deviceInfo,
-            customAnisetteDataProvider: TCPAnisetteDataProvider.test()
+            customAnisetteDataProvider: SupersetteDataProvider.test()
         )
     }
 

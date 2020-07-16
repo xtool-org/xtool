@@ -45,7 +45,7 @@ extension SigningContext {
         #elseif canImport(UIKit)
         return UIDevice.current.name
         #elseif os(macOS)
-        return Host.current.localizedName ?? "Mac"
+        return Host.current().localizedName ?? "Mac"
         #else
         return "Supercharge Client"
         #endif

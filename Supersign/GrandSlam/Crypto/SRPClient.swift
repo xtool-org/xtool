@@ -20,17 +20,13 @@ class SRPClient {
     }
 
     func add(data: Data) {
-        data.withUnsafeBytes { buf in
-            let bound = buf.bindMemory(to: Int8.self)
-            srp_client_add_data(raw, bound.baseAddress!, bound.count)
-        }
+        data.withUnsafeBytes { srp_client_add_data(raw, $0.baseAddress!, $0.count) }
     }
 
     func decrypt(cbc: Data) -> Data? {
         cbc.withUnsafeBytes { buf in
-            let bound = buf.bindMemory(to: Int8.self)
             var length = 0
-            return srp_client_decrypt_cbc(raw, bound.baseAddress!, bound.count, &length)
+            return srp_client_decrypt_cbc(raw, buf.baseAddress!, buf.count, &length)
                 .map { Data(bytesNoCopy: $0, count: length, deallocator: .free) }
         }
     }
@@ -52,16 +48,14 @@ class SRPClient {
     ) -> Data? {
         salt.withUnsafeBytes { saltBuf in
             key.withUnsafeBytes { keyBuf in
-                let saltBound = saltBuf.bindMemory(to: Int8.self)
-                let keyBound = keyBuf.bindMemory(to: Int8.self)
                 var length = 0
                 return srp_client_process_challenge(
                     raw,
                     username, password,
-                    saltBound.baseAddress!, saltBound.count,
+                    saltBuf.baseAddress!, saltBuf.count,
                     .init(iterations),
-                    keyBound.baseAddress!,
-                    keyBound.count,
+                    keyBuf.baseAddress!,
+                    keyBuf.count,
                     isS2K,
                     &length
                 ).map { Data(bytesNoCopy: $0, count: length, deallocator: .free) }
@@ -70,17 +64,11 @@ class SRPClient {
     }
 
     func verify(hamk: Data) -> Bool {
-        hamk.withUnsafeBytes { buf in
-            let bound = buf.bindMemory(to: Int8.self)
-            return srp_client_verify_session_HAMK(raw, bound.baseAddress!, bound.count)
-        }
+        hamk.withUnsafeBytes { srp_client_verify_session_HAMK(raw, $0.baseAddress!, $0.count) }
     }
 
     func verify(negProto: Data) -> Bool {
-        negProto.withUnsafeBytes { buf in
-            let bound = buf.bindMemory(to: Int8.self)
-            return srp_client_verify_neg_proto(raw, bound.baseAddress!, bound.count)
-        }
+        negProto.withUnsafeBytes { srp_client_verify_neg_proto(raw, $0.baseAddress!, $0.count) }
     }
 
 }

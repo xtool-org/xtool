@@ -86,25 +86,18 @@ public class AppInstaller {
         }
     }
 
-    public let ipa: URL
-    public let bundleID: String
+    public let app: URL
     public let udid: String
-    public let pairingKeys: Data
+    public let pairingKeys: PairingKeys
     public init(
-        ipa: URL,
-        bundleID: String,
+        app: URL,
         udid: String,
-        pairingKeys: Data
+        pairingKeys: PairingKeys
     ) {
-        self.ipa = ipa
-        self.bundleID = bundleID
+        self.app = app
         self.udid = udid
         self.pairingKeys = pairingKeys
     }
-
-    #warning("We should have some sort of `static` queue/lock")
-    // because if two connections are attempted simultaneously,
-    // the heartbeat will fail.
 
     // synchronous
     private func installSync(
@@ -132,14 +125,14 @@ public class AppInstaller {
 
         try cancelPoint()
 
-        let uploaded = try uploader.upload(ipa: ipa, withBundleID: bundleID) { currentProgress in
+        let uploaded = try uploader.upload(app: app) { currentProgress in
             progress(.uploading(currentProgress))
         }
         defer { uploaded.delete() }
 
         try cancelPoint()
 
-        try installer.install(uploaded: uploaded, bundleID: bundleID) { currentProgress in
+        try installer.install(uploaded: uploaded) { currentProgress in
             progress(.installing(currentProgress.details, currentProgress.progress))
         }
     }

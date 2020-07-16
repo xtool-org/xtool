@@ -10,7 +10,7 @@ import XCTest
 @testable import Supersign
 
 class TwoFactorAuthenticator: TwoFactorAuthDelegate {
-    func fetchCode(completion: @escaping (String) -> Void) {
+    func fetchCode(completion: @escaping (String?) -> Void) {
         print("Code: ", terminator: "")
         completion(readLine() ?? "")
     }

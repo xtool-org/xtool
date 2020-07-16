@@ -36,11 +36,12 @@ class SupersignDeveloperServicesTests: XCTestCase {
             udid: Config.current.udid,
             teamID: team.id,
             client: client,
-            signingInfoManager: TestSigningInfoManager()
+            signingInfoManager: MemoryBackedSigningInfoManager()
         ))
 
         let waiter = ResultWaiter<DeveloperServicesProvisioningOperation.Response>(description: "Failed to provision")
-        DeveloperServicesProvisioningOperation(context: context, app: source).perform(completion: waiter.completion)
+        DeveloperServicesProvisioningOperation(context: context, app: source) { _ in }
+            .perform(completion: waiter.completion)
         let response = try XCTTry(waiter.wait(timeout: 10000))
 
         print(response)

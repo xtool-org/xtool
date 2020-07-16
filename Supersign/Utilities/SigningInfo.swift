@@ -29,6 +29,20 @@ extension SigningInfoManager {
     }
 }
 
+public class MemoryBackedSigningInfoManager: SigningInfoManager {
+    private var infos: [String: SigningInfo] = [:]
+
+    public init() {}
+
+    public func info(forTeamID teamID: DeveloperServicesTeam.ID) throws -> SigningInfo? {
+        infos[teamID.rawValue]
+    }
+
+    public func setInfo(_ info: SigningInfo?, forTeamID teamID: DeveloperServicesTeam.ID) throws {
+        infos[teamID.rawValue] = info
+    }
+}
+
 public struct KeyValueSigningInfoManager: SigningInfoManager {
     private enum KeyType: String {
         case certificate

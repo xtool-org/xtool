@@ -22,7 +22,7 @@ class GrandSlamClient {
     ) {
         self.deviceInfo = deviceInfo
         self.anisetteDataProvider = customAnisetteDataProvider
-            ?? ComputedAnisetteDataProvider(deviceInfo: deviceInfo)
+            ?? SupersetteDataProvider(deviceInfo: deviceInfo)
         self.lookupManager = .init(deviceInfo: deviceInfo)
     }
 
@@ -52,8 +52,8 @@ class GrandSlamClient {
         }
         request.configure(request: &urlRequest, deviceInfo: deviceInfo, anisetteData: anisetteData)
 
-        URLSession.shared.dataTask(with: urlRequest) { data, response, error in
-            print(response.map(String.init(describing:)) ?? "NO RESPONSE")
+        URLSession.shared.dataTask(with: urlRequest) { data, _, error in
+//            print(response.map(String.init(describing:)) ?? "NO RESPONSE")
             if let error = error {
                 return completion(.failure(error))
             }

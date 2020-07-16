@@ -18,20 +18,21 @@ public class IPAInstaller {
 
     public func install(
         uploaded: IPAUploader.UploadedIPA,
-        bundleID: String,
         progress: @escaping (InstallationProxyClient.InstallProgress) -> Void
     ) throws {
-        let options = InstallationProxyClient.Options(additionalOptions: ["CFBundleIdentifier": bundleID])
-
-        var error: Error?
+        var result: Result<(), Error>?
         let semaphore = DispatchSemaphore(value: 0)
-        client.install(package: uploaded.location, options: options, progress: progress) { result in
-            defer { semaphore.signal() }
-            if case let .failure(e) = result { error = e }
-        }
+        client.install(
+            package: uploaded.location,
+            progress: progress,
+            completion: { res in
+                defer { semaphore.signal() }
+                result = res
+            }
+        )
         semaphore.wait()
 
-        if let error = error { throw error }
+        try result!.get()
     }
 
 }

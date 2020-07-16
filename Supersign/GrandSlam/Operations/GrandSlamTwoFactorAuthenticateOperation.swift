@@ -9,13 +9,14 @@
 import Foundation
 
 public protocol TwoFactorAuthDelegate: class {
-    func fetchCode(completion: @escaping (String) -> Void)
+    func fetchCode(completion: @escaping (String?) -> Void)
 }
 
 class GrandSlamTwoFactorAuthenticateOperation {
 
     enum Error: Swift.Error {
         case incorrectVerificationCode
+        case userCancelled
     }
 
     let client: GrandSlamClient
@@ -42,7 +43,8 @@ class GrandSlamTwoFactorAuthenticateOperation {
         }
     }
 
-    private func validate(code: String, completion: @escaping (Result<(), Swift.Error>) -> Void) {
+    private func validate(code: String?, completion: @escaping (Result<(), Swift.Error>) -> Void) {
+        guard let code = code else { return completion(.failure(Error.userCancelled)) }
         let request = GrandSlamValidateRequest(loginData: loginData, verificationCode: code)
         client.send(request) { result in
             switch result {

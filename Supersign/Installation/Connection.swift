@@ -20,7 +20,7 @@ public class Connection {
     public let client: LockdownClient
     private let heartbeatHandler: HeartbeatHandler
 
-    public init(udid: String, pairingKeys: Data, progress: (Double) -> Void) throws {
+    public init(udid: String, pairingKeys: PairingKeys, progress: (Double) -> Void) throws {
         progress(0/4)
 
         usbmuxHandler = try USBMuxHandler(udid: udid, pairingKeys: pairingKeys)

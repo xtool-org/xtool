@@ -50,7 +50,7 @@ class SupersignSigningTests: XCTestCase {
             udid: Config.current.udid,
             teamID: team.id,
             client: client,
-            signingInfoManager: TestSigningInfoManager(),
+            signingInfoManager: MemoryBackedSigningInfoManager(),
             signerImpl: signerImpl
         ))
         let signer = Signer(context: context)

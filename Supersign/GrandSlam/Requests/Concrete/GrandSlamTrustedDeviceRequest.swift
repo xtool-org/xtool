@@ -21,7 +21,7 @@ struct GrandSlamTrustedDeviceRequest: GrandSlamTwoFactorRequest {
 struct GrandSlamSecondaryAuthRequest: GrandSlamTwoFactorRequest {
     struct Decoder: GrandSlamDataDecoder {
         static func decode(data: Data) throws {
-            print(String(data: data, encoding: .utf8) ?? "NO DATA")
+//            print(String(data: data, encoding: .utf8) ?? "NO DATA")
         }
     }
 

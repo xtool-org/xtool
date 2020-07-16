@@ -9,6 +9,21 @@
 import Foundation
 import SwiftyMobileDevice
 
+#warning("We should have a shared heartbeat internally")
+// because otherwise if two connections are attempted simultaneously,
+// the concurrent heartbeats will fail. Basically, let the interface
+// continue to look like you have multiple HeartbeatHandlers, but
+// internally maintain a refcount to a shared structure that maintains
+// a common heartbeat while the refcount > 0.
+//
+// Or maybe take the abstraction up a layer to `Connection`, or somehow
+// put it in USBMuxHandler? Since in fact that probably needs to be
+// common too. In fact both of those things seem to basically be what
+// the usbmuxd daemon does, so maybe refactor them into a single
+// USBMuxDaemonShim or something, which internally has a single connection
+// for each device. Alternatively, refactor `Connection` to behave like that?
+
+#if os(iOS)
 public class HeartbeatHandler {
 
     private struct Error: Swift.Error {}
@@ -50,10 +65,11 @@ public class HeartbeatHandler {
     private let heartbeatQueue = DispatchQueue(
         label: "com.kabiroberai.Supersign.heartbeat-queue"
     )
-    public private(set) var isStopped = false
+    private let stopLock = NSLock()
+    private var isStopped = false
 
-    public let device: Device
-    public let client: LockdownClient
+    private let device: Device
+    private let client: LockdownClient
     public init(device: Device, client: LockdownClient) {
         self.device = device
         self.client = client
@@ -92,10 +108,18 @@ public class HeartbeatHandler {
             for iteration in 0... {
                 // only retains `self` for this iteration. This way, if the reference to
                 // the handler is dropped, the heartbeat stops
-                guard let self = self, !self.isStopped else { break }
+                guard let self = self else { break }
+
+                do {
+                    self.stopLock.lock()
+                    defer { self.stopLock.unlock() }
+                    guard !self.isStopped else { break }
+                }
+
                 do {
                     try self.beat(client: heartbeatClient, iteration: iteration)
                 } catch {
+                    print("Heartbeat failed: \(error)")
                     // dispatching async should prevent stack overflows.
                     // We return to break out of the current loop.
                     return self.heartbeatQueue.asyncAfter(deadline: .now() + Self.restartInterval) {
@@ -107,7 +131,15 @@ public class HeartbeatHandler {
     }
 
     public func stop() {
+        stopLock.lock()
+        defer { stopLock.unlock() }
         isStopped = true
     }
 
 }
+#else
+public class HeartbeatHandler {
+    public init(device: Device, client: LockdownClient) {}
+    public func stop() {}
+}
+#endif

@@ -125,6 +125,12 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
 
             do {
                 try entitlements.update(teamID: self.context.teamID, bundleID: appID.bundleID)
+                // set get-task-allow to YES, required for dev certs
+                try entitlements.updateEntitlements { ents in
+                    ents.firstIndex { $0 is GetTaskAllowEntitlement }.map { idx in
+                        ents[idx] = GetTaskAllowEntitlement(rawValue: true)
+                    }
+                }
             } catch {
                 return completion(.failure(error))
             }

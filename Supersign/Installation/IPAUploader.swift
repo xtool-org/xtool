@@ -11,6 +11,10 @@ import SwiftyMobileDevice
 
 public final class IPAUploader {
 
+    public enum Error: Swift.Error {
+        case unexpectedSymlink(at: URL)
+    }
+
     private static let packagePath = URL(fileURLWithPath: "PublicStaging")
     private static let bufferSize = 1 << 20 // 1 MB
 
@@ -27,7 +31,7 @@ public final class IPAUploader {
         deinit { delete() }
         public func delete() {
             guard !isDeleted else { return }
-            try? uploader.client.removeItem(at: location)
+            try? uploader.client.removeItemAndContents(at: location)
         }
     }
 
@@ -36,7 +40,25 @@ public final class IPAUploader {
         self.client = try connection.startClient()
     }
 
-    private func upload(_ src: URL, to dest: URL, progress: (Double) -> Void) throws {
+    private func uploadSymlink(_ src: URL, to dest: URL, progress: (Double) -> Void) throws {
+        let symlinkDest = try FileManager.default.destinationOfSymbolicLink(atPath: src.path)
+        try client.linkItem(at: URL(fileURLWithPath: symlinkDest), to: dest, type: .symlink)
+    }
+
+    private func uploadDir(_ src: URL, to dest: URL, progress: (Double) -> Void) throws {
+        try client.createDirectory(at: dest)
+        let contents = try src.contents()
+        let numFiles = contents.count
+        let progressPerFile = 1 / Double(numFiles)
+        var baseProgress: Double = 0
+        for file in contents {
+            let fileDest = dest.appendingPathComponent(file.lastPathComponent)
+            try upload(file, to: fileDest) { progress(baseProgress + $0 * progressPerFile) }
+            baseProgress += progressPerFile
+        }
+    }
+
+    private func uploadFile(_ src: URL, to dest: URL, progress: (Double) -> Void) throws {
         let srcData = try Data(contentsOf: src)
         let size = srcData.count
         let sizeDouble = Double(size)
@@ -59,13 +81,31 @@ public final class IPAUploader {
         }
     }
 
-    public func upload(ipa: URL, withBundleID bundleID: String, progress: (Double) -> Void) throws -> UploadedIPA {
+    private func upload(_ src: URL, to dest: URL, allowSymlinks: Bool = true, progress: (Double) -> Void) throws {
+        progress(0)
+        let resources = try src.resourceValues(forKeys: [.isSymbolicLinkKey, .isDirectoryKey])
+        if resources.isSymbolicLink == true {
+            guard allowSymlinks else { throw Error.unexpectedSymlink(at: src) }
+            try uploadSymlink(src, to: dest, progress: progress)
+        } else if resources.isDirectory == true {
+            try uploadDir(src, to: dest, progress: progress)
+        } else {
+            try uploadFile(src, to: dest, progress: progress)
+        }
+        progress(1)
+    }
+
+    public func upload(app: URL, progress: (Double) -> Void) throws -> UploadedIPA {
         if try !client.fileExists(at: Self.packagePath) {
             try client.createDirectory(at: Self.packagePath)
         }
 
-        let dest = Self.packagePath.appendingPathComponent(bundleID)
-        try upload(ipa, to: dest, progress: progress)
+        let dest = Self.packagePath.appendingPathComponent("Supercharge-App")
+        if try client.fileExists(at: dest) {
+            try client.removeItemAndContents(at: dest)
+        }
+
+        try upload(app, to: dest, allowSymlinks: false, progress: progress)
 
         return UploadedIPA(uploader: self, location: dest)
     }

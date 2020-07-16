@@ -61,7 +61,7 @@ class GrandSlamFetchAppTokensOperation {
         response: GrandSlamAppTokensRequest.Decoder.Value,
         completion: @escaping (Result<[AppTokenKey: Token], Swift.Error>) -> Void
     ) {
-        guard let decrypted = AppTokens.decrypt(gcm: response.encryptedToken, sk: self.loginData.sk)
+        guard let decrypted = AppTokens.decrypt(gcm: response.encryptedToken, withSK: loginData.sk)
             else { return completion(.failure(Error.invalidResponse)) }
         completion(Result {
             let pairs = try decoder

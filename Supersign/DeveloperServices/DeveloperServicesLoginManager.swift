@@ -35,7 +35,7 @@ public struct DeveloperServicesLoginManager {
         customAnisetteProvider: AnisetteDataProvider? = nil
     ) {
         self.deviceInfo = deviceInfo
-        self.anisetteProvider = customAnisetteProvider ?? ComputedAnisetteDataProvider(deviceInfo: deviceInfo)
+        self.anisetteProvider = customAnisetteProvider ?? SupersetteDataProvider(deviceInfo: deviceInfo)
         self.client = GrandSlamClient(deviceInfo: deviceInfo, customAnisetteDataProvider: anisetteProvider)
     }
 

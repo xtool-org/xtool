@@ -8,9 +8,13 @@
 
 import Foundation
 
-struct GrandSlamOperationError: Error {
+struct GrandSlamOperationError: Error, LocalizedError {
     let code: Int
     let message: String
+
+    var errorDescription: String? {
+        "\(message) (\(code))"
+    }
 }
 
 struct GrandSlamOperationResponseStatusWrapper: Decodable {
