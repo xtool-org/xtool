@@ -16,7 +16,7 @@ public struct ErrorList<E: Error>: LocalizedError {
     }
 
     public var errorDescription: String? {
-        return errors.map { $0.localizedDescription }.joined(separator: ", ")
+        errors.map { $0.localizedDescription }.localizedJoined()
     }
 
 }
