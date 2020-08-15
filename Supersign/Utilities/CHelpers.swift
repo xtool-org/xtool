@@ -9,10 +9,15 @@
 import Foundation
 
 extension Data {
-    init?(cFunc: (UnsafeMutablePointer<Int>?) -> UnsafeMutablePointer<Int8>?) {
-        var len = 0
-        guard let bytes = cFunc(&len) else { return nil }
-        defer { free(bytes) }
-        self.init(bytes: UnsafeRawPointer(bytes), count: len)
+    init?(deallocator: Deallocator = .free, acceptor: (inout Int) -> UnsafeMutableRawPointer?) {
+        var count = 0
+        guard let bytes = acceptor(&count) else { return nil }
+        self.init(bytesNoCopy: bytes, count: count, deallocator: deallocator)
+    }
+
+    init(deallocator: Deallocator = .free, acceptor: (inout Int) -> UnsafeMutableRawPointer) {
+        var count = 0
+        let bytes = acceptor(&count)
+        self.init(bytesNoCopy: bytes, count: count, deallocator: deallocator)
     }
 }

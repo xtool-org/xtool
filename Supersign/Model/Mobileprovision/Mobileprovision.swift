@@ -39,9 +39,9 @@ public class Mobileprovision: Decodable {
     let raw: mobileprovision_t
 
     private static func mobileprovision(from data: Data) -> mobileprovision_t? {
-        data.withUnsafeBytes { bytes in
-            let bound = bytes.bindMemory(to: Int8.self)
-            return mobileprovision_create_from_data(bound.baseAddress, bound.count)
+        data.withUnsafeBytes {
+            guard let base = $0.baseAddress else { return nil }
+            return mobileprovision_create_from_data(base, $0.count)
         }
     }
 
@@ -53,9 +53,8 @@ public class Mobileprovision: Decodable {
     }
 
     public init(contentsOf url: URL) throws {
-        guard let profile = url.withUnsafeFileSystemRepresentation(mobileprovision_create_from_path) else {
-            throw Error.invalidProfile
-        }
+        guard let profile = url.withUnsafeFileSystemRepresentation({ $0.flatMap(mobileprovision_create_from_path) })
+            else { throw Error.invalidProfile }
         self.raw = profile
     }
 
@@ -77,14 +76,12 @@ public class Mobileprovision: Decodable {
         guard let ptr = mobileprovision_get_digest(raw, &len), len > 0 else {
             throw Error.invalidProfile
         }
-        let data = Data(bytes: UnsafeRawPointer(ptr), count: len)
+        let data = Data(bytes: ptr, count: len)
         return try PropertyListDecoder().decode(Digest.self, from: data)
     }
 
     public func data() throws -> Data {
-        guard let data = Data(cFunc: { mobileprovision_get_data(raw, $0) })
-            else { throw Error.invalidProfile }
-        return data
+        try Data { mobileprovision_get_data(raw, &$0) }.orThrow(Error.invalidProfile)
     }
 
 }

@@ -11,23 +11,27 @@
 
 #include <stdio.h>
 
+#pragma clang assume_nonnull begin
+
 typedef struct mobileprovision *mobileprovision_t;
 
 // MARK: - Lifecycle
 
 /// create a profile from the given data
-mobileprovision_t mobileprovision_create_from_data(const char *data, size_t len);
+_Nullable mobileprovision_t mobileprovision_create_from_data(const void *data, size_t len);
 
 /// create a profile from the given file path
-mobileprovision_t mobileprovision_create_from_path(const char *path);
+_Nullable mobileprovision_t mobileprovision_create_from_path(const char *path);
 
 /// free `profile`
 void mobileprovision_free(mobileprovision_t profile);
 
 // MARK: - Operations
 
-char *mobileprovision_get_data(mobileprovision_t profile, size_t *len);
+void * _Nullable mobileprovision_get_data(mobileprovision_t profile, size_t *len);
 
-const char *mobileprovision_get_digest(mobileprovision_t profile, size_t *len);
+const void * _Nullable mobileprovision_get_digest(mobileprovision_t profile, size_t *len);
+
+#pragma clang assume_nonnull end
 
 #endif /* mobileprovision_h */

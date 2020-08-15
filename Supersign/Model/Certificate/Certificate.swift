@@ -17,9 +17,9 @@ public class Certificate: Decodable {
     let raw: certificate_t
 
     private static func certificate(from data: Data) -> certificate_t? {
-        data.withUnsafeBytes { bytes in
-            let bound = bytes.bindMemory(to: Int8.self)
-            return certificate_create_from_data(bound.baseAddress, bound.count)
+        data.withUnsafeBytes {
+            guard let base = $0.baseAddress else { return nil }
+            return certificate_create_from_data(base, $0.count)
         }
     }
 
@@ -31,9 +31,8 @@ public class Certificate: Decodable {
     }
 
     public init(contentsOf url: URL) throws {
-        guard let certificate = url.withUnsafeFileSystemRepresentation(certificate_create_from_path) else {
-            throw Error.invalidCertificate
-        }
+        guard let certificate = url.withUnsafeFileSystemRepresentation({ $0.flatMap(certificate_create_from_path) })
+            else { throw Error.invalidCertificate }
         self.raw = certificate
     }
 
@@ -58,17 +57,15 @@ public class Certificate: Decodable {
     }
 
     public func serialNumber() throws -> String {
-        guard let serial = certificate_copy_serial_number(raw) else {
-            throw Error.invalidCertificate
-        }
-        defer { free(serial) }
-        return String(cString: serial)
+        guard let serial = certificate_copy_serial_number(raw),
+            let string = String(bytesNoCopy: serial, length: strlen(serial), encoding: .utf8, freeWhenDone: true)
+            else { throw Error.invalidCertificate }
+        return string
     }
 
     public func data() throws -> Data {
-        guard let data = Data(cFunc: { certificate_generate_data(raw, $0) })
-            else { throw Error.invalidCertificate }
-        return data
+        try Data { certificate_generate_data(raw, &$0) }
+            .orThrow(Error.invalidCertificate)
     }
 
 }

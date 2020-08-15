@@ -14,11 +14,12 @@ extension DeviceInfo {
     private static func fetchDeviceID() -> String? {
         var waitTime = timespec(tv_sec: 0, tv_nsec: 0) // wait indefinitely
         let bytes = [UInt8](unsafeUninitializedCapacity: MemoryLayout<uuid_t>.size) { buf, count in
+            // force unwrapping is safe because uuid_t has a non-zero size
             count = (gethostuuid(buf.baseAddress!, &waitTime) == 0) ? buf.count : 0
         }
         guard !bytes.isEmpty else { return nil }
-        return bytes.withUnsafeBufferPointer { buf in
-            UUID(uuid: UnsafeRawPointer(buf.baseAddress!).load(as: uuid_t.self)).uuidString
+        return bytes.withUnsafeBufferPointer {
+            UUID(uuid: UnsafeRawBufferPointer($0).load(as: uuid_t.self)).uuidString
         }
     }
 

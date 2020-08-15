@@ -20,22 +20,20 @@ class SRPClient {
     }
 
     func add(data: Data) {
-        data.withUnsafeBytes { srp_client_add_data(raw, $0.baseAddress!, $0.count) }
+        data.withUnsafeBytes { srp_client_add_data(raw, $0.baseAddress, $0.count) }
     }
 
     func decrypt(cbc: Data) -> Data? {
         cbc.withUnsafeBytes { buf in
-            var length = 0
-            return srp_client_decrypt_cbc(raw, buf.baseAddress!, buf.count, &length)
-                .map { Data(bytesNoCopy: $0, count: length, deallocator: .free) }
+            guard let base = buf.baseAddress else { return nil }
+            return Data { srp_client_decrypt_cbc(raw, base, buf.count, &$0) }
         }
     }
 
     // MARK: - SRP
 
     func publicKey() -> Data {
-        var length = 0
-        return Data(bytesNoCopy: srp_client_copy_public_key(raw, &length), count: length, deallocator: .free)
+        Data { srp_client_copy_public_key(raw, &$0) }
     }
 
     func processChallenge(
@@ -48,27 +46,34 @@ class SRPClient {
     ) -> Data? {
         salt.withUnsafeBytes { saltBuf in
             key.withUnsafeBytes { keyBuf in
-                var length = 0
-                return srp_client_process_challenge(
-                    raw,
-                    username, password,
-                    saltBuf.baseAddress!, saltBuf.count,
-                    .init(iterations),
-                    keyBuf.baseAddress!,
-                    keyBuf.count,
-                    isS2K,
-                    &length
-                ).map { Data(bytesNoCopy: $0, count: length, deallocator: .free) }
+                Data {
+                    srp_client_process_challenge(
+                        raw,
+                        username, password,
+                        saltBuf.baseAddress, saltBuf.count,
+                        .init(iterations),
+                        keyBuf.baseAddress, keyBuf.count,
+                        isS2K,
+                        &$0
+                    )
+                }
             }
         }
     }
 
     func verify(hamk: Data) -> Bool {
-        hamk.withUnsafeBytes { srp_client_verify_session_HAMK(raw, $0.baseAddress!, $0.count) }
+        hamk.withUnsafeBytes {
+            // a hash has to be non-zero sized, so a nil baseAddress is invalid
+            guard let base = $0.baseAddress else { return false }
+            return srp_client_verify_session_HAMK(raw, base, $0.count)
+        }
     }
 
     func verify(negProto: Data) -> Bool {
-        negProto.withUnsafeBytes { srp_client_verify_neg_proto(raw, $0.baseAddress!, $0.count) }
+        negProto.withUnsafeBytes {
+            guard let base = $0.baseAddress else { return false }
+            return srp_client_verify_neg_proto(raw, base, $0.count)
+        }
     }
 
 }

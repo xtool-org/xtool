@@ -15,12 +15,13 @@ enum AppTokens {
             let ptrArray = apps.map { strdup($0)! }
             defer { ptrArray.forEach { free($0) } }
             let immutablePtrArray = ptrArray.map { UnsafePointer($0) }
-            return immutablePtrArray.withUnsafeBufferPointer { ptrBuf in
-                var length = 0
-                let bytes = app_tokens_create_checksum(
-                    skBuf.baseAddress!, skBuf.count, adsid, ptrBuf.baseAddress!, ptrBuf.count, &length
+            return Data {
+                app_tokens_create_checksum(
+                    skBuf.baseAddress, skBuf.count,
+                    adsid,
+                    immutablePtrArray, immutablePtrArray.count,
+                    &$0
                 )
-                return Data(bytesNoCopy: bytes, count: length, deallocator: .free)
             }
         }
     }
@@ -28,12 +29,15 @@ enum AppTokens {
     static func decrypt(gcm: Data, withSK sk: Data) -> Data? {
         gcm.withUnsafeBytes { gcmBuf in
             sk.withUnsafeBytes { skBuf in
-                var length = 0
-                return app_tokens_decrypt_gcm(
-                    gcmBuf.baseAddress!, gcmBuf.count,
-                    skBuf.baseAddress!, skBuf.count,
-                    &length
-                ).map { Data(bytesNoCopy: $0, count: length, deallocator: .free) }
+                // the data must have a header so it shouldn't be empty
+                guard let gcmBase = gcmBuf.baseAddress,
+                    // the session key must have a length equal to that required by
+                    // the cipher. It should be non-empty.
+                    let skBase = skBuf.baseAddress
+                    else { return nil }
+                return Data {
+                    app_tokens_decrypt_gcm(gcmBase, gcmBuf.count, skBase, skBuf.count, &$0)
+                }
             }
         }
     }

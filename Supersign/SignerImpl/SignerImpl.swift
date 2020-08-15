@@ -74,35 +74,29 @@ public struct SignerImpl {
             try url.withUnsafeFileSystemRepresentation { bundlePath in
                 guard let bundlePath = bundlePath else { throw Error.badFilePath }
                 return try encoder.encode(ents).withUnsafeBytes { bytes in
-                    let bound = bytes.bindMemory(to: Int8.self)
-                    return entitlements_data_t(
-                        bundle_path: bundlePath, data: bound.baseAddress!, len: bound.count
-                    )
+                    // an XML plist should always be non-empty so force unwrapping baseAddress is safe
+                    entitlements_data_t(bundle_path: bundlePath, data: bytes.baseAddress!, len: bytes.count)
                 }
             }
         }
-        try entsArray.withUnsafeBufferPointer { ents in
-            try certificate.data().withUnsafeBytes { certBytes in
-                try privateKey.data.withUnsafeBytes { privBytes in
-                    let certBound = certBytes.bindMemory(to: Int8.self)
-                    let privBound = privBytes.bindMemory(to: Int8.self)
+        try certificate.data().withUnsafeBytes { cert in
+            try privateKey.data.withUnsafeBytes { priv in
+                var exception: UnsafeMutablePointer<Int8>?
+                defer { exception.map { free($0) } }
 
-                    var exception: UnsafeMutablePointer<Int8>?
-                    defer { exception.map { free($0) } }
+                guard let certBase = cert.baseAddress,
+                    let privBase = priv.baseAddress
+                    else { throw Error.signer(nil) }
 
-                    guard sign(
-                        app.path,
-                        certBound.baseAddress!,
-                        certBound.count,
-                        privBound.baseAddress!,
-                        privBound.count,
-                        ents.baseAddress!,
-                        ents.count,
-                        progress,
-                        &exception
-                    ) == 0 else {
-                        throw Error.signer(exception.map { String(cString: $0) })
-                    }
+                guard sign(
+                    app.path,
+                    certBase, cert.count,
+                    privBase, priv.count,
+                    entsArray, entsArray.count,
+                    progress,
+                    &exception
+                ) == 0 else {
+                    throw Error.signer(exception.map { String(cString: $0) })
                 }
             }
         }
@@ -134,14 +128,11 @@ public struct SignerImpl {
 
     public func analyze(executable: URL) throws -> Data {
         try executable.withUnsafeFileSystemRepresentation { (path: UnsafePointer<Int8>?) -> Data in
+            guard let path = path else { throw Error.badFilePath }
             var exception: UnsafeMutablePointer<Int8>?
             defer { exception.map { free($0) } }
-            var len = 0
-            guard let out = analyze(path!, &len, &exception) else {
-                throw Error.signer(exception.map { String(cString: $0) })
-            }
-            defer { free(out) }
-            return Data(bytes: out, count: len)
+            return try Data { analyze(path, &$0, &exception) }
+                .orThrow(Error.signer(exception.map { String(cString: $0) }))
         }
     }
 

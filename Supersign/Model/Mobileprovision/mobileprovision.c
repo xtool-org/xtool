@@ -23,7 +23,7 @@ static mobileprovision_t mobileprovision_create(PKCS7 *raw) {
     return profile;
 }
 
-mobileprovision_t mobileprovision_create_from_data(const char *data, size_t len) {
+mobileprovision_t mobileprovision_create_from_data(const void *data, size_t len) {
     PKCS7 *raw = NULL;
     d2i_PKCS7(&raw, (const unsigned char **)&data, len);
     if (!raw) return NULL;
@@ -48,15 +48,18 @@ void mobileprovision_free(mobileprovision_t profile) {
     free(profile);
 }
 
-char *mobileprovision_get_data(mobileprovision_t profile, size_t *len) {
+void *mobileprovision_get_data(mobileprovision_t profile, size_t *len) {
     unsigned char *data = NULL;
     size_t data_len = i2d_PKCS7(profile->raw, &data);
     if (data_len < 0) return NULL;
     *len = data_len;
-    return (char *)data;
+    void *ret = malloc(data_len);
+    memcpy(ret, data, data_len);
+    OPENSSL_free(data);
+    return ret;
 }
 
-const char *mobileprovision_get_digest(mobileprovision_t profile, size_t *len) {
+const void *mobileprovision_get_digest(mobileprovision_t profile, size_t *len) {
     ASN1_OCTET_STRING *str = profile->raw->d.sign->contents->d.data;
     if (len) *len = str->length;
     return (char *)str->data;

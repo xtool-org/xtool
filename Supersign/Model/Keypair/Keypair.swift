@@ -52,27 +52,12 @@ public class Keypair {
         keypair_free(raw)
     }
 
-    private func callKeypairDataFunc(
-        fn: (keypair_t?, UnsafeMutablePointer<Int>?) -> UnsafeMutablePointer<Int8>?
-    ) throws -> Data {
-        var len = 0
-        guard let bytes = fn(raw, &len) else {
-            throw Error.invalidKeypair
-        }
-        defer { free(bytes) }
-        return Data(bytes: UnsafeRawPointer(bytes), count: len)
-    }
-
     public func privateKey() throws -> PrivateKey {
-        guard let data = Data(cFunc: { keypair_copy_private_key(raw, $0) })
-            else { throw Error.invalidKeypair }
-        return PrivateKey(data: data)
+        try PrivateKey(data: Data { keypair_copy_private_key(raw, &$0) }.orThrow(Error.invalidKeypair))
     }
 
     public func generateCSR() throws -> CSR {
-        guard let data = Data(cFunc: { keypair_generate_csr(raw, $0) })
-            else { throw Error.invalidKeypair }
-        return CSR(data: data)
+        try CSR(data: Data { keypair_generate_csr(raw, &$0) }.orThrow(Error.invalidKeypair))
     }
 
 }
