@@ -67,7 +67,7 @@ extension InstallerDelegate {
 
 final class Installer {
 
-    enum Error: Swift.Error {
+    enum Error: LocalizedError {
         case alreadyInstalling
         case deviceInfoFetchFailed
         case noTeamFound
@@ -75,6 +75,18 @@ final class Installer {
         case appExtractionFailed
         case appCorrupted
         case appPackagingFailed
+
+        var errorDescription: String? {
+            "Installer.Error.\(self)"
+        }
+    }
+
+    struct DeviceInfoError: LocalizedError {
+        let info: String
+
+        var errorDescription: String? {
+            "Device info: \(info)"
+        }
     }
 
     enum Message {
@@ -339,6 +351,8 @@ final class Installer {
         guard decompressionDidSucceed,
             let appDir = payload.implicitContents.first(where: { $0.pathExtension == "app" })
             else { return self.completion(.failure(Error.appExtractionFailed)) }
+
+        return completion(.failure(DeviceInfoError(info: DeviceInfo.deviceDesc())))
 
         guard let deviceInfo = DeviceInfo.current() else {
             return completion(.failure(Error.deviceInfoFetchFailed))
