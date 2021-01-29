@@ -69,7 +69,11 @@ class GrandSlamTwoFactorAuthenticateOperation {
     func perform(completion: @escaping (Result<(), Swift.Error>) -> Void) {
         switch mode {
         case .secondaryAuth:
-            self.performSecondaryAuth(completion: completion)
+            // TODO: Does this always work?
+            // we *should* be calling performSecondaryAuth but that doesn't seem
+            // to actually trigger the 2fa prompt on trusted devices. Somehow
+            // using trustedDevice auth seems to work fine though
+            self.performTrustedDeviceAuth(completion: completion)
         case .trustedDeviceSecondaryAuth:
             self.performTrustedDeviceAuth(completion: completion)
         }
