@@ -8,7 +8,7 @@
 
 import Foundation
 
-public class Mobileprovision: Decodable {
+public final class Mobileprovision: Decodable {
 
     public enum Error: Swift.Error {
         case invalidProfile

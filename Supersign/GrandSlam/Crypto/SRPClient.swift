@@ -8,7 +8,7 @@
 
 import Foundation
 
-class SRPClient {
+final class SRPClient {
 
     let raw = srp_client_create()
     deinit { srp_client_free(raw) }

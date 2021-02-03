@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct SigningInfo {
+public struct SigningInfo: Codable {
     public let privateKey: PrivateKey
     public let certificate: Certificate
 }
@@ -50,7 +50,7 @@ public struct KeyValueSigningInfoManager: SigningInfoManager {
     }
 
     private func key(_ teamID: DeveloperServicesTeam.ID, _ keyType: KeyType) -> String {
-        "\(teamID).\(keyType.rawValue)"
+        "\(teamID.rawValue).\(keyType.rawValue)"
     }
 
     public let storage: KeyValueStorage

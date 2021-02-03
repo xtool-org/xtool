@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct PrivateKey {
+public struct PrivateKey: Codable {
     public let data: Data
 
     public init(data: Data) {
@@ -32,7 +32,7 @@ public struct CSR {
     }
 }
 
-public class Keypair {
+public final class Keypair {
 
     public enum Error: Swift.Error {
         case couldNotCreate

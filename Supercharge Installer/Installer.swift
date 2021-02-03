@@ -81,14 +81,6 @@ final class Installer {
         }
     }
 
-    struct DeviceInfoError: LocalizedError {
-        let info: String
-
-        var errorDescription: String? {
-            "Device info: \(info)"
-        }
-    }
-
     enum Message {
         case pairDevice
         case unlockDevice
@@ -277,20 +269,19 @@ final class Installer {
     ) {
         guard self.updateStage(to: "Preparing device") else { return }
 
+        let pairingKeys: Data
+
         do {
-            guard let pairingKeys = try fetchPairingKeys()
+            guard let _pairingKeys = try fetchPairingKeys()
                 else { return } // nil: user cancelled
-            try Superconfig(
-                udid: udid,
-                pairingKeys: pairingKeys,
-                deviceInfo: deviceInfo,
-                preferredTeamID: team.id.rawValue,
-                appleID: appleID,
-                token: token
-            ).save(inAppDir: appDir)
+            pairingKeys = _pairingKeys
         } catch {
             return completion(.failure(error))
         }
+
+        let signingInfoManager = KeyValueSigningInfoManager(
+            storage: KeychainStorage(service: "com.kabiroberai.Supercharge-Installer.credentials")
+        )
 
         let context: SigningContext
         do {
@@ -298,7 +289,7 @@ final class Installer {
                 udid: udid,
                 teamID: team.id,
                 client: client,
-                signingInfoManager: MemoryBackedSigningInfoManager(),
+                signingInfoManager: signingInfoManager,
                 platform: .iOS
             )
         } catch {
@@ -312,7 +303,20 @@ final class Installer {
             },
             progress: { progress in
                 _ = self.updateProgress(to: progress, ignoreCancellation: true)
-            }, completion: { result in
+            },
+            didProvision: {
+                let info = try context.signingInfoManager.info(forTeamID: context.teamID)
+                try Superconfig(
+                    udid: self.udid,
+                    pairingKeys: pairingKeys,
+                    deviceInfo: deviceInfo,
+                    preferredTeamID: team.id.rawValue,
+                    preferredSigningInfo: info,
+                    appleID: self.appleID,
+                    token: token
+                ).save(inAppDir: appDir)
+            },
+            completion: { result in
                 guard result.get(withErrorHandler: self.completion) != nil else { return }
                 self.packageAndInstall(
                     deviceInfo: deviceInfo,
@@ -351,8 +355,6 @@ final class Installer {
         guard decompressionDidSucceed,
             let appDir = payload.implicitContents.first(where: { $0.pathExtension == "app" })
             else { return self.completion(.failure(Error.appExtractionFailed)) }
-
-        return completion(.failure(DeviceInfoError(info: DeviceInfo.deviceDesc())))
 
         guard let deviceInfo = DeviceInfo.current() else {
             return completion(.failure(Error.deviceInfoFetchFailed))

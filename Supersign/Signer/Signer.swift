@@ -46,8 +46,15 @@ public struct Signer {
         provisioningDict: [URL: ProvisioningInfo],
         status: @escaping (String) -> Void,
         progress: @escaping (Double) -> Void,
+        didProvision: @escaping () throws -> Void,
         completion: @escaping (Result<(), Swift.Error>) -> Void
     ) {
+        do {
+            try didProvision()
+        } catch {
+            return completion(.failure(error))
+        }
+
         for (url, info) in provisioningDict {
             let infoPlist = url.appendingPathComponent("Info.plist")
             guard let dict = NSMutableDictionary(contentsOf: infoPlist) else {
@@ -86,6 +93,7 @@ public struct Signer {
         app: URL,
         status: @escaping (String) -> Void,
         progress: @escaping (Double) -> Void,
+        didProvision: @escaping () throws -> Void = {},
         completion: @escaping (Result<(), Swift.Error>) -> Void
     ) {
         status(NSLocalizedString("signer.provisioning", value: "Provisioning", comment: ""))
@@ -97,6 +105,7 @@ public struct Signer {
                 provisioningDict: response.provisioningDict,
                 status: status,
                 progress: progress,
+                didProvision: didProvision,
                 completion: completion
             )
         }

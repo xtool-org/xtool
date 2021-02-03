@@ -8,7 +8,8 @@
 
 import Foundation
 
-public class Certificate: Decodable {
+/// A certificate in DER format
+public final class Certificate: Codable {
 
     public enum Error: Swift.Error {
         case invalidCertificate
@@ -16,18 +17,13 @@ public class Certificate: Decodable {
 
     let raw: certificate_t
 
-    private static func certificate(from data: Data) -> certificate_t? {
-        data.withUnsafeBytes {
-            guard let base = $0.baseAddress else { return nil }
-            return certificate_create_from_data(base, $0.count)
-        }
-    }
-
     public init(data: Data) throws {
-        guard let certificate = Self.certificate(from: data) else {
-            throw Error.invalidCertificate
+        self.raw = try data.withUnsafeBytes { buf -> certificate_t in
+            guard let base = buf.baseAddress,
+                  let cert = certificate_create_from_data(base, buf.count)
+            else { throw Error.invalidCertificate }
+            return cert
         }
-        self.raw = certificate
     }
 
     public init(contentsOf url: URL) throws {
@@ -36,13 +32,15 @@ public class Certificate: Decodable {
         self.raw = certificate
     }
 
-    public required init(from decoder: Decoder) throws {
+    public required convenience init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let data = try container.decode(Data.self)
-        guard let certificate = Self.certificate(from: data) else {
-            throw Error.invalidCertificate
-        }
-        self.raw = certificate
+        try self.init(data: data)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(data())
     }
 
     deinit {
