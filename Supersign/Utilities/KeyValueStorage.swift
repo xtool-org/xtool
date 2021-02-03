@@ -55,8 +55,9 @@ public struct KeychainStorage: KeyValueStorage {
 
     private let lock = NSLock()
 
-    private static func check(_ result: OSStatus) throws {
+    private static func check(_ result: OSStatus, ignoreNotFound: Bool = false) throws {
         if result != errSecSuccess {
+            if ignoreNotFound && result == errSecItemNotFound { return }
             let info: [String: Any]?
             if #available(iOS 11.3, *), let message = SecCopyErrorMessageString(result, nil) {
                 info = [NSLocalizedDescriptionKey: message as String]
@@ -86,7 +87,7 @@ public struct KeychainStorage: KeyValueStorage {
         ])
 
         var result: AnyObject?
-        try Self.check(SecItemCopyMatching(query, &result))
+        try Self.check(SecItemCopyMatching(query, &result), ignoreNotFound: true)
 
         return result as? Data
     }
@@ -96,7 +97,7 @@ public struct KeychainStorage: KeyValueStorage {
         defer { lock.unlock() }
 
         // remove old before setting new value
-        try Self.check(SecItemDelete(makeQuery(forKey: key, [:])))
+        try Self.check(SecItemDelete(makeQuery(forKey: key, [:])), ignoreNotFound: true)
 
         guard let data = data else { return }
 
