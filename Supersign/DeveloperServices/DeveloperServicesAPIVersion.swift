@@ -147,6 +147,8 @@ public struct DeveloperServicesAPIVersionV1: DeveloperServicesAPIVersion {
         let decoder = JSONDecoder()
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+        formatter.calendar = Calendar(identifier: .iso8601)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
         decoder.dateDecodingStrategy = .formatted(formatter)
         return decoder
     }()
