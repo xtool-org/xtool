@@ -10,11 +10,26 @@ import Foundation
 
 class GrandSlamAuthenticateOperation {
 
-    enum Error: Swift.Error {
-        case failedChallenge
-        case invalidSession
-        case invalidResponse
+    enum Error: Swift.Error, LocalizedError {
+        case internalError
         case failedSecondaryAuth
+
+        var errorDescription: String? {
+            switch self {
+            case .internalError:
+                return NSLocalizedString(
+                    "apple_id_auth.error.internal",
+                    value: "An internal authentication error occurred.",
+                    comment: ""
+                )
+            case .failedSecondaryAuth:
+                return NSLocalizedString(
+                    "apple_id_auth.error.failed_secondary_auth",
+                    value: "Could not complete 2-factor authentication.",
+                    comment: ""
+                )
+            }
+        }
     }
 
     private struct Response: Decodable {
@@ -84,10 +99,10 @@ class GrandSlamAuthenticateOperation {
         srpClient.add(string: "|")
 
         guard srpClient.verify(hamk: completeResponse.hamk) && srpClient.verify(negProto: completeResponse.negProto)
-            else { return completion(.failure(Error.invalidSession)) }
+            else { return completion(.failure(Error.internalError)) }
 
         guard let rawLoginResponse = srpClient.decrypt(cbc: completeResponse.encryptedResponse) else {
-            return completion(.failure(Error.invalidResponse))
+            return completion(.failure(Error.internalError))
         }
 
         let response: Response
@@ -134,7 +149,7 @@ class GrandSlamAuthenticateOperation {
             serverPublicKey: initResponse.serverPublicKey,
             isS2K: isS2K
         )
-        guard let m1Data = mDataRaw else { return completion(.failure(Error.failedChallenge)) }
+        guard let m1Data = mDataRaw else { return completion(.failure(Error.internalError)) }
 
         let completeRequest = GrandSlamAuthCompleteRequest(
             username: username, cookie: initResponse.cookie, m1Data: m1Data
