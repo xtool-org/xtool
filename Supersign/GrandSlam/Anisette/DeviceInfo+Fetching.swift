@@ -66,9 +66,10 @@ extension DeviceInfo {
     }
 
     public static func current() -> DeviceInfo? {
+        let romAddress = fetchROMAddress() ?? ""
+        let mlbSerialNumber = fetchMLBSerialNumber() ?? ""
+
         guard let deviceID = fetchDeviceID(),
-            let romAddress = fetchROMAddress(),
-            let mlbSerialNumber = fetchMLBSerialNumber(),
             let serialNumber = fetchSerialNumber(),
             let modelID = fetchHardwareModel()
             else { return nil }
