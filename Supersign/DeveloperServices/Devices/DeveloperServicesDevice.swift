@@ -19,7 +19,7 @@ public struct DeveloperServicesDevice: Decodable {
     public let udid: String
     public let platform: DeveloperServicesPlatform
     public let type: String // TODO: Create enum
-    public let model: String
+    public let model: String?
 
     private enum CodingKeys: String, CodingKey {
         case id = "deviceId"
