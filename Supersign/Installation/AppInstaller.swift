@@ -9,7 +9,7 @@
 import Foundation
 import SwiftyMobileDevice
 
-public class AppInstaller {
+public final class AppInstaller {
 
     public enum Error: LocalizedError {
         case userCancelled
@@ -106,10 +106,9 @@ public class AppInstaller {
         defer { needsCancellation = false }
         try cancelPoint()
 
-        let connection = try Connection(udid: udid, pairingKeys: pairingKeys) {
+        let connection = try Connection.connection(forUDID: udid, pairingKeys: pairingKeys) {
             progress(.connecting($0 * 4/6))
         }
-        defer { connection.close() }
 
         try cancelPoint()
 
@@ -135,6 +134,8 @@ public class AppInstaller {
         try installer.install(uploaded: uploaded) { currentProgress in
             progress(.installing(currentProgress.details, currentProgress.progress))
         }
+
+        _ = connection
     }
 
     public func install(

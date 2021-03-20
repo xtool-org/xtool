@@ -9,21 +9,70 @@
 import Foundation
 import SwiftyMobileDevice
 
+#if os(iOS)
+import libusbmuxd_ios
+
+public typealias PairingKeys = Data
+
+private extension USBMuxSimulator {
+    func performAtomically<T>(_ operation: (USBMuxSimulator) -> T) -> T {
+        var value: T!
+        __performAtomically { value = operation($0) }
+        return value
+    }
+
+    func performAtomically<T>(_ operation: (USBMuxSimulator) throws -> T) throws -> T {
+        var value: Result<T, Error>!
+        __performAtomically { sim in
+            value = Result { try operation(sim) }
+        }
+        return try value.get()
+    }
+}
+#else
+public typealias PairingKeys = Void
+#endif
+
+private class WeakBox<T: AnyObject> {
+    weak var value: T?
+    init(_ value: T) { self.value = value }
+}
+
+// there is guaranteed to be at most one Connection instance per udid
+// at any moment, thanks to Connection.connection(...). Consequently
+// there is at most one device per udid at any moment too.
 public class Connection {
 
     private static let label = "supersign"
 
-    public private(set) var isClosed = false
+    private static var connections: [String: WeakBox<Connection>] = [:]
+    private static let connectionsQueue = DispatchQueue(label: "connections-queue")
 
-    private let usbmuxHandler: USBMuxHandler
+    #if os(iOS)
+    private var handle: Int32
+    private let heartbeatHandler: HeartbeatHandler
+    #endif
+    private let udid: String
     public let device: Device
     public let client: LockdownClient
-    private let heartbeatHandler: HeartbeatHandler
 
-    public init(udid: String, pairingKeys: PairingKeys, progress: (Double) -> Void) throws {
+    private init(udid: String, pairingKeys: PairingKeys, progress: (Double) -> Void) throws {
         progress(0/4)
 
-        usbmuxHandler = try USBMuxHandler(udid: udid, pairingKeys: pairingKeys)
+        self.udid = udid
+
+        #if os(iOS)
+        let simulatedDevice: USBMuxSimulatedDevice
+        var ip = in_addr()
+        if usbmux_forwarded_ip(&ip) == 0 {
+            NSLog("[SuperUSB] %@", "Using port forwarded device with ip \(String(cString: inet_ntoa(ip)!))")
+            simulatedDevice = PortForwardedDevice(ip: ip, pairingKeys: pairingKeys, udid: udid)
+        } else {
+            NSLog("[SuperUSB] %@", "Using VPN device")
+            simulatedDevice = try VPNDevice(pairingKeys: pairingKeys, udid: udid)
+        }
+        handle = USBMuxSimulator.shared.performAtomically { $0.register(device: simulatedDevice) }
+        #endif
         progress(1/4)
 
         device = try Device(udid: udid)
@@ -32,18 +81,40 @@ public class Connection {
         client = try LockdownClient(device: device, label: Self.label, performHandshake: true)
         progress(3/4)
 
+        #if os(iOS)
         heartbeatHandler = HeartbeatHandler(device: device, client: client)
+        #endif
         progress(4/4)
     }
 
-    deinit { close() }
+    public static func connection(
+        forUDID udid: String,
+        pairingKeys: PairingKeys,
+        progress: (Double) -> Void
+    ) throws -> Connection {
+        try connectionsQueue.sync {
+            progress(0)
+            if let conn = connections[udid]?.value {
+                progress(1)
+                return conn
+            }
+            let conn = try Connection(udid: udid, pairingKeys: pairingKeys, progress: progress)
+            connections[udid] = WeakBox(conn)
+            return conn
+        }
+    }
 
-    public func close() {
-        guard !isClosed else { return }
-        isClosed = true
-
+    deinit {
+        // we could nil out connections[udid] here but that might lead to
+        // weird race conditions against Connection.connection that seem
+        // like a nightmare to diagnose, and storing an empty box for a
+        // udid isn't much memory anyway
+        #if os(iOS)
         heartbeatHandler.stop()
-        usbmuxHandler.stop()
+        _ = USBMuxSimulator.shared.performAtomically {
+            $0.deregisterDevice(forHandle: handle)
+        }
+        #endif
     }
 
     public func startClient<T: LockdownService>(_ type: T.Type = T.self, sendEscrowBag: Bool = false) throws -> T {

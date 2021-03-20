@@ -9,7 +9,7 @@
 import Foundation
 import SwiftyMobileDevice
 
-public class IPAInstaller {
+public final class IPAInstaller {
 
     private let client: InstallationProxyClient
     public init(connection: Connection) throws {

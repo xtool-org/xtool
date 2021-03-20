@@ -9,23 +9,7 @@
 import Foundation
 import SwiftyMobileDevice
 
-#warning("We should have a shared heartbeat internally")
-// because otherwise if two connections are attempted simultaneously,
-// the concurrent heartbeats will fail. Basically, let the interface
-// continue to look like you have multiple HeartbeatHandlers, but
-// internally maintain a refcount to a shared structure that maintains
-// a common heartbeat while the refcount > 0.
-//
-// Or maybe take the abstraction up a layer to `Connection`, or somehow
-// put it in USBMuxHandler? Since in fact that probably needs to be
-// common too. In fact both of those things seem to basically be what
-// the usbmuxd daemon does, so maybe refactor them into a single
-// USBMuxDaemonShim or something, which internally has a single connection
-// for each device. Alternatively, refactor `Connection` to behave like that?
-
-#if os(iOS)
-public class HeartbeatHandler {
-
+public final class HeartbeatHandler {
     private struct Error: Swift.Error {}
 
     private struct ReceivedPacket: Decodable {
@@ -135,11 +119,4 @@ public class HeartbeatHandler {
         defer { stopLock.unlock() }
         isStopped = true
     }
-
 }
-#else
-public class HeartbeatHandler {
-    public init(device: Device, client: LockdownClient) {}
-    public func stop() {}
-}
-#endif
