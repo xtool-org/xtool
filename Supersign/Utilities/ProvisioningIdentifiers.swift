@@ -21,8 +21,10 @@ extension ProvisioningIdentifiers {
         return identifier.split(separator: ".").dropFirst().joined(separator: ".")
     }
 
-    static func identifier(fromSanitized sanitized: String) -> String {
-        "\(Self.idPrefix)\(UUID().uuidString.split(separator: "-")[0]).\(sanitized)"
+    #warning("TODO: Remove context option; that's a temporary measure")
+    static func identifier(fromSanitized sanitized: String, context: SigningContext? = nil) -> String {
+        let uuid = context?.teamID.rawValue ?? String(UUID().uuidString.split(separator: "-")[0])
+        return "\(Self.idPrefix)\(uuid).\(sanitized)"
     }
 
     static func safeify(identifier: String) -> String {
@@ -35,8 +37,8 @@ extension ProvisioningIdentifiers {
         return sanitize(identifier: id)
     }
 
-    static func groupID(fromSanitized sanitized: String) -> DeveloperServicesAppGroup.GroupID {
-        .init(rawValue: "\(Self.groupPrefix)\(identifier(fromSanitized: sanitized))")
+    static func groupID(fromSanitized sanitized: String, context: SigningContext? = nil) -> DeveloperServicesAppGroup.GroupID {
+        .init(rawValue: "\(Self.groupPrefix)\(identifier(fromSanitized: sanitized, context: context))")
     }
 
     static func groupName(fromSanitized sanitized: String) -> String {

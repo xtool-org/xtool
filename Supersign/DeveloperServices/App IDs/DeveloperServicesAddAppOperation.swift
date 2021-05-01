@@ -64,7 +64,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
                 )
                 self.context.client.send(request, completion: completion)
             } else {
-                let newBundleID = ProvisioningIdentifiers.identifier(fromSanitized: bundleID)
+                let newBundleID = ProvisioningIdentifiers.identifier(fromSanitized: bundleID, context: self.context)
                 let name = ProvisioningIdentifiers.appName(fromSanitized: bundleID)
                 let request = DeveloperServicesAddAppIDRequest(
                     platform: self.context.platform,
@@ -127,8 +127,10 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
                 try entitlements.update(teamID: self.context.teamID, bundleID: appID.bundleID)
                 // set get-task-allow to YES, required for dev certs
                 try entitlements.updateEntitlements { ents in
-                    ents.firstIndex { $0 is GetTaskAllowEntitlement }.map { idx in
-                        ents[idx] = GetTaskAllowEntitlement(rawValue: true)
+                    if let getTaskAllow = ents.firstIndex(where: { $0 is GetTaskAllowEntitlement }) {
+                        ents[getTaskAllow] = GetTaskAllowEntitlement(rawValue: true)
+                    } else {
+                        ents.append(GetTaskAllowEntitlement(rawValue: true))
                     }
                 }
             } catch {

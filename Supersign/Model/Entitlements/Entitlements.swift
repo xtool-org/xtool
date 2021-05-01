@@ -17,8 +17,8 @@ public struct EntitlementContainer: ProtoCodableContainer {
 // allows access to a parsable entitlements list while not losing unparsed entitlements when it's modified
 public struct Entitlements {
 
-    private let decoder = PropertyListDecoder()
-    private let encoder = PropertyListEncoder()
+    private static let decoder = PropertyListDecoder()
+    private static let encoder = PropertyListEncoder()
 
     private var dict: [String: AnyEncodable]
 
@@ -28,8 +28,8 @@ public struct Entitlements {
     }
 
     public func entitlements() throws -> [Entitlement] {
-        try decoder.decode(
-            ProtoCodableKeyValueContainer<EntitlementContainer>.self, from: encoder.encode(dict)
+        try Self.decoder.decode(
+            ProtoCodableKeyValueContainer<EntitlementContainer>.self, from: Self.encoder.encode(dict)
         ).values
     }
 

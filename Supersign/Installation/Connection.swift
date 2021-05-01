@@ -118,7 +118,7 @@ public class Connection {
     }
 
     public func startClient<T: LockdownService>(_ type: T.Type = T.self, sendEscrowBag: Bool = false) throws -> T {
-        try .init(device: device, service: .init(client: client, sendEscrowBag: sendEscrowBag))
+        try .init(device: device, service: .init(client: client, type: type, sendEscrowBag: sendEscrowBag))
     }
 
 }

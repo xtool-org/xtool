@@ -45,7 +45,7 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
         }) {
             assignAppGroup(group, appID: appID, completion: completion)
         } else {
-            let groupID = ProvisioningIdentifiers.groupID(fromSanitized: sanitized)
+            let groupID = ProvisioningIdentifiers.groupID(fromSanitized: sanitized, context: context)
             let name = ProvisioningIdentifiers.groupName(fromSanitized: sanitized)
             let request = DeveloperServicesAddAppGroupRequest(
                 platform: context.platform, teamID: context.teamID, name: name, groupID: groupID

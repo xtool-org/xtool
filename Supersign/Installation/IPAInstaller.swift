@@ -18,7 +18,7 @@ public final class IPAInstaller {
 
     public func install(
         uploaded: IPAUploader.UploadedIPA,
-        progress: @escaping (InstallationProxyClient.InstallProgress) -> Void
+        progress: @escaping (InstallationProxyClient.RequestProgress) -> Void
     ) throws {
         var result: Result<(), Error>?
         let semaphore = DispatchSemaphore(value: 0)

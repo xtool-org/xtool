@@ -76,10 +76,14 @@ public final class HeartbeatHandler {
         Thread.sleep(forTimeInterval: .init(received.interval))
     }
 
+    // TODO: Separate initial establishment phase (blocking) from loop
+    // (non-blocking) and throw during initial phase if too many failed
+    // attempts. Also maybe try to eliminate recursion to avoid relying
+    // on TCO which is not deterministically applied.
     private func start() {
         let heartbeatClient: HeartbeatClient
         do {
-            heartbeatClient = try HeartbeatClient(device: device, service: .init(client: client))
+            heartbeatClient = try HeartbeatClient(device: device, service: .init(client: client, type: HeartbeatClient.self))
         } catch {
             // we sleep instead of asyncAfter to allow the initial startHeartbeat
             // call to block until a connection is established
@@ -103,7 +107,7 @@ public final class HeartbeatHandler {
                 do {
                     try self.beat(client: heartbeatClient, iteration: iteration)
                 } catch {
-                    print("Heartbeat failed: \(error)")
+                    NSLog("%@", "Heartbeat failed: \(error)")
                     // dispatching async should prevent stack overflows.
                     // We return to break out of the current loop.
                     return self.heartbeatQueue.asyncAfter(deadline: .now() + Self.restartInterval) {
