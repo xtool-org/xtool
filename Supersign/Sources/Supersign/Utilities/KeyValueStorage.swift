@@ -59,7 +59,7 @@ public struct KeychainStorage: KeyValueStorage {
         if result != errSecSuccess {
             if ignoreNotFound && result == errSecItemNotFound { return }
             let info: [String: Any]?
-            if #available(iOS 11.3, *), let message = SecCopyErrorMessageString(result, nil) {
+            if let message = SecCopyErrorMessageString(result, nil) {
                 info = [NSLocalizedDescriptionKey: message as String]
             } else {
                 info = nil
