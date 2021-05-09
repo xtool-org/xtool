@@ -97,5 +97,5 @@ extension DeviceInfo {
 }
 #endif
 
-#warning("Figure out DeviceInfo.current() on Windows/Linux")
+// FIXME: Figure out DeviceInfo.current() on Windows/Linux
 // (see above)

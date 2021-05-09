@@ -66,7 +66,7 @@ public struct KeychainAccessGroupsEntitlement: Entitlement, RawRepresentable {
 
 public struct AppGroupEntitlement: Entitlement, RawRepresentable {
     public static let identifier = "com.apple.security.application-groups"
-    #warning("Enable app groups on free accounts")
+    // FIXME: Enable app groups on free accounts
     // but first we need to fix the bug where it only assigns one
     // app group even if the ents say there are multiple
     public static let isFree = false
