@@ -26,7 +26,7 @@ extension TeamIdentifierEntitlement: EntitlementWithTeamOrBundleID {
 
 extension KeychainAccessGroupsEntitlement: EntitlementWithTeamOrBundleID {
     init(teamID: DeveloperServicesTeam.ID, bundleID: String) {
-        rawValue = ["\(teamID.rawValue).*"]
+        rawValue = ["\(teamID.rawValue).\(bundleID)"]
     }
 }
 
