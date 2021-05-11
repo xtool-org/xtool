@@ -17,6 +17,7 @@ let package = Package(
     products: [
         .library(
             name: "Supersign",
+            type: .dynamic,
             targets: ["Supersign"]
         ),
         .executable(
