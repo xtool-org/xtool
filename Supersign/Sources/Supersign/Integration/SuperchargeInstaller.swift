@@ -185,6 +185,9 @@ public final class SuperchargeInstaller {
     }
 
     private func fetchPairingKeys() throws -> Data? {
+        // TODO: Maybe use `Connection` here instead of creating the lockdown
+        // client manually?
+
         let device = try Device(udid: udid)
 
         guard updateProgress(to: 1/3) else { return nil }

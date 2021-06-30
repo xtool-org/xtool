@@ -15,27 +15,61 @@ public protocol ConnectionManagerDelegate: AnyObject {
 
 public class ConnectionManager {
 
-    fileprivate struct ConnectionKey: Hashable, Equatable {
+    fileprivate struct ConnectionKey: Hashable, Equatable, Comparable {
         let udid: String
-        /* let connectionType: USBMux.ConnectionType */
-    }
+        let connectionType: USBMux.ConnectionType
 
-    fileprivate struct ConnectionValue {
-        let lockdownClient: LockdownClient
-        let deviceName: String
-    }
-
-    public struct Client {
-        public let udid: String
-        public let deviceName: String
-
-        fileprivate init(key: ConnectionKey, value: ConnectionValue) {
-            self.udid = key.udid
-            self.deviceName = value.deviceName
+        private static func precedence(for connectionType: USBMux.ConnectionType) -> Int {
+            switch connectionType {
+            case .network: return 0
+            case .usb: return 1
+            }
         }
 
-        public func isEquivalent(to other: Client) -> Bool {
-            udid == other.udid
+        static func < (lhs: ConnectionManager.ConnectionKey, rhs: ConnectionManager.ConnectionKey) -> Bool {
+            lhs.udid < rhs.udid ||
+                (lhs.udid == rhs.udid
+                    && precedence(for: lhs.connectionType) < precedence(for: rhs.connectionType))
+        }
+    }
+
+    fileprivate class ConnectionValue {
+        let device: Device
+        let deviceName: String
+
+        init(key: ConnectionKey) throws {
+            let deviceConnectionType: Device.ConnectionType
+            switch key.connectionType {
+            case .network:
+                deviceConnectionType = .network
+            case .usb:
+                deviceConnectionType = .usb
+            }
+            let device = try Device(udid: key.udid, lookupMode: .only(deviceConnectionType))
+            let client = try LockdownClient(
+                device: device,
+                label: LockdownClient.installerLabel,
+                performHandshake: false
+            )
+            let deviceName = try client.deviceName()
+
+            self.device = device
+            self.deviceName = deviceName
+        }
+    }
+
+    public class Client {
+        private let key: ConnectionKey
+        private let value: ConnectionValue
+
+        public var udid: String { key.udid }
+        public var connectionType: USBMux.ConnectionType { key.connectionType }
+        public var device: Device { value.device }
+        public var deviceName: String { value.deviceName }
+
+        fileprivate init(key: ConnectionKey, value: ConnectionValue) {
+            self.key = key
+            self.value = value
         }
     }
 
@@ -56,7 +90,7 @@ public class ConnectionManager {
     public weak var delegate: ConnectionManagerDelegate?
 
     private func clientsDidChange() {
-        clients = clientsDict.sorted { $0.0.udid < $1.0.udid }.map(Client.init)
+        clients = clientsDict.sorted { $0.0 < $1.0 }.map(Client.init)
     }
 
     public init(delegate: ConnectionManagerDelegate? = nil) throws {
@@ -68,25 +102,15 @@ public class ConnectionManager {
     }
 
     private func handleEvent(_ event: USBMux.Event) {
-        // only handle USB. WiFi won't work because we can't re-pair over wifi afaik
-        guard event.device.connectionType == .usb else { return }
         let udid = event.device.udid
-        let key = ConnectionKey(udid: udid)
+        let key = ConnectionKey(udid: udid, connectionType: event.device.connectionType)
         switch event.kind {
         case .removed:
             clientsDict[key] = nil
         case .paired:
             return
         case .added:
-            guard let device = try? Device(udid: udid),
-                let client = try? LockdownClient(
-                    device: device,
-                    label: LockdownClient.installerLabel,
-                    performHandshake: false
-                ),
-                let deviceName = try? client.deviceName()
-                else { return }
-            clientsDict[key] = ConnectionValue(lockdownClient: client, deviceName: deviceName)
+            clientsDict[key] = try? ConnectionValue(key: key)
         }
     }
 

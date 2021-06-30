@@ -88,11 +88,12 @@ public class Connection {
                 throw Error.portForwardingFailed
             }
             NSLog("[SuperUSB] %@", "Using port forwarded device with ip \(String(cString: inet_ntoa(ip)!))")
-            simulatedDevice = PortForwardedDevice(ip: ip, pairingKeys: pairingKeys, udid: udid)
+            simulatedDevice = PortForwardedDevice(ip: ip, udid: udid)
         } else {
             NSLog("[SuperUSB] %@", "Using VPN device")
-            simulatedDevice = try VPNDevice(pairingKeys: pairingKeys, udid: udid)
+            simulatedDevice = try VPNDevice(udid: udid)
         }
+        simulatedDevice.pairingKeys = pairingKeys
         handle = USBMuxSimulator.shared.performAtomically { $0.register(device: simulatedDevice) }
         #endif
         progress(1/4)
