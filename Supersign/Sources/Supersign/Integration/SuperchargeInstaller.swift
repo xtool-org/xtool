@@ -76,6 +76,7 @@ public final class SuperchargeInstaller {
         case appExtractionFailed
         case appCorrupted
         case appPackagingFailed
+        case pairingFailed
 
         public var errorDescription: String? {
             "Installer.Error.\(self)"
@@ -206,15 +207,50 @@ public final class SuperchargeInstaller {
 
         guard updateProgress(to: 2/3) else { return nil }
 
-        // now create a new pair record, temporarily removing the existing one. This is necessary
-        // because if two machines try accessing lockdown with the same device wirelessly, it'll
-        // fail during the heartbeat
+        // now create a new pair record based off the existing one, but replacing the
+        // SystemBUID and HostID. This is necessary because if two machines with the
+        // same HostID try accessing lockdown with the same device wirelessly, it'll
+        // fail during the heartbeat. The SystemBUID also has to be different because
+        // we can only have one HostID per SystemBUID on iOS 15+
         let oldRecord = try USBMux.pairRecord(forUDID: udid)
-        try USBMux.deletePairRecord(forUDID: udid)
-        defer { try? USBMux.savePairRecord(oldRecord, forUDID: udid) }
 
-        try performWithRecovery { try lockdownClient.pair() }
-        return try USBMux.pairRecord(forUDID: udid)
+        var plistFormat: PropertyListSerialization.PropertyListFormat = .xml
+        guard var plist = try PropertyListSerialization
+                .propertyList(from: oldRecord, options: [], format: &plistFormat)
+                as? [String: Any],
+              let deviceCert = plist["DeviceCertificate"] as? Data,
+              let hostCert = plist["HostCertificate"] as? Data,
+              let rootCert = plist["RootCertificate"] as? Data,
+              let systemBUIDString = plist["SystemBUID"] as? String,
+              let systemBUID = UUID(uuidString: systemBUIDString)
+        else { throw Error.pairingFailed }
+
+        var bytes = systemBUID.uuid
+        // byte 7 MSBs 4-7 are the uuid version field
+        // byte 8 MSBs 6-7 are the variant field
+        // everything else *should* be fair game to modify
+        // for UUID v4
+        bytes.0 = ~bytes.0
+        let newSystemBUID = UUID(uuid: bytes).uuidString
+        plist["SystemBUID"] = newSystemBUID
+
+        let hostID = UUID().uuidString
+        plist["HostID"] = hostID
+
+        let record = LockdownClient.PairRecord(
+            deviceCertificate: deviceCert,
+            hostCertificate: hostCert,
+            rootCertificate: rootCert,
+            hostID: hostID,
+            systemBUID: newSystemBUID
+        )
+        try performWithRecovery {
+            try lockdownClient.pair(withRecord: record)
+        }
+
+        return try PropertyListSerialization.data(
+            fromPropertyList: plist, format: plistFormat, options: 0
+        )
     }
 
     private func install(
