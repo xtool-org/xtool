@@ -82,18 +82,17 @@ class SupersignCLIDelegate: SuperchargeInstallerDelegate {
         completion(selected)
     }
 
-    func presentMessage(_ message: SuperchargeInstaller.Message) {
+    func setPresentedMessage(_ message: SuperchargeInstaller.Message?) {
+        let text: String
         switch message {
         case .pairDevice:
-            print("\nPlease tap 'trust' on your device...", terminator: "")
+            text = "Please tap 'trust' on your device..."
         case .unlockDevice:
-            print("\nPlease unlock your device...", terminator: "")
+            text = "Please unlock your device..."
+        case nil:
+            text = "Continuing..."
         }
-        fflush(stdout)
-    }
-
-    func dismissMessage() {
-        print("\nContinuing...", terminator: "")
+        print("\n\(text)", terminator: "")
         fflush(stdout)
     }
 
@@ -169,7 +168,7 @@ class SupersignCLIDelegate: SuperchargeInstallerDelegate {
         completion(true)
     }
 
-    func compressIfNeeded(payloadDir: URL, progress: @escaping (Double?) -> Void, completion: @escaping (URL?) -> Void) {
+    func compress(payloadDir: URL, progress: @escaping (Double?) -> Void, completion: @escaping (URL?) -> Void) {
         progress(nil)
 
         let dest = payloadDir.deletingLastPathComponent().appendingPathComponent("app.ipa")

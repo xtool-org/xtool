@@ -18,8 +18,7 @@ extension LockdownClient {
 public protocol SuperchargeInstallerDelegate: AnyObject {
     func fetchCode(completion: @escaping (String?) -> Void)
     func fetchTeam(fromTeams teams: [DeveloperServicesTeam], completion: @escaping (DeveloperServicesTeam?) -> Void)
-    func presentMessage(_ message: SuperchargeInstaller.Message)
-    func dismissMessage()
+    func setPresentedMessage(_ message: SuperchargeInstaller.Message?)
     func installerDidUpdate(toStage stage: String, progress: Double?)
     func installerDidComplete(withResult result: Result<(), Error>)
 
@@ -38,7 +37,11 @@ public protocol SuperchargeInstallerDelegate: AnyObject {
         completion: @escaping (_ success: Bool) -> Void
     )
 
-    /// An opportunity for delegates to compress the app before installation.
+    // `compress` is required because the only way to upload symlinks via afc is by
+    // putting them in a zip archive (afc_make_symlink was disabled due to security or
+    // something)
+
+    /// Compress the app before installation.
     ///
     /// - Parameter payloadDir: The `Payload` directory which is to be compressed.
     /// - Parameter progress: A closure to which the callee can provide progress updates.
@@ -46,24 +49,12 @@ public protocol SuperchargeInstallerDelegate: AnyObject {
     /// - Parameter completion: A completion handler to call with the compressed file's URL.
     /// - Parameter url: The URL of the compressed file. The caller is responsible for cleaning this
     /// up once installation is complete. Pass `nil` to skip compression.
-    ///
-    /// - Note: The default implementation of this function simply calls `completion` with a
-    /// `nil` value for `url`.
-    func compressIfNeeded(
+    func compress(
         payloadDir: URL,
         progress: @escaping (_ currentProgress: Double?) -> Void,
         completion: @escaping (_ url: URL?) -> Void
     )
-}
 
-extension SuperchargeInstallerDelegate {
-    public func compressIfNeeded(
-        payloadDir: URL,
-        progress: @escaping (Double?) -> Void,
-        completion: @escaping (URL?) -> Void
-    ) {
-        completion(nil)
-    }
 }
 
 public final class SuperchargeInstaller {
@@ -161,27 +152,33 @@ public final class SuperchargeInstaller {
         self.delegate = delegate
     }
 
-    private func performWithRecovery<T>(hasPrompted: Bool = false, block: () throws -> T) throws -> T {
-        guard shouldContinue() else { throw Error.userCancelled }
+    private func performWithRecovery<T>(block: () throws -> T) throws -> T {
+        var presentedMessage: SuperchargeInstaller.Message?
 
-        func recurse(_ message: SuperchargeInstaller.Message) throws -> T {
-            if !hasPrompted { delegate?.presentMessage(message) }
-            // allow some time before recursing (even if TCO, we should probably not overdo it)
-            Thread.sleep(forTimeInterval: 0.5)
-            return try performWithRecovery(hasPrompted: true, block: block)
+        func present(message: SuperchargeInstaller.Message) throws {
+            if presentedMessage != message {
+                delegate?.setPresentedMessage(message)
+            }
+            presentedMessage = message
+            // allow some time before looping
+            Thread.sleep(forTimeInterval: 0.1)
         }
 
-        do {
-            let result = try block()
-            if hasPrompted { delegate?.dismissMessage() }
-            return result
-        } catch let error as LockdownClient.Error where error == .pairingDialogResponsePending {
-            return try recurse(.pairDevice)
-        } catch let error as LockdownClient.Error where error == .passwordProtected {
-            return try recurse(.unlockDevice)
-        } catch {
-            if hasPrompted { delegate?.dismissMessage() }
-            throw error
+        defer {
+            if presentedMessage != nil {
+                delegate?.setPresentedMessage(nil)
+            }
+        }
+
+        while true {
+            guard shouldContinue() else { throw Error.userCancelled }
+            do {
+                return try block()
+            } catch let error as LockdownClient.Error where error == .pairingDialogResponsePending {
+                try present(message: .pairDevice)
+            } catch let error as LockdownClient.Error where error == .passwordProtected {
+                try present(message: .unlockDevice)
+            }
         }
     }
 
@@ -285,7 +282,7 @@ public final class SuperchargeInstaller {
             self.updateProgress(to: nil)
             else { return }
 
-        delegate?.compressIfNeeded(
+        delegate?.compress(
             payloadDir: appDir.deletingLastPathComponent(),
             progress: { progress in
                 _ = self.updateProgress(to: progress, ignoreCancellation: true)
