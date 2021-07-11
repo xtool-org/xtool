@@ -87,13 +87,15 @@ public class ConnectionManager {
 
     private var token: USBMux.SubscriptionToken?
 
-    public weak var delegate: ConnectionManagerDelegate?
+    public let usbOnly: Bool
+    public private(set) weak var delegate: ConnectionManagerDelegate?
 
     private func clientsDidChange() {
         clients = clientsDict.sorted { $0.0 < $1.0 }.map(Client.init)
     }
 
-    public init(delegate: ConnectionManagerDelegate? = nil) throws {
+    public init(usbOnly: Bool = false, delegate: ConnectionManagerDelegate? = nil) throws {
+        self.usbOnly = usbOnly
         self.delegate = delegate
         self.token = try USBMux.subscribe { [weak self] event in
             guard let self = self else { return }
@@ -102,8 +104,10 @@ public class ConnectionManager {
     }
 
     private func handleEvent(_ event: USBMux.Event) {
+        let connectionType = event.device.connectionType
+        guard !usbOnly || connectionType == .usb else { return }
         let udid = event.device.udid
-        let key = ConnectionKey(udid: udid, connectionType: event.device.connectionType)
+        let key = ConnectionKey(udid: udid, connectionType: connectionType)
         switch event.kind {
         case .removed:
             clientsDict[key] = nil

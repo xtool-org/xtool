@@ -125,10 +125,10 @@ public final class SuperchargeInstaller {
     }
 
     private var stage: String?
-    private func updateStage(to stage: String, ignoreCancellation: Bool = false) -> Bool {
-        guard ignoreCancellation || shouldContinue() else { return false }
+    private func updateStage(to stage: String, initialProgress: Double? = 0, ignoreCancellation: Bool = false) -> Bool {
+        guard ignoreCancellation || shouldContinue(), self.stage != stage else { return false }
         self.stage = stage
-        delegate?.installerDidUpdate(toStage: stage, progress: 0)
+        delegate?.installerDidUpdate(toStage: stage, progress: initialProgress)
         return true
     }
     private func updateProgress(to progress: Double?, ignoreCancellation: Bool = false) -> Bool {
@@ -245,9 +245,13 @@ public final class SuperchargeInstaller {
             try lockdownClient.pair(withRecord: record)
         }
 
-        return try PropertyListSerialization.data(
+        let data = try PropertyListSerialization.data(
             fromPropertyList: plist, format: plistFormat, options: 0
         )
+
+        guard updateProgress(to: 1) else { return nil }
+
+        return data
     }
 
     private func install(
@@ -278,8 +282,7 @@ public final class SuperchargeInstaller {
         team: DeveloperServicesTeam,
         appDir: URL
     ) {
-        guard self.updateStage(to: "Packaging"),
-            self.updateProgress(to: nil)
+        guard self.updateStage(to: "Packaging", initialProgress: nil)
             else { return }
 
         delegate?.compress(
@@ -288,6 +291,7 @@ public final class SuperchargeInstaller {
                 _ = self.updateProgress(to: progress, ignoreCancellation: true)
             },
             completion: { url in
+                guard self.updateProgress(to: 1) else { return self.completion(.failure(Error.userCancelled)) }
                 self.installQueue.async {
                     self.install(
                         deviceInfo: deviceInfo,
@@ -420,7 +424,7 @@ public final class SuperchargeInstaller {
     }
 
     private func installOnQueue(ipa: URL) {
-        guard self.updateStage(to: "Unpacking app") else { return }
+        guard self.updateStage(to: "Unpacking app", initialProgress: nil) else { return }
 
         if FileManager.default.fileExists(atPath: tempDir.path) {
             try? FileManager.default.removeItem(at: tempDir)
@@ -439,7 +443,7 @@ public final class SuperchargeInstaller {
                 _ = self.updateProgress(to: progress, ignoreCancellation: true)
             },
             completion: { success in
-                guard self.shouldContinue() else { return self.completion(.failure(Error.userCancelled)) }
+                guard self.updateProgress(to: 1) else { return self.completion(.failure(Error.userCancelled)) }
                 self.installQueue.async {
                     self.install(decompressionDidSucceed: success)
                 }

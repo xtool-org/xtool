@@ -124,7 +124,7 @@ class SupersignCLIDelegate: SuperchargeInstallerDelegate {
                 print("\n[\(stage)] \(progString)", terminator: "")
                 fflush(stdout)
             } else {
-                print("\n===[\(stage)]===", terminator: "")
+                print("\n[\(stage)] ...", terminator: "")
                 fflush(stdout)
             }
         } else if progString != prevProgress {
@@ -139,7 +139,7 @@ class SupersignCLIDelegate: SuperchargeInstallerDelegate {
     }
 
     func installerDidComplete(withResult result: Result<(), Error>) {
-        print()
+        print("\n")
         switch result {
         case .success:
             print("Complete!")
@@ -186,18 +186,13 @@ class SupersignCLIDelegate: SuperchargeInstallerDelegate {
 }
 
 class ConnectionDelegate: ConnectionManagerDelegate {
-    let usbOnly: Bool
     var onConnect: (([ConnectionManager.Client]) -> Void)?
-    init(usbOnly: Bool, onConnect: @escaping ([ConnectionManager.Client]) -> Void) {
-        self.usbOnly = usbOnly
+    init(onConnect: @escaping ([ConnectionManager.Client]) -> Void) {
         self.onConnect = onConnect
     }
 
     func connectionManager(_ manager: ConnectionManager, clientsDidChangeFrom oldValue: [ConnectionManager.Client]) {
-        var usableClients = manager.clients
-        if usbOnly {
-            usableClients.removeAll { $0.connectionType != .usb }
-        }
+        let usableClients = manager.clients
         guard !usableClients.isEmpty else { return }
         onConnect?(usableClients)
         onConnect = nil
@@ -220,11 +215,11 @@ func main() throws {
     print("Waiting for device to be connected...")
     var clients: [ConnectionManager.Client]!
     let semaphore = DispatchSemaphore(value: 0)
-    let connDelegate = ConnectionDelegate(usbOnly: true) { currClients in
+    let connDelegate = ConnectionDelegate { currClients in
         clients = currClients
         semaphore.signal()
     }
-    try withExtendedLifetime(ConnectionManager(delegate: connDelegate)) {
+    try withExtendedLifetime(ConnectionManager(usbOnly: true, delegate: connDelegate)) {
         semaphore.wait()
     }
 
