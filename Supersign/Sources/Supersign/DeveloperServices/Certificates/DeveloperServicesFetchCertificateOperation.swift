@@ -45,7 +45,7 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
             platform: context.platform,
             teamID: context.teamID,
             csr: csr,
-            machineName: "Supercharge: \(context.deviceName)",
+            machineName: "Supercharge: \(SigningContext.hostName)",
             machineID: context.client.deviceInfo.deviceID
         )
         context.client.send(request) { result in

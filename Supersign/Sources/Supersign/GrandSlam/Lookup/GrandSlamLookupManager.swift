@@ -21,9 +21,9 @@ class GrandSlamLookupManager {
 
     let httpClient: HTTPClientProtocol
     let deviceInfo: DeviceInfo
-    init(deviceInfo: DeviceInfo, httpFactory: HTTPClientFactory.Type = defaultHTTPClientFactory) {
+    init(deviceInfo: DeviceInfo, httpFactory: HTTPClientFactory = defaultHTTPClientFactory) {
         self.deviceInfo = deviceInfo
-        self.httpClient = httpFactory.shared.makeClient()
+        self.httpClient = httpFactory.makeClient()
     }
 
     private func performLookup(completion: @escaping (Result<GrandSlamEndpoints, Error>) -> Void) {

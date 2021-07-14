@@ -66,15 +66,14 @@ public protocol HTTPClientProtocol {
 }
 
 public protocol HTTPClientFactory {
-    static var shared: Self { get }
     func shutdown() // client is invalidated after this
     func makeClient() -> HTTPClientProtocol
 }
 
-public let defaultHTTPClientFactory: HTTPClientFactory.Type = {
+public let defaultHTTPClientFactory: HTTPClientFactory = {
     #if os(Linux)
-    return AsyncHTTPClientFactory.self
+    return AsyncHTTPClientFactory.shared
     #else
-    return URLHTTPClientFactory.self
+    return URLHTTPClientFactory.shared
     #endif
 }()

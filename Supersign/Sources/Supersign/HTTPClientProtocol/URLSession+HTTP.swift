@@ -57,8 +57,8 @@ extension URLSession: HTTPClientProtocol {
     }
 }
 
-public final class URLHTTPClientFactory: HTTPClientFactory {
-    public static let shared = URLHTTPClientFactory()
+final class URLHTTPClientFactory: HTTPClientFactory {
+    static let shared = URLHTTPClientFactory()
 
     // no need for cert handling since the Apple Root CA is already
     // installed on any devices which support the Security APIs which
@@ -66,7 +66,7 @@ public final class URLHTTPClientFactory: HTTPClientFactory {
     private let session = URLSession(configuration: .ephemeral)
     private init() {}
 
-    public func shutdown() {}
-    public func makeClient() -> HTTPClientProtocol { session }
+    func shutdown() {}
+    func makeClient() -> HTTPClientProtocol { session }
 }
 #endif

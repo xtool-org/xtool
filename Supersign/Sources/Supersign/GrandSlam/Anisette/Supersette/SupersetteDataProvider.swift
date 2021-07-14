@@ -23,9 +23,9 @@ public class SupersetteDataProvider: AnisetteDataProvider {
     public let deviceInfo: DeviceInfo
     private let httpClient: HTTPClientProtocol
 
-    public init(deviceInfo: DeviceInfo, httpFactory: HTTPClientFactory.Type = defaultHTTPClientFactory) {
+    public init(deviceInfo: DeviceInfo, httpFactory: HTTPClientFactory = defaultHTTPClientFactory) {
         self.deviceInfo = deviceInfo
-        self.httpClient = httpFactory.shared.makeClient()
+        self.httpClient = httpFactory.makeClient()
     }
 
     private struct AnisetteRequestBody: Encodable {

@@ -44,14 +44,8 @@ public class MemoryBackedSigningInfoManager: SigningInfoManager {
 }
 
 public struct KeyValueSigningInfoManager: SigningInfoManager {
-    private enum KeyType: String {
-        case certificate
-        case privateKey
-    }
-
-    private func key(_ teamID: DeveloperServicesTeam.ID, _ keyType: KeyType) -> String {
-        "\(teamID.rawValue).\(keyType.rawValue)"
-    }
+    private let encoder = PropertyListEncoder()
+    private let decoder = PropertyListDecoder()
 
     public let storage: KeyValueStorage
     public init(storage: KeyValueStorage) {
@@ -59,22 +53,13 @@ public struct KeyValueSigningInfoManager: SigningInfoManager {
     }
 
     public func info(forTeamID teamID: DeveloperServicesTeam.ID) throws -> SigningInfo? {
-        guard let privKeyData = try storage.data(forKey: key(teamID, .privateKey)),
-            let certData = try storage.data(forKey: key(teamID, .certificate))
+        guard let data = try storage.data(forKey: teamID.rawValue)
             else { return nil }
-        let cert = try Certificate(data: certData)
-        let privKey = PrivateKey(data: privKeyData)
-        return SigningInfo(privateKey: privKey, certificate: cert)
+        return try decoder.decode(SigningInfo.self, from: data)
     }
 
     public func setInfo(_ info: SigningInfo?, forTeamID teamID: DeveloperServicesTeam.ID) throws {
-        try storage.setData(
-            info?.certificate.data(),
-            forKey: key(teamID, .certificate)
-        )
-        try storage.setData(
-            info?.privateKey.data,
-            forKey: key(teamID, .privateKey)
-        )
+        let data = try encoder.encode(info)
+        try storage.setData(data, forKey: teamID.rawValue)
     }
 }

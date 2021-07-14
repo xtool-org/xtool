@@ -11,6 +11,7 @@ import Foundation
 public struct SigningContext {
 
     public let udid: String
+    public let deviceName: String
     public let teamID: DeveloperServicesTeam.ID
     public let client: DeveloperServicesClient
     public let signingInfoManager: SigningInfoManager
@@ -19,6 +20,7 @@ public struct SigningContext {
 
     public init(
         udid: String,
+        deviceName: String,
         teamID: DeveloperServicesTeam.ID,
         client: DeveloperServicesClient,
         signingInfoManager: SigningInfoManager,
@@ -26,6 +28,7 @@ public struct SigningContext {
         signerImpl: SignerImpl? = nil
     ) throws {
         self.udid = udid
+        self.deviceName = deviceName
         self.teamID = teamID
         self.client = client
         self.signingInfoManager = signingInfoManager
@@ -39,7 +42,7 @@ public struct SigningContext {
 import UIKit
 #endif
 extension SigningContext {
-    public var deviceName: String {
+    public static var hostName: String {
         #if targetEnvironment(simulator)
         return "Simulator"
         #elseif canImport(UIKit)

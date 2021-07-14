@@ -19,14 +19,14 @@ class GrandSlamClient {
     private let httpClient: HTTPClientProtocol
     init(
         deviceInfo: DeviceInfo,
-        httpFactory: HTTPClientFactory.Type = defaultHTTPClientFactory,
+        httpFactory: HTTPClientFactory = defaultHTTPClientFactory,
         customAnisetteDataProvider: AnisetteDataProvider? = nil
     ) {
         self.deviceInfo = deviceInfo
         self.anisetteDataProvider = customAnisetteDataProvider
             ?? SupersetteDataProvider(deviceInfo: deviceInfo)
         self.lookupManager = .init(deviceInfo: deviceInfo, httpFactory: httpFactory)
-        self.httpClient = httpFactory.shared.makeClient()
+        self.httpClient = httpFactory.makeClient()
     }
 
     private func send<R: GrandSlamRequest>(

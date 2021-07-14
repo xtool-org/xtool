@@ -73,6 +73,9 @@ public struct KeychainStorage: KeyValueStorage {
             kSecClass: kSecClassGenericPassword,
             kSecAttrAccount: key
         ]
+        if #available(macOS 10.15, *) {
+            query[kSecUseDataProtectionKeychain] = true
+        }
         query[kSecAttrService] = service
         query.merge(parameters) { _, b in b }
         return query as CFDictionary

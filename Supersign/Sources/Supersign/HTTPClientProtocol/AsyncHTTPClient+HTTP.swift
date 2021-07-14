@@ -89,7 +89,7 @@ extension HTTPClient: HTTPClientProtocol {
     }
 }
 
-public final class AsyncHTTPClientFactory: HTTPClientFactory {
+final class AsyncHTTPClientFactory: HTTPClientFactory {
     private static let appleRootPEM = """
     -----BEGIN CERTIFICATE-----
     MIIEuzCCA6OgAwIBAgIBAjANBgkqhkiG9w0BAQUFADBiMQswCQYDVQQGEwJVUzET
@@ -131,12 +131,12 @@ public final class AsyncHTTPClientFactory: HTTPClientFactory {
         )
         client = HTTPClient(eventLoopGroupProvider: .createNew, configuration: config)
     }
-    public static let shared = AsyncHTTPClientFactory()
+    static let shared = AsyncHTTPClientFactory()
 
-    public func shutdown() {
+    func shutdown() {
         try! client.syncShutdown()
     }
 
-    public func makeClient() -> HTTPClientProtocol { client }
+    func makeClient() -> HTTPClientProtocol { client }
 }
 #endif

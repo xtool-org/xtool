@@ -82,6 +82,7 @@ public final class SuperchargeInstaller {
     let udid: String
     let appleID: String
     let password: String
+    let signingInfoManager: SigningInfoManager
     public weak var delegate: SuperchargeInstallerDelegate?
 
     private var appInstaller: AppInstaller?
@@ -144,45 +145,46 @@ public final class SuperchargeInstaller {
         udid: String,
         appleID: String,
         password: String,
+        signingInfoManager: SigningInfoManager,
         delegate: SuperchargeInstallerDelegate
     ) {
         self.udid = udid
         self.appleID = appleID
         self.password = password
+        self.signingInfoManager = signingInfoManager
         self.delegate = delegate
     }
 
-    private func performWithRecovery<T>(block: () throws -> T) throws -> T {
-        var presentedMessage: SuperchargeInstaller.Message?
-
-        func present(message: SuperchargeInstaller.Message) throws {
-            if presentedMessage != message {
-                delegate?.setPresentedMessage(message)
-            }
-            presentedMessage = message
-            // allow some time before looping
-            Thread.sleep(forTimeInterval: 0.1)
-        }
+    private func performWithRecovery<T>(repeatAfter: TimeInterval = 0.1, block: () throws -> T) throws -> T {
+        var currMessage: SuperchargeInstaller.Message?
 
         defer {
-            if presentedMessage != nil {
+            if currMessage != nil {
                 delegate?.setPresentedMessage(nil)
             }
         }
 
         while true {
             guard shouldContinue() else { throw Error.userCancelled }
+            let nextMessage: SuperchargeInstaller.Message
             do {
                 return try block()
             } catch let error as LockdownClient.Error where error == .pairingDialogResponsePending {
-                try present(message: .pairDevice)
+                nextMessage = .pairDevice
             } catch let error as LockdownClient.Error where error == .passwordProtected {
-                try present(message: .unlockDevice)
+                nextMessage = .unlockDevice
+            }
+            if currMessage != nextMessage {
+                delegate?.setPresentedMessage(nextMessage)
+                currMessage = nextMessage
+            }
+            if repeatAfter > 0 {
+                Thread.sleep(forTimeInterval: repeatAfter)
             }
         }
     }
 
-    private func fetchPairingKeys() throws -> Data? {
+    private func prepareDevice() throws -> (deviceName: String, pairingKeys: Data)? {
         // TODO: Maybe use `Connection` here instead of creating the lockdown
         // client manually?
 
@@ -198,6 +200,8 @@ public final class SuperchargeInstaller {
                 performHandshake: true
             )
         }
+
+        let deviceName = try lockdownClient.deviceName()
 
         try lockdownClient.setValue(udid, forDomain: "com.apple.mobile.wireless_lockdown", key: "WirelessBuddyID")
         try lockdownClient.setValue(true, forDomain: "com.apple.mobile.wireless_lockdown", key: "EnableWifiConnections")
@@ -251,7 +255,7 @@ public final class SuperchargeInstaller {
 
         guard updateProgress(to: 1) else { return nil }
 
-        return data
+        return (deviceName, data)
     }
 
     private func install(
@@ -314,30 +318,22 @@ public final class SuperchargeInstaller {
     ) {
         guard self.updateStage(to: "Preparing device") else { return }
 
+        let deviceName: String
         let pairingKeys: Data
 
         do {
-            guard let _pairingKeys = try fetchPairingKeys()
+            guard let prepareResult = try prepareDevice()
                 else { return } // nil: user cancelled
-            pairingKeys = _pairingKeys
+            (deviceName, pairingKeys) = prepareResult
         } catch {
             return completion(.failure(error))
         }
-
-        #warning("Persist manager on Windows/Linux")
-        let signingInfoManager: SigningInfoManager
-        #if os(macOS)
-        signingInfoManager = KeyValueSigningInfoManager(
-            storage: KeychainStorage(service: "com.kabiroberai.Supercharge-Installer.credentials")
-        )
-        #else
-        signingInfoManager = MemoryBackedSigningInfoManager()
-        #endif
 
         let context: SigningContext
         do {
             context = try SigningContext(
                 udid: udid,
+                deviceName: deviceName,
                 teamID: team.id,
                 client: client,
                 signingInfoManager: signingInfoManager,
@@ -461,7 +457,11 @@ public final class SuperchargeInstaller {
 
 extension SuperchargeInstaller: TwoFactorAuthDelegate {
     public func fetchCode(completion: @escaping (String?) -> Void) {
-        delegate?.fetchCode { code in
+        guard let delegate = delegate else {
+            self.installQueue.async { completion(nil) }
+            return
+        }
+        delegate.fetchCode { code in
             self.installQueue.async {
                 completion(code)
             }

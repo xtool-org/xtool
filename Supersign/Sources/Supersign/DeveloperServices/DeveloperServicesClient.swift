@@ -61,14 +61,14 @@ public final class DeveloperServicesClient {
     public init(
         loginToken: DeveloperServicesLoginToken,
         deviceInfo: DeviceInfo,
-        httpFactory: HTTPClientFactory.Type = defaultHTTPClientFactory,
+        httpFactory: HTTPClientFactory = defaultHTTPClientFactory,
         customAnisetteDataProvider: AnisetteDataProvider? = nil
     ) {
         self.loginToken = loginToken
         self.deviceInfo = deviceInfo
         self.anisetteDataProvider = customAnisetteDataProvider
             ?? SupersetteDataProvider(deviceInfo: deviceInfo)
-        self.httpClient = httpFactory.shared.makeClient()
+        self.httpClient = httpFactory.makeClient()
     }
 
     private func send<R: DeveloperServicesRequest>(
