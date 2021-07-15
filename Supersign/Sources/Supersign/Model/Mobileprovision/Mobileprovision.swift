@@ -77,7 +77,11 @@ public final class Mobileprovision: Decodable {
         guard let ptr = mobileprovision_get_digest(raw, &len), len > 0 else {
             throw Error.invalidProfile
         }
-        let data = Data(bytes: ptr, count: len)
+        let data = Data(
+            bytesNoCopy: UnsafeMutableRawPointer(mutating: ptr),
+            count: len,
+            deallocator: .none
+        )
         return try PropertyListDecoder().decode(Digest.self, from: data)
     }
 

@@ -60,7 +60,14 @@ void *mobileprovision_get_data(mobileprovision_t profile, size_t *len) {
 }
 
 const void *mobileprovision_get_digest(mobileprovision_t profile, size_t *len) {
-    ASN1_OCTET_STRING *str = profile->raw->d.sign->contents->d.data;
-    if (len) *len = str->length;
-    return (char *)str->data;
+    // we could dig into the struct ourselves instead but using the
+    // documented API is better.
+    BIO *digest_bio = PKCS7_dataDecode(profile->raw, NULL, NULL, NULL);
+    if (!digest_bio) return NULL;
+    char *data = NULL;
+    long digest_len = BIO_get_mem_data(digest_bio, &data);
+    // the mem pointer is owned by `profile`, not the bio
+    BIO_free_all(digest_bio);
+    if (len) *len = digest_len;
+    return data;
 }
