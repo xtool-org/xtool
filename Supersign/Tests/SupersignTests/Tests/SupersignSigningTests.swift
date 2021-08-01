@@ -6,7 +6,12 @@
 //  Copyright © 2019 Kabir Oberai. All rights reserved.
 //
 
+// TODO: Test using mock signer
+
+#if false
+
 import XCTest
+import SuperutilsTestSupport
 import Supersign
 
 class SupersignSigningTests: XCTestCase {
@@ -18,11 +23,11 @@ class SupersignSigningTests: XCTestCase {
     // swiftlint:disable force_try
     override func setUp() {
         super.setUp()
+        _ = addMockSigner
         client = .test()
         signerImpl = try! SignerImpl.first()
 
-        let bundle = Bundle(for: Self.self)
-        let source = try! XCTUnwrap(bundle.url(forResource: "test", withExtension: "app"))
+        let source = try! XCTUnwrap(Bundle.module.url(forResource: "test", withExtension: "app"))
         let tmp = FileManager.default.temporaryDirectory
         app = tmp.appendingPathComponent(source.lastPathComponent)
         if FileManager.default.fileExists(atPath: app.path) {
@@ -48,6 +53,7 @@ class SupersignSigningTests: XCTestCase {
 
         let context = try XCTTry(SigningContext(
             udid: Config.current.udid,
+            deviceName: SigningContext.hostName,
             teamID: team.id,
             client: client,
             signingInfoManager: MemoryBackedSigningInfoManager(),
@@ -82,3 +88,5 @@ class SupersignSigningTests: XCTestCase {
     }
 
 }
+
+#endif

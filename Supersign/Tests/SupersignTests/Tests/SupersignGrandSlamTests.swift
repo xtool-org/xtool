@@ -7,6 +7,7 @@
 //
 
 import XCTest
+import SuperutilsTestSupport
 @testable import Supersign
 
 class TwoFactorAuthenticator: TwoFactorAuthDelegate {
@@ -23,6 +24,7 @@ class SupersignGrandSlamTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
+        _ = addMockSigner
         client = .test()
         authenticator = TwoFactorAuthenticator()
     }

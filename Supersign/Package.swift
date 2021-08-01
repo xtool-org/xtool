@@ -58,6 +58,20 @@ let package = Package(
             ],
             cSettings: cSettings
         ),
+        .testTarget(
+            name: "SupersignTests",
+            dependencies: [
+                "Supersign",
+                .product(name: "SuperutilsTestSupport", package: "SuperchargeCore")
+            ],
+            exclude: [
+                "config/config-template.json",
+            ],
+            resources: [
+                .copy("config/config.json"),
+                .copy("config/test.app"),
+            ]
+        ),
         .target(
             name: "SupersignCLI",
             dependencies: [

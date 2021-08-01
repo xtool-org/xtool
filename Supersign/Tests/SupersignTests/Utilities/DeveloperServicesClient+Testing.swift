@@ -10,6 +10,8 @@ import Foundation
 import XCTest
 @testable import Supersign
 
+#if false
+
 extension TCPAnisetteDataProvider {
 
     static func test() -> TCPAnisetteDataProvider {
@@ -25,6 +27,8 @@ extension NetcatAnisetteDataProvider {
     }
 
 }
+
+#endif
 
 extension SupersetteDataProvider {
 

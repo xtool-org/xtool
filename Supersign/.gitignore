@@ -1,0 +1,2 @@
+/Tests/SupersignTests/config/*
+!/Tests/SupersignTests/config/config-template.json

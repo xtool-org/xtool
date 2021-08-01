@@ -23,8 +23,7 @@ struct Config: Decodable {
     let udid: String
 
     static let current: Config = {
-        class ConfigDummy {}
-        let url = Bundle(for: ConfigDummy.self).url(forResource: "config", withExtension: "json")!
+        let url = Bundle.module.url(forResource: "config", withExtension: "json")!
         // swiftlint:disable:next force_try
         let data = try! Data(contentsOf: url)
         // swiftlint:disable:next force_try

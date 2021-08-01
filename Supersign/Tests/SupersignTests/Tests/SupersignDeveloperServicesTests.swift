@@ -7,6 +7,7 @@
 //
 
 import XCTest
+import SuperutilsTestSupport
 import Supersign
 
 class SupersignDeveloperServicesTests: XCTestCase {
@@ -15,6 +16,7 @@ class SupersignDeveloperServicesTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
+        _ = addMockSigner
         client = .test()
     }
 
@@ -29,11 +31,11 @@ class SupersignDeveloperServicesTests: XCTestCase {
         let teams = try XCTTry(client.sendTest(listTeams))
         let team = teams.first { $0.status == "active" && $0.memberships.contains { $0.platform == .iOS } }!
 
-        let bundle = Bundle(for: Self.self)
-        let source = try XCTUnwrap(bundle.url(forResource: "test", withExtension: "app"))
+        let source = try XCTUnwrap(Bundle.module.url(forResource: "test", withExtension: "app"))
 
         let context = try XCTTry(SigningContext(
             udid: Config.current.udid,
+            deviceName: SigningContext.hostName,
             teamID: team.id,
             client: client,
             signingInfoManager: MemoryBackedSigningInfoManager()
