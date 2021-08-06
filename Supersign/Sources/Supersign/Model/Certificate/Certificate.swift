@@ -62,6 +62,10 @@ public final class Certificate: Codable {
         return string
     }
 
+    public func wasIssuedBefore(_ other: Certificate) -> Bool {
+        certificate_was_issued_before(raw, other.raw)
+    }
+
     public func data() throws -> Data {
         try Data { certificate_generate_data(raw, &$0) }
             .orThrow(Error.invalidCertificate)
