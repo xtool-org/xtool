@@ -13,8 +13,6 @@ import SwiftyMobileDevice
 import USBMuxSim
 import PortForwarding
 
-public typealias PairingKeys = Data
-
 private extension USBMuxSimulator {
     func performAtomically<T>(_ operation: (USBMuxSimulator) -> T) -> T {
         var value: T!
@@ -30,8 +28,6 @@ private extension USBMuxSimulator {
         return try value.get()
     }
 }
-#else
-public typealias PairingKeys = Void
 #endif
 
 private class WeakBox<T: AnyObject> {
@@ -39,25 +35,39 @@ private class WeakBox<T: AnyObject> {
     init(_ value: T) { self.value = value }
 }
 
-// there is guaranteed to be at most one Connection instance per udid
+// there is guaranteed to be at most one Connection instance per (udid, preferences)
 // at any moment, thanks to Connection.connection(...). Consequently
-// there is at most one device per udid at any moment too.
+// there is at most one device per (udid, preferences) at any moment too.
 public class Connection {
 
     public enum Error: Swift.Error {
         case portForwardingFailed
     }
 
-    public struct Preferences {
-        public let usePortForwarding: Bool
-        public init(usePortForwarding: Bool = false) {
+    public struct Preferences: Hashable {
+        #if os(iOS)
+        public var pairingKeys: Data
+        public var usePortForwarding: Bool
+        public init(pairingKeys: Data, usePortForwarding: Bool = false) {
+            self.pairingKeys = pairingKeys
             self.usePortForwarding = usePortForwarding
         }
+        #else
+        public var lookupMode: LookupMode
+        public init(lookupMode: LookupMode) {
+            self.lookupMode = lookupMode
+        }
+        #endif
+    }
+
+    private struct ConnectionDescriptor: Hashable {
+        let udid: String
+        let preferences: Preferences
     }
 
     private static let label = "supersign"
 
-    private static var connections: [String: WeakBox<Connection>] = [:]
+    private static var connections: [ConnectionDescriptor: WeakBox<Connection>] = [:]
     private static let connectionsQueue = DispatchQueue(label: "connections-queue")
 
     #if os(iOS)
@@ -67,11 +77,10 @@ public class Connection {
     private let udid: String
     public let device: Device
     public let client: LockdownClient
-    public var preferences: Preferences
+    public let preferences: Preferences
 
     private init(
         udid: String,
-        pairingKeys: PairingKeys,
         preferences: Preferences,
         progress: (Double) -> Void
     ) throws {
@@ -93,42 +102,44 @@ public class Connection {
             NSLog("[SuperUSB] %@", "Using VPN device")
             simulatedDevice = try VPNDevice(udid: udid)
         }
-        simulatedDevice.pairingKeys = pairingKeys
+        simulatedDevice.pairingKeys = preferences.pairingKeys
         handle = USBMuxSimulator.shared.performAtomically { $0.register(device: simulatedDevice) }
-        #endif
         progress(1/4)
 
         device = try Device(udid: udid)
+        #else
+        device = try Device(udid: udid, lookupMode: preferences.lookupMode)
+        #endif
         progress(2/4)
 
         client = try LockdownClient(device: device, label: Self.label, performHandshake: true)
-        progress(3/4)
 
         #if os(iOS)
+        progress(3/4)
         heartbeatHandler = HeartbeatHandler(device: device, client: client)
         #endif
+
         progress(4/4)
     }
 
     public static func connection(
         forUDID udid: String,
-        pairingKeys: PairingKeys,
-        preferences: Preferences = .init(),
+        preferences: Preferences,
         progress: (Double) -> Void
     ) throws -> Connection {
-        try connectionsQueue.sync {
+        let descriptor = ConnectionDescriptor(udid: udid, preferences: preferences)
+        return try connectionsQueue.sync {
             progress(0)
-            if let conn = connections[udid]?.value {
+            if let conn = connections[descriptor]?.value {
                 progress(1)
                 return conn
             }
             let conn = try Connection(
                 udid: udid,
-                pairingKeys: pairingKeys,
                 preferences: preferences,
                 progress: progress
             )
-            connections[udid] = WeakBox(conn)
+            connections[descriptor] = WeakBox(conn)
             return conn
         }
     }

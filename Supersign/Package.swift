@@ -20,16 +20,11 @@ let package = Package(
             type: .dynamic,
             targets: ["Supersign"]
         ),
-        .executable(
-            name: "SupersignCLI",
-            targets: ["SupersignCLI"]
-        )
     ],
     dependencies: [
         .package(path: "../SuperchargeCore"),
         .package(path: "../SwiftyMobileDevice"),
         .package(path: "../USBMuxSim"),
-        .package(path: "../SupersignLdid"),
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.0.0"),
     ],
     targets: [
@@ -72,17 +67,5 @@ let package = Package(
                 .copy("config/test.app"),
             ]
         ),
-        .target(
-            name: "SupersignCLI",
-            dependencies: [
-                "SwiftyMobileDevice",
-                "Supersign",
-                "SupersignLdid"
-            ],
-            resources: [
-                .copy("Supercharge.ipa")
-            ],
-            cSettings: cSettings
-        )
     ]
 )

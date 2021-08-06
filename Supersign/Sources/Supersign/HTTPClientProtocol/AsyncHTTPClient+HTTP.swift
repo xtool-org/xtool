@@ -125,8 +125,10 @@ final class AsyncHTTPClientFactory: HTTPClientFactory {
     private init() {
         // if ssl cert parsing fails we're screwed so we might as well force try
         let appleRootCA = try! NIOSSLCertificate(bytes: Array(Self.appleRootPEM.utf8), format: .pem)
+        var tlsConfiguration: TLSConfiguration = .makeClientConfiguration()
+        tlsConfiguration.additionalTrustRoots = [.certificates([appleRootCA])]
         let config = HTTPClient.Configuration(
-            tlsConfiguration: .forClient(additionalTrustRoots: [.certificates([appleRootCA])]),
+            tlsConfiguration: tlsConfiguration,
             decompression: .enabled(limit: .none)
         )
         client = HTTPClient(eventLoopGroupProvider: .createNew, configuration: config)

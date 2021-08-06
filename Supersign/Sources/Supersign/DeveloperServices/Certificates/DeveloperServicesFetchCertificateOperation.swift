@@ -12,6 +12,7 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
 
     public enum Error: LocalizedError {
         case csrFailed
+        case userCancelled
 
         public var errorDescription: String? {
             switch self {
@@ -19,13 +20,22 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
                 return NSLocalizedString(
                     "fetch_certificate_operation.error.csr_failed", value: "CSR request failed", comment: ""
                 )
+            case .userCancelled:
+                return NSLocalizedString(
+                    "fetch_certificate_operation.error.user_cancelled", value: "The operation was cancelled", comment: ""
+                )
             }
         }
     }
 
     public let context: SigningContext
-    public init(context: SigningContext) {
+    public let confirmRevocation: ([DeveloperServicesCertificate], @escaping (Bool) -> Void) -> Void
+    public init(
+        context: SigningContext,
+        confirmRevocation: @escaping ([DeveloperServicesCertificate], @escaping (Bool) -> Void) -> Void
+    ) {
         self.context = context
+        self.confirmRevocation = confirmRevocation
     }
 
     private func createCertificate(
@@ -78,14 +88,17 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
         certificates: [DeveloperServicesCertificate],
         completion: @escaping (Result<SigningInfo, Swift.Error>) -> Void
     ) {
-        let grouper = RequestGrouper<EmptyResponse, Swift.Error>()
-        certificates.forEach {
-            let request = DeveloperServicesRevokeCertificateRequest(teamID: context.teamID, certificateID: $0.id)
-            grouper.add { context.client.send(request, completion: $0) }
-        }
-        grouper.onComplete { result in
-            guard result.get(withErrorHandler: completion) != nil else { return }
-            self.createAndSaveCertificate(completion: completion)
+        confirmRevocation(certificates) { confirmation in
+            guard confirmation else { return completion(.failure(Error.userCancelled)) }
+            let grouper = RequestGrouper<EmptyResponse, Swift.Error>()
+            certificates.forEach {
+                let request = DeveloperServicesRevokeCertificateRequest(teamID: context.teamID, certificateID: $0.id)
+                grouper.add { context.client.send(request, completion: $0) }
+            }
+            grouper.onComplete { result in
+                guard result.get(withErrorHandler: completion) != nil else { return }
+                self.createAndSaveCertificate(completion: completion)
+            }
         }
     }
 

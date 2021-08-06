@@ -15,11 +15,28 @@ public protocol ConnectionManagerDelegate: AnyObject {
 
 public class ConnectionManager {
 
+    public enum SearchMode: CaseIterable {
+        case usb
+        case network
+        case all
+
+        func allows(_ connectionType: ConnectionType) -> Bool {
+            switch self {
+            case .usb:
+                return connectionType == .usb
+            case .network:
+                return connectionType == .network
+            case .all:
+                return true
+            }
+        }
+    }
+
     fileprivate struct ConnectionKey: Hashable, Equatable, Comparable {
         let udid: String
-        let connectionType: USBMux.ConnectionType
+        let connectionType: ConnectionType
 
-        private static func precedence(for connectionType: USBMux.ConnectionType) -> Int {
+        private static func precedence(for connectionType: ConnectionType) -> Int {
             switch connectionType {
             case .network: return 0
             case .usb: return 1
@@ -38,7 +55,7 @@ public class ConnectionManager {
         let deviceName: String
 
         init(key: ConnectionKey) throws {
-            let deviceConnectionType: Device.ConnectionType
+            let deviceConnectionType: ConnectionType
             switch key.connectionType {
             case .network:
                 deviceConnectionType = .network
@@ -63,7 +80,7 @@ public class ConnectionManager {
         private let value: ConnectionValue
 
         public var udid: String { key.udid }
-        public var connectionType: USBMux.ConnectionType { key.connectionType }
+        public var connectionType: ConnectionType { key.connectionType }
         public var device: Device { value.device }
         public var deviceName: String { value.deviceName }
 
@@ -73,7 +90,7 @@ public class ConnectionManager {
         }
     }
 
-    private var clientsDict: [ConnectionKey: ConnectionValue] = [:] {
+    private var clientsDict: [ConnectionKey: ConnectionValue] {
         didSet {
             clientsDidChange()
         }
@@ -87,17 +104,27 @@ public class ConnectionManager {
 
     private var token: USBMux.SubscriptionToken?
 
-    public let usbOnly: Bool
+    public let searchMode: SearchMode
     public private(set) weak var delegate: ConnectionManagerDelegate?
 
     private func clientsDidChange() {
         clients = clientsDict.sorted { $0.0 < $1.0 }.map(Client.init)
     }
 
-    public init(usbOnly: Bool = false, delegate: ConnectionManagerDelegate? = nil) throws {
-        self.usbOnly = usbOnly
+    public init(searchMode: SearchMode = .all, delegate: ConnectionManagerDelegate? = nil) throws {
+        self.searchMode = searchMode
         self.delegate = delegate
-        self.token = try USBMux.subscribe { [weak self] event in
+        self.clientsDict = Dictionary(try USBMux.allDevices().compactMap { dev -> (ConnectionKey, ConnectionValue)? in
+            guard searchMode.allows(dev.connectionType) else { return nil }
+            let key = ConnectionKey(udid: dev.udid, connectionType: dev.connectionType)
+            return try (key, ConnectionValue(key: key))
+        }) { _, b in b }
+
+        if !clientsDict.isEmpty {
+            clientsDidChange()
+        }
+
+        token = try USBMux.subscribe { [weak self] event in
             guard let self = self else { return }
             self.handleEvent(event)
         }
@@ -105,7 +132,7 @@ public class ConnectionManager {
 
     private func handleEvent(_ event: USBMux.Event) {
         let connectionType = event.device.connectionType
-        guard !usbOnly || connectionType == .usb else { return }
+        guard searchMode.allows(connectionType) else { return }
         let udid = event.device.udid
         let key = ConnectionKey(udid: udid, connectionType: connectionType)
         switch event.kind {

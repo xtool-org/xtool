@@ -1,11 +1,12 @@
 import Foundation
 import Supersign
+import SupersignCLISupport
 
 let moduleBundle: Bundle
 #if swift(>=5.5) || os(macOS)
 moduleBundle = Bundle.module
 #else
-moduleBundle = Bundle(url: Bundle.main.url(forResource: "Supersign_SupersignCLI", withExtension: "resources")!)!
+moduleBundle = Bundle(url: Bundle.main.url(forResource: "SupersignCLISupport_SupersignCLI", withExtension: "resources")!)!
 #endif
 let app = moduleBundle.url(forResource: "Supercharge", withExtension: "ipa")!
 
@@ -24,4 +25,7 @@ signingInfoManager = KeyValueSigningInfoManager(
 signingInfoManager = MemoryBackedSigningInfoManager()
 #endif
 
-try SupersignCLI(app: app, signingInfoManager: signingInfoManager).run()
+try SupersignCLI.run(configuration: SupersignCLI.Configuration(
+    superchargeApp: app,
+    signingInfoManager: signingInfoManager
+))

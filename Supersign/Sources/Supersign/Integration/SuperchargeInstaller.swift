@@ -15,12 +15,16 @@ extension LockdownClient {
 
 #if !os(iOS)
 
-public protocol SuperchargeInstallerDelegate: AnyObject {
+public protocol IntegratedInstallerDelegate: AnyObject {
+
     func fetchCode(completion: @escaping (String?) -> Void)
     func fetchTeam(fromTeams teams: [DeveloperServicesTeam], completion: @escaping (DeveloperServicesTeam?) -> Void)
-    func setPresentedMessage(_ message: SuperchargeInstaller.Message?)
+    func setPresentedMessage(_ message: IntegratedInstaller.Message?)
     func installerDidUpdate(toStage stage: String, progress: Double?)
     func installerDidComplete(withResult result: Result<(), Error>)
+
+    // defaults to always returning true
+    func confirmRevocation(of certificates: [DeveloperServicesCertificate], completion: @escaping (Bool) -> Void)
 
     /// Decompress the zipped ipa file
     ///
@@ -47,17 +51,23 @@ public protocol SuperchargeInstallerDelegate: AnyObject {
     /// - Parameter progress: A closure to which the callee can provide progress updates.
     /// - Parameter currentProgress: The current progress, or `nil` to indicate it is indeterminate.
     /// - Parameter completion: A completion handler to call with the compressed file's URL.
-    /// - Parameter url: The URL of the compressed file. The caller is responsible for cleaning this
-    /// up once installation is complete. Pass `nil` to skip compression.
+    /// - Parameter result: A result with the URL of the compressed file. The caller is responsible
+    /// for cleaning this up once installation is complete.
     func compress(
         payloadDir: URL,
         progress: @escaping (_ currentProgress: Double?) -> Void,
-        completion: @escaping (_ url: URL?) -> Void
+        completion: @escaping (_ result: Result<URL, Error>) -> Void
     )
 
 }
 
-public final class SuperchargeInstaller {
+extension IntegratedInstallerDelegate {
+    public func confirmRevocation(of certificates: [DeveloperServicesCertificate], completion: @escaping (Bool) -> Void) {
+        completion(true)
+    }
+}
+
+public final class IntegratedInstaller {
 
     public enum Error: LocalizedError {
         case alreadyInstalling
@@ -79,11 +89,18 @@ public final class SuperchargeInstaller {
         case unlockDevice
     }
 
+    public enum Credentials {
+        case password(String)
+        case token(DeveloperServicesLoginToken)
+    }
+
     let udid: String
+    let connectionPreferences: Connection.Preferences
     let appleID: String
-    let password: String
+    let credentials: Credentials
     let signingInfoManager: SigningInfoManager
-    public weak var delegate: SuperchargeInstallerDelegate?
+    let configureDevice: Bool
+    public weak var delegate: IntegratedInstallerDelegate?
 
     private var appInstaller: AppInstaller?
 
@@ -143,20 +160,24 @@ public final class SuperchargeInstaller {
 
     public init(
         udid: String,
+        connectionPreferences: Connection.Preferences,
         appleID: String,
-        password: String,
+        credentials: Credentials,
+        configureDevice: Bool,
         signingInfoManager: SigningInfoManager,
-        delegate: SuperchargeInstallerDelegate
+        delegate: IntegratedInstallerDelegate
     ) {
         self.udid = udid
+        self.connectionPreferences = connectionPreferences
         self.appleID = appleID
-        self.password = password
+        self.credentials = credentials
+        self.configureDevice = configureDevice
         self.signingInfoManager = signingInfoManager
         self.delegate = delegate
     }
 
     private func performWithRecovery<T>(repeatAfter: TimeInterval = 0.1, block: () throws -> T) throws -> T {
-        var currMessage: SuperchargeInstaller.Message?
+        var currMessage: Message?
 
         defer {
             if currMessage != nil {
@@ -166,7 +187,7 @@ public final class SuperchargeInstaller {
 
         while true {
             guard shouldContinue() else { throw Error.userCancelled }
-            let nextMessage: SuperchargeInstaller.Message
+            let nextMessage: Message
             do {
                 return try block()
             } catch let error as LockdownClient.Error where error == .pairingDialogResponsePending {
@@ -184,11 +205,13 @@ public final class SuperchargeInstaller {
         }
     }
 
-    private func prepareDevice() throws -> (deviceName: String, pairingKeys: Data)? {
+    // returns nil for pairingKeys if !configureDevice
+    // returns nil overall if cancelled
+    private func prepareDevice() throws -> (deviceName: String, pairingKeys: Data?)? {
         // TODO: Maybe use `Connection` here instead of creating the lockdown
         // client manually?
 
-        let device = try Device(udid: udid)
+        let device = try Device(udid: udid, lookupMode: connectionPreferences.lookupMode)
 
         guard updateProgress(to: 1/3) else { return nil }
 
@@ -202,6 +225,11 @@ public final class SuperchargeInstaller {
         }
 
         let deviceName = try lockdownClient.deviceName()
+
+        if !configureDevice {
+            guard updateProgress(to: 1) else { return nil }
+            return (deviceName, nil)
+        }
 
         try lockdownClient.setValue(udid, forDomain: "com.apple.mobile.wireless_lockdown", key: "WirelessBuddyID")
         try lockdownClient.setValue(true, forDomain: "com.apple.mobile.wireless_lockdown", key: "EnableWifiConnections")
@@ -263,12 +291,12 @@ public final class SuperchargeInstaller {
         token: DeveloperServicesLoginToken,
         client: DeveloperServicesClient,
         team: DeveloperServicesTeam,
-        possiblyCompressedApp: URL
+        ipa: URL
     ) {
         guard shouldContinue() else { return }
         executionStateLock.lock()
         defer { executionStateLock.unlock() }
-        let appInstaller = AppInstaller(app: possiblyCompressedApp, udid: udid, pairingKeys: ())
+        let appInstaller = AppInstaller(ipa: ipa, udid: udid, connectionPreferences: connectionPreferences)
         self.appInstaller = appInstaller
         appInstaller.install(
             progress: { stage in
@@ -294,15 +322,16 @@ public final class SuperchargeInstaller {
             progress: { progress in
                 _ = self.updateProgress(to: progress, ignoreCancellation: true)
             },
-            completion: { url in
+            completion: { result in
                 guard self.updateProgress(to: 1) else { return self.completion(.failure(Error.userCancelled)) }
+                guard let ipa = result.get(withErrorHandler: self.completion) else { return }
                 self.installQueue.async {
                     self.install(
                         deviceInfo: deviceInfo,
                         token: token,
                         client: client,
                         team: team,
-                        possiblyCompressedApp: url ?? appDir
+                        ipa: ipa
                     )
                 }
             }
@@ -319,7 +348,7 @@ public final class SuperchargeInstaller {
         guard self.updateStage(to: "Preparing device") else { return }
 
         let deviceName: String
-        let pairingKeys: Data
+        let pairingKeys: Data?
 
         do {
             guard let prepareResult = try prepareDevice()
@@ -342,7 +371,12 @@ public final class SuperchargeInstaller {
         } catch {
             return completion(.failure(error))
         }
-        let signer = Signer(context: context)
+        let signer = Signer(context: context) { certs, completion in
+            guard let delegate = self.delegate else {
+                return completion(false)
+            }
+            delegate.confirmRevocation(of: certs, completion: completion)
+        }
         signer.sign(
             app: appDir,
             status: { status in
@@ -352,16 +386,18 @@ public final class SuperchargeInstaller {
                 _ = self.updateProgress(to: progress, ignoreCancellation: true)
             },
             didProvision: {
-                let info = try context.signingInfoManager.info(forTeamID: context.teamID)
-                try Superconfig(
-                    udid: self.udid,
-                    pairingKeys: pairingKeys,
-                    deviceInfo: deviceInfo,
-                    preferredTeamID: team.id.rawValue,
-                    preferredSigningInfo: info,
-                    appleID: self.appleID,
-                    token: token
-                ).save(inAppDir: appDir)
+                if let pairingKeys = pairingKeys {
+                    let info = try context.signingInfoManager.info(forTeamID: context.teamID)
+                    try Superconfig(
+                        udid: self.udid,
+                        pairingKeys: pairingKeys,
+                        deviceInfo: deviceInfo,
+                        preferredTeamID: team.id.rawValue,
+                        preferredSigningInfo: info,
+                        appleID: self.appleID,
+                        token: token
+                    ).save(inAppDir: appDir)
+                }
             },
             completion: { result in
                 guard result.get(withErrorHandler: self.completion) != nil else { return }
@@ -408,18 +444,24 @@ public final class SuperchargeInstaller {
         }
 
         guard updateStage(to: "Logging in") else { return }
-        DeveloperServicesLoginManager(deviceInfo: deviceInfo).logIn(
-            withUsername: self.appleID,
-            password: self.password,
-            twoFactorDelegate: self
-        ) { result in
-            guard let token = result.get(withErrorHandler: self.completion) else { return }
-            guard self.updateProgress(to: 1/2) else { return }
+
+        switch credentials {
+        case .password(let password):
+            DeveloperServicesLoginManager(deviceInfo: deviceInfo).logIn(
+                withUsername: self.appleID,
+                password: password,
+                twoFactorDelegate: self
+            ) { result in
+                guard let token = result.get(withErrorHandler: self.completion) else { return }
+                guard self.updateProgress(to: 1/2) else { return }
+                self.install(deviceInfo: deviceInfo, token: token, appDir: appDir)
+            }
+        case .token(let token):
             self.install(deviceInfo: deviceInfo, token: token, appDir: appDir)
         }
     }
 
-    private func installOnQueue(ipa: URL) {
+    private func installOnQueue(app: URL) {
         guard self.updateStage(to: "Unpacking app", initialProgress: nil) else { return }
 
         if FileManager.default.fileExists(atPath: tempDir.path) {
@@ -432,30 +474,46 @@ public final class SuperchargeInstaller {
             return completion(.failure(error))
         }
 
-        delegate?.decompress(
-            ipa: ipa,
-            in: tempDir,
-            progress: { progress in
-                _ = self.updateProgress(to: progress, ignoreCancellation: true)
-            },
-            completion: { success in
-                guard self.updateProgress(to: 1) else { return self.completion(.failure(Error.userCancelled)) }
-                self.installQueue.async {
-                    self.install(decompressionDidSucceed: success)
+        switch app.pathExtension {
+        case "ipa":
+            delegate?.decompress(
+                ipa: app,
+                in: tempDir,
+                progress: { progress in
+                    _ = self.updateProgress(to: progress, ignoreCancellation: true)
+                },
+                completion: { success in
+                    guard self.updateProgress(to: 1) else { return self.completion(.failure(Error.userCancelled)) }
+                    self.installQueue.async {
+                        self.install(decompressionDidSucceed: success)
+                    }
                 }
+            )
+        case "app":
+            let payload = tempDir.appendingPathComponent("Payload")
+            let dest = payload.appendingPathComponent(app.lastPathComponent)
+            do {
+                try FileManager.default.createDirectory(at: payload, withIntermediateDirectories: false)
+                try FileManager.default.copyItem(at: app, to: dest)
+            } catch {
+                return completion(.failure(error))
             }
-        )
+            guard self.updateProgress(to: 1) else { return self.completion(.failure(Error.userCancelled)) }
+            self.install(decompressionDidSucceed: true)
+        default:
+            return completion(.failure(Error.appExtractionFailed))
+        }
     }
 
-    public func install(ipa: URL) {
+    public func install(app: URL) {
         installQueue.async {
-            self.installOnQueue(ipa: ipa)
+            self.installOnQueue(app: app)
         }
     }
 
 }
 
-extension SuperchargeInstaller: TwoFactorAuthDelegate {
+extension IntegratedInstaller: TwoFactorAuthDelegate {
     public func fetchCode(completion: @escaping (String?) -> Void) {
         guard let delegate = delegate else {
             self.installQueue.async { completion(nil) }

@@ -88,30 +88,26 @@ public final class AppInstaller {
         }
     }
 
-    public let app: URL
+    public let ipa: URL
     public let udid: String
-    public let pairingKeys: PairingKeys
+    public let connectionPreferences: Connection.Preferences
     public init(
-        app: URL,
+        ipa: URL,
         udid: String,
-        pairingKeys: PairingKeys
+        connectionPreferences: Connection.Preferences
     ) {
-        self.app = app
+        self.ipa = ipa
         self.udid = udid
-        self.pairingKeys = pairingKeys
+        self.connectionPreferences = connectionPreferences
     }
 
     // synchronous
-    private func installSync(
-        connectionPreferences: Connection.Preferences,
-        progress: @escaping (Stage) -> Void
-    ) throws {
+    private func installSync(progress: @escaping (Stage) -> Void) throws {
         defer { needsCancellation = false }
         try cancelPoint()
 
         let connection = try Connection.connection(
             forUDID: udid,
-            pairingKeys: pairingKeys,
             preferences: connectionPreferences
         ) {
             progress(.connecting($0 * 4/6))
@@ -131,7 +127,7 @@ public final class AppInstaller {
 
         try cancelPoint()
 
-        let uploaded = try uploader.upload(app: app) { currentProgress in
+        let uploaded = try uploader.upload(app: ipa) { currentProgress in
             progress(.uploading(currentProgress))
         }
         defer { uploaded.delete() }
@@ -146,16 +142,12 @@ public final class AppInstaller {
     }
 
     public func install(
-        connectionPreferences: Connection.Preferences = .init(),
         progress: @escaping (Stage) -> Void,
         completion: @escaping (Result<(), Swift.Error>) -> Void
     ) {
         installQueue.async {
             completion(Result {
-                try self.installSync(
-                    connectionPreferences: connectionPreferences,
-                    progress: progress
-                )
+                try self.installSync(progress: progress)
             })
         }
     }

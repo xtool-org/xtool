@@ -40,8 +40,13 @@ public struct Signer {
     }
 
     public let context: SigningContext
-    public init(context: SigningContext) {
+    public let confirmRevocation: ([DeveloperServicesCertificate], @escaping (Bool) -> Void) -> Void
+    public init(
+        context: SigningContext,
+        confirmRevocation: @escaping ([DeveloperServicesCertificate], @escaping (Bool) -> Void) -> Void
+    ) {
         self.context = context
+        self.confirmRevocation = confirmRevocation
     }
 
     private func sign(
@@ -102,7 +107,12 @@ public struct Signer {
         completion: @escaping (Result<(), Swift.Error>) -> Void
     ) {
         status(NSLocalizedString("signer.provisioning", value: "Provisioning", comment: ""))
-        DeveloperServicesProvisioningOperation(context: context, app: app, progress: progress).perform { result in
+        DeveloperServicesProvisioningOperation(
+            context: context,
+            app: app,
+            confirmRevocation: confirmRevocation,
+            progress: progress
+        ).perform { result in
             guard let response = result.get(withErrorHandler: completion) else { return }
             self.sign(
                 app: app,

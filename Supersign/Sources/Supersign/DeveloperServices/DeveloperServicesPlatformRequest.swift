@@ -8,18 +8,38 @@
 
 import Foundation
 
-public enum DeveloperServicesPlatform: Decodable, CaseIterable {
-    case unknown
+public enum DeveloperServicesPlatform: Decodable, Hashable {
+    private static let known: ([String: DeveloperServicesPlatform], [DeveloperServicesPlatform: String]) = {
+        var first: [String: DeveloperServicesPlatform] = [:]
+        var second: [DeveloperServicesPlatform: String] = [:]
+        func add(_ platform: DeveloperServicesPlatform, _ name: String? = nil) {
+            let name = name ?? "\(platform)"
+            first[name] = platform
+            second[platform] = name
+        }
+
+        add(.macOS, "mac")
+        add(.iOS, "ios")
+        add(.watchOS, "watchOS")
+        add(.tvOS, "tvOS")
+        add(.safari)
+
+        return (first, second)
+    }()
+
+    case macOS
     case iOS
     case watchOS
     case tvOS
+    case safari
+    case unknown(String)
 
     var rawValue: String {
         switch self {
-        case .iOS: return "ios"
-        case .watchOS: return "watchos"
-        case .tvOS: return "tvos"
-        case .unknown: return ""
+        case .unknown(let val):
+            return val
+        default:
+            return Self.known.1[self] ?? "\(self)"
         }
     }
 
@@ -27,7 +47,7 @@ public enum DeveloperServicesPlatform: Decodable, CaseIterable {
         switch self {
         case .iOS, .watchOS: return "ios"
         case .tvOS: return "tvos"
-        case .unknown: return ""
+        default: return ""
         }
     }
 
@@ -35,7 +55,7 @@ public enum DeveloperServicesPlatform: Decodable, CaseIterable {
         switch self {
         case .iOS, .watchOS: return nil
         case .tvOS: return "tvOS"
-        case .unknown: return ""
+        default: return ""
         }
     }
 
@@ -51,7 +71,7 @@ public enum DeveloperServicesPlatform: Decodable, CaseIterable {
 
     public init(from decoder: Decoder) throws {
         let rawValue = try String(from: decoder)
-        self = Self.allCases.first { $0.rawValue == rawValue } ?? .unknown
+        self = Self.known.0[rawValue] ?? .unknown(rawValue)
     }
 }
 
