@@ -1,13 +1,18 @@
 import Foundation
-import CryptoKit
+import CSupersign
 
 enum HashingError: Error {
     case hashingFailed
 }
 
 private extension String {
-    func sha256() throws -> SHA256Digest {
-        SHA256.hash(data: Data(utf8))
+    func sha256() throws -> [UInt8] {
+        try [UInt8](unsafeUninitializedCapacity: sup_sha256_buf_size()) { buf, count in
+            guard sup_sha256(self, utf8.count, buf.baseAddress!) == 0 else {
+                throw HashingError.hashingFailed
+            }
+            count = buf.count
+        }
     }
 }
 
