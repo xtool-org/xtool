@@ -4,11 +4,11 @@ import ArgumentParser
 
 public enum SupersignCLI {
     public struct Configuration {
-        public let superchargeApp: URL
+        public let superchargeApp: URL?
         public let storage: KeyValueStorage
 
         public init(
-            superchargeApp: URL,
+            superchargeApp: URL?,
             storage: KeyValueStorage
         ) {
             self.superchargeApp = superchargeApp

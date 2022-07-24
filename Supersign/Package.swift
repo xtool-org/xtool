@@ -8,6 +8,16 @@ let cSettings: [CSetting] = [
     .headerSearchPath("../../vendored/include", .when(platforms: [.macOS, .iOS])),
 ]
 
+extension Product.Library.LibraryType {
+    static var smart: Self {
+        #if os(Linux)
+        return .static
+        #else
+        return .dynamic
+        #endif
+    }
+}
+
 let package = Package(
     name: "Supersign",
     platforms: [
@@ -17,7 +27,7 @@ let package = Package(
     products: [
         .library(
             name: "Supersign",
-            type: .dynamic,
+            type: .smart,
             targets: ["Supersign"]
         ),
     ],

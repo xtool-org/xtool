@@ -12,6 +12,10 @@ struct InstallSuperchargeCommand: ParsableCommand {
     @Option(name: .shortAndLong) var account: String?
 
     func run() throws {
+        guard let app = SupersignCLI.config.superchargeApp else {
+            throw Console.Error("This copy of Supersign is not configured to install Supercharge.")
+        }
+
         let username: String
         let credentials: IntegratedInstaller.Credentials
 
@@ -66,7 +70,7 @@ struct InstallSuperchargeCommand: ParsableCommand {
             storage: SupersignCLI.config.storage,
             delegate: installDelegate
         )
-        installer.install(app: SupersignCLI.config.superchargeApp)
+        installer.install(app: app)
         semaphore.wait()
         _ = installer
     }
