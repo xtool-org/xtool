@@ -43,6 +43,48 @@ extension KeyValueStorage {
     }
 }
 
+public class MemoryKeyValueStorage: KeyValueStorage {
+
+    private var dict: [String: Data] = [:]
+    public init() {}
+
+    public func data(forKey key: String) throws -> Data? {
+        dict[key]
+    }
+
+    public func setData(_ data: Data?, forKey key: String) throws {
+        dict[key] = data
+    }
+
+}
+
+public struct DirectoryStorage: KeyValueStorage {
+    let base: URL
+    public init(base: URL) {
+        self.base = base
+    }
+
+    private func url(for key: String) -> URL {
+        base.appendingPathComponent(key)
+    }
+
+    public func data(forKey key: String) throws -> Data? {
+        try? Data(contentsOf: url(for: key))
+    }
+
+    public func setData(_ data: Data?, forKey key: String) throws {
+        let url = url(for: key)
+        if !FileManager.default.fileExists(atPath: url.deletingLastPathComponent().path) {
+            try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        }
+        if let data = data {
+            try data.write(to: url)
+        } else {
+            try FileManager.default.removeItem(at: url)
+        }
+    }
+}
+
 #if canImport(Security)
 import Security
 

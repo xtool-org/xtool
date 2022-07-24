@@ -32,11 +32,16 @@ public struct DeveloperServicesLoginManager {
 
     public init(
         deviceInfo: DeviceInfo,
-        customAnisetteProvider: AnisetteDataProvider? = nil
-    ) {
+        anisetteProvider: AnisetteDataProvider,
+        httpFactory: HTTPClientFactory = defaultHTTPClientFactory
+    ) throws {
         self.deviceInfo = deviceInfo
-        self.anisetteProvider = customAnisetteProvider ?? SupersetteDataProvider(deviceInfo: deviceInfo)
-        self.client = GrandSlamClient(deviceInfo: deviceInfo, customAnisetteDataProvider: anisetteProvider)
+        self.anisetteProvider = anisetteProvider
+        self.client = GrandSlamClient(
+            deviceInfo: deviceInfo,
+            anisetteProvider: anisetteProvider,
+            httpFactory: httpFactory
+        )
     }
 
     private func logIn(

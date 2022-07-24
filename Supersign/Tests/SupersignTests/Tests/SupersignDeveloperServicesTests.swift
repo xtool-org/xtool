@@ -12,12 +12,14 @@ import Supersign
 
 class SupersignDeveloperServicesTests: XCTestCase {
 
+    var storage: KeyValueStorage!
     var client: DeveloperServicesClient!
 
     override func setUp() {
         super.setUp()
         _ = addMockSigner
-        client = .test()
+        storage = MemoryKeyValueStorage()
+        client = try! .test(storage: storage)
     }
 
     override func tearDown() {
@@ -42,8 +44,12 @@ class SupersignDeveloperServicesTests: XCTestCase {
         ))
 
         let waiter = ResultWaiter<DeveloperServicesProvisioningOperation.Response>(description: "Failed to provision")
-        DeveloperServicesProvisioningOperation(context: context, app: source) { _ in }
-            .perform(completion: waiter.completion)
+        DeveloperServicesProvisioningOperation(
+            context: context,
+            app: source,
+            confirmRevocation: { $1(true) },
+            progress: { _ in }
+        ).perform(completion: waiter.completion)
         let response = try XCTTry(waiter.wait(timeout: 10000))
 
         print(response)

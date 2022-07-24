@@ -9,9 +9,12 @@ struct InstallCommand: ParsableCommand {
         abstract: "Install an ipa file to your device"
     )
 
-    @Option(name: .shortAndLong) var udid: String?
     @Option(name: .shortAndLong) var account: String?
-    @Flag var search: ConnectionManager.SearchMode = .all
+    @Option(
+        name: .shortAndLong,
+        help: "Preferred team ID"
+    ) var team: String?
+    @OptionGroup @FromArguments var client: ConnectionManager.Client
 
     @Argument(
         help: "The path to a custom app/ipa to install"
@@ -32,35 +35,10 @@ struct InstallCommand: ParsableCommand {
             credentials = .password(password)
         }
 
-        print("Waiting for device to be connected...")
-        var clients: [ConnectionManager.Client]!
-        let semaphore = DispatchSemaphore(value: 0)
-        let connDelegate = ConnectionDelegate { currClients in
-            if let udid = udid {
-                if let client = currClients.first(where: { $0.udid == udid }) {
-                    clients = [client]
-                } else {
-                    return
-                }
-            } else {
-                clients = currClients
-            }
-            semaphore.signal()
-        }
-        try withExtendedLifetime(ConnectionManager(searchMode: search, delegate: connDelegate)) {
-            semaphore.wait()
-        }
-
-        let client = Console.choose(
-            from: clients,
-            onNoElement: { fatalError() },
-            multiPrompt: "Choose device",
-            formatter: { "\($0.deviceName) (\($0.connectionType), udid: \($0.udid))" }
-        )
-
         print("Installing to device: \(client.deviceName) (udid: \(client.udid))")
 
-        let installDelegate = SupersignCLIDelegate(preferredTeam: nil) {
+        let semaphore = DispatchSemaphore(value: 0)
+        let installDelegate = SupersignCLIDelegate(preferredTeam: team.map(DeveloperServicesTeam.ID.init)) {
             semaphore.signal()
         }
         let installer = IntegratedInstaller(
@@ -69,7 +47,7 @@ struct InstallCommand: ParsableCommand {
             appleID: username,
             credentials: credentials,
             configureDevice: false,
-            signingInfoManager: SupersignCLI.config.signingInfoManager,
+            storage: SupersignCLI.config.storage,
             delegate: installDelegate
         )
         installer.install(app: URL(fileURLWithPath: path))

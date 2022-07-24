@@ -104,7 +104,7 @@ public struct Signer {
         status: @escaping (String) -> Void,
         progress: @escaping (Double) -> Void,
         didProvision: @escaping () throws -> Void = {},
-        completion: @escaping (Result<(), Swift.Error>) -> Void
+        completion: @escaping (Result<String, Swift.Error>) -> Void
     ) {
         status(NSLocalizedString("signer.provisioning", value: "Provisioning", comment: ""))
         DeveloperServicesProvisioningOperation(
@@ -114,15 +114,19 @@ public struct Signer {
             progress: progress
         ).perform { result in
             guard let response = result.get(withErrorHandler: completion) else { return }
+            guard let mainInfo = response.provisioningDict[app] else {
+                return completion(.failure(Error.errorReading("app bundle ID")))
+            }
             self.sign(
                 app: app,
                 signingInfo: response.signingInfo,
                 provisioningDict: response.provisioningDict,
                 status: status,
                 progress: progress,
-                didProvision: didProvision,
-                completion: completion
-            )
+                didProvision: didProvision
+            ) {
+                completion($0.map { mainInfo.newBundleID })
+            }
         }
     }
 

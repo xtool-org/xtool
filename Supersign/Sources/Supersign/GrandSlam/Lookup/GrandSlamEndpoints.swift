@@ -13,6 +13,8 @@ struct GrandSlamEndpoints: Decodable {
     let secondaryAuth: String
     let trustedDeviceSecondaryAuth: String
     let validateCode: String
+    let midStartProvisioning: String
+    let midFinishProvisioning: String
 }
 
 typealias GrandSlamEndpoint = KeyPath<GrandSlamEndpoints, String>

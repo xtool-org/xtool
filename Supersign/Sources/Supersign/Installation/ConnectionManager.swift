@@ -13,7 +13,7 @@ public protocol ConnectionManagerDelegate: AnyObject {
     func connectionManager(_ manager: ConnectionManager, clientsDidChangeFrom oldValue: [ConnectionManager.Client])
 }
 
-public class ConnectionManager {
+public final class ConnectionManager {
 
     public enum SearchMode: CaseIterable {
         case usb
@@ -75,7 +75,7 @@ public class ConnectionManager {
         }
     }
 
-    public class Client {
+    public final class Client {
         private let key: ConnectionKey
         private let value: ConnectionValue
 

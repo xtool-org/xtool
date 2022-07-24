@@ -20,12 +20,14 @@ class TwoFactorAuthenticator: TwoFactorAuthDelegate {
 class SupersignGrandSlamTests: XCTestCase {
 
     var authenticator: TwoFactorAuthenticator!
+    var storage: KeyValueStorage!
     var client: GrandSlamClient!
 
     override func setUp() {
         super.setUp()
         _ = addMockSigner
-        client = .test()
+        storage = MemoryKeyValueStorage()
+        client = try! .test(storage: storage)
         authenticator = TwoFactorAuthenticator()
     }
 

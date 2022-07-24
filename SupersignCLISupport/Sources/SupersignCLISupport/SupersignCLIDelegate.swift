@@ -28,12 +28,18 @@ final class SupersignCLIDelegate: IntegratedInstallerDelegate, TwoFactorAuthDele
     }
 
     func fetchTeam(fromTeams teams: [DeveloperServicesTeam], completion: @escaping (DeveloperServicesTeam?) -> Void) {
+        if let preferredTeam = preferredTeam {
+            // Fails if a team with the requested ID isn't found.
+            // This is intentional to avoid interactivity.
+            return completion(teams.first(where: { $0.id == preferredTeam }))
+        }
+
         let selected = Console.choose(
             from: teams,
             onNoElement: { fatalError() },
-            multiPrompt: "Select a team",
+            multiPrompt: "\nSelect a team",
             formatter: {
-                "\($0.name) (\($0.id))"
+                "\($0.name) (\($0.id.rawValue))"
             }
         )
         completion(selected)
@@ -95,11 +101,18 @@ final class SupersignCLIDelegate: IntegratedInstallerDelegate, TwoFactorAuthDele
         }
     }
 
-    func installerDidComplete(withResult result: Result<(), Swift.Error>) {
+    func installerDidComplete(withResult result: Result<String, Swift.Error>) {
         print("\n")
         switch result {
-        case .success:
-            print("Complete!")
+        case .success(let bundleID):
+            print("Successfully installed!")
+            if let file = ProcessInfo.processInfo.environment["SUPERSIGN_METADATA_FILE"] {
+                do {
+                    try Data("\(bundleID)\n".utf8).write(to: URL(fileURLWithPath: file))
+                } catch {
+                    print("warning: Failed to write metadata to SUPERSIGN_METADATA_FILE: \(error)")
+                }
+            }
         case .failure(let error):
             print("Failed :(")
             print("Error: \(error)")

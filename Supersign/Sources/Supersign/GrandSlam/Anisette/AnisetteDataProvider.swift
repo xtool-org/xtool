@@ -9,5 +9,13 @@
 import Foundation
 
 public protocol AnisetteDataProvider {
+    // This is a suggestion and not a requirement. The default implementation
+    // does nothing.
+    func resetProvisioning(completion: @escaping (Result<Void, Error>) -> Void)
+
     func fetchAnisetteData(completion: @escaping (Result<AnisetteData, Error>) -> Void)
+}
+
+extension AnisetteDataProvider {
+    public func resetProvisioning(completion: @escaping (Result<Void, Error>) -> Void) {}
 }

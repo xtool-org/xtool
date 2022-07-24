@@ -105,12 +105,21 @@ public struct SignerImpl {
                     let privBase = priv.baseAddress
                     else { throw Error.signer(nil) }
 
+                let box = Unmanaged.passRetained(progress as AnyObject)
+                defer { box.release() }
                 guard signer.pointee.sign(
                     app.path,
                     certBase, cert.count,
                     privBase, priv.count,
                     entsArray, entsArray.count,
-                    progress,
+                    {
+                        (Unmanaged<AnyObject>
+                            .fromOpaque($0)
+                            .takeUnretainedValue()
+                         as! (Double) -> Void
+                        )($1)
+                    },
+                    box.toOpaque(),
                     &exception
                 ) == 0 else {
                     throw Error.signer(exception.map { String(cString: $0) })

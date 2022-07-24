@@ -61,13 +61,12 @@ public final class DeveloperServicesClient {
     public init(
         loginToken: DeveloperServicesLoginToken,
         deviceInfo: DeviceInfo,
-        httpFactory: HTTPClientFactory = defaultHTTPClientFactory,
-        customAnisetteDataProvider: AnisetteDataProvider? = nil
+        anisetteProvider: AnisetteDataProvider,
+        httpFactory: HTTPClientFactory = defaultHTTPClientFactory
     ) {
         self.loginToken = loginToken
         self.deviceInfo = deviceInfo
-        self.anisetteDataProvider = customAnisetteDataProvider
-            ?? SupersetteDataProvider(deviceInfo: deviceInfo)
+        self.anisetteDataProvider = anisetteProvider
         self.httpClient = httpFactory.makeClient()
     }
 

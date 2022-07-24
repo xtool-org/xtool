@@ -30,20 +30,20 @@ extension NetcatAnisetteDataProvider {
 
 #endif
 
-extension SupersetteDataProvider {
+extension ADIDataProvider {
 
-    static func test() -> SupersetteDataProvider {
-        SupersetteDataProvider(deviceInfo: Config.current.deviceInfo)
+    static func test(storage: KeyValueStorage) throws -> ADIDataProvider {
+        try supersetteProvider(deviceInfo: Config.current.deviceInfo, storage: storage)
     }
 
 }
 
 extension GrandSlamClient {
 
-    static func test() -> GrandSlamClient {
-        GrandSlamClient(
+    static func test(storage: KeyValueStorage) throws -> GrandSlamClient {
+        try GrandSlamClient(
             deviceInfo: Config.current.deviceInfo,
-            customAnisetteDataProvider: SupersetteDataProvider.test()
+            anisetteProvider: ADIDataProvider.test(storage: storage)
         )
     }
 
@@ -51,11 +51,11 @@ extension GrandSlamClient {
 
 extension DeveloperServicesClient {
 
-    static func test() -> DeveloperServicesClient {
-        DeveloperServicesClient(
+    static func test(storage: KeyValueStorage) throws -> DeveloperServicesClient {
+        try DeveloperServicesClient(
             loginToken: Config.current.appleID.token,
             deviceInfo: Config.current.deviceInfo,
-            customAnisetteDataProvider: SupersetteDataProvider.test()
+            anisetteProvider: ADIDataProvider.test(storage: storage)
         )
     }
 

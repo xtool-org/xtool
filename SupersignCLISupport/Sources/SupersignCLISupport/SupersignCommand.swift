@@ -5,11 +5,14 @@ import ArgumentParser
 public enum SupersignCLI {
     public struct Configuration {
         public let superchargeApp: URL
-        public let signingInfoManager: SigningInfoManager
+        public let storage: KeyValueStorage
 
-        public init(superchargeApp: URL, signingInfoManager: SigningInfoManager) {
+        public init(
+            superchargeApp: URL,
+            storage: KeyValueStorage
+        ) {
             self.superchargeApp = superchargeApp
-            self.signingInfoManager = signingInfoManager
+            self.storage = storage
         }
     }
 
@@ -31,7 +34,9 @@ struct SupersignCommand: ParsableCommand {
             DSCommand.self,
             DevicesCommand.self,
             InstallCommand.self,
+            UninstallCommand.self,
             SuperchargeCommand.self,
+            RunCommand.self,
         ]
     )
 }

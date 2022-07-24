@@ -21,7 +21,7 @@ public protocol IntegratedInstallerDelegate: AnyObject {
     func fetchTeam(fromTeams teams: [DeveloperServicesTeam], completion: @escaping (DeveloperServicesTeam?) -> Void)
     func setPresentedMessage(_ message: IntegratedInstaller.Message?)
     func installerDidUpdate(toStage stage: String, progress: Double?)
-    func installerDidComplete(withResult result: Result<(), Error>)
+    func installerDidComplete(withResult result: Result<String, Error>)
 
     // defaults to always returning true
     func confirmRevocation(of certificates: [DeveloperServicesCertificate], completion: @escaping (Bool) -> Void)
@@ -98,8 +98,8 @@ public final class IntegratedInstaller {
     let connectionPreferences: Connection.Preferences
     let appleID: String
     let credentials: Credentials
-    let signingInfoManager: SigningInfoManager
     let configureDevice: Bool
+    let storage: KeyValueStorage
     public weak var delegate: IntegratedInstallerDelegate?
 
     private var appInstaller: AppInstaller?
@@ -128,7 +128,7 @@ public final class IntegratedInstaller {
         }
     }
 
-    private func completion(_ result: Result<(), Swift.Error>) {
+    private func completion(_ result: Result<String, Swift.Error>) {
         executionStateLock.lock()
         defer { executionStateLock.unlock() }
         guard executionState != .complete else { return }
@@ -164,7 +164,7 @@ public final class IntegratedInstaller {
         appleID: String,
         credentials: Credentials,
         configureDevice: Bool,
-        signingInfoManager: SigningInfoManager,
+        storage: KeyValueStorage,
         delegate: IntegratedInstallerDelegate
     ) {
         self.udid = udid
@@ -172,7 +172,7 @@ public final class IntegratedInstaller {
         self.appleID = appleID
         self.credentials = credentials
         self.configureDevice = configureDevice
-        self.signingInfoManager = signingInfoManager
+        self.storage = storage
         self.delegate = delegate
     }
 
@@ -291,7 +291,8 @@ public final class IntegratedInstaller {
         token: DeveloperServicesLoginToken,
         client: DeveloperServicesClient,
         team: DeveloperServicesTeam,
-        ipa: URL
+        ipa: URL,
+        bundleID: String
     ) {
         guard shouldContinue() else { return }
         executionStateLock.lock()
@@ -303,7 +304,7 @@ public final class IntegratedInstaller {
                 _ = self.updateStage(to: stage.displayName, ignoreCancellation: true)
                 _ = self.updateProgress(to: stage.displayProgress, ignoreCancellation: true)
             },
-            completion: completion
+            completion: { self.completion($0.map { bundleID }) }
         )
     }
 
@@ -312,7 +313,8 @@ public final class IntegratedInstaller {
         token: DeveloperServicesLoginToken,
         client: DeveloperServicesClient,
         team: DeveloperServicesTeam,
-        appDir: URL
+        appDir: URL,
+        bundleID: String
     ) {
         guard self.updateStage(to: "Packaging", initialProgress: nil)
             else { return }
@@ -331,7 +333,8 @@ public final class IntegratedInstaller {
                         token: token,
                         client: client,
                         team: team,
-                        ipa: ipa
+                        ipa: ipa,
+                        bundleID: bundleID
                     )
                 }
             }
@@ -365,7 +368,7 @@ public final class IntegratedInstaller {
                 deviceName: deviceName,
                 teamID: team.id,
                 client: client,
-                signingInfoManager: signingInfoManager,
+                signingInfoManager: KeyValueSigningInfoManager(storage: storage),
                 platform: .iOS
             )
         } catch {
@@ -400,20 +403,30 @@ public final class IntegratedInstaller {
                 }
             },
             completion: { result in
-                guard result.get(withErrorHandler: self.completion) != nil else { return }
+                guard let bundleID = result.get(withErrorHandler: self.completion) else { return }
                 self.packageAndInstall(
                     deviceInfo: deviceInfo,
                     token: token,
                     client: client,
                     team: team,
-                    appDir: appDir
+                    appDir: appDir,
+                    bundleID: bundleID
                 )
             }
         )
     }
 
-    private func install(deviceInfo: DeviceInfo, token: DeveloperServicesLoginToken, appDir: URL) {
-        let client = DeveloperServicesClient(loginToken: token, deviceInfo: deviceInfo)
+    private func install(
+        deviceInfo: DeviceInfo,
+        token: DeveloperServicesLoginToken,
+        anisetteProvider: AnisetteDataProvider,
+        appDir: URL
+    ) {
+        let client = DeveloperServicesClient(
+            loginToken: token,
+            deviceInfo: deviceInfo,
+            anisetteProvider: anisetteProvider
+        )
         client.send(DeveloperServicesListTeamsRequest()) { result in
             guard let teams = result.get(withErrorHandler: self.completion) else { return }
             guard self.updateProgress(to: 1) else { return }
@@ -445,19 +458,38 @@ public final class IntegratedInstaller {
 
         guard updateStage(to: "Logging in") else { return }
 
-        switch credentials {
-        case .password(let password):
-            DeveloperServicesLoginManager(deviceInfo: deviceInfo).logIn(
-                withUsername: self.appleID,
-                password: password,
-                twoFactorDelegate: self
-            ) { result in
-                guard let token = result.get(withErrorHandler: self.completion) else { return }
-                guard self.updateProgress(to: 1/2) else { return }
-                self.install(deviceInfo: deviceInfo, token: token, appDir: appDir)
+        do {
+            let anisetteProvider = SupersetteDataProvider(deviceInfo: deviceInfo)
+//            let anisetteProvider = try ADIDataProvider.supersetteProvider(deviceInfo: deviceInfo, storage: storage)
+            switch credentials {
+            case .password(let password):
+                try DeveloperServicesLoginManager(
+                    deviceInfo: deviceInfo,
+                    anisetteProvider: anisetteProvider
+                ).logIn(
+                    withUsername: self.appleID,
+                    password: password,
+                    twoFactorDelegate: self
+                ) { result in
+                    guard let token = result.get(withErrorHandler: self.completion) else { return }
+                    guard self.updateProgress(to: 1/2) else { return }
+                    self.install(
+                        deviceInfo: deviceInfo,
+                        token: token,
+                        anisetteProvider: anisetteProvider,
+                        appDir: appDir
+                    )
+                }
+            case .token(let token):
+                self.install(
+                    deviceInfo: deviceInfo,
+                    token: token,
+                    anisetteProvider: anisetteProvider,
+                    appDir: appDir
+                )
             }
-        case .token(let token):
-            self.install(deviceInfo: deviceInfo, token: token, appDir: appDir)
+        } catch {
+            return completion(.failure(error))
         }
     }
 

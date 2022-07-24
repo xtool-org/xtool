@@ -63,7 +63,7 @@ struct InstallSuperchargeCommand: ParsableCommand {
             appleID: username,
             credentials: credentials,
             configureDevice: true,
-            signingInfoManager: SupersignCLI.config.signingInfoManager,
+            storage: SupersignCLI.config.storage,
             delegate: installDelegate
         )
         installer.install(app: SupersignCLI.config.superchargeApp)

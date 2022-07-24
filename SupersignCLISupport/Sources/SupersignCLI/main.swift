@@ -10,22 +10,20 @@ moduleBundle = Bundle(url: Bundle.main.url(forResource: "SupersignCLISupport_Sup
 #endif
 let app = moduleBundle.url(forResource: "Supercharge", withExtension: "ipa")!
 
-#warning("Persist manager on Windows/Linux")
+#warning("Improve persistence on Windows/Linux")
 
 // for Windows, we could use dpapi.h or wincred.h.
 // for Linux, maybe use libsecret?
 // see https://github.com/atom/node-keytar
 
-let signingInfoManager: SigningInfoManager
+let storage: KeyValueStorage
 #if os(macOS)
-signingInfoManager = KeyValueSigningInfoManager(
-    storage: KeychainStorage(service: "com.kabiroberai.Supercharge-Keychain.credentials")
-)
+storage = KeychainStorage(service: "com.kabiroberai.Supercharge-Keychain.credentials")
 #else
-signingInfoManager = MemoryBackedSigningInfoManager()
+storage = DirectoryStorage(base: URL(fileURLWithPath: "storage", isDirectory: true))
 #endif
 
 try SupersignCLI.run(configuration: SupersignCLI.Configuration(
     superchargeApp: app,
-    signingInfoManager: signingInfoManager
+    storage: storage
 ))

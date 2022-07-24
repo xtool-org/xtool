@@ -6,7 +6,17 @@ enum Console {
         if !message.isEmpty {
             print(message, terminator: "")
         }
+        fflush(stdout)
         return readLine()
+    }
+
+    static func getPassword(_ message: String) -> String? {
+        if !message.isEmpty {
+            print(message, terminator: "")
+        }
+        let password = withoutEcho { prompt("") }
+        print()
+        return password
     }
 
     private static func withoutEcho<T>(_ action: () throws -> T) rethrows -> T {
@@ -34,19 +44,10 @@ enum Console {
         return try action()
     }
 
-    static func getPassword(_ message: String) -> String? {
-        if !message.isEmpty {
-            print(message, terminator: "")
-        }
-        let password = withoutEcho { prompt("") }
-        print()
-        return password
-    }
-
     static func chooseNumber(in range: Range<Int>) -> Int {
+        let message = "Choice (\(range.lowerBound)-\(range.upperBound - 1)): "
         while true {
-            print("Choice (\(range.lowerBound)-\(range.upperBound - 1)): ", terminator: "")
-            if let choice = readLine().flatMap(Int.init), range.contains(choice) {
+            if let choice = prompt(message).flatMap(Int.init), range.contains(choice) {
                 return choice
             }
         }
