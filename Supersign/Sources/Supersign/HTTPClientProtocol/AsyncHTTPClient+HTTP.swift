@@ -11,6 +11,7 @@ import AsyncHTTPClient
 import NIO
 import NIOHTTP1
 import NIOSSL
+import NIOFoundationCompat
 
 extension HTTPClient: HTTPClientProtocol {
 //    private struct ReadError: Error {}
