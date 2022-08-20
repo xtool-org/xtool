@@ -71,7 +71,7 @@ public struct SignerImpl {
         certificate: Certificate,
         privateKey: PrivateKey,
         entitlementMapping: [URL: Entitlements],
-        progress: @escaping (Double) -> Void
+        progress: @escaping (Double?) -> Void
     ) throws {
         let encoder = PropertyListEncoder()
         encoder.outputFormat = .xml
@@ -116,8 +116,8 @@ public struct SignerImpl {
                         (Unmanaged<AnyObject>
                             .fromOpaque($0)
                             .takeUnretainedValue()
-                         as! (Double) -> Void
-                        )($1)
+                         as! (Double?) -> Void
+                        )($1 == -1 ? nil : $1)
                     },
                     box.toOpaque(),
                     &exception
@@ -133,7 +133,7 @@ public struct SignerImpl {
         certificate: Certificate,
         privateKey: PrivateKey,
         entitlementMapping: [URL: Entitlements],
-        progress: @escaping (Double) -> Void,
+        progress: @escaping (Double?) -> Void,
         completion: @escaping (Result<(), Swift.Error>) -> Void
     ) {
         Self.signingQueue.async {
