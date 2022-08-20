@@ -4,8 +4,6 @@ import PackageDescription
 
 let cSettings: [CSetting] = [
     .define("_GNU_SOURCE", .when(platforms: [.linux])),
-    // see comment in SupersignLdid
-    .headerSearchPath("../../vendored/include", .when(platforms: [.macOS, .iOS])),
 ]
 
 extension Product.Library.LibraryType {
