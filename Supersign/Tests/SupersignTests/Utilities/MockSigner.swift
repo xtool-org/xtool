@@ -4,11 +4,13 @@ import SignerSupport
 let addMockSigner: () = {
     add_signer(
         "MockSigner",
-        { appDir, certData, certLen, privKeyData, privKeyLen, entitlements, numEntitlements, progress, exception in
+        { _, _, _, _, _, _, _, _, _, exception in
+            // swiftlint:disable:previous opening_brace
             exception.initialize(to: strdup("Mock signer not implemented"))
             return 1
         },
-        { path, outLen, exception in
+        { _, _, exception in
+            // swiftlint:disable:previous opening_brace
             exception.initialize(to: strdup("Mock analyzer not implemented"))
             return nil
         }

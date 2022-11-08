@@ -83,8 +83,6 @@ class SupersignSigningTests: XCTestCase {
     func testSign() throws {
         let signingWaiter = ResultWaiter<()>(description: "Failed to sign app")
         // TODO: Get cert, key, ents from fixtures
-//        signerImpl.sign(app: app, certificate: <#T##Certificate#>, privateKey: <#T##PrivateKey#>, entitlementMapping: <#T##[URL : Entitlements]#>, progress: { _ in }, completion: signingWaiter.completion)
-//        try signingWaiter.wait(timeout: 10000)
     }
 
 }

@@ -51,7 +51,7 @@ struct InstallSuperchargeCommand: ParsableCommand {
 
         let client = Console.choose(
             from: clients,
-            onNoElement: { fatalError() },
+            onNoElement: { fatalError("No devices available") },
             multiPrompt: "Choose device",
             formatter: { "\($0.deviceName) (udid: \($0.udid))" }
         )

@@ -6,6 +6,8 @@
 //  Copyright © 2020 Kabir Oberai. All rights reserved.
 //
 
+// swiftlint:disable force_try
+
 import XCTest
 import SuperutilsTestSupport
 @testable import Supersign

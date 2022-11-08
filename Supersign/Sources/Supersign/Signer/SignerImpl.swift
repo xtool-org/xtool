@@ -113,9 +113,11 @@ public struct SignerImpl {
                     privBase, priv.count,
                     entsArray, entsArray.count,
                     {
+                        // swiftlint:disable:previous opening_brace
                         (Unmanaged<AnyObject>
                             .fromOpaque($0)
                             .takeUnretainedValue()
+                         // swiftlint:disable:next force_cast
                          as! (Double?) -> Void
                         )($1 == -1 ? nil : $1)
                     },

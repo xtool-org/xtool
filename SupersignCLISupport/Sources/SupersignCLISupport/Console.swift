@@ -31,6 +31,8 @@ enum Console {
         let dwNewMode = dwOldMode & ~ENABLE_ECHO_INPUT
         SetConsoleMode(hConsole, dwNewMode)
         defer { SetConsoleMode(hConsole, dwOldMode) }
+
+        return try action()
         #else
         var origAttr = termios()
         tcgetattr(STDIN_FILENO, &origAttr)
@@ -39,9 +41,9 @@ enum Console {
         newAttr.c_lflag = newAttr.c_lflag & ~tcflag_t(ECHO)
         tcsetattr(STDIN_FILENO, TCSANOW, &newAttr)
         defer { tcsetattr(STDIN_FILENO, TCSANOW, &origAttr) }
-        #endif
 
         return try action()
+        #endif
     }
 
     static func chooseNumber(in range: Range<Int>) -> Int {

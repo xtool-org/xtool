@@ -10,6 +10,8 @@ import XCTest
 import SuperutilsTestSupport
 import Supersign
 
+// swiftlint:disable force_try
+
 class SupersignDeveloperServicesTests: XCTestCase {
 
     var storage: KeyValueStorage!

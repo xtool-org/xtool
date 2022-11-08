@@ -36,7 +36,7 @@ final class SupersignCLIDelegate: IntegratedInstallerDelegate, TwoFactorAuthDele
 
         let selected = Console.choose(
             from: teams,
-            onNoElement: { fatalError() },
+            onNoElement: { fatalError("No development teams available") },
             multiPrompt: "\nSelect a team",
             formatter: {
                 "\($0.name) (\($0.id.rawValue))"

@@ -110,7 +110,7 @@ struct DSTeamsListCommand: ParsableCommand {
         print(
             teams.map {
                 "\($0.name) [\($0.status)]: \($0.id.rawValue)" +
-                    $0.memberships.map { "\n- \($0.name) (\($0.platform))" }.joined(separator: "")
+                    $0.memberships.map { "\n- \($0.name) (\($0.platform))" }.joined()
             }.joined(separator: "\n")
         )
     }
@@ -155,6 +155,7 @@ struct DSAnisetteCommand: ParsableCommand {
 
     func run() throws {
         let res = try withSyncContinuation {
+            // swiftlint:disable:next force_try
             try! ADIDataProvider(
                 rawProvider: Provider(),
                 deviceInfo: .current()!,

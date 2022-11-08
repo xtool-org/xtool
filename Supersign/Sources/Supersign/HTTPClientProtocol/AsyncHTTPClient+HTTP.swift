@@ -125,6 +125,7 @@ final class AsyncHTTPClientFactory: HTTPClientFactory {
     private let client: HTTPClient
     private init() {
         // if ssl cert parsing fails we're screwed so we might as well force try
+        // swiftlint:disable:next force_try
         let appleRootCA = try! NIOSSLCertificate(bytes: Array(Self.appleRootPEM.utf8), format: .pem)
         var tlsConfiguration: TLSConfiguration = .makeClientConfiguration()
         tlsConfiguration.additionalTrustRoots = [.certificates([appleRootCA])]
@@ -137,6 +138,7 @@ final class AsyncHTTPClientFactory: HTTPClientFactory {
     static let shared = AsyncHTTPClientFactory()
 
     func shutdown() {
+        // swiftlint:disable:next force_try
         try! client.syncShutdown()
     }
 
