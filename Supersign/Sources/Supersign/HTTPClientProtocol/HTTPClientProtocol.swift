@@ -50,19 +50,8 @@ public struct HTTPResponse {
     }
 }
 
-public final class HTTPTask {
-    private var cancellationHandler: () -> Void
-    public init(cancellationHandler: @escaping () -> Void) {
-        self.cancellationHandler = cancellationHandler
-    }
-    public func cancel() {
-        cancellationHandler()
-    }
-}
-
 public protocol HTTPClientProtocol {
-    @discardableResult
-    func makeRequest(_ request: HTTPRequest, completion: @escaping (Result<HTTPResponse, Error>) -> Void) -> HTTPTask
+    func makeRequest(_ request: HTTPRequest) async throws -> HTTPResponse
 }
 
 public protocol HTTPClientFactory {

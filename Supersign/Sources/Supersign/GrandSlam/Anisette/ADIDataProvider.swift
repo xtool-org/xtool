@@ -17,23 +17,16 @@ private extension String {
 }
 
 public protocol RawADIProvider {
-    func startProvisioning(
-        spim: Data,
-        completion: @escaping (Result<(String, Data), Error>) -> Void
-    )
+    func startProvisioning(spim: Data) async throws -> (String, Data)
 
     func endProvisioning(
         session: String,
         routingInfo: UInt64,
         ptm: Data,
-        tk: Data,
-        completion: @escaping (Result<Data, Error>) -> Void
-    )
+        tk: Data
+    ) async throws -> Data
 
-    func requestOTP(
-        provisioningInfo: Data,
-        completion: @escaping (Result<(machineID: Data, otp: Data), Error>) -> Void
-    )
+    func requestOTP(provisioningInfo: Data) async throws -> (machineID: Data, otp: Data)
 }
 
 // uses CoreADI APIs
@@ -120,138 +113,110 @@ public final class ADIDataProvider: AnisetteDataProvider {
 
     private func sendRequest<Request: Encodable, Response: Decodable>(
         endpoint: GrandSlamEndpoint,
-        request: Request,
-        completion: @escaping (Result<Response, Error>) -> Void
-    ) {
-        lookupManager.fetchURL(forEndpoint: endpoint) { result in
-            guard let endpointURL = result.get(withErrorHandler: completion) else { return }
-            let body: Data
-            do {
-                body = try Self.encoder.encode(GSARequest(request: request))
-            } catch {
-                return completion(.failure(error))
-            }
-            var request = HTTPRequest(
-                url: endpointURL,
-                method: "POST",
-                headers: [
-                    "Content-Type": "text/x-xml-plist",
-                    AnisetteData.localUserIDKey: self.localUserID,
-                    "Accept-Language": "en_US"
-                ],
-                body: .buffer(body)
-            )
-            request.headers["X-MMe-Country"] = Locale.current.regionCode
+        request: Request
+    ) async throws -> Response {
+        let endpointURL = try await lookupManager.fetchURL(forEndpoint: endpoint)
 
-            // Looks like Apple detects attempts to use a macOS client string on Windows :/
-            request.headers[DeviceInfo.clientInfoKey] = """
-            <PC> <Windows;6.2(0,0);9200> <com.apple.AuthKitWin/1 (com.apple.iCloud/7.21)>
-            """
-            request.headers[DeviceInfo.deviceIDKey] = self.deviceInfo.deviceID
-//            request.headers[DeviceInfo.clientInfoKey] = self.deviceInfo.clientInfo.clientString
-//            self.deviceInfo.dictionary.forEach { request.headers[$0] = $1 }
+        let body = try Self.encoder.encode(GSARequest(request: request))
 
-            self.httpClient.makeRequest(request) { result in
-                guard let resp = result.get(withErrorHandler: completion) else { return }
-                guard let body = resp.body else { return completion(.failure(ADIError.noResponse)) }
-//                print(String(data: body, encoding: .utf8) ?? "<no utf8 data>")
-                completion(Result {
-                    try GrandSlamOperationDecoder<Response>.decode(data: body)
-                })
-            }
-        }
+        var request = HTTPRequest(
+            url: endpointURL,
+            method: "POST",
+            headers: [
+                "Content-Type": "text/x-xml-plist",
+                AnisetteData.localUserIDKey: self.localUserID,
+                "Accept-Language": "en_US"
+            ],
+            body: .buffer(body)
+        )
+        request.headers["X-MMe-Country"] = Locale.current.regionCode
+
+        // Looks like Apple detects attempts to use a macOS client string on Windows :/
+        request.headers[DeviceInfo.clientInfoKey] = """
+        <PC> <Windows;6.2(0,0);9200> <com.apple.AuthKitWin/1 (com.apple.iCloud/7.21)>
+        """
+        request.headers[DeviceInfo.deviceIDKey] = self.deviceInfo.deviceID
+//        request.headers[DeviceInfo.clientInfoKey] = self.deviceInfo.clientInfo.clientString
+//        self.deviceInfo.dictionary.forEach { request.headers[$0] = $1 }
+
+        let resp = try await self.httpClient.makeRequest(request)
+
+        guard let body = resp.body else { throw ADIError.noResponse }
+//        print(String(data: body, encoding: .utf8) ?? "<no utf8 data>")
+
+        return try GrandSlamOperationDecoder<Response>.decode(data: body)
     }
 
     private func endProvisioning(
         id: String,
-        cpim: Data,
-        completion: @escaping (Result<(routingInfo: UInt64, provisioningInfo: Data), Error>) -> Void
-    ) {
-        sendRequest(
+        cpim: Data
+    ) async throws -> (routingInfo: UInt64, provisioningInfo: Data) {
+        let resp: EndProvisioningResponse = try await sendRequest(
             endpoint: \.midFinishProvisioning,
             request: EndProvisioningRequest(cpim: cpim.base64EncodedString())
-        ) { (result: Result<EndProvisioningResponse, Error>) -> Void in
-            guard let resp = result.get(withErrorHandler: completion) else { return }
-            guard let rinfo = UInt64(resp.rinfo),
-                  let ptm = Data(base64Encoded: resp.ptm),
-                  let tk = Data(base64Encoded: resp.tk)
-            else { return completion(.failure(ADIError.badEndResponse)) }
-            self.rawProvider.endProvisioning(session: id, routingInfo: rinfo, ptm: ptm, tk: tk) { result in
-                guard let provisioningInfo = result.get(withErrorHandler: completion) else { return }
-                completion(.success((rinfo, provisioningInfo)))
-            }
-        }
+        )
+
+        guard let rinfo = UInt64(resp.rinfo),
+              let ptm = Data(base64Encoded: resp.ptm),
+              let tk = Data(base64Encoded: resp.tk)
+            else { throw ADIError.badEndResponse }
+
+        let provisioningInfo = try await self.rawProvider.endProvisioning(
+            session: id, routingInfo: rinfo, ptm: ptm, tk: tk
+        )
+
+        return (rinfo, provisioningInfo)
     }
 
-    private func provision(completion: @escaping (Result<(routingInfo: UInt64, provisioningInfo: Data), Error>) -> Void) {
-        sendRequest(
+    private func provision() async throws -> (routingInfo: UInt64, provisioningInfo: Data) {
+        let resp: StartProvisioningResponse = try await sendRequest(
             endpoint: \.midStartProvisioning,
             request: StartProvisioningRequest()
-        ) { (result: Result<StartProvisioningResponse, Error>) -> Void in
-            guard let resp = result.get(withErrorHandler: completion) else { return }
-            guard let spim = Data(base64Encoded: resp.spim) else {
-                return completion(.failure(ADIError.badStartResponse))
-            }
-            self.rawProvider.startProvisioning(spim: spim) { result in
-                guard let (id, cpim) = result.get(withErrorHandler: completion) else { return }
-                self.endProvisioning(id: id, cpim: cpim, completion: completion)
-            }
-        }
+        )
+        guard let spim = Data(base64Encoded: resp.spim) else { throw ADIError.badStartResponse }
+        let (id, cpim) = try await rawProvider.startProvisioning(spim: spim)
+        return try await endProvisioning(id: id, cpim: cpim)
     }
 
     private func fetchAnisetteData(
         routingInfo: UInt64,
-        provisioningInfo: Data,
-        completion: @escaping (Result<AnisetteData, Error>) -> Void
-    ) {
+        provisioningInfo: Data
+    ) async throws -> AnisetteData {
         let requestTime = Date()
-        rawProvider.requestOTP(provisioningInfo: provisioningInfo) { result in
-            guard let (mid, otp) = result.get(withErrorHandler: completion) else { return }
-            completion(.success(AnisetteData(
-                clientTime: requestTime,
+        let (mid, otp) = try await rawProvider.requestOTP(provisioningInfo: provisioningInfo)
+        return AnisetteData(
+            clientTime: requestTime,
+            routingInfo: routingInfo,
+            machineID: mid.base64EncodedString(),
+            localUserID: self.localUserID,
+            oneTimePassword: otp.base64EncodedString()
+        )
+    }
+
+    public func resetProvisioning() throws {
+        try storage.setData(nil, forKey: Self.provisioningKey)
+        try storage.setString(nil, forKey: Self.routingInfoKey)
+    }
+
+    public func fetchAnisetteData() async throws -> AnisetteData {
+        if let provisioningInfo = try storage.data(forKey: Self.provisioningKey),
+                  let routingInfoString = try storage.string(forKey: Self.routingInfoKey),
+                  let routingInfo = UInt64(routingInfoString) {
+            return try await fetchAnisetteData(
                 routingInfo: routingInfo,
-                machineID: mid.base64EncodedString(),
-                localUserID: self.localUserID,
-                oneTimePassword: otp.base64EncodedString()
-            )))
-        }
-    }
-
-    public func resetProvisioning(completion: @escaping (Result<Void, Error>) -> Void) {
-        completion(Result {
-            try storage.setData(nil, forKey: Self.provisioningKey)
-            try storage.setString(nil, forKey: Self.routingInfoKey)
-        })
-    }
-
-    public func fetchAnisetteData(completion: @escaping (Result<AnisetteData, Error>) -> Void) {
-        do {
-            if let provisioningInfo = try storage.data(forKey: Self.provisioningKey),
-                      let routingInfoString = try storage.string(forKey: Self.routingInfoKey),
-                      let routingInfo = UInt64(routingInfoString) {
-                return fetchAnisetteData(
-                    routingInfo: routingInfo,
-                    provisioningInfo: provisioningInfo,
-                    completion: completion
-                )
-            }
-        } catch {
-            return completion(.failure(error))
-        }
-        provision { result in
-            guard let (rinfo, data) = result.get(withErrorHandler: completion) else { return }
-            do {
-                try self.storage.setData(data, forKey: Self.provisioningKey)
-                try self.storage.setString("\(rinfo)", forKey: Self.routingInfoKey)
-            } catch {
-                return completion(.failure(error))
-            }
-            self.fetchAnisetteData(
-                routingInfo: rinfo,
-                provisioningInfo: data,
-                completion: completion
+                provisioningInfo: provisioningInfo
             )
         }
+
+        let (rinfo, data) = try await provision()
+
+        try self.storage.setData(data, forKey: Self.provisioningKey)
+        try self.storage.setString("\(rinfo)", forKey: Self.routingInfoKey)
+
+        return try await fetchAnisetteData(
+            routingInfo: rinfo,
+            provisioningInfo: data
+        )
     }
 
 }

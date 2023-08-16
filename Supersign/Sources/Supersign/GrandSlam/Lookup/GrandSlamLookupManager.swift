@@ -26,7 +26,7 @@ class GrandSlamLookupManager {
         self.httpClient = httpFactory.makeClient()
     }
 
-    private func performLookup(completion: @escaping (Result<GrandSlamEndpoints, Error>) -> Void) {
+    private func performLookup() async throws -> GrandSlamEndpoints {
         /* {
             "X-Apple-I-Locale" = "en_IN";
             "X-Apple-I-TimeZone" = "Asia/Kolkata";
@@ -45,33 +45,21 @@ class GrandSlamLookupManager {
         ]
         request.headers["X-MMe-Country"] = Locale.current.regionCode
 
-        httpClient.makeRequest(request) { result in
-            guard let resp = result.get(withErrorHandler: completion) else { return }
-            completion(Result {
-                try self.decoder.decode(Response.self, from: resp.body ?? .init()).urls
-            })
-        }
+        let resp = try await httpClient.makeRequest(request)
+
+        return try self.decoder.decode(Response.self, from: resp.body ?? .init()).urls
     }
 
-    private func fetchEndpoints(completion: @escaping (Result<GrandSlamEndpoints, Error>) -> Void) {
-        if let endpoints = endpoints {
-            return completion(.success(endpoints))
-        }
-        performLookup { result in
-            if case let .success(endpoints) = result {
-                self.endpoints = endpoints
-            }
-            completion(result)
-        }
+    private func fetchEndpoints() async throws -> GrandSlamEndpoints {
+        if let endpoints = endpoints { return endpoints }
+        let endpoints = try await performLookup()
+        self.endpoints = endpoints
+        return endpoints
     }
 
-    func fetchURL(
-        forEndpoint endpoint: GrandSlamEndpoint,
-        completion: @escaping (Result<URL, Error>) -> Void
-    ) {
-        fetchEndpoints { result in
-            completion(result.map { URL(string: $0[keyPath: endpoint])! })
-        }
+    func fetchURL(forEndpoint endpoint: GrandSlamEndpoint) async throws -> URL {
+        let endpoints = try await fetchEndpoints()
+        return URL(string: endpoints[keyPath: endpoint])!
     }
 
 }

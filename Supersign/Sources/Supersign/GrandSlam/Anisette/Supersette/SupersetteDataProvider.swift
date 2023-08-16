@@ -40,7 +40,7 @@ public class SupersetteDataProvider: AnisetteDataProvider {
         let oneTimePassword: String
     }
 
-    public func fetchAnisetteData(completion: @escaping (Result<AnisetteData, Swift.Error>) -> Void) {
+    public func fetchAnisetteData() async throws -> AnisetteData {
         let clientTime = Date()
         var request = HTTPRequest(url: Self.gateway, method: "POST")
         request.headers = [
@@ -48,28 +48,20 @@ public class SupersetteDataProvider: AnisetteDataProvider {
             "Accept": "application/json",
             "Superpass": "BF95B548-3C87-4BBD-8B96-534421368416"
         ]
-        do {
-            request.body = try .buffer(Self.encoder.encode(AnisetteRequestBody(
-                deviceID: deviceInfo.deviceID,
-                clientInfo: deviceInfo.clientInfo.clientString
-            )))
-        } catch {
-            return completion(.failure(error))
-        }
-        httpClient.makeRequest(request) { result in
-            completion(Result {
-                let resp = try result.get()
-                let data = try resp.body.orThrow(Error.invalidAnisetteData)
-                let anisetteResponse = try Self.decoder.decode(AnisetteResponse.self, from: data)
-                return AnisetteData(
-                    clientTime: clientTime,
-                    routingInfo: anisetteResponse.routingInfo,
-                    machineID: anisetteResponse.machineID,
-                    localUserID: anisetteResponse.localUserID,
-                    oneTimePassword: anisetteResponse.oneTimePassword
-                )
-            })
-        }
+        request.body = try .buffer(Self.encoder.encode(AnisetteRequestBody(
+            deviceID: deviceInfo.deviceID,
+            clientInfo: deviceInfo.clientInfo.clientString
+        )))
+        let resp = try await httpClient.makeRequest(request)
+        let data = try resp.body.orThrow(Error.invalidAnisetteData)
+        let anisetteResponse = try Self.decoder.decode(AnisetteResponse.self, from: data)
+        return AnisetteData(
+            clientTime: clientTime,
+            routingInfo: anisetteResponse.routingInfo,
+            machineID: anisetteResponse.machineID,
+            localUserID: anisetteResponse.localUserID,
+            oneTimePassword: anisetteResponse.oneTimePassword
+        )
     }
 
 }

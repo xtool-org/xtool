@@ -17,7 +17,7 @@ private extension AuthToken {
         username: String?,
         password: String?,
         resetProvisioning: Bool = false
-    ) throws -> Self {
+    ) async throws -> Self {
         guard let username = username ?? Console.prompt("Apple ID: "), !username.isEmpty else {
             throw Console.Error("A non-empty Apple ID is required.")
         }
@@ -31,7 +31,7 @@ private extension AuthToken {
 //            storage: SupersignCLI.config.storage
 //        )
         if resetProvisioning {
-            try withSyncContinuation(provider.resetProvisioning(completion:))
+            await provider.resetProvisioning()
         }
         let authDelegate = SupersignCLIAuthDelegate()
         let manager = try DeveloperServicesLoginManager(
@@ -50,16 +50,16 @@ private extension AuthToken {
         return AuthToken(appleID: username, dsToken: token)
     }
 
-    static func retrieve(deviceInfo: DeviceInfo, account: String?) throws -> Self {
+    static func retrieve(deviceInfo: DeviceInfo, account: String?) async throws -> Self {
         if let account = account, let token = Self(string: account) {
             return token
         } else {
-            return try retrieve(deviceInfo: deviceInfo, username: account, password: nil)
+            return try await retrieve(deviceInfo: deviceInfo, username: account, password: nil)
         }
     }
 }
 
-struct DSLoginCommand: ParsableCommand {
+struct DSLoginCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "login",
         abstract: "Obtain an Apple ID authentication token"
@@ -69,8 +69,8 @@ struct DSLoginCommand: ParsableCommand {
     @Option(name: [.short, .long], help: "Apple ID") var username: String?
     @Option(name: [.short, .long]) var password: String?
 
-    func run() throws {
-        let fullToken = try AuthToken.retrieve(
+    func run() async throws {
+        let fullToken = try await AuthToken.retrieve(
             deviceInfo: .fetch(),
             username: self.username,
             password: self.password,
@@ -83,7 +83,7 @@ struct DSLoginCommand: ParsableCommand {
     }
 }
 
-struct DSTeamsListCommand: ParsableCommand {
+struct DSTeamsListCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "list",
         abstract: "List Developer Services teams"
@@ -91,22 +91,20 @@ struct DSTeamsListCommand: ParsableCommand {
 
     @Option(name: .shortAndLong) var account: String?
 
-    func run() throws {
+    func run() async throws {
         let deviceInfo = try DeviceInfo.fetch()
         let anisetteProvider = SupersetteDataProvider(deviceInfo: deviceInfo)
 //        let anisetteProvider = try ADIDataProvider.supersetteProvider(
 //            deviceInfo: deviceInfo, storage: SupersignCLI.config.storage
 //        )
 
-        let token = try AuthToken.retrieve(deviceInfo: deviceInfo, account: account)
+        let token = try await AuthToken.retrieve(deviceInfo: deviceInfo, account: account)
         let client = DeveloperServicesClient(
             loginToken: token.dsToken,
             deviceInfo: deviceInfo,
             anisetteProvider: anisetteProvider
         )
-        let teams: [DeveloperServicesTeam] = try withSyncContinuation {
-            client.send(DeveloperServicesListTeamsRequest(), completion: $0)
-        }
+        let teams: [DeveloperServicesTeam] = try await client.send(DeveloperServicesListTeamsRequest())
         print(
             teams.map {
                 "\($0.name) [\($0.status)]: \($0.id.rawValue)" +
@@ -116,35 +114,30 @@ struct DSTeamsListCommand: ParsableCommand {
     }
 }
 
-struct DSAnisetteCommand: ParsableCommand {
+struct DSAnisetteCommand: AsyncParsableCommand {
     private class Provider: RawADIProvider {
-        func startProvisioning(
-            spim: Data,
-            completion: @escaping (Result<(String, Data), Error>) -> Void
-        ) {
+        func startProvisioning(spim: Data) -> (String, Data) {
             print("spim: \(spim.base64EncodedString())")
-            completion(.success(("", Data(base64Encoded: Console.prompt("cpim: ")!)!)))
+            return ("", Data(base64Encoded: Console.prompt("cpim: ")!)!)
         }
 
         func endProvisioning(
             session: String,
             routingInfo: UInt64,
             ptm: Data,
-            tk: Data,
-            completion: @escaping (Result<Data, Error>) -> Void
-        ) {
+            tk: Data
+        ) -> Data {
             print("""
             rinfo: \(routingInfo)
             ptm: \(ptm.base64EncodedString())
             tk: \(tk.base64EncodedString())
             """)
+            return Data(base64Encoded: Console.prompt("pinfo: ")!)!
         }
 
-        func requestOTP(
-            provisioningInfo: Data,
-            completion: @escaping (Result<(machineID: Data, otp: Data), Error>) -> Void
-        ) {
+        func requestOTP(provisioningInfo: Data) -> (machineID: Data, otp: Data) {
             print("otp; pinfo: \(provisioningInfo)")
+            return (Data(), Data())
         }
     }
 
@@ -153,15 +146,14 @@ struct DSAnisetteCommand: ParsableCommand {
         abstract: "Test out Anisette data"
     )
 
-    func run() throws {
-        let res = try withSyncContinuation {
-            // swiftlint:disable:next force_try
-            try! ADIDataProvider(
-                rawProvider: Provider(),
-                deviceInfo: .current()!,
-                storage: SupersignCLI.config.storage
-            ).fetchAnisetteData(completion: $0)
-        }
+    func run() async throws {
+        // swiftlint:disable:next force_try
+        let res = try! await ADIDataProvider(
+            rawProvider: Provider(),
+            deviceInfo: .current()!,
+            storage: SupersignCLI.config.storage
+        ).fetchAnisetteData()
+
         print(res)
     }
 }
@@ -175,7 +167,7 @@ struct DSTeamsCommand: ParsableCommand {
     )
 }
 
-struct DSCommand: ParsableCommand {
+struct DSCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "ds",
         abstract: "Interact with Apple Developer Services",

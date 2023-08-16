@@ -19,14 +19,23 @@ public enum SupersignCLI {
     private static var _config: Configuration!
     static var config: Configuration { _config }
 
-    public static func run(configuration: Configuration, arguments: [String]? = nil) throws {
+    public static func run(configuration: Configuration, arguments: [String]? = nil) async throws {
         _config = configuration
         defer { defaultHTTPClientFactory.shutdown() }
-        SupersignCommand.main(arguments)
+        do {
+            var command = try SupersignCommand.parseAsRoot(arguments)
+            if var asyncCommand = command as? AsyncParsableCommand {
+                try await asyncCommand.run()
+            } else {
+                try command.run()
+            }
+        } catch {
+            SupersignCommand.exit(withError: error)
+        }
     }
 }
 
-struct SupersignCommand: ParsableCommand {
+struct SupersignCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "supersign",
         abstract: "The Supersign command line tool",

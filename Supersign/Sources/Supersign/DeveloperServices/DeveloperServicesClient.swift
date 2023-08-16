@@ -72,11 +72,10 @@ public final class DeveloperServicesClient {
 
     private func send<R: DeveloperServicesRequest>(
         _ request: R,
-        anisetteData: AnisetteData,
-        completion: @escaping (Result<R.Value, Swift.Error>) -> Void
-    ) {
+        anisetteData: AnisetteData
+    ) async throws -> R.Value {
         guard let url = request.apiVersion.url(forAction: request.action) else {
-            return completion(.failure(Error.malformedRequest))
+            throw Error.malformedRequest
         }
 
         var httpRequest = HTTPRequest(url: url, method: "POST")
@@ -98,39 +97,39 @@ public final class DeveloperServicesClient {
 
         anisetteData.dictionary.forEach { httpRequest.headers[$0] = $1 }
 
-        do {
-            httpRequest.body = try .buffer(request.apiVersion.body(withParameters: request.parameters))
-        } catch {
-            return completion(.failure(error))
-        }
+        httpRequest.body = try .buffer(request.apiVersion.body(withParameters: request.parameters))
 
         request.configure(urlRequest: &httpRequest)
 
-        httpClient.makeRequest(httpRequest) { result in
-            let decoded: R.Response
-            do {
-                let resp = try result.get()
-                // we don't throw if data is nil because sometimes no data is
-                // okay (eg in the case of EmptyResponse)
-                let data = resp.body ?? Data()
+        let resp = try await httpClient.makeRequest(httpRequest)
 
-//                String(data: data, encoding: .utf8).map { print("\(url): \($0)") }
+        // we don't throw if data is nil because sometimes no data is
+        // okay (eg in the case of EmptyResponse)
+        let data = resp.body ?? Data()
 
-                decoded = try request.apiVersion.decode(response: data)
-            } catch {
-                return completion(.failure(error))
-            }
-            request.parse(decoded, completion: completion)
+//        String(data: data, encoding: .utf8).map { print("\(url): \($0)") }
+
+        let decoded: R.Response = try request.apiVersion.decode(response: data)
+
+        return try await withCheckedThrowingContinuation {
+            request.parse(decoded, completion: $0.resume(with:))
         }
     }
 
+    public func send<R: DeveloperServicesRequest>(_ request: R) async throws -> R.Value {
+        let anisetteData = try await anisetteDataProvider.fetchAnisetteData()
+        return try await self.send(request, anisetteData: anisetteData)
+    }
+
+    @available(*, deprecated, message: "Use async overload")
     public func send<R: DeveloperServicesRequest>(
         _ request: R,
         completion: @escaping (Result<R.Value, Swift.Error>) -> Void
     ) {
-        anisetteDataProvider.fetchAnisetteData { result in
-            guard let anisetteData = result.get(withErrorHandler: completion) else { return }
-            self.send(request, anisetteData: anisetteData, completion: completion)
+        Task {
+            completion(await Result {
+                try await send(request)
+            })
         }
     }
 

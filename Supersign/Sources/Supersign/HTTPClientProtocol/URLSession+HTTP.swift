@@ -11,11 +11,7 @@ import Foundation
 public struct UnknownHTTPError: Error {}
 
 extension URLSession: HTTPClientProtocol {
-    @discardableResult
-    public func makeRequest(
-        _ request: HTTPRequest,
-        completion: @escaping (Result<HTTPResponse, Error>) -> Void
-    ) -> HTTPTask {
+    public func makeRequest(_ request: HTTPRequest) async throws -> HTTPResponse {
         var req = URLRequest(url: request.url)
         req.httpMethod = request.method
         request.headers.forEach { k, v in
@@ -29,31 +25,22 @@ extension URLSession: HTTPClientProtocol {
         case nil:
             break
         }
-        let task = dataTask(with: req) { data, resp, error in
-            if let error = error {
-                return completion(.failure(error))
+        let (data, resp) = try await data(for: req)
+        guard let httpResp = resp as? HTTPURLResponse else { throw UnknownHTTPError() }
+        let headers = [String: String](
+            uniqueKeysWithValues: httpResp.allHeaderFields.compactMap { k, v in
+                guard let kStr = k as? String,
+                      let vStr = v as? String
+                else { return nil }
+                return (kStr, vStr)
             }
-            guard let httpResp = resp as? HTTPURLResponse else {
-                return completion(.failure(UnknownHTTPError()))
-            }
-            let headers = [String: String](
-                uniqueKeysWithValues: httpResp.allHeaderFields.compactMap { k, v in
-                    guard let kStr = k as? String,
-                          let vStr = v as? String
-                    else { return nil }
-                    return (kStr, vStr)
-                }
-            )
-            let resp = HTTPResponse(
-                url: request.url,
-                status: httpResp.statusCode,
-                headers: headers,
-                body: data
-            )
-            completion(.success(resp))
-        }
-        task.resume()
-        return HTTPTask { task.cancel() }
+        )
+        return HTTPResponse(
+            url: request.url,
+            status: httpResp.statusCode,
+            headers: headers,
+            body: data
+        )
     }
 }
 

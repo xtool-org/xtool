@@ -33,7 +33,7 @@ let package = Package(
         .package(path: "../SuperchargeCore"),
         .package(path: "../SwiftyMobileDevice"),
         .package(path: "../USBMuxSim"),
-        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.0.0"),
+        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.18.0"),
     ],
     targets: [
         .target(

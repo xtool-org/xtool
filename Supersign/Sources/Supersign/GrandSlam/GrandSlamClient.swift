@@ -28,12 +28,10 @@ class GrandSlamClient {
         self.httpClient = httpFactory.makeClient()
     }
 
-    private func send<R: GrandSlamRequest>(
-        _ request: R,
-        anisetteData: AnisetteData,
-        url: URL,
-        completion: @escaping (Result<R.Decoder.Value, Swift.Error>) -> Void
-    ) {
+    func send<R: GrandSlamRequest>(_ request: R) async throws -> R.Decoder.Value {
+        let anisetteData = try await anisetteDataProvider.fetchAnisetteData()
+        let url = try await lookupManager.fetchURL(forEndpoint: R.endpoint)
+
         let method = request.method(deviceInfo: deviceInfo, anisetteData: anisetteData)
         var httpRequest = HTTPRequest(url: url, method: method.name)
         httpRequest.headers = [
@@ -44,43 +42,19 @@ class GrandSlamClient {
         case .get:
             break
         case .post(let body):
-            do {
-                httpRequest.body = try .buffer(PropertyListSerialization.data(
-                    fromPropertyList: body, format: .xml, options: 0
-                ))
-            } catch {
-                return completion(.failure(error))
-            }
+            httpRequest.body = try .buffer(PropertyListSerialization.data(
+                fromPropertyList: body, format: .xml, options: 0
+            ))
         }
         request.configure(request: &httpRequest, deviceInfo: deviceInfo, anisetteData: anisetteData)
 
-        httpClient.makeRequest(httpRequest) { result in
-            guard let resp = result.get(withErrorHandler: completion) else { return }
-            completion(Result {
-                try R.Decoder.decode(data: resp.body ?? .init())
-            })
-        }
+        let resp = try await httpClient.makeRequest(httpRequest)
+        return try R.Decoder.decode(data: resp.body ?? .init())
     }
 
-    private func send<R: GrandSlamRequest>(
-        _ request: R,
-        anisetteData: AnisetteData,
-        completion: @escaping (Result<R.Decoder.Value, Swift.Error>) -> Void
-    ) {
-        lookupManager.fetchURL(forEndpoint: R.endpoint) { result in
-            guard let url = result.get(withErrorHandler: completion) else { return }
-            self.send(request, anisetteData: anisetteData, url: url, completion: completion)
-        }
-    }
-
-    func send<R: GrandSlamRequest>(
-        _ request: R,
-        completion: @escaping (Result<R.Decoder.Value, Swift.Error>) -> Void
-    ) {
-        self.anisetteDataProvider.fetchAnisetteData { result in
-            guard let anisetteData = result.get(withErrorHandler: completion) else { return }
-            self.send(request, anisetteData: anisetteData, completion: completion)
-        }
+    @available(*, deprecated, message: "Use async overload")
+    func send<R: GrandSlamRequest>(_ request: R, completion: @escaping (Result<R.Decoder.Value, Swift.Error>) -> Void) {
+        Task { completion(await Result { try await send(request) }) }
     }
 
 }

@@ -11,11 +11,11 @@ import Foundation
 public protocol AnisetteDataProvider {
     // This is a suggestion and not a requirement. The default implementation
     // does nothing.
-    func resetProvisioning(completion: @escaping (Result<Void, Error>) -> Void)
+    func resetProvisioning() async
 
-    func fetchAnisetteData(completion: @escaping (Result<AnisetteData, Error>) -> Void)
+    func fetchAnisetteData() async throws -> AnisetteData
 }
 
 extension AnisetteDataProvider {
-    public func resetProvisioning(completion: @escaping (Result<Void, Error>) -> Void) {}
+    public func resetProvisioning() async {}
 }

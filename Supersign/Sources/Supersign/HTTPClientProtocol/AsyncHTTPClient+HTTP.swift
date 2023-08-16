@@ -14,79 +14,28 @@ import NIOSSL
 import NIOFoundationCompat
 
 extension HTTPClient: HTTPClientProtocol {
-//    private struct ReadError: Error {}
-//
-//    private func read(
-//        inputStream stream: InputStream,
-//        chunkSize: Int,
-//        eventLoop: EventLoop,
-//        writer: @escaping (ByteBuffer) -> EventLoopFuture<Void>
-//    ) -> EventLoopFuture<Void> {
-//        var buf = ByteBuffer()
-//        func _read() -> EventLoopFuture<Void> {
-//            eventLoop.submit { () throws -> Int in
-//                buf.clear()
-//                return try buf.writeWithUnsafeMutableBytes(minimumWritableBytes: chunkSize) { raw in
-//                    let bound = raw.bindMemory(to: UInt8.self)
-//                    let res = stream.read(bound.baseAddress!, maxLength: bound.count)
-//                    guard res != -1 else { throw ReadError() }
-//                    return res
-//                }
-//            }.flatMap { bytesRead in
-//                bytesRead == 0 ?
-//                    // we've reached the EOF
-//                    writer(buf) :
-//                    // there's more. Write and then keep reading.
-//                    writer(buf).flatMap(_read)
-//            }
-//        }
-//        return _read()
-//    }
-
     @discardableResult
-    public func makeRequest(
-        _ request: HTTPRequest,
-        completion: @escaping (Result<HTTPResponse, Error>) -> Void
-    ) -> HTTPTask {
+    public func makeRequest(_ request: HTTPRequest) async throws -> HTTPResponse {
 //        print("Requesting \(request.url)")
-
-        let headers = HTTPHeaders(request.headers.map { $0 })
-        let body: HTTPClient.Body?
-        switch request.body {
+        var httpRequest = HTTPClientRequest(url: request.url.absoluteString)
+        httpRequest.method = request.method.map(HTTPMethod.init(rawValue:)) ?? .GET
+        httpRequest.headers = HTTPHeaders(request.headers.map { $0 })
+        httpRequest.body = switch request.body {
         case .buffer(let data):
-            body = .data(data)
-//        case .stream(let stream):
-//            body = .stream { writer in
-//                let eventLoop = writer.write(.byteBuffer(.init())).eventLoop
-//                return self.read(inputStream: stream, chunkSize: 1024, eventLoop: eventLoop) {
-//                    writer.write(.byteBuffer($0))
-//                }
-//            }
+            .bytes(data)
+//        case .stream(let stream): 
+//            .stream(...)
         case nil:
-            body = nil
+            nil
         }
-        let httpReq: HTTPClient.Request
-        do {
-            httpReq = try HTTPClient.Request(
-                url: request.url,
-                method: request.method.map(HTTPMethod.init(rawValue:)) ?? .GET,
-                headers: headers,
-                body: body
-            )
-        } catch {
-            completion(.failure(error))
-            return HTTPTask { }
-        }
-        let task = execute(request: httpReq, delegate: ResponseAccumulator(request: httpReq))
-        task.futureResult.map { result in
-            HTTPResponse(
-                url: request.url,
-                status: Int(result.status.code),
-                headers: [String: String](uniqueKeysWithValues: result.headers.map { $0 }),
-                body: result.body.flatMap { $0.getData(at: 0, length: $0.writerIndex) }
-            )
-        }.whenComplete(completion)
-        return HTTPTask { task.cancel() }
+        let response = try await execute(httpRequest, deadline: .distantFuture)
+        let body = try await response.body.map(\.readableBytesView).reduce(into: Data(), +=)
+        return HTTPResponse(
+            url: request.url,
+            status: Int(response.status.code),
+            headers: [:],
+            body: body
+        )
     }
 }
 
