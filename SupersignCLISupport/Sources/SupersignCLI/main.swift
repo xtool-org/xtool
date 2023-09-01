@@ -23,7 +23,7 @@ storage = KeychainStorage(service: "com.kabiroberai.Supercharge-Keychain.credent
 storage = DirectoryStorage(base: URL(fileURLWithPath: "storage", isDirectory: true))
 #endif
 
-try SupersignCLI.run(configuration: SupersignCLI.Configuration(
+try await SupersignCLI.run(configuration: SupersignCLI.Configuration(
     superchargeApp: app,
     storage: storage
 ))
