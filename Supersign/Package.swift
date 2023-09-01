@@ -34,6 +34,7 @@ let package = Package(
         .package(path: "../SwiftyMobileDevice"),
         .package(path: "../USBMuxSim"),
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.18.0"),
+        .package(url: "https://github.com/apple/swift-certificates", from: "1.0.0-beta.1"),
     ],
     targets: [
         .target(
@@ -53,6 +54,7 @@ let package = Package(
                 .product(name: "SignerSupport", package: "SuperchargeCore"),
                 .product(name: "ProtoCodable", package: "SuperchargeCore"),
                 .product(name: "Superutils", package: "SuperchargeCore"),
+                .product(name: "X509", package: "swift-certificates"),
                 .product(
                     name: "AsyncHTTPClient",
                     package: "async-http-client",

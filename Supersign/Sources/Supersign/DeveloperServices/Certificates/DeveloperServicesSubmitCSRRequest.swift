@@ -23,10 +23,9 @@ public class DeveloperServicesSubmitCSRRequest: DeveloperServicesPlatformRequest
 
     var subAction: String { return "submitDevelopmentCSR" }
     var subParameters: [String: Any] {
-        let csrString = String(data: csr.data, encoding: .utf8) ?? ""
         return [
             "teamId": teamID.rawValue,
-            "csrContent": csrString,
+            "csrContent": csr.pemString,
             "machineId": machineID,
             "machineName": machineName
         ]

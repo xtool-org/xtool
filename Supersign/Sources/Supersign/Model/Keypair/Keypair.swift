@@ -7,58 +7,57 @@
 //
 
 import Foundation
-import CSupersign
+import Crypto
+import X509
+import _CryptoExtras
 
 public struct PrivateKey: Codable {
+    // pem encoded
     public let data: Data
 
     public init(data: Data) {
         self.data = data
-    }
-
-    public init(contentsOf url: URL) throws {
-        self.data = try Data(contentsOf: url)
     }
 }
 
 public struct CSR {
-    public let data: Data
+    public let pemString: String
 
-    public init(data: Data) {
-        self.data = data
-    }
-
-    public init(contentsOf url: URL) throws {
-        self.data = try Data(contentsOf: url)
+    public init(pemString: String) {
+        self.pemString = pemString
     }
 }
 
-public final class Keypair {
+public struct Keypair {
 
     public enum Error: Swift.Error {
         case couldNotCreate
         case invalidKeypair
     }
 
-    let raw: keypair_t
+    // Apple developer certs seem to require RSA2048
+    let raw: _RSA.Signing.PrivateKey
 
     public init() throws {
-        guard let keypair = keypair_create() else {
-            throw Error.couldNotCreate
-        }
-        self.raw = keypair
-    }
-
-    deinit {
-        keypair_free(raw)
+        self.raw = try _RSA.Signing.PrivateKey(keySize: .bits2048)
     }
 
     public func privateKey() throws -> PrivateKey {
-        try PrivateKey(data: Data { keypair_copy_private_key(raw, &$0) }.orThrow(Error.invalidKeypair))
+        PrivateKey(data: Data(raw.pemRepresentation.utf8))
     }
 
     public func generateCSR() throws -> CSR {
-        try CSR(data: Data { keypair_generate_csr(raw, &$0) }.orThrow(Error.invalidKeypair))
+        let request = try CertificateSigningRequest(
+            version: .v1,
+            subject: DistinguishedName {
+                CountryName("US")
+                CommonName("Supercharge")
+            },
+            privateKey: X509.Certificate.PrivateKey(raw),
+            attributes: CertificateSigningRequest.Attributes(),
+            signatureAlgorithm: .sha1WithRSAEncryption
+        )
+        return CSR(pemString: try request.serializeAsPEM().pemString)
     }
 
 }

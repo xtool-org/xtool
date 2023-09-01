@@ -117,8 +117,7 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
             }
 
             guard let signingInfo = self.context.signingInfoManager[self.context.teamID],
-                let serialNumber = try? signingInfo.certificate.serialNumber(),
-                certificate.attributes.serialNumber.rawValue == serialNumber,
+                certificate.attributes.serialNumber.rawValue == signingInfo.certificate.serialNumber(),
                 certificate.attributes.expiry > Date()
                 else { return self.revokeCreateSaveCertificate(
                     certificates: [certificate], completion: completion

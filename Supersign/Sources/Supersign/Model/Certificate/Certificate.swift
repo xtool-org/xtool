@@ -7,33 +7,31 @@
 //
 
 import Foundation
-import CSupersign
+import X509
+import SwiftASN1
 
 /// A certificate in DER format
-public final class Certificate: Codable {
+public struct Certificate: Codable {
 
     public enum Error: Swift.Error {
         case invalidCertificate
     }
 
-    let raw: certificate_t
+    let raw: X509.Certificate
+
+    public init(raw: X509.Certificate) throws {
+        self.raw = raw
+    }
 
     public init(data: Data) throws {
-        self.raw = try data.withUnsafeBytes { buf -> certificate_t in
-            guard let base = buf.baseAddress,
-                  let cert = certificate_create_from_data(base, buf.count)
-            else { throw Error.invalidCertificate }
-            return cert
-        }
+        try self.init(raw: .init(derEncoded: DER.parse(Array(data))))
     }
 
     public init(contentsOf url: URL) throws {
-        guard let certificate = url.withUnsafeFileSystemRepresentation({ $0.flatMap(certificate_create_from_path) })
-            else { throw Error.invalidCertificate }
-        self.raw = certificate
+        try self.init(data: Data(contentsOf: url))
     }
 
-    public required convenience init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let data = try container.decode(Data.self)
         try self.init(data: data)
@@ -44,31 +42,29 @@ public final class Certificate: Codable {
         try container.encode(data())
     }
 
-    deinit {
-        certificate_free(raw)
-    }
-
     public func developerIdentity() throws -> String {
-        guard let identity = certificate_get_developer_identity(raw) else {
-            throw Error.invalidCertificate
-        }
-        return String(cString: identity)
+        let commonName = raw.subject.lazy.flatMap { $0 }.first { $0.type == .NameAttributes.commonName }
+        guard let commonName else { throw Error.invalidCertificate }
+        return "\(commonName.value)"
     }
 
-    public func serialNumber() throws -> String {
-        guard let serial = certificate_copy_serial_number(raw),
-            let string = String(bytesNoCopy: serial, length: strlen(serial), encoding: .utf8, freeWhenDone: true)
-            else { throw Error.invalidCertificate }
-        return string
+    public func serialNumber() -> String {
+        // big endian, hex-encoded
+        let content = raw.serialNumber.bytes.lazy
+            .map { String($0, radix: 16, uppercase: true) }
+            .joined()
+            .drop { $0 == "0" }
+        return String(content)
     }
 
     public func wasIssuedBefore(_ other: Certificate) -> Bool {
-        certificate_was_issued_before(raw, other.raw)
+        raw.notValidBefore < other.raw.notValidBefore
     }
 
     public func data() throws -> Data {
-        try Data { certificate_generate_data(raw, &$0) }
-            .orThrow(Error.invalidCertificate)
+        var serializer = DER.Serializer()
+        try serializer.serialize(raw)
+        return Data(serializer.serializedBytes)
     }
 
 }
