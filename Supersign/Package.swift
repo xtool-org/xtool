@@ -19,8 +19,8 @@ extension Product.Library.LibraryType {
 let package = Package(
     name: "Supersign",
     platforms: [
-        .iOS("13.0"),
-        .macOS("10.15")
+        .iOS("14.0"),
+        .macOS("11.0"),
     ],
     products: [
         .library(
