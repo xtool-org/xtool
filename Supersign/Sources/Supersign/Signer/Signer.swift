@@ -40,10 +40,10 @@ public struct Signer {
     }
 
     public let context: SigningContext
-    public let confirmRevocation: ([DeveloperServicesCertificate], @escaping (Bool) -> Void) -> Void
+    public let confirmRevocation: ([DeveloperServicesCertificate]) async -> Bool
     public init(
         context: SigningContext,
-        confirmRevocation: @escaping ([DeveloperServicesCertificate], @escaping (Bool) -> Void) -> Void
+        confirmRevocation: @escaping ([DeveloperServicesCertificate]) async -> Bool
     ) {
         self.context = context
         self.confirmRevocation = confirmRevocation

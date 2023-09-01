@@ -127,14 +127,14 @@ final class SupersignCLIDelegate: IntegratedInstallerDelegate, TwoFactorAuthDele
         return formatter
     }()
 
-    func confirmRevocation(of certificates: [DeveloperServicesCertificate], completion: @escaping (Bool) -> Void) {
+    func confirmRevocation(of certificates: [DeveloperServicesCertificate]) async -> Bool {
         print("\nThe following certificates must be revoked:")
         print(
             certificates.map {
                 "- \($0.attributes.name) (expires \(Self.expiryFormatter.string(from: $0.attributes.expiry)))"
             }.joined(separator: "\n")
         )
-        completion(Console.confirm("Continue?"))
+        return await Task.detached { Console.confirm("Continue?") }.value
     }
 
     // TODO: Use `powershell Compress-Archive` and `powershell Expand-Archive` on Windows

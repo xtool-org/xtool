@@ -24,7 +24,7 @@ public protocol IntegratedInstallerDelegate: AnyObject {
     func installerDidComplete(withResult result: Result<String, Error>)
 
     // defaults to always returning true
-    func confirmRevocation(of certificates: [DeveloperServicesCertificate], completion: @escaping (Bool) -> Void)
+    func confirmRevocation(of certificates: [DeveloperServicesCertificate]) async -> Bool
 
     /// Decompress the zipped ipa file
     ///
@@ -62,8 +62,8 @@ public protocol IntegratedInstallerDelegate: AnyObject {
 }
 
 extension IntegratedInstallerDelegate {
-    public func confirmRevocation(of certificates: [DeveloperServicesCertificate], completion: @escaping (Bool) -> Void) {
-        completion(true)
+    public func confirmRevocation(of certificates: [DeveloperServicesCertificate]) async -> Bool {
+        true
     }
 }
 
@@ -374,11 +374,9 @@ public final class IntegratedInstaller {
         } catch {
             return completion(.failure(error))
         }
-        let signer = Signer(context: context) { certs, completion in
-            guard let delegate = self.delegate else {
-                return completion(false)
-            }
-            delegate.confirmRevocation(of: certs, completion: completion)
+        let signer = Signer(context: context) { certs in
+            guard let delegate = self.delegate else { return false }
+            return await delegate.confirmRevocation(of: certs)
         }
         signer.sign(
             app: appDir,

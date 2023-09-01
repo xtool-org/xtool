@@ -23,12 +23,12 @@ public struct DeveloperServicesProvisioningOperation: DeveloperServicesOperation
 
     public let context: SigningContext
     public let app: URL
-    public let confirmRevocation: ([DeveloperServicesCertificate], @escaping (Bool) -> Void) -> Void
+    public let confirmRevocation: ([DeveloperServicesCertificate]) async -> Bool
     public let progress: (Double) -> Void
     public init(
         context: SigningContext,
         app: URL,
-        confirmRevocation: @escaping ([DeveloperServicesCertificate], @escaping (Bool) -> Void) -> Void,
+        confirmRevocation: @escaping ([DeveloperServicesCertificate]) async -> Bool,
         progress: @escaping (Double) -> Void
     ) {
         self.context = context
