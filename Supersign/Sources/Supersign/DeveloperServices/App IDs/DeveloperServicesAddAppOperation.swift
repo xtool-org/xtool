@@ -46,57 +46,52 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
     }
 
     /// Registers the app with the given entitlements
-    private func addOrFetchApp(
+    private func upsertApp(
         bundleID: String,
         entitlements: Entitlements,
         team: DeveloperServicesTeam,
-        completion: @escaping (Result<DeveloperServicesAppID, Swift.Error>) -> Void
-    ) {
-        let request = DeveloperServicesListAppIDsRequest(platform: context.platform, teamID: context.teamID)
-        context.client.send(request) { result in
-            guard let appIDs = result.get(withErrorHandler: completion) else { return }
-            if let appID = appIDs.first(where: {
-                bundleID == ProvisioningIdentifiers.sanitize(identifier: $0.bundleID)
-            }) {
-                let request = DeveloperServicesUpdateAppIDRequest(
-                    platform: self.context.platform,
-                    teamID: self.context.teamID,
-                    appIDID: appID.id,
-                    entitlements: entitlements,
-                    additionalFeatures: [],
-                    isFree: team.isFree
-                )
-                self.context.client.send(request, completion: completion)
-            } else {
-                let newBundleID = ProvisioningIdentifiers.identifier(fromSanitized: bundleID, context: self.context)
-                let name = ProvisioningIdentifiers.appName(fromSanitized: bundleID)
-                let request = DeveloperServicesAddAppIDRequest(
-                    platform: self.context.platform,
-                    teamID: self.context.teamID,
-                    bundleID: newBundleID,
-                    appName: name,
-                    entitlements: entitlements,
-                    additionalFeatures: [],
-                    isFree: team.isFree
-                )
-                self.context.client.send(request, completion: completion)
-            }
+        appIDs: [String: DeveloperServicesAppID]
+    ) async throws -> DeveloperServicesAppID {
+        if let appID = appIDs[bundleID] {
+            let request = DeveloperServicesUpdateAppIDRequest(
+                platform: self.context.platform,
+                teamID: self.context.teamID,
+                appIDID: appID.id,
+                entitlements: entitlements,
+                additionalFeatures: [],
+                isFree: team.isFree
+            )
+            return try await context.client.send(request)
+        } else {
+            let newBundleID = ProvisioningIdentifiers.identifier(fromSanitized: bundleID, context: self.context)
+            let name = ProvisioningIdentifiers.appName(fromSanitized: bundleID)
+            let request = DeveloperServicesAddAppIDRequest(
+                platform: self.context.platform,
+                teamID: self.context.teamID,
+                bundleID: newBundleID,
+                appName: name,
+                entitlements: entitlements,
+                additionalFeatures: [],
+                isFree: team.isFree
+            )
+            return try await context.client.send(request)
         }
     }
 
-    /// Registers the app and returns the resultant entitlements
-    private func addAppAndGetEntitlements(
-        app: URL,
+    /// Registers the app and creates a profile. Returns the resultant entitlements as well as
+    /// the profile (note that the profile does not necessarily include all of the entitlements
+    /// that the app has).
+    private func addApp(
+        _ app: URL,
         team: DeveloperServicesTeam,
-        // old bundle id, app id, ents
-        completion: @escaping (Result<(DeveloperServicesAppID, Entitlements), Swift.Error>) -> Void
-    ) {
+        appIDs: [String: DeveloperServicesAppID]
+    ) async throws -> ProvisioningInfo {
         let infoURL = app.appendingPathComponent("Info.plist")
         guard let data = try? Data(contentsOf: infoURL),
             let dict = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
             let bundleID = dict["CFBundleIdentifier"] as? String,
             let executable = dict["CFBundleExecutable"] as? String else {
-            return completion(.failure(Error.invalidApp(app)))
+            throw Error.invalidApp(app)
         }
         let executableURL = app.appendingPathComponent(executable)
 
@@ -108,115 +103,89 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
             entitlements = decodedEntitlements
 
             if team.isFree {
-                do {
-                    // re-assign rather than using updateEntitlements since the latter will
-                    // retain unrecognized entitlements
-                    let filtered = try entitlements.entitlements().filter { type(of: $0).isFree }
-                    entitlements = try Entitlements(entitlements: filtered)
-                } catch {
-                    return completion(.failure(error))
-                }
+                // re-assign rather than using updateEntitlements since the latter will
+                // retain unrecognized entitlements
+                let filtered = try entitlements.entitlements().filter { type(of: $0).isFree }
+                entitlements = try Entitlements(entitlements: filtered)
             }
         } else {
-            do {
-                entitlements = try Entitlements(entitlements: [])
-            } catch {
-                return completion(.failure(error))
-            }
+            entitlements = try Entitlements(entitlements: [])
         }
 
-        addOrFetchApp(bundleID: bundleID, entitlements: entitlements, team: team) { result in
-            guard let appID = result.get(withErrorHandler: completion) else { return }
+        let appID = try await upsertApp(bundleID: bundleID, entitlements: entitlements, team: team, appIDs: appIDs)
 
-            do {
-                try entitlements.update(teamID: self.context.teamID, bundleID: appID.bundleID)
-                // set get-task-allow to YES, required for dev certs
-                try entitlements.updateEntitlements { ents in
-                    if let getTaskAllow = ents.firstIndex(where: { $0 is GetTaskAllowEntitlement }) {
-                        ents[getTaskAllow] = GetTaskAllowEntitlement(rawValue: true)
-                    } else {
-                        ents.append(GetTaskAllowEntitlement(rawValue: true))
-                    }
-                }
-            } catch {
-                return completion(.failure(error))
-            }
-
-            if var entitlementsArray = try? entitlements.entitlements(),
-                let groupsIdx = entitlementsArray.firstIndex(where: { $0 is AppGroupEntitlement }),
-                let groupsEntitlement = entitlementsArray[groupsIdx] as? AppGroupEntitlement {
-                let groups = groupsEntitlement.rawValue
-
-                DeveloperServicesAssignAppGroupsOperation(
-                    context: self.context,
-                    groupIDs: groups,
-                    appID: appID
-                ).perform { result in
-                    guard let newGroups = result.get(withErrorHandler: completion) else { return }
-                    entitlementsArray[groupsIdx] = AppGroupEntitlement(rawValue: newGroups)
-
-                    do {
-                        try entitlements.setEntitlements(entitlementsArray)
-                    } catch {
-                        return completion(.failure(error))
-                    }
-
-                    completion(.success((appID, entitlements)))
-                }
+        try entitlements.update(teamID: self.context.teamID, bundleID: appID.bundleID)
+        // set get-task-allow to YES, required for dev certs
+        try entitlements.updateEntitlements { ents in
+            if let getTaskAllow = ents.firstIndex(where: { $0 is GetTaskAllowEntitlement }) {
+                ents[getTaskAllow] = GetTaskAllowEntitlement(rawValue: true)
             } else {
-                completion(.success((appID, entitlements)))
+                ents.append(GetTaskAllowEntitlement(rawValue: true))
             }
         }
-    }
 
-    /// Registers the app and creates a profile. Returns the resultant entitlements as well as
-    /// the profile (note that the profile does not necessarily include all of the entitlements
-    /// that the app has).
-    private func addApp(
-        _ app: URL,
-        with team: DeveloperServicesTeam,
-        completion: @escaping (Result<ProvisioningInfo, Swift.Error>) -> Void
-    ) {
-        addAppAndGetEntitlements(app: app, team: team) { result in
-            guard let (appID, entitlements) = result.get(withErrorHandler: completion) else { return }
-            DeveloperServicesFetchProfileOperation(context: self.context, appID: appID).perform { result in
-                guard let profile = result.get(withErrorHandler: completion) else { return }
-                guard let mobileprovision = profile.mobileprovision
-                    else { return completion(.failure(Mobileprovision.Error.invalidProfile)) }
-                completion(.success(ProvisioningInfo(
-                    newBundleID: appID.bundleID, entitlements: entitlements, mobileprovision: mobileprovision
-                )))
-            }
+        if var entitlementsArray = try? entitlements.entitlements(),
+            let groupsIdx = entitlementsArray.firstIndex(where: { $0 is AppGroupEntitlement }),
+            let groupsEntitlement = entitlementsArray[groupsIdx] as? AppGroupEntitlement {
+            let groups = groupsEntitlement.rawValue
+
+            let newGroups = try await DeveloperServicesAssignAppGroupsOperation(
+                context: self.context,
+                groupIDs: groups,
+                appID: appID
+            ).perform()
+
+            entitlementsArray[groupsIdx] = AppGroupEntitlement(rawValue: newGroups)
+            try entitlements.setEntitlements(entitlementsArray)
         }
+
+        let profile = try await DeveloperServicesFetchProfileOperation(context: self.context, appID: appID).perform()
+        guard let mobileprovision = profile.mobileprovision
+            else { throw Mobileprovision.Error.invalidProfile }
+        return ProvisioningInfo(
+            newBundleID: appID.bundleID, entitlements: entitlements, mobileprovision: mobileprovision
+        )
     }
 
-    private func perform(
-        with team: DeveloperServicesTeam,
-        completion: @escaping (Result<[URL: ProvisioningInfo], Swift.Error>) -> Void
-    ) {
+    private func getTeam() async throws -> DeveloperServicesTeam {
+        let request = DeveloperServicesListTeamsRequest()
+        let teams = try await context.client.send(request)
+        guard let team = teams.first(where: { $0.id == self.context.teamID })
+            else { throw Error.teamNotFound(self.context.teamID) }
+        return team
+    }
+
+    // keyed by sanitized bundle ID
+    private func getCurrentAppIDs() async throws -> [String: DeveloperServicesAppID] {
+        let request = DeveloperServicesListAppIDsRequest(platform: context.platform, teamID: context.teamID)
+        let appIDs = try await context.client.send(request)
+        let keyedIDs = appIDs.map { (ProvisioningIdentifiers.sanitize(identifier: $0.bundleID), $0) }
+        return Dictionary(keyedIDs, uniquingKeysWith: { $1 })
+    }
+
+    /// Registers the app + its extensions, returning the profile and entitlements of each
+    public func perform() async throws -> [URL : ProvisioningInfo] {
         var apps: [URL] = [root]
         let plugins = root.appendingPathComponent("PlugIns")
         if plugins.dirExists {
             apps += plugins.implicitContents.filter { $0.pathExtension.lowercased() == "appex" }
         }
 
-        let grouper = RequestGrouper<(URL, ProvisioningInfo), Swift.Error>()
-        for app in apps {
-            grouper.add { completion in
-                addApp(app, with: team) { completion($0.map { (app, $0) }) }
-            }
-        }
-        grouper.onComplete { completion($0.map(Dictionary.init(uniqueKeysWithValues:))) }
-    }
+        async let teamTask = getTeam()
+        async let appIDsTask = getCurrentAppIDs()
+        let (team, appIDs) = try await (teamTask, appIDsTask)
 
-    /// Registers the app + its extensions, returning the profile and entitlements of each
-    public func perform(completion: @escaping (Result<[URL: ProvisioningInfo], Swift.Error>) -> Void) {
-        let request = DeveloperServicesListTeamsRequest()
-        context.client.send(request) { result in
-            guard let teams = result.get(withErrorHandler: completion) else { return }
-            guard let team = teams.first(where: { $0.id == self.context.teamID })
-                else { return completion(.failure(Error.teamNotFound(self.context.teamID))) }
-            self.perform(with: team, completion: completion)
+        return try await withThrowingTaskGroup(
+            of: (URL, ProvisioningInfo).self,
+            returning: [URL: ProvisioningInfo].self
+        ) { group in
+            for app in apps {
+                group.addTask {
+                    let info = try await addApp(app, team: team, appIDs: appIDs)
+                    return (app, info)
+                }
+            }
+            return try await group.reduce(into: [:]) { $0[$1.0] = $1.1 }
         }
     }
 

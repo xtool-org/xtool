@@ -83,7 +83,7 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
         return signingInfo
     }
 
-    private func perform() async throws -> SigningInfo {
+    public func perform() async throws -> SigningInfo {
         let request = DeveloperServicesListCertificatesRequest(
             teamID: context.teamID, certificateKind: .init(platform: context.platform)
         )
@@ -104,12 +104,6 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
         }
 
         return signingInfo
-    }
-
-    public func perform(completion: @escaping (Result<SigningInfo, Swift.Error>) -> Void) {
-        Task {
-            completion(await Result { try await perform() })
-        }
     }
 
 }

@@ -13,5 +13,5 @@ public protocol DeveloperServicesOperation {
 
     var context: SigningContext { get }
 
-    func perform(completion: @escaping (Result<Response, Error>) -> Void)
+    func perform() async throws -> Response
 }

@@ -49,54 +49,58 @@ public struct Signer {
         self.confirmRevocation = confirmRevocation
     }
 
-    private func sign(
+    public func sign(
         app: URL,
-        signingInfo: SigningInfo,
-        provisioningDict: [URL: ProvisioningInfo],
         status: @escaping (String) -> Void,
         progress: @escaping (Double?) -> Void,
-        didProvision: @escaping () throws -> Void,
-        completion: @escaping (Result<(), Swift.Error>) -> Void
-    ) {
-        do {
-            try didProvision()
-        } catch {
-            return completion(.failure(error))
+        didProvision: @escaping () throws -> Void = {}
+    ) async throws -> String {
+        status(NSLocalizedString("signer.provisioning", value: "Provisioning", comment: ""))
+        let response = try await DeveloperServicesProvisioningOperation(
+            context: context,
+            app: app,
+            confirmRevocation: confirmRevocation,
+            progress: progress
+        ).perform()
+
+        let provisioningDict = response.provisioningDict
+        let signingInfo = response.signingInfo
+        guard let mainInfo = provisioningDict[app] else {
+            throw Error.errorReading("app bundle ID")
         }
+
+        try didProvision()
 
         for (url, info) in provisioningDict {
             let infoPlist = url.appendingPathComponent("Info.plist")
             guard let data = try? Data(contentsOf: infoPlist),
                 let dict = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
-                else { return completion(.failure(Error.errorReading(infoPlist.lastPathComponent))) }
+                else { throw Error.errorReading(infoPlist.lastPathComponent) }
             let nsDict = NSMutableDictionary(dictionary: dict)
             nsDict["CFBundleIdentifier"] = info.newBundleID
             guard nsDict.write(to: infoPlist, atomically: true) else {
-                return completion(.failure(Error.errorWriting(infoPlist.lastPathComponent)))
+                throw Error.errorWriting(infoPlist.lastPathComponent)
             }
 
-            do {
-                let profURL = url.appendingPathComponent("embedded.mobileprovision")
-                if profURL.exists {
-                    try FileManager.default.removeItem(at: profURL)
-                }
-                try info.mobileprovision.data().write(to: profURL)
-            } catch {
-                return completion(.failure(error))
+            let profURL = url.appendingPathComponent("embedded.mobileprovision")
+            if profURL.exists {
+                try FileManager.default.removeItem(at: profURL)
             }
+            try info.mobileprovision.data().write(to: profURL)
         }
 
-        let entitlements = provisioningDict.mapValues { $0.entitlements }
+        let entitlements = provisioningDict.mapValues(\.entitlements)
 
         status(NSLocalizedString("signer.signing", value: "Signing", comment: ""))
-        context.signerImpl.sign(
+        try await context.signerImpl.sign(
             app: app,
             certificate: signingInfo.certificate,
             privateKey: signingInfo.privateKey,
             entitlementMapping: entitlements,
-            progress: progress,
-            completion: completion
+            progress: progress
         )
+
+        return mainInfo.newBundleID
     }
 
     public func sign(
@@ -106,27 +110,10 @@ public struct Signer {
         didProvision: @escaping () throws -> Void = {},
         completion: @escaping (Result<String, Swift.Error>) -> Void
     ) {
-        status(NSLocalizedString("signer.provisioning", value: "Provisioning", comment: ""))
-        DeveloperServicesProvisioningOperation(
-            context: context,
-            app: app,
-            confirmRevocation: confirmRevocation,
-            progress: progress
-        ).perform { result in
-            guard let response = result.get(withErrorHandler: completion) else { return }
-            guard let mainInfo = response.provisioningDict[app] else {
-                return completion(.failure(Error.errorReading("app bundle ID")))
-            }
-            self.sign(
-                app: app,
-                signingInfo: response.signingInfo,
-                provisioningDict: response.provisioningDict,
-                status: status,
-                progress: progress,
-                didProvision: didProvision
-            ) {
-                completion($0.map { mainInfo.newBundleID })
-            }
+        Task {
+            completion(await Result { try await sign(
+                app: app, status: status, progress: progress, didProvision: didProvision)
+            })
         }
     }
 

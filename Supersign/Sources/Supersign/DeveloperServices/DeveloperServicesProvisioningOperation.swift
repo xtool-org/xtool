@@ -37,24 +37,21 @@ public struct DeveloperServicesProvisioningOperation: DeveloperServicesOperation
         self.progress = progress
     }
 
-    public func perform(completion: @escaping (Result<Response, Error>) -> Void) {
+    public func perform() async throws -> Response {
         progress(0/3)
-        DeveloperServicesFetchDeviceOperation(context: context).perform { result in
-            guard result.get(withErrorHandler: completion) != nil else { return }
-            self.progress(1/3)
-            DeveloperServicesFetchCertificateOperation(
-                context: self.context,
-                confirmRevocation: confirmRevocation
-            ).perform { result in
-                guard let signingInfo = result.get(withErrorHandler: completion) else { return }
-                self.progress(2/3)
-                DeveloperServicesAddAppOperation(context: self.context, root: self.app).perform { result in
-                    guard let provisioningDict = result.get(withErrorHandler: completion) else { return }
-                    self.progress(3/3)
-                    completion(.success(.init(signingInfo: signingInfo, provisioningDict: provisioningDict)))
-                }
-            }
-        }
+        _ = try await DeveloperServicesFetchDeviceOperation(context: context).perform()
+
+        progress(1/3)
+        let signingInfo = try await DeveloperServicesFetchCertificateOperation(
+            context: self.context,
+            confirmRevocation: confirmRevocation
+        ).perform()
+
+        progress(2/3)
+        let provisioningDict = try await DeveloperServicesAddAppOperation(context: context, root: app).perform()
+
+        progress(3/3)
+        return .init(signingInfo: signingInfo, provisioningDict: provisioningDict)
     }
 
 }

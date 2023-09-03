@@ -135,21 +135,22 @@ public struct SignerImpl {
         certificate: Certificate,
         privateKey: PrivateKey,
         entitlementMapping: [URL: Entitlements],
-        progress: @escaping (Double?) -> Void,
-        completion: @escaping (Result<(), Swift.Error>) -> Void
-    ) {
-        Self.signingQueue.async {
-            do {
-                try self._sign(
-                    app: app,
-                    certificate: certificate,
-                    privateKey: privateKey,
-                    entitlementMapping: entitlementMapping,
-                    progress: progress
-                )
-                completion(.success(()))
-            } catch {
-                completion(.failure(error))
+        progress: @escaping (Double?) -> Void
+    ) async throws {
+        try await withCheckedThrowingContinuation { cont in
+            Self.signingQueue.async {
+                do {
+                    try self._sign(
+                        app: app,
+                        certificate: certificate,
+                        privateKey: privateKey,
+                        entitlementMapping: entitlementMapping,
+                        progress: progress
+                    )
+                    cont.resume()
+                } catch {
+                    cont.resume(throwing: error)
+                }
             }
         }
     }

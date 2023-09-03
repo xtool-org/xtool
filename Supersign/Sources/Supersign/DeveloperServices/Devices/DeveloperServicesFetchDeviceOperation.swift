@@ -9,28 +9,25 @@
 import Foundation
 
 public struct DeveloperServicesFetchDeviceOperation: DeveloperServicesOperation {
-
     public let context: SigningContext
     public init(context: SigningContext) {
         self.context = context
     }
 
-    public func perform(completion: @escaping (Result<DeveloperServicesDevice, Error>) -> Void) {
-        let request = DeveloperServicesListDevicesRequest(platform: context.platform, teamID: context.teamID)
-        context.client.send(request) { result in
-            guard let devices = result.get(withErrorHandler: completion) else { return }
-            if let device = devices.first(where: { $0.udid == self.context.udid }) {
-                return completion(.success(device))
-            }
-
-            let addRequest = DeveloperServicesAddDeviceRequest(
-                platform: self.context.platform,
-                teamID: self.context.teamID,
-                udid: self.context.udid,
-                name: self.context.deviceName
-            )
-            self.context.client.send(addRequest, completion: completion)
+    public func perform() async throws -> DeveloperServicesDevice {
+        let listRequest = DeveloperServicesListDevicesRequest(platform: context.platform, teamID: context.teamID)
+        let devices = try await context.client.send(listRequest)
+        if let device = devices.first(where: { $0.udid == self.context.udid }) {
+            return device
         }
+
+        let addRequest = DeveloperServicesAddDeviceRequest(
+            platform: self.context.platform,
+            teamID: self.context.teamID,
+            udid: self.context.udid,
+            name: self.context.deviceName
+        )
+        return try await context.client.send(addRequest)
     }
 
 }
