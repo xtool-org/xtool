@@ -7,40 +7,36 @@
 //
 
 import Foundation
-import CSupersign
+import Crypto
 
 enum AppTokens {
 
     static func checksum(withSK sk: Data, adsid: String, apps: [String]) -> Data {
-        sk.withUnsafeBytes { skBuf in
-            let ptrArray = apps.map { strdup($0)! }
-            defer { ptrArray.forEach { free($0) } }
-            let immutablePtrArray = ptrArray.map { UnsafePointer($0) }
-            return Data {
-                app_tokens_create_checksum(
-                    skBuf.baseAddress, skBuf.count,
-                    adsid,
-                    immutablePtrArray, immutablePtrArray.count,
-                    &$0
-                )
-            }
+        var hmac = HMAC<SHA256>(key: SymmetricKey(data: sk))
+        hmac.update(data: Data("apptokens".utf8))
+        hmac.update(data: Data(adsid.utf8))
+        for app in apps {
+            hmac.update(data: Data(app.utf8))
         }
+        return Data(hmac.finalize())
     }
 
-    static func decrypt(gcm: Data, withSK sk: Data) -> Data? {
-        gcm.withUnsafeBytes { gcmBuf in
-            sk.withUnsafeBytes { skBuf in
-                // the data must have a header so it shouldn't be empty
-                guard let gcmBase = gcmBuf.baseAddress,
-                    // the session key must have a length equal to that required by
-                    // the cipher. It should be non-empty.
-                    let skBase = skBuf.baseAddress
-                    else { return nil }
-                return Data {
-                    app_tokens_decrypt_gcm(gcmBase, gcmBuf.count, skBase, skBuf.count, &$0)
-                }
-            }
-        }
+    // AppleIDAuthSupport`_AppleIDAuthSupportCreateDecryptedData
+    static func decrypt(gcm: Data, withSK sk: Data) throws -> Data {
+        let aad = gcm[..<3] // should be "XYZ"
+        let iv = gcm[3..<19]
+        let payload = gcm[19..<(gcm.count - 16)]
+        let tag = gcm[(gcm.count - 16)...]
+
+        return try AES.GCM.open(
+            AES.GCM.SealedBox(
+                nonce: AES.GCM.Nonce(data: iv),
+                ciphertext: payload,
+                tag: tag
+            ),
+            using: SymmetricKey(data: sk),
+            authenticating: aad
+        )
     }
 
 }
