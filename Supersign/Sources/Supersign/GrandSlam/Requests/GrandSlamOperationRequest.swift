@@ -72,6 +72,10 @@ extension GrandSlamOperationRequest {
     func configure(request: inout HTTPRequest, deviceInfo: DeviceInfo, anisetteData: AnisetteData) {
         request.headers["Accept"] = "*/*"
         request.headers["User-Agent"] = deviceInfo.clientInfo.userAgent
+        // as of November 2024 it appears that using Mac clientInfo for auth causes
+        // secondaryAuth to fail in some cases. using PC instead causes GSA to immediately
+        // prompt for 2fa on o=complete, no secondaryAuth call needed.
+        request.headers[DeviceInfo.clientInfoKey] = "<PC> <Windows;6.2(0,0);9200> <com.apple.AuthKitWin/1 (com.apple.iCloud/7.21)>"
     }
 
     func method(deviceInfo: DeviceInfo, anisetteData: AnisetteData) -> GrandSlamMethod {

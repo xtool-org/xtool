@@ -9,7 +9,7 @@
 import Foundation
 
 public protocol TwoFactorAuthDelegate: AnyObject {
-    func fetchCode(completion: @escaping (String?) -> Void)
+    func fetchCode() async -> String?
 }
 
 class GrandSlamTwoFactorAuthenticateOperation {
@@ -20,12 +20,12 @@ class GrandSlamTwoFactorAuthenticateOperation {
     }
 
     let client: GrandSlamClient
-    let mode: GrandSlamAuthMode
+    let mode: GrandSlamAuthMode?
     let loginData: GrandSlamLoginData
     unowned let delegate: TwoFactorAuthDelegate
     init(
         client: GrandSlamClient,
-        mode: GrandSlamAuthMode,
+        mode: GrandSlamAuthMode?,
         loginData: GrandSlamLoginData,
         delegate: TwoFactorAuthDelegate
     ) {
@@ -37,16 +37,11 @@ class GrandSlamTwoFactorAuthenticateOperation {
 
     private func performSecondaryAuth() async throws {
         try await client.send(GrandSlamSecondaryAuthRequest(loginData: loginData))
-        let code = await withCheckedContinuation { continuation in
-            self.delegate.fetchCode {
-                continuation.resume(returning: $0)
-            }
-        }
-        try await self.validate(code: code)
+        try await validateCode()
     }
 
-    private func validate(code: String?) async throws {
-        guard let code = code else { throw Error.userCancelled }
+    private func validateCode() async throws {
+        guard let code = await self.delegate.fetchCode() else { throw Error.userCancelled }
         let request = GrandSlamValidateRequest(loginData: loginData, verificationCode: code)
         do {
             try await client.send(request)
@@ -58,12 +53,7 @@ class GrandSlamTwoFactorAuthenticateOperation {
     private func performTrustedDeviceAuth() async throws {
         let request = GrandSlamTrustedDeviceRequest(loginData: loginData)
         try await client.send(request)
-        let code = await withCheckedContinuation { continuation in
-            self.delegate.fetchCode {
-                continuation.resume(returning: $0)
-            }
-        }
-        try await self.validate(code: code)
+        try await validateCode()
     }
 
     func perform() async throws {
@@ -75,6 +65,8 @@ class GrandSlamTwoFactorAuthenticateOperation {
             try await self.performTrustedDeviceAuth()
         case .trustedDeviceSecondaryAuth:
             try await self.performTrustedDeviceAuth()
+        case nil: // means 2FA was automatically requested
+            try await validateCode()
         }
     }
 

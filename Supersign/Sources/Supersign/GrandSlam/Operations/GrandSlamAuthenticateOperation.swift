@@ -71,7 +71,7 @@ class GrandSlamAuthenticateOperation {
     }
 
     private func authenticateTwoFactor(
-        mode: GrandSlamAuthMode,
+        mode: GrandSlamAuthMode?,
         loginData: GrandSlamLoginData
     ) async throws -> GrandSlamLoginData {
         guard !isSecondAttempt else { throw Error.failedSecondaryAuth }
@@ -105,10 +105,9 @@ class GrandSlamAuthenticateOperation {
 
         let loginData = try decoder.decode(GrandSlamLoginData.self, from: rawLoginResponse)
 
-        if response.statusCode == 409,
-            let secondaryURL = response.url,
-            let authMode = GrandSlamAuthMode(rawValue: secondaryURL) {
+        if response.statusCode == 409 {
             // 2FA
+            let authMode = response.url.flatMap { GrandSlamAuthMode(rawValue: $0) }
             return try await authenticateTwoFactor(
                 mode: authMode,
                 loginData: loginData

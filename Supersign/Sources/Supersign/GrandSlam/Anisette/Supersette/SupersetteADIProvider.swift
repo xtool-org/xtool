@@ -1,6 +1,15 @@
 import Foundation
 
 public class SupersetteADIProvider: RawADIProvider {
+    private struct ProvisioningSession: RawADIProvisioningSession {
+        let session: String
+        let provider: SupersetteADIProvider
+
+        func endProvisioning(routingInfo: UInt64, ptm: Data, tk: Data) async throws -> Data {
+            try await provider.endProvisioning(session: session, routingInfo: routingInfo, ptm: ptm, tk: tk)
+        }
+    }
+
     private static let gateway = "http://kabir-winvm.local:3000/v1"
 
     private static let encoder = JSONEncoder()
@@ -38,7 +47,7 @@ public class SupersetteADIProvider: RawADIProvider {
         return try Self.decoder.decode(Response.self, from: data)
     }
 
-    public func startProvisioning(spim: Data) async throws -> (String, Data) {
+    public func startProvisioning(spim: Data, userID: UUID) async throws -> (RawADIProvisioningSession, Data) {
         struct Request: Encodable {
             let spim: Data
         }
@@ -50,10 +59,11 @@ public class SupersetteADIProvider: RawADIProvider {
             endpoint: "start-provisioning",
             request: Request(spim: spim)
         )
-        return (resp.sessionID, resp.cpim)
+        let session = ProvisioningSession(session: resp.sessionID, provider: self)
+        return (session, resp.cpim)
     }
 
-    public func endProvisioning(
+    private func endProvisioning(
         session: String,
         routingInfo: UInt64,
         ptm: Data,
@@ -75,7 +85,11 @@ public class SupersetteADIProvider: RawADIProvider {
         return resp.provisioningInfo
     }
 
-    public func requestOTP(provisioningInfo: Data) async throws -> (machineID: Data, otp: Data) {
+    public func requestOTP(
+        userID: UUID,
+        routingInfo: inout UInt64,
+        provisioningInfo: Data
+    ) async throws -> (machineID: Data, otp: Data) {
         struct Request: Encodable {
             let provisioningInfo: Data
         }

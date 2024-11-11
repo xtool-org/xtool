@@ -1,13 +1,13 @@
 import Foundation
 import Supersign
 
-private func _fetchCode(completion: @escaping (String?) -> Void) {
-    completion(Console.prompt("Code: "))
+private func _fetchCode() async -> String? {
+    Console.prompt("Code: ")
 }
 
 final class SupersignCLIAuthDelegate: TwoFactorAuthDelegate {
-    func fetchCode(completion: @escaping (String?) -> Void) {
-        _fetchCode(completion: completion)
+    func fetchCode() async -> String? {
+        await _fetchCode()
     }
 }
 
@@ -23,8 +23,8 @@ final class SupersignCLIDelegate: IntegratedInstallerDelegate, TwoFactorAuthDele
         self.completion = completion
     }
 
-    func fetchCode(completion: @escaping (String?) -> Void) {
-        _fetchCode(completion: completion)
+    func fetchCode() async -> String? {
+        await _fetchCode()
     }
 
     func fetchTeam(fromTeams teams: [DeveloperServicesTeam], completion: @escaping (DeveloperServicesTeam?) -> Void) {

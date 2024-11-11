@@ -25,11 +25,11 @@ private extension AuthToken {
             throw Console.Error("A non-empty password is required.")
         }
 
-        let provider = SupersetteDataProvider(deviceInfo: deviceInfo)
-//        let provider = try ADIDataProvider.supersetteProvider(
-//            deviceInfo: deviceInfo,
-//            storage: SupersignCLI.config.storage
-//        )
+//        let provider = SupersetteDataProvider(deviceInfo: deviceInfo)
+        let provider = try ADIDataProvider.omnisetteProvider(
+            deviceInfo: deviceInfo,
+            storage: SupersignCLI.config.storage
+        )
         if resetProvisioning {
             await provider.resetProvisioning()
         }
@@ -90,10 +90,10 @@ struct DSTeamsListCommand: AsyncParsableCommand {
 
     func run() async throws {
         let deviceInfo = try DeviceInfo.fetch()
-        let anisetteProvider = SupersetteDataProvider(deviceInfo: deviceInfo)
-//        let anisetteProvider = try ADIDataProvider.supersetteProvider(
-//            deviceInfo: deviceInfo, storage: SupersignCLI.config.storage
-//        )
+//        let anisetteProvider = SupersetteDataProvider(deviceInfo: deviceInfo)
+        let anisetteProvider = try ADIDataProvider.omnisetteProvider(
+            deviceInfo: deviceInfo, storage: SupersignCLI.config.storage
+        )
 
         let token = try await AuthToken.retrieve(deviceInfo: deviceInfo, account: account)
         let client = DeveloperServicesClient(
@@ -112,14 +112,13 @@ struct DSTeamsListCommand: AsyncParsableCommand {
 }
 
 struct DSAnisetteCommand: AsyncParsableCommand {
-    private class Provider: RawADIProvider {
-        func startProvisioning(spim: Data) -> (String, Data) {
+    private class Provider: RawADIProvider, RawADIProvisioningSession {
+        func startProvisioning(spim: Data, userID: UUID) -> (RawADIProvisioningSession, Data) {
             print("spim: \(spim.base64EncodedString())")
-            return ("", Data(base64Encoded: Console.prompt("cpim: ")!)!)
+            return (self, Data(base64Encoded: Console.prompt("cpim: ")!)!)
         }
 
         func endProvisioning(
-            session: String,
             routingInfo: UInt64,
             ptm: Data,
             tk: Data
@@ -132,7 +131,11 @@ struct DSAnisetteCommand: AsyncParsableCommand {
             return Data(base64Encoded: Console.prompt("pinfo: ")!)!
         }
 
-        func requestOTP(provisioningInfo: Data) -> (machineID: Data, otp: Data) {
+        func requestOTP(
+            userID: UUID,
+            routingInfo: inout UInt64,
+            provisioningInfo: Data
+        ) -> (machineID: Data, otp: Data) {
             print("otp; pinfo: \(provisioningInfo)")
             return (Data(), Data())
         }

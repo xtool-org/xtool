@@ -49,16 +49,23 @@ public struct AnisetteData {
     static let oneTimePasswordKey = "X-Apple-I-MD"
     public let oneTimePassword: String
 
+    static let deviceIDKey = "X-Mme-Device-Id"
+    public var deviceID: String?
+
     var dictionary: [String: String] {
-        [
+        var dictionary = [
             Self.localeKey: locale.identifier,
             Self.timeZoneKey: timeZone.abbreviation() ?? "UTC",
             Self.clientTimeKey: Self.dateFormatter.string(from: clientTime),
             Self.routingInfoKey: "\(routingInfo)",
             Self.machineIDKey: machineID,
             Self.localUserIDKey: localUserID,
-            Self.oneTimePasswordKey: oneTimePassword
+            Self.oneTimePasswordKey: oneTimePassword,
         ]
+        if let deviceID {
+            dictionary[Self.deviceIDKey] = deviceID
+        }
+        return dictionary
     }
 
 }

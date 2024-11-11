@@ -17,7 +17,7 @@ extension LockdownClient {
 
 public protocol IntegratedInstallerDelegate: AnyObject {
 
-    func fetchCode(completion: @escaping (String?) -> Void)
+    func fetchCode() async -> String?
     func fetchTeam(fromTeams teams: [DeveloperServicesTeam], completion: @escaping (DeveloperServicesTeam?) -> Void)
     func setPresentedMessage(_ message: IntegratedInstaller.Message?)
     func installerDidUpdate(toStage stage: String, progress: Double?)
@@ -544,16 +544,11 @@ public final class IntegratedInstaller {
 }
 
 extension IntegratedInstaller: TwoFactorAuthDelegate {
-    public func fetchCode(completion: @escaping (String?) -> Void) {
+    public func fetchCode() async -> String? {
         guard let delegate = delegate else {
-            self.installQueue.async { completion(nil) }
-            return
+            return nil
         }
-        delegate.fetchCode { code in
-            self.installQueue.async {
-                completion(code)
-            }
-        }
+        return await delegate.fetchCode()
     }
 }
 

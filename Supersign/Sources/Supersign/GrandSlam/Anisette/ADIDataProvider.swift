@@ -5,23 +5,35 @@ enum HashingError: Error {
     case hashingFailed
 }
 
-private extension String {
+private extension Data {
     func sha256() throws -> [UInt8] {
-        Array(SHA256.hash(data: Data(utf8)))
+        Array(SHA256.hash(data: self))
     }
 }
 
 public protocol RawADIProvider {
-    func startProvisioning(spim: Data) async throws -> (String, Data)
+    func clientInfo() async throws -> String
 
+    func startProvisioning(spim: Data, userID: UUID) async throws -> (RawADIProvisioningSession, Data)
+
+    func requestOTP(userID: UUID, routingInfo: inout UInt64, provisioningInfo: Data) async throws -> (machineID: Data, otp: Data)
+}
+
+extension RawADIProvider {
+    public func clientInfo() async throws -> String {
+        // Looks like Apple detects attempts to use a macOS client string on Windows :/
+        """
+        <PC> <Windows;6.2(0,0);9200> <com.apple.AuthKitWin/1 (com.apple.iCloud/7.21)>
+        """
+    }
+}
+
+public protocol RawADIProvisioningSession {
     func endProvisioning(
-        session: String,
         routingInfo: UInt64,
         ptm: Data,
         tk: Data
     ) async throws -> Data
-
-    func requestOTP(provisioningInfo: Data) async throws -> (machineID: Data, otp: Data)
 }
 
 // uses CoreADI APIs
@@ -40,7 +52,10 @@ public final class ADIDataProvider: AnisetteDataProvider {
 
     private let httpClient: HTTPClientProtocol
     private let lookupManager: GrandSlamLookupManager
+    private let localUserUID: UUID
     private let localUserID: String
+
+    private var _clientInfo: String?
 
     public init(
         rawProvider: RawADIProvider,
@@ -55,18 +70,19 @@ public final class ADIDataProvider: AnisetteDataProvider {
         self.httpClient = httpFactory.makeClient()
         self.lookupManager = .init(deviceInfo: deviceInfo, httpFactory: httpFactory)
 
-        if let localUserID = try storage.string(forKey: Self.localUserIDKey) {
-            self.localUserID = localUserID
+        if let localUserUIDString = try storage.string(forKey: Self.localUserUIDKey),
+           let localUserUID = UUID(uuidString: localUserUIDString) {
+            self.localUserUID = localUserUID
         } else {
-            // localUserID = SHA256(local user UID)
-            let localUserUID = UUID().uuidString
-            let localUserID = try localUserUID.sha256().map { String(format: "%02X", $0) }.joined()
-            try storage.setString(localUserID, forKey: Self.localUserIDKey)
-            self.localUserID = localUserID
+            let localUserUID = UUID()
+            try storage.setString(localUserUID.uuidString, forKey: Self.localUserUIDKey)
+            self.localUserUID = localUserUID
         }
+        // localUserID = SHA256(local user UID)
+        self.localUserID = try localUserUID.rawBytes.sha256().map { String(format: "%02X", $0) }.joined()
     }
 
-    private static let localUserIDKey = "SUPLocalUserID"
+    private static let localUserUIDKey = "SUPLocalUserUID"
     private static let provisioningKey = "SUPProvisioningInfo"
     private static let routingInfoKey = "SUPRoutingInfo"
 
@@ -106,6 +122,13 @@ public final class ADIDataProvider: AnisetteDataProvider {
         return encoder
     }()
 
+    private func clientInfo() async throws -> String {
+        if let _clientInfo { return _clientInfo }
+        let clientInfo = try await rawProvider.clientInfo()
+        self._clientInfo = clientInfo
+        return clientInfo
+    }
+
     private func sendRequest<Request: Encodable, Response: Decodable>(
         endpoint: GrandSlamEndpoint,
         request: Request
@@ -126,11 +149,8 @@ public final class ADIDataProvider: AnisetteDataProvider {
         )
         request.headers["X-MMe-Country"] = Locale.current.regionCode
 
-        // Looks like Apple detects attempts to use a macOS client string on Windows :/
-        request.headers[DeviceInfo.clientInfoKey] = """
-        <PC> <Windows;6.2(0,0);9200> <com.apple.AuthKitWin/1 (com.apple.iCloud/7.21)>
-        """
-        request.headers[DeviceInfo.deviceIDKey] = self.deviceInfo.deviceID
+        request.headers[DeviceInfo.clientInfoKey] = try await clientInfo()
+        request.headers[DeviceInfo.deviceIDKey] = self.localUserUID.uuidString
 //        request.headers[DeviceInfo.clientInfoKey] = self.deviceInfo.clientInfo.clientString
 //        self.deviceInfo.dictionary.forEach { request.headers[$0] = $1 }
 
@@ -143,7 +163,7 @@ public final class ADIDataProvider: AnisetteDataProvider {
     }
 
     private func endProvisioning(
-        id: String,
+        session: RawADIProvisioningSession,
         cpim: Data
     ) async throws -> (routingInfo: UInt64, provisioningInfo: Data) {
         let resp: EndProvisioningResponse = try await sendRequest(
@@ -156,8 +176,8 @@ public final class ADIDataProvider: AnisetteDataProvider {
               let tk = Data(base64Encoded: resp.tk)
             else { throw ADIError.badEndResponse }
 
-        let provisioningInfo = try await self.rawProvider.endProvisioning(
-            session: id, routingInfo: rinfo, ptm: ptm, tk: tk
+        let provisioningInfo = try await session.endProvisioning(
+            routingInfo: rinfo, ptm: ptm, tk: tk
         )
 
         return (rinfo, provisioningInfo)
@@ -169,8 +189,8 @@ public final class ADIDataProvider: AnisetteDataProvider {
             request: StartProvisioningRequest()
         )
         guard let spim = Data(base64Encoded: resp.spim) else { throw ADIError.badStartResponse }
-        let (id, cpim) = try await rawProvider.startProvisioning(spim: spim)
-        return try await endProvisioning(id: id, cpim: cpim)
+        let (session, cpim) = try await rawProvider.startProvisioning(spim: spim, userID: localUserUID)
+        return try await endProvisioning(session: session, cpim: cpim)
     }
 
     private func fetchAnisetteData(
@@ -178,14 +198,19 @@ public final class ADIDataProvider: AnisetteDataProvider {
         provisioningInfo: Data
     ) async throws -> AnisetteData {
         let requestTime = Date()
-        let (mid, otp) = try await rawProvider.requestOTP(provisioningInfo: provisioningInfo)
+        var routingInfo = routingInfo
+        let (mid, otp) = try await rawProvider.requestOTP(userID: localUserUID, routingInfo: &routingInfo, provisioningInfo: provisioningInfo)
         return AnisetteData(
             clientTime: requestTime,
             routingInfo: routingInfo,
             machineID: mid.base64EncodedString(),
             localUserID: self.localUserID,
-            oneTimePassword: otp.base64EncodedString()
+            oneTimePassword: otp.base64EncodedString(),
+            deviceID: self.localUserUID.uuidString
         )
+//        let data = try await URLSession.shared.data(from: URL(string: "https://ani.sidestore.io")!).0
+//        let otpVal = try (JSONSerialization.jsonObject(with: data) as! [String: Any])["X-Apple-I-MD"] as! String
+//        return AnisetteData(clientTime: Date(), routingInfo: 17106176, machineID: "QPW9c1q+3xAr4CPt1NlFK9txkfno+vPTS6BCWPSCmHvk495CI+eFqt83/833IPU6aibCOMDBzZcD0W2I", localUserID: "B21B57ED6CB25584B80E97B8B28206B9C01EB23D32A18E69A701EDE84EC07B38", oneTimePassword: otpVal)
     }
 
     public func resetProvisioning() throws {
