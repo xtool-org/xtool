@@ -1,10 +1,6 @@
 import Foundation
 
 struct OmnisetteADIProvider: RawADIProvider {
-    enum Errors: Error {
-        case websocketClosed(URLSessionWebSocketTask.CloseCode)
-    }
-
     // should implement v3 of https://github.com/SideStore/omnisette-server
     // list: https://servers.sidestore.io/servers.json
     // e.g. https://ani.sidestore.io
