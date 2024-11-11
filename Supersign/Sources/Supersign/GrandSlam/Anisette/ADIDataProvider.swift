@@ -14,9 +14,16 @@ private extension Data {
 public protocol RawADIProvider {
     func clientInfo() async throws -> String
 
-    func startProvisioning(spim: Data, userID: UUID) async throws -> (RawADIProvisioningSession, Data)
+    func startProvisioning(
+        spim: Data,
+        userID: UUID
+    ) async throws -> (RawADIProvisioningSession, Data)
 
-    func requestOTP(userID: UUID, routingInfo: inout UInt64, provisioningInfo: Data) async throws -> (machineID: Data, otp: Data)
+    func requestOTP(
+        userID: UUID,
+        routingInfo: inout UInt64,
+        provisioningInfo: Data
+    ) async throws -> (machineID: Data, otp: Data)
 }
 
 extension RawADIProvider {
@@ -208,9 +215,6 @@ public final class ADIDataProvider: AnisetteDataProvider {
             oneTimePassword: otp.base64EncodedString(),
             deviceID: self.localUserUID.uuidString
         )
-//        let data = try await URLSession.shared.data(from: URL(string: "https://ani.sidestore.io")!).0
-//        let otpVal = try (JSONSerialization.jsonObject(with: data) as! [String: Any])["X-Apple-I-MD"] as! String
-//        return AnisetteData(clientTime: Date(), routingInfo: 17106176, machineID: "QPW9c1q+3xAr4CPt1NlFK9txkfno+vPTS6BCWPSCmHvk495CI+eFqt83/833IPU6aibCOMDBzZcD0W2I", localUserID: "B21B57ED6CB25584B80E97B8B28206B9C01EB23D32A18E69A701EDE84EC07B38", oneTimePassword: otpVal)
     }
 
     public func resetProvisioning() throws {
