@@ -52,6 +52,18 @@ public struct HTTPResponse {
 
 public protocol HTTPClientProtocol {
     func makeRequest(_ request: HTTPRequest) async throws -> HTTPResponse
+    func makeWebSocket(url: URL) async throws -> WebSocketSession
+}
+
+public protocol WebSocketSession {
+    func receive() async throws -> WebSocketMessage
+    func send(_ message: WebSocketMessage) async throws
+    func close()
+}
+
+public enum WebSocketMessage {
+    case text(String)
+    case data(Data)
 }
 
 public protocol HTTPClientFactory {

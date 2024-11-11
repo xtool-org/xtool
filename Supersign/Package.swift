@@ -33,7 +33,8 @@ let package = Package(
         .package(path: "../SuperchargeCore"),
         .package(path: "../SwiftyMobileDevice"),
         .package(path: "../USBMuxSim"),
-        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.18.0"),
+        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.0"),
+        .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.15.0"),
         .package(url: "https://github.com/apple/swift-certificates", from: "1.0.0-beta.1"),
     ],
     targets: [
@@ -59,7 +60,12 @@ let package = Package(
                     name: "AsyncHTTPClient",
                     package: "async-http-client",
                     condition: .when(platforms: [.linux])
-                )
+                ),
+                .product(
+                    name: "WebSocketKit",
+                    package: "websocket-kit",
+                    condition: .when(platforms: [.linux])
+                ),
             ],
             cSettings: cSettings
         ),

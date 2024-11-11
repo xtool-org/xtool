@@ -12,6 +12,7 @@ import NIO
 import NIOHTTP1
 import NIOSSL
 import NIOFoundationCompat
+import WebSocketKit
 
 extension HTTPClient: HTTPClientProtocol {
     @discardableResult
@@ -36,6 +37,70 @@ extension HTTPClient: HTTPClientProtocol {
             headers: [:],
             body: body
         )
+    }
+
+    public func makeWebSocket(url: URL) async throws -> any WebSocketSession {
+        let (stream, continuation) = AsyncStream.makeStream(of: WebSocketSessionWrapper.self)
+        async let value = stream.first(where: { _ in true })
+        // must be after the `async let` so that we finish if connect throws
+        defer { continuation.finish() }
+        // we can't use the async overload because we need to immediately subscribe
+        // to onText/onBinary in the same EventLoop tick that the WebSocket is created.
+        // This is also why we create the SessionWrapper inside the closure.
+        let future = WebSocket.connect(to: url, on: eventLoopGroup) {
+            continuation.yield(WebSocketSessionWrapper(webSocket: $0))
+        }
+        try await future.get()
+        guard let webSocket = await value else {
+            throw Errors.connectFailed
+        }
+        return webSocket
+    }
+
+    private enum Errors: Error {
+        case connectFailed
+    }
+}
+
+private final class WebSocketSessionWrapper: WebSocketSession {
+    let webSocket: WebSocket
+    let stream: AsyncStream<WebSocketMessage>
+    private let finishStream: () -> Void
+
+    init(webSocket: WebSocket) {
+        self.webSocket = webSocket
+
+        let (stream, continuation) = AsyncStream<WebSocketMessage>.makeStream(bufferingPolicy: .unbounded)
+        self.stream = stream
+        self.finishStream = { continuation.finish() }
+        webSocket.onText { _, text in
+            continuation.yield(.text(text))
+        }
+        webSocket.onBinary { _, data in
+            continuation.yield(.data(Data(data.readableBytesView)))
+        }
+    }
+
+    deinit {
+        close()
+    }
+
+    func close() {
+        finishStream()
+        Task { [webSocket] in try? await webSocket.close() }
+    }
+
+    func send(_ message: WebSocketMessage) async throws {
+        switch message {
+        case .text(let text):
+            try await webSocket.send(text)
+        case .data(let data):
+            try await webSocket.send(.init(data))
+        }
+    }
+
+    func receive() async throws -> WebSocketMessage {
+        await stream.first(where: { _ in true }) ?? .data(Data())
     }
 }
 
@@ -82,7 +147,7 @@ final class AsyncHTTPClientFactory: HTTPClientFactory {
             tlsConfiguration: tlsConfiguration,
             decompression: .enabled(limit: .none)
         )
-        client = HTTPClient(eventLoopGroupProvider: .createNew, configuration: config)
+        client = HTTPClient(configuration: config)
     }
     static let shared = AsyncHTTPClientFactory()
 

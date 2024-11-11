@@ -1,12 +1,21 @@
 import Foundation
 
 struct OmnisetteADIProvider: RawADIProvider {
+    enum Errors: Error {
+        case websocketClosed(URLSessionWebSocketTask.CloseCode)
+    }
+
     // should implement v3 of https://github.com/SideStore/omnisette-server
     // list: https://servers.sidestore.io/servers.json
     // e.g. https://ani.sidestore.io
     private let url: URL
-    init(url: URL = URL(string: "https://ani.sidestore.io")!) {
+    private let client: HTTPClientProtocol
+    init(
+        url: URL = URL(string: "https://ani.sidestore.io")!, // URL(string: "http://localhost:6969")!,
+        httpFactory: HTTPClientFactory = defaultHTTPClientFactory
+    ) {
         self.url = url
+        self.client = httpFactory.makeClient()
     }
 
     static let decoder: JSONDecoder = {
@@ -27,8 +36,10 @@ struct OmnisetteADIProvider: RawADIProvider {
         struct ClientInfo: Decodable {
             let clientInfo: String
         }
-        let (response, _) = try await URLSession.shared.data(from: url.appendingPathComponent("v3/client_info"))
-        let clientInfo = try Self.decoder.decode(ClientInfo.self, from: response)
+        let body = try await client.makeRequest(
+            HTTPRequest(url: url.appendingPathComponent("v3/client_info"))
+        ).body ?? Data()
+        let clientInfo = try Self.decoder.decode(ClientInfo.self, from: body)
         return clientInfo.clientInfo
     }
 
@@ -37,8 +48,8 @@ struct OmnisetteADIProvider: RawADIProvider {
         var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
         components.scheme = components.scheme == "http" ? "ws" : "wss"
         url = components.url!
-        let task = URLSession.shared.webSocketTask(with: url)
-        task.resume()
+
+        let task = try await client.makeWebSocket(url: url)
         let connection = OmnisetteProvisioningSession(task: task)
         let cpim = try await connection.startProvisioning(spim: spim, userID: userID)
         return (connection, cpim)
@@ -66,14 +77,14 @@ struct OmnisetteADIProvider: RawADIProvider {
             }
         }
 
-        var request = URLRequest(url: url.appendingPathComponent("v3/get_headers"))
-        request.httpMethod = "POST"
-        request.httpBody = try Self.encoder.encode(Request(
+        var request = HTTPRequest(url: url.appendingPathComponent("v3/get_headers"))
+        request.method = "POST"
+        request.body = .buffer(try Self.encoder.encode(Request(
             identifier: userID.rawBytes,
             adiPb: provisioningInfo
-        ))
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let (response, _) = try await URLSession.shared.data(for: request)
+        )))
+        request.headers["Content-Type"] = "application/json"
+        let response = try await client.makeRequest(request).body ?? Data()
         let decoded = try Self.decoder.decode(Response.self, from: response)
         if let rinfo = UInt64(decoded.rinfo) {
             routingInfo = rinfo
@@ -83,9 +94,9 @@ struct OmnisetteADIProvider: RawADIProvider {
 }
 
 private final class OmnisetteProvisioningSession: RawADIProvisioningSession {
-    let task: URLSessionWebSocketTask
+    let task: WebSocketSession
 
-    init(task: URLSessionWebSocketTask) {
+    init(task: WebSocketSession) {
         self.task = task
     }
 
@@ -94,7 +105,7 @@ private final class OmnisetteProvisioningSession: RawADIProvisioningSession {
     }
 
     private func close() {
-        task.cancel(with: .normalClosure, reason: nil)
+        task.close()
     }
 
     func startProvisioning(
@@ -151,7 +162,7 @@ private final class OmnisetteProvisioningSession: RawADIProvisioningSession {
     private func receive<T: Decodable>(_ message: String, as type: T.Type = EmptyResponse.self) async throws -> T {
         let data = switch try await task.receive() {
         case .data(let data): data
-        case .string(let text): Data(text.utf8)
+        case .text(let text): Data(text.utf8)
         @unknown default: Data()
         }
         let header = try OmnisetteADIProvider.decoder.decode(Header.self, from: data)
@@ -166,7 +177,7 @@ private final class OmnisetteProvisioningSession: RawADIProvisioningSession {
 
     private func send<T: Encodable>(_ message: T) async throws {
         let encoded = try OmnisetteADIProvider.encoder.encode(message)
-        try await task.send(.string(String(decoding: encoded, as: UTF8.self)))
+        try await task.send(.text(String(decoding: encoded, as: UTF8.self)))
     }
 }
 
