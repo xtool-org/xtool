@@ -38,14 +38,11 @@ private extension AuthToken {
             deviceInfo: deviceInfo,
             anisetteProvider: provider
         )
-        let token: DeveloperServicesLoginToken = try withSyncContinuation { cont in
-            manager.logIn(
-                withUsername: username,
-                password: password,
-                twoFactorDelegate: authDelegate,
-                completion: cont
-            )
-        }
+        let token = try await manager.logIn(
+            withUsername: username,
+            password: password,
+            twoFactorDelegate: authDelegate
+        )
         _ = authDelegate
         return AuthToken(appleID: username, dsToken: token)
     }

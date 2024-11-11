@@ -164,7 +164,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
     }
 
     /// Registers the app + its extensions, returning the profile and entitlements of each
-    public func perform() async throws -> [URL : ProvisioningInfo] {
+    public func perform() async throws -> [URL: ProvisioningInfo] {
         var apps: [URL] = [root]
         let plugins = root.appendingPathComponent("PlugIns")
         if plugins.dirExists {

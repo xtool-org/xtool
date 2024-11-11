@@ -58,25 +58,17 @@ class GrandSlamFetchAppTokensOperation {
     }
 
     private func handle(
-        response: GrandSlamAppTokensRequest.Decoder.Value,
-        completion: @escaping (Result<[AppTokenKey: Token], Swift.Error>) -> Void
-    ) {
-        let decrypted: Data
-        do {
-            decrypted = try AppTokens.decrypt(gcm: response.encryptedToken, withSK: loginData.sk)
-        } catch {
-            return completion(.failure(error))
-        }
-        completion(Result {
-            let pairs = try decoder
-                .decode(Response.self, from: decrypted)
-                .tokens
-                .map { (AppTokenKey($0), $1) }
-            return Dictionary(uniqueKeysWithValues: pairs)
-        })
+        response: GrandSlamAppTokensRequest.Decoder.Value
+    ) async throws -> [AppTokenKey: Token] {
+        let decrypted = try AppTokens.decrypt(gcm: response.encryptedToken, withSK: loginData.sk)
+        let pairs = try decoder
+            .decode(Response.self, from: decrypted)
+            .tokens
+            .map { (AppTokenKey($0), $1) }
+        return Dictionary(uniqueKeysWithValues: pairs)
     }
 
-    func perform(completion: @escaping (Result<[AppTokenKey: Token], Swift.Error>) -> Void) {
+    func perform() async throws -> [AppTokenKey: Token] {
         let checksum = AppTokens.checksum(withSK: loginData.sk, adsid: loginData.adsid, apps: apps.map { $0.rawValue })
         let appTokensRequest = GrandSlamAppTokensRequest(
             username: loginData.adsid,
@@ -85,10 +77,8 @@ class GrandSlamFetchAppTokensOperation {
             idmsToken: loginData.idmsToken,
             checksum: checksum
         )
-        client.send(appTokensRequest) { result in
-            guard let response = result.get(withErrorHandler: completion) else { return }
-            self.handle(response: response, completion: completion)
-        }
+        let response = try await client.send(appTokensRequest)
+        return try await self.handle(response: response)
     }
 
 }

@@ -45,35 +45,47 @@ public struct DeveloperServicesLoginManager {
     }
 
     private func logIn(
-        withLoginData loginData: GrandSlamLoginData,
-        completion: @escaping (Result<DeveloperServicesLoginToken, Swift.Error>) -> Void
-    ) {
-        GrandSlamFetchAppTokensOperation(
+        withLoginData loginData: GrandSlamLoginData
+    ) async throws -> DeveloperServicesLoginToken {
+        let tokens = try await GrandSlamFetchAppTokensOperation(
             client: client,
             apps: [.xcode],
             loginData: loginData
-        ).perform { result in
-            guard let tokens = result.get(withErrorHandler: completion) else { return }
-            guard let token = tokens[.xcode]
-                else { return completion(.failure(Error.missingLoginToken)) }
-            completion(.success(.init(adsid: loginData.adsid, token: token.value, expiry: token.expiry)))
-        }
+        ).perform()
+        guard let token = tokens[.xcode]
+            else { throw Error.missingLoginToken }
+        return .init(adsid: loginData.adsid, token: token.value, expiry: token.expiry)
     }
 
+    public func logIn(
+        withUsername username: String,
+        password: String,
+        twoFactorDelegate: TwoFactorAuthDelegate
+    ) async throws -> DeveloperServicesLoginToken {
+        let loginData = try await GrandSlamAuthenticateOperation(
+            client: client,
+            username: username,
+            password: password,
+            twoFactorDelegate: twoFactorDelegate
+        ).authenticate()
+        return try await self.logIn(withLoginData: loginData)
+    }
+
+    @available(*, deprecated, message: "Use async overload")
     public func logIn(
         withUsername username: String,
         password: String,
         twoFactorDelegate: TwoFactorAuthDelegate,
         completion: @escaping (Result<DeveloperServicesLoginToken, Swift.Error>) -> Void
     ) {
-        GrandSlamAuthenticateOperation(
-            client: client,
-            username: username,
-            password: password,
-            twoFactorDelegate: twoFactorDelegate
-        ).authenticate { result in
-            guard let loginData = result.get(withErrorHandler: completion) else { return }
-            self.logIn(withLoginData: loginData, completion: completion)
+        Task {
+            completion(await Result {
+                try await logIn(
+                    withUsername: username,
+                    password: password,
+                    twoFactorDelegate: twoFactorDelegate
+                )
+            })
         }
     }
 

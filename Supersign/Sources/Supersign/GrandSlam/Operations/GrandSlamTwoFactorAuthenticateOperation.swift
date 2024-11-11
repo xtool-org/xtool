@@ -35,46 +35,46 @@ class GrandSlamTwoFactorAuthenticateOperation {
         self.delegate = delegate
     }
 
-    private func performSecondaryAuth(completion: @escaping (Result<(), Swift.Error>) -> Void) {
-        let request = GrandSlamSecondaryAuthRequest(loginData: loginData)
-        client.send(request) { result in
-            guard result.get(withErrorHandler: completion) != nil else { return }
-            self.delegate.fetchCode { self.validate(code: $0, completion: completion) }
-        }
-    }
-
-    private func validate(code: String?, completion: @escaping (Result<(), Swift.Error>) -> Void) {
-        guard let code = code else { return completion(.failure(Error.userCancelled)) }
-        let request = GrandSlamValidateRequest(loginData: loginData, verificationCode: code)
-        client.send(request) { result in
-            switch result {
-            case .success:
-                completion(.success(()))
-            case .failure(let error as GrandSlamOperationError) where error.code == -21669:
-                completion(.failure(Error.incorrectVerificationCode))
-            case .failure(let error):
-                completion(.failure(error))
+    private func performSecondaryAuth() async throws {
+        try await client.send(GrandSlamSecondaryAuthRequest(loginData: loginData))
+        let code = await withCheckedContinuation { continuation in
+            self.delegate.fetchCode {
+                continuation.resume(returning: $0)
             }
         }
+        try await self.validate(code: code)
     }
 
-    private func performTrustedDeviceAuth(completion: @escaping (Result<(), Swift.Error>) -> Void) {
-        let request = GrandSlamTrustedDeviceRequest(loginData: loginData)
-        client.send(request) { result in
-            guard result.get(withErrorHandler: completion) != nil else { return }
-            self.delegate.fetchCode { self.validate(code: $0, completion: completion) }
+    private func validate(code: String?) async throws {
+        guard let code = code else { throw Error.userCancelled }
+        let request = GrandSlamValidateRequest(loginData: loginData, verificationCode: code)
+        do {
+            try await client.send(request)
+        } catch let error as GrandSlamOperationError where error.code == -21669 {
+            throw Error.incorrectVerificationCode
         }
     }
 
-    func perform(completion: @escaping (Result<(), Swift.Error>) -> Void) {
+    private func performTrustedDeviceAuth() async throws {
+        let request = GrandSlamTrustedDeviceRequest(loginData: loginData)
+        try await client.send(request)
+        let code = await withCheckedContinuation { continuation in
+            self.delegate.fetchCode {
+                continuation.resume(returning: $0)
+            }
+        }
+        try await self.validate(code: code)
+    }
+
+    func perform() async throws {
         switch mode {
         case .secondaryAuth:
             // TODO: We *should* be calling performSecondaryAuth – it does
             // seem like performTrustedDeviceAuth sometimes works here but
             // other times re-authenticating continues to 409
-            self.performTrustedDeviceAuth(completion: completion)
+            try await self.performTrustedDeviceAuth()
         case .trustedDeviceSecondaryAuth:
-            self.performTrustedDeviceAuth(completion: completion)
+            try await self.performTrustedDeviceAuth()
         }
     }
 

@@ -64,7 +64,7 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
 
     private func revokeCreateSaveCertificate(certificates: [DeveloperServicesCertificate]) async throws -> SigningInfo {
         if !certificates.isEmpty {
-            guard await confirmRevocation(certificates) 
+            guard await confirmRevocation(certificates)
                 else { throw CancellationError() }
         }
         try await withThrowingTaskGroup(of: Void.self) { group in
