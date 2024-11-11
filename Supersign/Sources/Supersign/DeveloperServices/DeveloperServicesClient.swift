@@ -111,8 +111,8 @@ public final class DeveloperServicesClient {
 
         let decoded: R.Response = try request.apiVersion.decode(response: data)
 
-        return try await withCheckedThrowingContinuation {
-            request.parse(decoded, completion: $0.resume(with:))
+        return try await withCheckedThrowingContinuation { continuation in
+            request.parse(decoded) { continuation.resume(with: $0) }
         }
     }
 
