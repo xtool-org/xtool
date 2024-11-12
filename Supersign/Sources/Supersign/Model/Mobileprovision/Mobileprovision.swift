@@ -53,12 +53,6 @@ public final class Mobileprovision: Decodable {
         self.raw = profile
     }
 
-    public init(contentsOf url: URL) throws {
-        guard let profile = url.withUnsafeFileSystemRepresentation({ $0.flatMap(mobileprovision_create_from_path) })
-            else { throw Error.invalidProfile }
-        self.raw = profile
-    }
-
     public required init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let data = try container.decode(Data.self)
@@ -86,7 +80,7 @@ public final class Mobileprovision: Decodable {
     }
 
     public func data() throws -> Data {
-        try Data { mobileprovision_get_data(raw, &$0) }.orThrow(Error.invalidProfile)
+        try Data { mobileprovision_copy_data(raw, &$0) }.orThrow(Error.invalidProfile)
     }
 
 }

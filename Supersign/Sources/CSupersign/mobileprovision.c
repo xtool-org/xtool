@@ -30,24 +30,12 @@ mobileprovision_t mobileprovision_create_from_data(const void *data, size_t len)
     return mobileprovision_create(raw);
 }
 
-mobileprovision_t mobileprovision_create_from_path(const char *path) {
-    BIO *file = BIO_new_file(path, "r");
-    if (!file) return NULL;
-
-    PKCS7 *raw = NULL;
-    d2i_PKCS7_bio(file, &raw);
-
-    BIO_free(file);
-
-    return mobileprovision_create(raw);
-}
-
 void mobileprovision_free(mobileprovision_t profile) {
     PKCS7_free(profile->raw);
     free(profile);
 }
 
-void *mobileprovision_get_data(mobileprovision_t profile, size_t *len) {
+void *mobileprovision_copy_data(mobileprovision_t profile, size_t *len) {
     unsigned char *data = NULL;
     size_t data_len = i2d_PKCS7(profile->raw, &data);
     if (data_len < 0) return NULL;

@@ -20,15 +20,12 @@ typedef struct mobileprovision *mobileprovision_t;
 /// create a profile from the given data
 _Nullable mobileprovision_t mobileprovision_create_from_data(const void *data, size_t len);
 
-/// create a profile from the given file path
-_Nullable mobileprovision_t mobileprovision_create_from_path(const char *path);
-
 /// free `profile`
 void mobileprovision_free(mobileprovision_t profile);
 
 // MARK: - Operations
 
-void * _Nullable mobileprovision_get_data(mobileprovision_t profile, size_t *len);
+void * _Nullable mobileprovision_copy_data(mobileprovision_t profile, size_t *len);
 
 const void * _Nullable mobileprovision_get_digest(mobileprovision_t profile, size_t *len);
 
