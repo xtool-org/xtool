@@ -36,6 +36,7 @@ let package = Package(
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.0"),
         .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.15.0"),
         .package(url: "https://github.com/apple/swift-certificates", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-crypto", from: "3.9.1"),
     ],
     targets: [
         .target(
@@ -55,6 +56,8 @@ let package = Package(
                 .product(name: "SignerSupport", package: "SuperchargeCore"),
                 .product(name: "ProtoCodable", package: "SuperchargeCore"),
                 .product(name: "Superutils", package: "SuperchargeCore"),
+                .product(name: "Crypto", package: "swift-crypto"),
+                .product(name: "_CryptoExtras", package: "swift-crypto"),
                 .product(name: "X509", package: "swift-certificates"),
                 .product(
                     name: "AsyncHTTPClient",

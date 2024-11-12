@@ -8,27 +8,57 @@
 
 import Foundation
 import CSupersign
+import Crypto
 
-final class SRPClient {
+struct SRPClient: ~Copyable {
+
+    enum Errors: Error {
+        case notProcessed
+    }
 
     let raw = srp_client_create()
     deinit { srp_client_free(raw) }
 
+    private var digest = SHA256()
+    private var hamk: SymmetricKey?
+    private var clientKey: SymmetricKey?
+
     // MARK: - Encryption & decryption
 
-    func add(string: String) {
-        srp_client_add_string(raw, string)
+    mutating func add(string: String) {
+        var copy = string
+        copy.withUTF8 { digest.update(bufferPointer: UnsafeRawBufferPointer($0)) }
     }
 
-    func add(data: Data) {
-        data.withUnsafeBytes { srp_client_add_data(raw, $0.baseAddress, $0.count) }
-    }
-
-    func decrypt(cbc: Data) -> Data? {
-        cbc.withUnsafeBytes { buf in
-            guard let base = buf.baseAddress else { return nil }
-            return Data { srp_client_decrypt_cbc(raw, base, buf.count, &$0) }
+    mutating func add(data: Data) {
+        withUnsafeBytes(of: UInt32(data.count)) {
+            digest.update(bufferPointer: $0)
         }
+        digest.update(data: data)
+    }
+
+    func decrypt(cbc: Data) throws -> Data {
+        let key = try sessionKey(name: "extra data key:")
+        let iv = try sessionKey(name: "extra data iv:").withUnsafeBytes {
+            try AES._CBC.IV(ivBytes: $0.prefix(16))
+        }
+        return try AES._CBC.decrypt(cbc, using: key, iv: iv)
+    }
+
+    private func sessionKey(name: String) throws -> SymmetricKey {
+        guard let clientKey else { throw Errors.notProcessed }
+        return SymmetricKey(data: HMAC<SHA256>.authenticationCode(for: Data(name.utf8), using: clientKey))
+    }
+
+    func verify(negProto: Data) -> Bool {
+        let hash = Data(digest.finalize())
+        guard let key = try? sessionKey(name: "HMAC key:") else { return false }
+        let mac = SymmetricKey(data: HMAC<SHA256>.authenticationCode(for: hash, using: key))
+        return SymmetricKey(data: negProto) == mac
+    }
+
+    func verify(hamk: Data) -> Bool {
+        SymmetricKey(data: hamk) == self.hamk
     }
 
     // MARK: - SRP
@@ -37,44 +67,37 @@ final class SRPClient {
         Data { srp_client_copy_public_key(raw, &$0) }
     }
 
-    func processChallenge(
+    mutating func processChallenge(
         withUsername username: String,
-        password: String,
+        passkey: Data,
         salt: Data,
-        iterations: Int,
-        serverPublicKey key: Data,
-        isS2K: Bool
+        serverPublicKey key: Data
     ) -> Data? {
-        salt.withUnsafeBytes { saltBuf in
-            key.withUnsafeBytes { keyBuf in
-                Data {
+        var outResponse: UnsafeMutableRawPointer?
+        var outHAMK: UnsafeMutableRawPointer?
+        var outClientKey: UnsafeMutableRawPointer?
+        let outLen = passkey.withUnsafeBytes { passkeyBuf in
+            salt.withUnsafeBytes { saltBuf in
+                key.withUnsafeBytes { keyBuf in
                     srp_client_process_challenge(
                         raw,
-                        username, password,
+                        username,
+                        passkeyBuf.baseAddress!, passkeyBuf.count,
                         saltBuf.baseAddress, saltBuf.count,
-                        .init(iterations),
                         keyBuf.baseAddress, keyBuf.count,
-                        isS2K,
-                        &$0
+                        &outHAMK,
+                        &outClientKey,
+                        &outResponse
                     )
                 }
             }
         }
-    }
-
-    func verify(hamk: Data) -> Bool {
-        hamk.withUnsafeBytes {
-            // a hash has to be non-zero sized, so a nil baseAddress is invalid
-            guard let base = $0.baseAddress else { return false }
-            return srp_client_verify_session_HAMK(raw, base, $0.count)
-        }
-    }
-
-    func verify(negProto: Data) -> Bool {
-        negProto.withUnsafeBytes {
-            guard let base = $0.baseAddress else { return false }
-            return srp_client_verify_neg_proto(raw, base, $0.count)
-        }
+        guard outLen > 0, let outResponse, let outHAMK, let outClientKey else { return nil }
+        hamk = SymmetricKey(data: UnsafeRawBufferPointer(start: outHAMK, count: outLen))
+        free(outHAMK)
+        clientKey = SymmetricKey(data: UnsafeRawBufferPointer(start: outClientKey, count: outLen))
+        free(outClientKey)
+        return Data(bytesNoCopy: outResponse, count: outLen, deallocator: .free)
     }
 
 }

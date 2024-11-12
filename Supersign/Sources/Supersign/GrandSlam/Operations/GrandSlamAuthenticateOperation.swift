@@ -7,6 +7,8 @@
 //
 
 import Foundation
+import Crypto
+import _CryptoExtras
 
 class GrandSlamAuthenticateOperation {
 
@@ -91,15 +93,13 @@ class GrandSlamAuthenticateOperation {
         srpClient.add(string: "|")
         srpClient.add(data: completeResponse.encryptedResponse)
         srpClient.add(string: "|")
-        completeResponse.sc.map(srpClient.add(data:))
+        completeResponse.sc.map { srpClient.add(data: $0) }
         srpClient.add(string: "|")
 
         guard srpClient.verify(hamk: completeResponse.hamk) && srpClient.verify(negProto: completeResponse.negProto)
             else { throw Error.internalError }
 
-        guard let rawLoginResponse = srpClient.decrypt(cbc: completeResponse.encryptedResponse) else {
-            throw Error.internalError
-        }
+        let rawLoginResponse = try srpClient.decrypt(cbc: completeResponse.encryptedResponse)
 
         let response = try decoder.decode(Response.self, from: rawLoginResponse)
 
@@ -120,17 +120,29 @@ class GrandSlamAuthenticateOperation {
     private func authenticateStage2(
         initResponse: GrandSlamAuthInitRequest.Decoder.Value
     ) async throws -> GrandSlamLoginData {
-        let isS2K = initResponse.selectedProtocol == .s2k
         srpClient.add(string: "|")
         srpClient.add(string: initResponse.selectedProtocol.rawValue)
 
+        let hashedPassword = Data(SHA256.hash(data: Data(password.utf8)))
+        let pbkdfInput = switch initResponse.selectedProtocol {
+        case .s2k:
+            hashedPassword
+        case .s2k_fo:
+            Data(hashedPassword.map { String(format: "%02hhx", $0) }.joined(separator: "").utf8)
+        }
+        let passkey = try KDF.Insecure.PBKDF2.deriveKey(
+            from: pbkdfInput,
+            salt: initResponse.salt,
+            using: .sha256,
+            outputByteCount: SHA256.byteCount,
+            unsafeUncheckedRounds: initResponse.iterations
+        )
+
         let mDataRaw = srpClient.processChallenge(
             withUsername: username,
-            password: password,
+            passkey: passkey.withUnsafeBytes { Data($0) },
             salt: initResponse.salt,
-            iterations: initResponse.iterations,
-            serverPublicKey: initResponse.serverPublicKey,
-            isS2K: isS2K
+            serverPublicKey: initResponse.serverPublicKey
         )
         guard let m1Data = mDataRaw else { throw Error.internalError }
 
