@@ -13,7 +13,7 @@ struct GrandSlamTrustedDeviceRequest: GrandSlamTwoFactorRequest {
         static func decode(data: Data) throws {}
     }
 
-    static let endpoint: GrandSlamEndpoint = \.trustedDeviceSecondaryAuth
+    static let endpoint: GrandSlamEndpoint = .lookup(\.trustedDeviceSecondaryAuth)
 
     let loginData: GrandSlamLoginData
 }
@@ -25,7 +25,7 @@ struct GrandSlamSecondaryAuthRequest: GrandSlamTwoFactorRequest {
         }
     }
 
-    static let endpoint: GrandSlamEndpoint = \.secondaryAuth
+    static let endpoint: GrandSlamEndpoint = .lookup(\.secondaryAuth)
 
     let loginData: GrandSlamLoginData
 }

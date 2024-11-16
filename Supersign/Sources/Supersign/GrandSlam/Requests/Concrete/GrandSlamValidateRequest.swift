@@ -13,7 +13,7 @@ struct GrandSlamValidateRequest: GrandSlamTwoFactorRequest {
         static func decode(data: Data) throws {}
     }
 
-    static let endpoint: GrandSlamEndpoint = \.validateCode
+    static let endpoint: GrandSlamEndpoint = .lookup(\.validateCode)
 
     let loginData: GrandSlamLoginData
     let verificationCode: String

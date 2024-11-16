@@ -17,4 +17,7 @@ struct GrandSlamEndpoints: Decodable {
     let midFinishProvisioning: String
 }
 
-typealias GrandSlamEndpoint = KeyPath<GrandSlamEndpoints, String>
+enum GrandSlamEndpoint {
+    case lookup(KeyPath<GrandSlamEndpoints, String>)
+    case url(URL)
+}

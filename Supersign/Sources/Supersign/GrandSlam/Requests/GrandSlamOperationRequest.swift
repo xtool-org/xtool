@@ -67,7 +67,7 @@ protocol GrandSlamOperationRequest: GrandSlamRequest
 
 extension GrandSlamOperationRequest {
 
-    static var endpoint: GrandSlamEndpoint { \.gsService }
+    static var endpoint: GrandSlamEndpoint { .lookup(\.gsService) }
 
     func configure(request: inout HTTPRequest, deviceInfo: DeviceInfo, anisetteData: AnisetteData) {
         request.headers["Accept"] = "*/*"

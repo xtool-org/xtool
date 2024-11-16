@@ -58,8 +58,13 @@ class GrandSlamLookupManager {
     }
 
     func fetchURL(forEndpoint endpoint: GrandSlamEndpoint) async throws -> URL {
-        let endpoints = try await fetchEndpoints()
-        return URL(string: endpoints[keyPath: endpoint])!
+        switch endpoint {
+        case .lookup(let keyPath):
+            let endpoints = try await fetchEndpoints()
+            return URL(string: endpoints[keyPath: keyPath])!
+        case .url(let url):
+            return url
+        }
     }
 
 }

@@ -174,7 +174,7 @@ public final class ADIDataProvider: AnisetteDataProvider {
         cpim: Data
     ) async throws -> (routingInfo: UInt64, provisioningInfo: Data) {
         let resp: EndProvisioningResponse = try await sendRequest(
-            endpoint: \.midFinishProvisioning,
+            endpoint: .lookup(\.midFinishProvisioning),
             request: EndProvisioningRequest(cpim: cpim.base64EncodedString())
         )
 
@@ -192,7 +192,7 @@ public final class ADIDataProvider: AnisetteDataProvider {
 
     private func provision() async throws -> (routingInfo: UInt64, provisioningInfo: Data) {
         let resp: StartProvisioningResponse = try await sendRequest(
-            endpoint: \.midStartProvisioning,
+            endpoint: .lookup(\.midStartProvisioning),
             request: StartProvisioningRequest()
         )
         guard let spim = Data(base64Encoded: resp.spim) else { throw ADIError.badStartResponse }
