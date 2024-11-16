@@ -86,7 +86,7 @@ public final class ADIDataProvider: AnisetteDataProvider {
             self.localUserUID = localUserUID
         }
         // localUserID = SHA256(local user UID)
-        self.localUserID = try localUserUID.rawBytes.sha256().map { String(format: "%02X", $0) }.joined()
+        self.localUserID = try Data(localUserUID.uuidString.utf8).sha256().map { String(format: "%02X", $0) }.joined()
     }
 
     private static let localUserUIDKey = "SUPLocalUserUID"

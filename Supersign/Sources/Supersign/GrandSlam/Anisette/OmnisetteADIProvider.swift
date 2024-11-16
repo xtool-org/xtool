@@ -178,7 +178,7 @@ private final class OmnisetteProvisioningSession: RawADIProvisioningSession {
 }
 
 extension UUID {
-    var rawBytes: Data {
+    fileprivate var rawBytes: Data {
         withUnsafeBytes(of: uuid) { Data($0) }
     }
 }
