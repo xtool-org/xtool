@@ -44,9 +44,6 @@ class GrandSlamAuthenticateOperation {
         }
     }
 
-    private var srpClient = SRPClient()
-    private var isSecondAttempt = false
-
     private let decoder = PropertyListDecoder()
 
     let client: GrandSlamClient
@@ -66,17 +63,10 @@ class GrandSlamAuthenticateOperation {
         self.twoFactorDelegate = twoFactorDelegate
     }
 
-    private func restartAuth() async throws -> GrandSlamLoginData {
-        srpClient = .init()
-        isSecondAttempt = true
-        return try await authenticate()
-    }
-
     private func authenticateTwoFactor(
         mode: GrandSlamAuthMode?,
         loginData: GrandSlamLoginData
     ) async throws -> GrandSlamLoginData {
-        guard !isSecondAttempt else { throw Error.failedSecondaryAuth }
         let operation = GrandSlamTwoFactorAuthenticateOperation(
             client: client,
             mode: mode,
@@ -84,12 +74,36 @@ class GrandSlamAuthenticateOperation {
             delegate: twoFactorDelegate
         )
         try await operation.perform()
-        return try await self.restartAuth()
+        return try await authenticate(isRetry: true)
     }
 
-    private func authenticateStage3(
-        completeResponse: GrandSlamAuthCompleteRequest.Decoder.Value
-    ) async throws -> GrandSlamLoginData {
+    private func authenticate(isRetry: Bool) async throws -> GrandSlamLoginData {
+        var srpClient = SRPClient()
+
+        srpClient.add(string: GrandSlamAuthInitRequest.protocols.joined(separator: ","))
+        srpClient.add(string: "|")
+
+        let publicKey = srpClient.publicKey()
+        let initRequest = GrandSlamAuthInitRequest(username: username, publicKey: publicKey)
+        let initResponse = try await client.send(initRequest)
+
+        srpClient.add(string: "|")
+        srpClient.add(string: initResponse.selectedProtocol.rawValue)
+
+        let m1Data = try srpClient.processChallenge(
+            withUsername: username,
+            password: password,
+            salt: initResponse.salt,
+            iterations: initResponse.iterations,
+            isLegacyProtocol: initResponse.selectedProtocol == .s2k_fo,
+            serverPublicKey: initResponse.serverPublicKey
+        )
+
+        let completeRequest = GrandSlamAuthCompleteRequest(
+            username: username, cookie: initResponse.cookie, m1Data: m1Data
+        )
+        let completeResponse = try await client.send(completeRequest)
+
         srpClient.add(string: "|")
         srpClient.add(data: completeResponse.encryptedResponse)
         srpClient.add(string: "|")
@@ -107,6 +121,7 @@ class GrandSlamAuthenticateOperation {
 
         if response.statusCode == 409 {
             // 2FA
+            guard !isRetry else { throw Error.failedSecondaryAuth }
             let authMode = response.url.flatMap { GrandSlamAuthMode(rawValue: $0) }
             return try await authenticateTwoFactor(
                 mode: authMode,
@@ -117,51 +132,8 @@ class GrandSlamAuthenticateOperation {
         return loginData
     }
 
-    private func authenticateStage2(
-        initResponse: GrandSlamAuthInitRequest.Decoder.Value
-    ) async throws -> GrandSlamLoginData {
-        srpClient.add(string: "|")
-        srpClient.add(string: initResponse.selectedProtocol.rawValue)
-
-        let hashedPassword = Data(SHA256.hash(data: Data(password.utf8)))
-        let pbkdfInput = switch initResponse.selectedProtocol {
-        case .s2k:
-            hashedPassword
-        case .s2k_fo:
-            Data(hashedPassword.map { String(format: "%02hhx", $0) }.joined(separator: "").utf8)
-        }
-        let passkey = try KDF.Insecure.PBKDF2.deriveKey(
-            from: pbkdfInput,
-            salt: initResponse.salt,
-            using: .sha256,
-            outputByteCount: SHA256.byteCount,
-            unsafeUncheckedRounds: initResponse.iterations
-        )
-
-        let mDataRaw = srpClient.processChallenge(
-            withUsername: username,
-            passkey: passkey.withUnsafeBytes { Data($0) },
-            salt: initResponse.salt,
-            serverPublicKey: initResponse.serverPublicKey
-        )
-        guard let m1Data = mDataRaw else { throw Error.internalError }
-
-        let completeRequest = GrandSlamAuthCompleteRequest(
-            username: username, cookie: initResponse.cookie, m1Data: m1Data
-        )
-        let response = try await client.send(completeRequest)
-        return try await self.authenticateStage3(completeResponse: response)
-    }
-
     func authenticate() async throws -> GrandSlamLoginData {
-        srpClient.add(string: GrandSlamAuthInitRequest.protocols.joined(separator: ","))
-        srpClient.add(string: "|")
-
-        let publicKey = srpClient.publicKey()
-
-        let initRequest = GrandSlamAuthInitRequest(username: username, publicKey: publicKey)
-        let response = try await client.send(initRequest)
-        return try await self.authenticateStage2(initResponse: response)
+        try await authenticate(isRetry: false)
     }
 
 }

@@ -9,10 +9,12 @@
 import Foundation
 import CSupersign
 import Crypto
+import _CryptoExtras
 
 struct SRPClient: ~Copyable {
 
     enum Errors: Error {
+        case internalError
         case notProcessed
     }
 
@@ -69,35 +71,65 @@ struct SRPClient: ~Copyable {
 
     mutating func processChallenge(
         withUsername username: String,
-        passkey: Data,
+        password: String,
         salt: Data,
-        serverPublicKey key: Data
-    ) -> Data? {
-        var outResponse: UnsafeMutableRawPointer?
-        var outHAMK: UnsafeMutableRawPointer?
+        iterations: Int,
+        isLegacyProtocol: Bool,
+        serverPublicKey B: Data
+    ) throws -> Data {
+        let hashedPassword = Data(SHA256.hash(data: Data(password.utf8)))
+        let pbkdfInput = if isLegacyProtocol {
+            Data(hashedPassword.map { String(format: "%02hhx", $0) }.joined(separator: "").utf8)
+        } else {
+            hashedPassword
+        }
+        let passkey = try KDF.Insecure.PBKDF2.deriveKey(
+            from: pbkdfInput,
+            salt: salt,
+            using: .sha256,
+            outputByteCount: SHA256.byteCount,
+            unsafeUncheckedRounds: iterations
+        ).withUnsafeBytes { Data($0) }
+
+        let x = SHA256.hash(data: salt + SHA256.hash(data: ":".utf8 + passkey))
+
         var outClientKey: UnsafeMutableRawPointer?
-        let outLen = passkey.withUnsafeBytes { passkeyBuf in
+        var outClientKeyLen = 0
+        var outG: UnsafeMutableRawPointer?
+        var outGLen = 0
+        var outN: UnsafeMutableRawPointer?
+        var outNLen = 0
+        let success = x.withUnsafeBytes { xBuf in
             salt.withUnsafeBytes { saltBuf in
-                key.withUnsafeBytes { keyBuf in
+                B.withUnsafeBytes { keyBuf in
                     srp_client_process_challenge(
                         raw,
-                        username,
-                        passkeyBuf.baseAddress!, passkeyBuf.count,
-                        saltBuf.baseAddress, saltBuf.count,
+                        xBuf.baseAddress!, xBuf.count,
                         keyBuf.baseAddress, keyBuf.count,
-                        &outHAMK,
-                        &outClientKey,
-                        &outResponse
+                        &outClientKey, &outClientKeyLen,
+                        &outG, &outGLen,
+                        &outN, &outNLen
                     )
                 }
             }
         }
-        guard outLen > 0, let outResponse, let outHAMK, let outClientKey else { return nil }
-        hamk = SymmetricKey(data: UnsafeRawBufferPointer(start: outHAMK, count: outLen))
-        free(outHAMK)
-        clientKey = SymmetricKey(data: UnsafeRawBufferPointer(start: outClientKey, count: outLen))
-        free(outClientKey)
-        return Data(bytesNoCopy: outResponse, count: outLen, deallocator: .free)
+        guard success else { throw Errors.internalError }
+
+        let rawK = Data(bytesNoCopy: outClientKey!, count: outClientKeyLen, deallocator: .free)
+        let K = Data(SHA256.hash(data: rawK))
+        let g = Data(bytesNoCopy: outG!, count: outGLen, deallocator: .free)
+        let N = Data(bytesNoCopy: outN!, count: outNLen, deallocator: .free)
+        clientKey = SymmetricKey(data: K)
+
+        let gHash = SHA256.hash(data: Array(repeating: 0, count: SHA256.byteCount * 8 - g.count) + g)
+        let NHash = SHA256.hash(data: N)
+        let xorHash = zip(gHash, NHash).map { $0 ^ $1 }
+        let HI = SHA256.hash(data: Data(username.utf8))
+        let A = publicKey()
+
+        let M = Data(SHA256.hash(data: xorHash + Data(HI) + salt + A + B + K))
+        hamk = SymmetricKey(data: SHA256.hash(data: A + M + K))
+        return M
     }
 
 }
