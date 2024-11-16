@@ -13,7 +13,7 @@ public struct DeviceInfo: Codable {
     /// `X-Xcode-Version`
     static let xcodeVersionKey = "X-Xcode-Version"
     /// Not included in `dictionary`
-    public static let xcodeVersion = "11.2 (11B41)"
+    public static let xcodeVersion = "14.2 (14C18)"
 
     public struct ClientInfo: Codable {
         public static let macOSVersion = "10.14.6"

@@ -36,7 +36,7 @@ class GrandSlamClient {
         var httpRequest = HTTPRequest(url: url, method: method.name)
         httpRequest.headers = [
             "Content-Type": "text/x-xml-plist",
-            DeviceInfo.clientInfoKey: "<PC> <Windows;6.2(0,0);9200> <com.apple.AuthKitWin/1 (com.apple.iCloud/7.21)>" // deviceInfo.clientInfo.clientString
+            DeviceInfo.clientInfoKey: deviceInfo.clientInfo.clientString
         ]
         switch method {
         case .get:

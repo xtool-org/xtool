@@ -53,8 +53,13 @@ public struct AnisetteData {
     public var deviceID: String?
 
     var dictionary: [String: String] {
+        let localeIdentifier = if let language = locale.languageCode, let region = locale.regionCode {
+            "\(language)_\(region)"
+        } else {
+            "en_US"
+        }
         var dictionary = [
-            Self.localeKey: locale.identifier,
+            Self.localeKey: localeIdentifier,
             Self.timeZoneKey: timeZone.abbreviation() ?? "UTC",
             Self.clientTimeKey: Self.dateFormatter.string(from: clientTime),
             Self.routingInfoKey: "\(routingInfo)",
