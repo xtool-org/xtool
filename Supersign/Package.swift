@@ -30,7 +30,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../SuperchargeCore"),
+        .package(url: "https://github.com/kabiroberai/SuperchargeCore", .upToNextMinor(from: "1.1.0")),
         .package(path: "../SwiftyMobileDevice"),
         .package(path: "../USBMuxSim"),
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.0"),
