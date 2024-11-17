@@ -1,0 +1,18 @@
+services:
+  supersign:
+    build:
+      context: .
+    volumes:
+      - .:/Supersign
+    container_name: supersign
+    stdin_open: true
+    tty: true
+    cap_add:
+      - sys_ptrace
+    security_opt:
+      - seccomp:unconfined
+    extra_hosts:
+      # host.docker.internal doesn't exist by default on Linux hosts
+      # TODO: Does this conflict with the default host on macOS?
+      # we could rename this
+      - "host.docker.internal:host-gateway"

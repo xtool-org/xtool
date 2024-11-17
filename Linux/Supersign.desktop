@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Supersign
+Categories=Development;
+Exec=SupersignCLI
+Icon=Supersign
+# TODO: remove
+Terminal=true
