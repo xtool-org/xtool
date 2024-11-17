@@ -95,7 +95,7 @@ public final class IntegratedInstaller {
     }
 
     let udid: String
-    let connectionPreferences: Connection.Preferences
+    let lookupMode: LookupMode
     let appleID: String
     let credentials: Credentials
     let configureDevice: Bool
@@ -160,7 +160,7 @@ public final class IntegratedInstaller {
 
     public init(
         udid: String,
-        connectionPreferences: Connection.Preferences,
+        lookupMode: LookupMode,
         appleID: String,
         credentials: Credentials,
         configureDevice: Bool,
@@ -168,7 +168,7 @@ public final class IntegratedInstaller {
         delegate: IntegratedInstallerDelegate
     ) {
         self.udid = udid
-        self.connectionPreferences = connectionPreferences
+        self.lookupMode = lookupMode
         self.appleID = appleID
         self.credentials = credentials
         self.configureDevice = configureDevice
@@ -211,7 +211,7 @@ public final class IntegratedInstaller {
         // TODO: Maybe use `Connection` here instead of creating the lockdown
         // client manually?
 
-        let device = try Device(udid: udid, lookupMode: connectionPreferences.lookupMode)
+        let device = try Device(udid: udid, lookupMode: lookupMode)
 
         guard updateProgress(to: 1/3) else { return nil }
 
@@ -297,7 +297,7 @@ public final class IntegratedInstaller {
         guard shouldContinue() else { return }
         executionStateLock.lock()
         defer { executionStateLock.unlock() }
-        let appInstaller = AppInstaller(ipa: ipa, udid: udid, connectionPreferences: connectionPreferences)
+        let appInstaller = AppInstaller(ipa: ipa, udid: udid, connectionPreferences: .init(lookupMode: lookupMode))
         self.appInstaller = appInstaller
         appInstaller.install(
             progress: { stage in

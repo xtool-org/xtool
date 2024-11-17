@@ -63,7 +63,7 @@ struct InstallSuperchargeCommand: ParsableCommand {
         }
         let installer = IntegratedInstaller(
             udid: client.udid,
-            connectionPreferences: .init(lookupMode: .only(.usb)),
+            lookupMode: .only(.usb),
             appleID: username,
             credentials: credentials,
             configureDevice: true,

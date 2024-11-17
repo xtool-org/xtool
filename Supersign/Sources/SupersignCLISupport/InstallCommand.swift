@@ -43,7 +43,7 @@ struct InstallCommand: ParsableCommand {
         }
         let installer = IntegratedInstaller(
             udid: client.udid,
-            connectionPreferences: .init(lookupMode: .only(client.connectionType)),
+            lookupMode: .only(client.connectionType),
             appleID: username,
             credentials: credentials,
             configureDevice: false,
