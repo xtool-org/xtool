@@ -6,16 +6,6 @@ let cSettings: [CSetting] = [
     .define("_GNU_SOURCE", .when(platforms: [.linux])),
 ]
 
-extension Product.Library.LibraryType {
-    static var smart: Self {
-        #if os(Linux)
-        return .static
-        #else
-        return .dynamic
-        #endif
-    }
-}
-
 let package = Package(
     name: "Supersign",
     platforms: [
@@ -25,18 +15,27 @@ let package = Package(
     products: [
         .library(
             name: "Supersign",
-            type: .smart,
             targets: ["Supersign"]
+        ),
+        .library(
+            name: "SupersignCLISupport",
+            targets: ["SupersignCLISupport"]
+        ),
+        .executable(
+            name: "SupersignCLI",
+            targets: ["SupersignCLI"]
         ),
     ],
     dependencies: [
         .package(url: "https://github.com/kabiroberai/SuperchargeCore", .upToNextMinor(from: "1.1.0")),
         .package(url: "https://github.com/kabiroberai/SwiftyMobileDevice", .upToNextMinor(from: "1.0.0")),
         .package(path: "../USBMuxSim"),
+        .package(path: "../zsign-supersign"),
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.0"),
         .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.15.0"),
         .package(url: "https://github.com/apple/swift-certificates", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-crypto", from: "3.9.1"),
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.5.0"),
         .package(url: "https://github.com/attaswift/BigInt", from: "5.5.0"),
     ],
     targets: [
@@ -87,6 +86,28 @@ let package = Package(
                 .copy("config/config.json"),
                 .copy("config/test.app"),
             ]
+        ),
+        .target(
+            name: "SupersignCLISupport",
+            dependencies: [
+                "SwiftyMobileDevice",
+                "Supersign",
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ],
+            cSettings: cSettings
+        ),
+        .target(
+            name: "SupersignCLI",
+            dependencies: [
+                "SwiftyMobileDevice",
+                "Supersign",
+                "SupersignCLISupport",
+                .product(name: "Zupersign", package: "zsign-supersign"),
+            ],
+            resources: [
+                .copy("Supercharge.ipa")
+            ],
+            cSettings: cSettings
         ),
     ]
 )
