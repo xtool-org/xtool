@@ -35,16 +35,26 @@ class GrandSlamTwoFactorAuthenticateOperation {
         self.delegate = delegate
     }
 
-    private func performSecondaryAuth() async throws {
-        try await client.send(GrandSlamSecondaryAuthRequest(loginData: loginData))
-        try await validateCode()
+    private func performSMSAuth() async throws {
+        // TODO: parse phone number list from o=complete req?
+        let phoneNumberID = "1"
+        try await client.send(GrandSlamSMSAuthRequest(loginData: loginData, phoneNumberID: phoneNumberID))
+        try await validateCode(phoneNumberID: phoneNumberID)
     }
 
-    private func validateCode() async throws {
+    private func validateCode(phoneNumberID: String? = nil) async throws {
         guard let code = await self.delegate.fetchCode() else { throw Error.userCancelled }
-        let request = GrandSlamValidateRequest(loginData: loginData, verificationCode: code)
+        let request: any GrandSlamRequest = if let phoneNumberID {
+            GrandSlamValidateSMSRequest(
+                loginData: loginData,
+                phoneNumberID: phoneNumberID,
+                verificationCode: code
+            )
+        } else {
+            GrandSlamValidateRequest(loginData: loginData, verificationCode: code)
+        }
         do {
-            try await client.send(request)
+            _ = try await client.send(request)
         } catch let error as GrandSlamOperationError where error.code == -21669 {
             throw Error.incorrectVerificationCode
         }
@@ -59,10 +69,7 @@ class GrandSlamTwoFactorAuthenticateOperation {
     func perform() async throws {
         switch mode {
         case .secondaryAuth:
-            // TODO: We *should* be calling performSecondaryAuth – it does
-            // seem like performTrustedDeviceAuth sometimes works here but
-            // other times re-authenticating continues to 409
-            try await self.performTrustedDeviceAuth()
+            try await self.performSMSAuth()
         case .trustedDeviceSecondaryAuth:
             try await self.performTrustedDeviceAuth()
         case nil: // means 2FA was automatically requested

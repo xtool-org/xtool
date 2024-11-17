@@ -29,3 +29,22 @@ struct GrandSlamSecondaryAuthRequest: GrandSlamTwoFactorRequest {
 
     let loginData: GrandSlamLoginData
 }
+
+struct GrandSlamSMSAuthRequest: GrandSlamTwoFactorRequest {
+    struct Decoder: GrandSlamDataDecoder {
+        static func decode(data: Data) throws {}
+    }
+
+    static let endpoint: GrandSlamEndpoint = .url(URL(string: "https://gsa.apple.com/auth/verify/phone/put?mode=sms")!)
+
+    let loginData: GrandSlamLoginData
+    let phoneNumberID: String
+
+    func method(deviceInfo: DeviceInfo, anisetteData: AnisetteData) -> GrandSlamMethod {
+        .post([
+            "serverInfo": [
+                "phoneNumber.id": phoneNumberID
+            ],
+        ])
+    }
+}
