@@ -9,27 +9,6 @@
 import Foundation
 import SwiftyMobileDevice
 
-#if os(iOS)
-import USBMuxSim
-import PortForwarding
-
-private extension USBMuxSimulator {
-    func performAtomically<T>(_ operation: (USBMuxSimulator) -> T) -> T {
-        var value: T!
-        __performAtomically { value = operation($0) }
-        return value
-    }
-
-    func performAtomically<T>(_ operation: (USBMuxSimulator) throws -> T) throws -> T {
-        var value: Result<T, Swift.Error>!
-        __performAtomically { sim in
-            value = Result { try operation(sim) }
-        }
-        return try value.get()
-    }
-}
-#endif
-
 private class WeakBox<T: AnyObject> {
     weak var value: T?
     init(_ value: T) { self.value = value }
@@ -40,24 +19,47 @@ private class WeakBox<T: AnyObject> {
 // there is at most one device per (udid, preferences) at any moment too.
 public class Connection {
 
-    public enum Error: Swift.Error {
-        case portForwardingFailed
+    public enum LookupHandler: Hashable {
+        case system(LookupMode)
+        case custom(any ConnectionLookupHandler)
+
+        public static func == (lhs: LookupHandler, rhs: LookupHandler) -> Bool {
+            switch (lhs, rhs) {
+            case (.system(let l), .system(let r)):
+                l == r
+            case (.custom(let l), .custom(let r)):
+                AnyHashable(l) == AnyHashable(r)
+            default:
+                false
+            }
+        }
+
+        public func hash(into hasher: inout Hasher) {
+            switch self {
+            case .system(let mode):
+                hasher.combine(ObjectIdentifier(LookupMode.self))
+                hasher.combine(mode)
+            case .custom(let handler):
+                hasher.combine(ObjectIdentifier(type(of: handler)))
+                hasher.combine(handler)
+            }
+        }
     }
 
     public struct Preferences: Hashable {
-        #if os(iOS)
-        public var pairingKeys: Data
-        public var usePortForwarding: Bool
-        public init(pairingKeys: Data, usePortForwarding: Bool = false) {
-            self.pairingKeys = pairingKeys
-            self.usePortForwarding = usePortForwarding
-        }
-        #else
-        public var lookupMode: LookupMode
+        public var lookupHandler: LookupHandler
+
         public init(lookupMode: LookupMode) {
-            self.lookupMode = lookupMode
+            self.lookupHandler = .system(lookupMode)
         }
-        #endif
+
+        public init(customLookupHandler: any ConnectionLookupHandler) {
+            self.lookupHandler = .custom(customLookupHandler)
+        }
+
+        public init(lookupHandler: LookupHandler) {
+            self.lookupHandler = lookupHandler
+        }
     }
 
     private struct ConnectionDescriptor: Hashable {
@@ -70,10 +72,8 @@ public class Connection {
     private static var connections: [ConnectionDescriptor: WeakBox<Connection>] = [:]
     private static let connectionsQueue = DispatchQueue(label: "connections-queue")
 
-    #if os(iOS)
-    private var handle: Int32
+    private var handle: AnyObject?
     private let heartbeatHandler: HeartbeatHandler
-    #endif
     private let udid: String
     public let device: Device
     public let client: LockdownClient
@@ -89,35 +89,21 @@ public class Connection {
         self.preferences = preferences
         self.udid = udid
 
-        #if os(iOS)
-        let simulatedDevice: USBMuxSimulatedDevice
-        if preferences.usePortForwarding {
-            var ip = in_addr()
-            guard usbmux_forwarded_ip(&ip) == 0 else {
-                throw Error.portForwardingFailed
-            }
-            NSLog("[SuperUSB] %@", "Using port forwarded device with ip \(String(cString: inet_ntoa(ip)!))")
-            simulatedDevice = PortForwardedDevice(ip: ip, udid: udid)
-        } else {
-            NSLog("[SuperUSB] %@", "Using VPN device")
-            simulatedDevice = try VPNDevice(udid: udid)
+        switch preferences.lookupHandler {
+        case .system(let lookupMode):
+            device = try Device(udid: udid, lookupMode: lookupMode)
+        case .custom(let lookupHandler):
+            handle = try lookupHandler.createHandle()
+            progress(1/4)
+            device = try Device(udid: udid)
         }
-        simulatedDevice.pairingKeys = preferences.pairingKeys
-        handle = USBMuxSimulator.shared.performAtomically { $0.register(device: simulatedDevice) }
-        progress(1/4)
 
-        device = try Device(udid: udid)
-        #else
-        device = try Device(udid: udid, lookupMode: preferences.lookupMode)
-        #endif
         progress(2/4)
 
         client = try LockdownClient(device: device, label: Self.label, performHandshake: true)
 
-        #if os(iOS)
         progress(3/4)
         heartbeatHandler = HeartbeatHandler(device: device, client: client)
-        #endif
 
         progress(4/4)
     }
@@ -145,20 +131,19 @@ public class Connection {
     }
 
     deinit {
+        heartbeatHandler.stop()
         // we could nil out connections[udid] here but that might lead to
         // weird race conditions against Connection.connection that seem
         // like a nightmare to diagnose, and storing an empty box for a
         // udid isn't much memory anyway
-        #if os(iOS)
-        heartbeatHandler.stop()
-        _ = USBMuxSimulator.shared.performAtomically {
-            $0.deregisterDevice(forHandle: handle)
-        }
-        #endif
     }
 
     public func startClient<T: LockdownService>(_ type: T.Type = T.self, sendEscrowBag: Bool = false) throws -> T {
         try .init(device: device, service: .init(client: client, type: type, sendEscrowBag: sendEscrowBag))
     }
 
+}
+
+public protocol ConnectionLookupHandler: Hashable {
+    func createHandle() throws -> AnyObject
 }
