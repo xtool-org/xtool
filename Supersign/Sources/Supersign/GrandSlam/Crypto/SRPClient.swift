@@ -7,19 +7,43 @@
 //
 
 import Foundation
-import CSupersign
 import Crypto
 import _CryptoExtras
+import BigInt
 
-struct SRPClient: ~Copyable {
+struct SRPClient {
 
     enum Errors: Error {
         case internalError
         case notProcessed
     }
 
-    let raw = srp_client_create()
-    deinit { srp_client_free(raw) }
+    // 2048-bit SRP 6a group
+    private static let N = BigUInt(
+        """
+        AC6BDB41324A9A9BF166DE5E1389582FAF72B6651987EE07FC319294\
+        3DB56050A37329CBB4A099ED8193E0757767A13DD52312AB4B03310D\
+        CD7F48A9DA04FD50E8083969EDB767B0CF6095179A163AB3661A05FB\
+        D5FAAAE82918A9962F0B93B855F97993EC975EEAA80D740ADBF4FF74\
+        7359D041D5C33EA71D281E446B14773BCA97B43A23FB801676BD207A\
+        436C6481F1D2B9078717461A5B9D32E688F87748544523B524B0D57D\
+        5EA77A2775D2ECFA032CFBDBF52FB3786160279004E57AE6AF874E73\
+        03CE53299CCC041C7BC308D82A5698F3A8D0C38271AE35F8E9DBFBB6\
+        94B5C803D89F7AE435DE236D525F54759B65E372FCD68EF20FA7111F\
+        9E4AFF73
+        """,
+        radix: 16
+    )!
+    private static let g: BigUInt = 2
+
+    private let clientPrivateKey: BigUInt
+    private let clientPublicKey: BigUInt
+
+    init() {
+        clientPrivateKey = SymmetricKey(size: .init(bitCount: 256))
+            .withUnsafeBytes { BigUInt($0) }
+        clientPublicKey = Self.g.power(clientPrivateKey, modulus: Self.N)
+    }
 
     private var digest = SHA256()
     private var hamk: SymmetricKey?
@@ -66,7 +90,7 @@ struct SRPClient: ~Copyable {
     // MARK: - SRP
 
     func publicKey() -> Data {
-        Data { srp_client_copy_public_key(raw, &$0) }
+        clientPublicKey.serialize()
     }
 
     mutating func processChallenge(
@@ -75,8 +99,16 @@ struct SRPClient: ~Copyable {
         salt: Data,
         iterations: Int,
         isLegacyProtocol: Bool,
-        serverPublicKey B: Data
+        serverPublicKey rawB: Data
     ) throws -> Data {
+        let N = Self.N
+        let B = BigUInt(rawB)
+        guard !(B % N).isZero else { throw Errors.internalError }
+
+        let g = Self.g
+        let a = clientPrivateKey
+        let A = clientPublicKey
+
         let hashedPassword = Data(SHA256.hash(data: Data(password.utf8)))
         let pbkdfInput = if isLegacyProtocol {
             Data(hashedPassword.map { String(format: "%02hhx", $0) }.joined(separator: "").utf8)
@@ -90,46 +122,44 @@ struct SRPClient: ~Copyable {
             outputByteCount: SHA256.byteCount,
             unsafeUncheckedRounds: iterations
         ).withUnsafeBytes { Data($0) }
-
         let x = SHA256.hash(data: salt + SHA256.hash(data: ":".utf8 + passkey))
+            .withUnsafeBytes { BigUInt($0) }
 
-        var outClientKey: UnsafeMutableRawPointer?
-        var outClientKeyLen = 0
-        var outG: UnsafeMutableRawPointer?
-        var outGLen = 0
-        var outN: UnsafeMutableRawPointer?
-        var outNLen = 0
-        let success = x.withUnsafeBytes { xBuf in
-            salt.withUnsafeBytes { saltBuf in
-                B.withUnsafeBytes { keyBuf in
-                    srp_client_process_challenge(
-                        raw,
-                        xBuf.baseAddress!, xBuf.count,
-                        keyBuf.baseAddress, keyBuf.count,
-                        &outClientKey, &outClientKeyLen,
-                        &outG, &outGLen,
-                        &outN, &outNLen
-                    )
-                }
-            }
-        }
-        guard success else { throw Errors.internalError }
+        let u = calcXY(x: A, y: B)
+        let k = calcXY(x: N, y: g)
+        let rawK = BigUInt((BigInt(B) - BigInt((g.power(x, modulus: N) * k) % N)) % BigInt(N))
+            .power(a + (u * x), modulus: N)
 
-        let rawK = Data(bytesNoCopy: outClientKey!, count: outClientKeyLen, deallocator: .free)
-        let K = Data(SHA256.hash(data: rawK))
-        let g = Data(bytesNoCopy: outG!, count: outGLen, deallocator: .free)
-        let N = Data(bytesNoCopy: outN!, count: outNLen, deallocator: .free)
+        let K = Data(SHA256.hash(data: rawK.serialize()))
         clientKey = SymmetricKey(data: K)
 
-        let gHash = SHA256.hash(data: Array(repeating: 0, count: SHA256.byteCount * 8 - g.count) + g)
-        let NHash = SHA256.hash(data: N)
+        let AData = A.serialize()
+        let gHash = SHA256.hash(data: g.serialize().padded(to: SHA256.byteCount * 8))
+        let NHash = SHA256.hash(data: N.serialize())
         let xorHash = zip(gHash, NHash).map { $0 ^ $1 }
         let HI = SHA256.hash(data: Data(username.utf8))
-        let A = publicKey()
+        let M = Data(SHA256.hash(data: xorHash + Data(HI) + salt + AData + rawB + K))
+        hamk = SymmetricKey(data: SHA256.hash(data: AData + M + K))
 
-        let M = Data(SHA256.hash(data: xorHash + Data(HI) + salt + A + B + K))
-        hamk = SymmetricKey(data: SHA256.hash(data: A + M + K))
         return M
     }
 
+    private func calcXY(x: BigUInt, y: BigUInt) -> BigUInt {
+        let expectedCount = (Self.N.bitWidth + 7) / 8
+        let padX = x.serialize().padded(to: expectedCount)
+        let padY = y.serialize().padded(to: expectedCount)
+        let hash = SHA256.hash(data: padX + padY)
+        return hash.withUnsafeBytes { BigUInt($0) }
+    }
+
+}
+
+extension Data {
+    fileprivate func padded(to count: Int) -> Data {
+        if self.count < count {
+            Array(repeating: 0, count: count - self.count) + self
+        } else {
+            self
+        }
+    }
 }

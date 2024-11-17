@@ -37,6 +37,7 @@ let package = Package(
         .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.15.0"),
         .package(url: "https://github.com/apple/swift-certificates", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-crypto", from: "3.9.1"),
+        .package(url: "https://github.com/attaswift/BigInt", from: "5.5.0"),
     ],
     targets: [
         .target(
@@ -59,6 +60,7 @@ let package = Package(
                 .product(name: "Crypto", package: "swift-crypto"),
                 .product(name: "_CryptoExtras", package: "swift-crypto"),
                 .product(name: "X509", package: "swift-certificates"),
+                .product(name: "BigInt", package: "BigInt"),
                 .product(
                     name: "AsyncHTTPClient",
                     package: "async-http-client",
