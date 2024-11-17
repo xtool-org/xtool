@@ -343,6 +343,7 @@ public final class IntegratedInstaller {
 
     private func install(
         deviceInfo: DeviceInfo,
+        provisioningData: ProvisioningData?,
         token: DeveloperServicesLoginToken,
         client: DeveloperServicesClient,
         team: DeveloperServicesTeam,
@@ -396,6 +397,7 @@ public final class IntegratedInstaller {
                         preferredTeamID: team.id.rawValue,
                         preferredSigningInfo: info,
                         appleID: self.appleID,
+                        provisioningData: provisioningData,
                         token: token
                     ).save(inAppDir: appDir)
                 }
@@ -416,6 +418,7 @@ public final class IntegratedInstaller {
 
     private func install(
         deviceInfo: DeviceInfo,
+        provisioningData: ProvisioningData?,
         token: DeveloperServicesLoginToken,
         anisetteProvider: AnisetteDataProvider,
         appDir: URL
@@ -432,12 +435,12 @@ public final class IntegratedInstaller {
             case 0:
                 return self.completion(.failure(Error.noTeamFound))
             case 1:
-                self.install(deviceInfo: deviceInfo, token: token, client: client, team: teams[0], appDir: appDir)
+                self.install(deviceInfo: deviceInfo, provisioningData: provisioningData, token: token, client: client, team: teams[0], appDir: appDir)
             default:
                 self.delegate?.fetchTeam(fromTeams: teams) { team in
                     self.installQueue.async {
                         guard let team = team else { return self.completion(.failure(Error.userCancelled)) }
-                        self.install(deviceInfo: deviceInfo, token: token, client: client, team: team, appDir: appDir)
+                        self.install(deviceInfo: deviceInfo, provisioningData: provisioningData, token: token, client: client, team: team, appDir: appDir)
                     }
                 }
             }
@@ -473,6 +476,7 @@ public final class IntegratedInstaller {
                     guard self.updateProgress(to: 1/2) else { return }
                     self.install(
                         deviceInfo: deviceInfo,
+                        provisioningData: anisetteProvider.provisioningData(),
                         token: token,
                         anisetteProvider: anisetteProvider,
                         appDir: appDir
@@ -481,6 +485,7 @@ public final class IntegratedInstaller {
             case .token(let token):
                 self.install(
                     deviceInfo: deviceInfo,
+                    provisioningData: anisetteProvider.provisioningData(),
                     token: token,
                     anisetteProvider: anisetteProvider,
                     appDir: appDir

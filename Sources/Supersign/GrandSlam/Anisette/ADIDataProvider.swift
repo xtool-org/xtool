@@ -68,6 +68,7 @@ public final class ADIDataProvider: AnisetteDataProvider {
         rawProvider: RawADIProvider,
         deviceInfo: DeviceInfo,
         storage: KeyValueStorage, // ideally secure, eg keychain
+        provisioningData: ProvisioningData? = nil,
         httpFactory: HTTPClientFactory = defaultHTTPClientFactory
     ) throws {
         self.rawProvider = rawProvider
@@ -77,7 +78,11 @@ public final class ADIDataProvider: AnisetteDataProvider {
         self.httpClient = httpFactory.makeClient()
         self.lookupManager = .init(deviceInfo: deviceInfo, httpFactory: httpFactory)
 
-        if let localUserUIDString = try storage.string(forKey: Self.localUserUIDKey),
+        if let provisioningData {
+            self.localUserUID = provisioningData.localUserUID
+            try? storage.setData(provisioningData.adiPb, forKey: Self.provisioningKey)
+            try? storage.setString("\(provisioningData.routingInfo)", forKey: Self.routingInfoKey)
+        } else if let localUserUIDString = try storage.string(forKey: Self.localUserUIDKey),
            let localUserUID = UUID(uuidString: localUserUIDString) {
             self.localUserUID = localUserUID
         } else {
@@ -217,9 +222,21 @@ public final class ADIDataProvider: AnisetteDataProvider {
         )
     }
 
-    public func resetProvisioning() throws {
-        try storage.setData(nil, forKey: Self.provisioningKey)
-        try storage.setString(nil, forKey: Self.routingInfoKey)
+    public func resetProvisioning() {
+        try? storage.setData(nil, forKey: Self.provisioningKey)
+        try? storage.setString(nil, forKey: Self.routingInfoKey)
+    }
+
+    public func provisioningData() -> ProvisioningData? {
+        guard let provisioningInfo = try? storage.data(forKey: Self.provisioningKey),
+              let routingInfoString = try? storage.string(forKey: Self.routingInfoKey),
+              let routingInfo = UInt64(routingInfoString)
+        else { return nil }
+        return ProvisioningData(
+            localUserUID: localUserUID,
+            routingInfo: routingInfo,
+            adiPb: provisioningInfo
+        )
     }
 
     public func fetchAnisetteData() async throws -> AnisetteData {

@@ -7,7 +7,7 @@ struct OmnisetteADIProvider: RawADIProvider {
     private let url: URL
     private let client: HTTPClientProtocol
     init(
-        url: URL = URL(string: "https://ani.sidestore.io")!, // URL(string: "http://localhost:6969")!,
+        url: URL = URL(string: "https://ani3server.fly.dev")!, // URL(string: "http://localhost:6969")!,
         httpFactory: HTTPClientFactory = defaultHTTPClientFactory
     ) {
         self.url = url
@@ -187,12 +187,14 @@ extension ADIDataProvider {
     public static func omnisetteProvider(
         deviceInfo: DeviceInfo,
         storage: KeyValueStorage,
+        provisioningData: ProvisioningData? = nil,
         httpFactory: HTTPClientFactory = defaultHTTPClientFactory
     ) throws -> ADIDataProvider {
         return try ADIDataProvider(
             rawProvider: OmnisetteADIProvider(),
             deviceInfo: deviceInfo,
             storage: storage,
+            provisioningData: provisioningData,
             httpFactory: httpFactory
         )
     }

@@ -17,6 +17,7 @@ public struct Superconfig: Codable {
     public let preferredTeamID: String
     public let preferredSigningInfo: SigningInfo?
     public let appleID: String
+    public let provisioningData: ProvisioningData?
     public let token: DeveloperServicesLoginToken
 
     public init(
@@ -26,6 +27,7 @@ public struct Superconfig: Codable {
         preferredTeamID: String,
         preferredSigningInfo: SigningInfo?,
         appleID: String,
+        provisioningData: ProvisioningData?,
         token: DeveloperServicesLoginToken
     ) {
         self.udid = udid
@@ -34,6 +36,7 @@ public struct Superconfig: Codable {
         self.preferredTeamID = preferredTeamID
         self.preferredSigningInfo = preferredSigningInfo
         self.appleID = appleID
+        self.provisioningData = provisioningData
         self.token = token
     }
 
