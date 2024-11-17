@@ -21,7 +21,7 @@
       },
       {
         "package": "SuperchargeCore",
-        "repositoryURL": "https://github.com/kabiroberai/SuperchargeCore",
+        "repositoryURL": "https://github.com/SuperchargeApp/SuperchargeCore",
         "state": {
           "branch": null,
           "revision": "570d27aa538379f94196ec44bae440ef243bb666",
@@ -177,8 +177,8 @@
         "repositoryURL": "https://github.com/kabiroberai/SwiftyMobileDevice",
         "state": {
           "branch": null,
-          "revision": "66be197bbb4d7a6993229f2775244954ff7f846c",
-          "version": "1.0.0"
+          "revision": "35bfb6b02513561b332e198df6cfb359eb75d922",
+          "version": "1.1.0"
         }
       },
       {
@@ -195,8 +195,8 @@
         "repositoryURL": "https://github.com/kabiroberai/zsign",
         "state": {
           "branch": null,
-          "revision": "86520732df3aa0dfb87a5c6cbff67dc5004020c7",
-          "version": "1.0.1"
+          "revision": "11da02bf9f0626da2df16a12461a4b4bacfa1e01",
+          "version": "1.1.0"
         }
       }
     ]

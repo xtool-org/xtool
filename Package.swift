@@ -27,9 +27,9 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/kabiroberai/SuperchargeCore", .upToNextMinor(from: "1.1.1")),
-        .package(url: "https://github.com/kabiroberai/SwiftyMobileDevice", .upToNextMinor(from: "1.0.0")),
-        .package(url: "https://github.com/kabiroberai/zsign", .upToNextMinor(from: "1.0.1")),
+        .package(url: "https://github.com/SuperchargeApp/SuperchargeCore", .upToNextMinor(from: "1.1.1")),
+        .package(url: "https://github.com/kabiroberai/SwiftyMobileDevice", .upToNextMinor(from: "1.1.0")),
+        .package(url: "https://github.com/kabiroberai/zsign", .upToNextMinor(from: "1.1.0")),
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.0"),
         .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.15.0"),
         .package(url: "https://github.com/apple/swift-certificates", from: "1.0.0"),
