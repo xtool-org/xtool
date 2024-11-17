@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/kabiroberai/SuperchargeCore",
         "state": {
           "branch": null,
-          "revision": "06ac67f9d78f8760fd1be0a77790fe8c54b29bc9",
-          "version": "1.1.0"
+          "revision": "570d27aa538379f94196ec44bae440ef243bb666",
+          "version": "1.1.1"
         }
       },
       {
@@ -188,6 +188,15 @@
           "branch": null,
           "revision": "4232d34efa49f633ba61afde365d3896fc7f8740",
           "version": "2.15.0"
+        }
+      },
+      {
+        "package": "zsign",
+        "repositoryURL": "https://github.com/kabiroberai/zsign",
+        "state": {
+          "branch": null,
+          "revision": "86520732df3aa0dfb87a5c6cbff67dc5004020c7",
+          "version": "1.0.1"
         }
       }
     ]

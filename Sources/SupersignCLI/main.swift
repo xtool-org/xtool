@@ -2,7 +2,7 @@ import Foundation
 import Supersign
 import SupersignCLISupport
 
-let app = Bundle.module.url(forResource: "Supercharge", withExtension: "ipa")!
+// let app = Bundle.module.url(forResource: "Supercharge", withExtension: "ipa")!
 
 #warning("Improve persistence on Windows/Linux")
 
@@ -18,6 +18,6 @@ storage = DirectoryStorage(base: URL(fileURLWithPath: "storage", isDirectory: tr
 #endif
 
 try await SupersignCLI.run(configuration: SupersignCLI.Configuration(
-    superchargeApp: app,
+    superchargeApp: nil,
     storage: storage
 ))
