@@ -2,13 +2,7 @@ import Foundation
 import Supersign
 import SupersignCLISupport
 
-let moduleBundle: Bundle?
-#if os(macOS)
-moduleBundle = Bundle.module
-#else
-moduleBundle = Bundle.main.url(forResource: "SupersignCLISupport_SupersignCLI", withExtension: "resources").flatMap(Bundle.init(url:))
-#endif
-let app = moduleBundle?.url(forResource: "Supercharge", withExtension: "ipa")!
+let app = Bundle.module.url(forResource: "Supercharge", withExtension: "ipa")!
 
 #warning("Improve persistence on Windows/Linux")
 
