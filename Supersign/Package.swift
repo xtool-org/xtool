@@ -31,7 +31,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/kabiroberai/SuperchargeCore", .upToNextMinor(from: "1.1.0")),
-        .package(path: "../SwiftyMobileDevice"),
+        .package(url: "https://github.com/kabiroberai/SwiftyMobileDevice", .upToNextMinor(from: "1.0.0")),
         .package(path: "../USBMuxSim"),
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.0"),
         .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.15.0"),
