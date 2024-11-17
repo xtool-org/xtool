@@ -101,9 +101,6 @@ let package = Package(
                 "Supersign",
                 "SupersignCLISupport",
             ],
-            resources: [
-                .copy("Supercharge.ipa")
-            ],
             cSettings: cSettings
         ),
     ]
