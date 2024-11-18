@@ -4,15 +4,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
       - name: Build
         run: |
           docker compose run --build --rm supersign -c "cd Linux && ./build.sh"
-      
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
