@@ -127,7 +127,7 @@ struct SRPClient {
 
         let u = calcXY(x: A, y: B)
         let k = calcXY(x: N, y: g)
-        let rawK = BigUInt((BigInt(B) - BigInt((g.power(x, modulus: N) * k) % N)) % BigInt(N))
+        let rawK = BigUInt((BigInt(B) - BigInt((g.power(x, modulus: N) * k) % N)).modulus(BigInt(N)))
             .power(a + (u * x), modulus: N)
 
         let K = Data(SHA256.hash(data: rawK.serialize()))
