@@ -65,6 +65,10 @@ struct DSLoginCommand: AsyncParsableCommand {
     @Flag(name: [.short, .long]) var resetProvisioning = false
     @Option(name: [.short, .long], help: "Apple ID") var username: String?
     @Option(name: [.short, .long]) var password: String?
+    @Flag(
+        name: [.long],
+        help: "Print the auth token to standard output instead of persisting it."
+    ) var printToken = false
 
     func run() async throws {
         let fullToken = try await AuthToken.retrieve(
@@ -73,10 +77,15 @@ struct DSLoginCommand: AsyncParsableCommand {
             password: self.password,
             resetProvisioning: resetProvisioning
         )
-        guard let string = fullToken.string else {
-            throw Console.Error("Could not encode token.")
+        if printToken {
+            guard let string = fullToken.string else {
+                throw Console.Error("Could not encode token.")
+            }
+            print(string)
+        } else {
+            try fullToken.save()
+            print("Logged in!")
         }
-        print(string)
     }
 }
 
@@ -89,13 +98,14 @@ struct DSTeamsListCommand: AsyncParsableCommand {
     @Option(name: .shortAndLong) var account: String?
 
     func run() async throws {
+        let token = try account.flatMap(AuthToken.init(string:)) ?? AuthToken.saved()
+
         let deviceInfo = try DeviceInfo.fetch()
 //        let anisetteProvider = SupersetteDataProvider(deviceInfo: deviceInfo)
         let anisetteProvider = try ADIDataProvider.omnisetteProvider(
             deviceInfo: deviceInfo, storage: SupersignCLI.config.storage
         )
 
-        let token = try await AuthToken.retrieve(deviceInfo: deviceInfo, account: account)
         let client = DeveloperServicesClient(
             loginToken: token.dsToken,
             deviceInfo: deviceInfo,

@@ -57,4 +57,16 @@ extension AuthToken {
         return "@\(data.base64EncodedString())"
     }
 
+    static func saved() throws -> Self {
+        guard let string = try SupersignCLI.config.storage.string(forKey: "SUPAuthToken"),
+              let token = AuthToken(string: string) else {
+            throw Console.Error("Please log in with `supersign ds login` before running this command.")
+        }
+        return token
+    }
+
+    func save() throws {
+        try SupersignCLI.config.storage.setString(string, forKey: "SUPAuthToken")
+    }
+
 }

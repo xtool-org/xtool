@@ -21,19 +21,10 @@ struct InstallCommand: ParsableCommand {
     ) var path: String
 
     func run() throws {
-        let username: String
-        let credentials: IntegratedInstaller.Credentials
+        let token = try account.flatMap(AuthToken.init(string:)) ?? AuthToken.saved()
 
-        if let account = account, let auth = AuthToken(string: account) {
-            username = auth.appleID
-            credentials = .token(auth.dsToken)
-        } else {
-            guard let appleID = account ?? Console.prompt("Apple ID: "),
-                  let password = Console.getPassword("Password: ")
-            else { return }
-            username = appleID
-            credentials = .password(password)
-        }
+        let username = token.appleID
+        let credentials: IntegratedInstaller.Credentials = .token(token.dsToken)
 
         print("Installing to device: \(client.deviceName) (udid: \(client.udid))")
 
