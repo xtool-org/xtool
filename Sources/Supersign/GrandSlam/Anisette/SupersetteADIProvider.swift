@@ -163,7 +163,7 @@ public struct SupersetteADIProvider: RawADIProvider {
 
 private func check(_ adiStatus: Int32) throws {
     guard adiStatus == 0 else {
-        fatalError("ADI Status: \(adiStatus)")
+        throw ADIError(code: Int(adiStatus))
     }
 }
 

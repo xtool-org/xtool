@@ -3,6 +3,8 @@
 set -e
 shopt -s nullglob
 
+cd "$(dirname "$0")"
+
 # installer version
 export VERSION="1.0.0"
 
