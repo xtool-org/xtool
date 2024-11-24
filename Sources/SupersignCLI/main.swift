@@ -14,7 +14,8 @@ let storage: KeyValueStorage
 #if os(macOS)
 storage = KeychainStorage(service: "com.kabiroberai.Supercharge-Keychain.credentials")
 #else
-storage = DirectoryStorage(base: URL(fileURLWithPath: "storage", isDirectory: true))
+let directory = URL.homeDirectory.appending(path: ".config/Supercharge/data")
+storage = DirectoryStorage(base: directory)
 #endif
 
 try await SupersignCLI.run(configuration: SupersignCLI.Configuration(
