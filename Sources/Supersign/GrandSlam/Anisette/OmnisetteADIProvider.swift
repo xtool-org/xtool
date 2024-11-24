@@ -184,14 +184,21 @@ extension UUID {
 }
 
 extension ADIDataProvider {
-    public static func omnisetteProvider(
+    public static func adiProvider(
         deviceInfo: DeviceInfo,
         storage: KeyValueStorage,
         provisioningData: ProvisioningData? = nil,
         httpFactory: HTTPClientFactory = defaultHTTPClientFactory
     ) throws -> ADIDataProvider {
+        #if os(Linux)
+        let provider = SupersetteADIProvider(
+            configDirectory: URL.homeDirectory.appending(path: ".config/Supercharge/Anisette")
+        )
+        #else
+        let provider = OmnisetteADIProvider()
+        #endif
         return try ADIDataProvider(
-            rawProvider: OmnisetteADIProvider(),
+            rawProvider: provider,
             deviceInfo: deviceInfo,
             storage: storage,
             provisioningData: provisioningData,

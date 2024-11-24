@@ -25,8 +25,7 @@ private extension AuthToken {
             throw Console.Error("A non-empty password is required.")
         }
 
-//        let provider = SupersetteDataProvider(deviceInfo: deviceInfo)
-        let provider = try ADIDataProvider.omnisetteProvider(
+        let provider = try ADIDataProvider.adiProvider(
             deviceInfo: deviceInfo,
             storage: SupersignCLI.config.storage
         )
@@ -101,8 +100,7 @@ struct DSTeamsListCommand: AsyncParsableCommand {
         let token = try account.flatMap(AuthToken.init(string:)) ?? AuthToken.saved()
 
         let deviceInfo = try DeviceInfo.fetch()
-//        let anisetteProvider = SupersetteDataProvider(deviceInfo: deviceInfo)
-        let anisetteProvider = try ADIDataProvider.omnisetteProvider(
+        let anisetteProvider = try ADIDataProvider.adiProvider(
             deviceInfo: deviceInfo, storage: SupersignCLI.config.storage
         )
 

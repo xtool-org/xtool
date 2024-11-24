@@ -4,7 +4,7 @@
 FROM ubuntu:focal AS limd-build
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ca-certificates \
     build-essential \
     checkinstall \
@@ -14,10 +14,13 @@ RUN apt-get update \
     libtool-bin \
     libssl-dev \
     pkg-config \
-    libcurl4-openssl-dev \
+    libxml2 \
+    curl libcurl4-openssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir /prefix
+
+RUN curl -fsS https://dlang.org/install.sh | bash -s ldc
 
 RUN git clone https://github.com/libimobiledevice/libplist.git \
     && cd libplist \
@@ -64,6 +67,14 @@ RUN git clone https://github.com/libimobiledevice/libimobiledevice.git \
     && cd .. \
     && rm -rf libimobiledevice
 
+ADD https://api.github.com/repos/SuperchargeApp/SupersetteD/git/refs/heads/main Supersette-version.json
+
+RUN git clone https://github.com/SuperchargeApp/SupersetteD.git \
+    && cd SupersetteD \
+    && /bin/bash -c 'source $(/root/dlang/install.sh ldc -a) && dub build --build=release' \
+    && cp -r bin/libsupersette.so /prefix/usr/lib/libsupersette.so \
+    && cd .. \
+    && rm -rf SupersetteD
 
 FROM swift:6.0-focal
 

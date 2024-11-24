@@ -1,0 +1,4 @@
+module CSupersette [extern_c] {
+    header "supersette.h"
+    link "supersette"
+}

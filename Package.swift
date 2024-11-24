@@ -28,8 +28,8 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/SuperchargeApp/SuperchargeCore", .upToNextMinor(from: "1.1.1")),
-        .package(url: "https://github.com/SuperchargeApp/SwiftyMobileDevice", .upToNextMinor(from: "1.1.0")),
-        .package(url: "https://github.com/kabiroberai/zsign", .upToNextMinor(from: "1.1.0")),
+        .package(url: "https://github.com/SuperchargeApp/SwiftyMobileDevice", .upToNextMinor(from: "1.1.1")),
+        .package(url: "https://github.com/kabiroberai/zsign", .upToNextMinor(from: "1.2.4")),
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.0"),
         .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.15.0"),
         .package(url: "https://github.com/apple/swift-certificates", from: "1.0.0"),
@@ -38,6 +38,7 @@ let package = Package(
         .package(url: "https://github.com/attaswift/BigInt", from: "5.5.0"),
     ],
     targets: [
+        .systemLibrary(name: "CSupersette"),
         .target(
             name: "CSupersign",
             dependencies: [
@@ -49,7 +50,8 @@ let package = Package(
             name: "Supersign",
             dependencies: [
                 "CSupersign",
-                "SwiftyMobileDevice",
+                .byName(name: "CSupersette", condition: .when(platforms: [.linux])),
+                .product(name: "SwiftyMobileDevice", package: "SwiftyMobileDevice"),
                 .product(name: "Zupersign", package: "zsign"),
                 .product(name: "SignerSupport", package: "SuperchargeCore"),
                 .product(name: "ProtoCodable", package: "SuperchargeCore"),

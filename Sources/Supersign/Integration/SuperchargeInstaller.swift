@@ -460,8 +460,7 @@ public final class IntegratedInstaller {
         guard updateStage(to: "Logging in") else { return }
 
         do {
-//            let anisetteProvider = SupersetteDataProvider(deviceInfo: deviceInfo)
-            let anisetteProvider = try ADIDataProvider.omnisetteProvider(deviceInfo: deviceInfo, storage: storage)
+            let anisetteProvider = try ADIDataProvider.adiProvider(deviceInfo: deviceInfo, storage: storage)
             switch credentials {
             case .password(let password):
                 try DeveloperServicesLoginManager(
