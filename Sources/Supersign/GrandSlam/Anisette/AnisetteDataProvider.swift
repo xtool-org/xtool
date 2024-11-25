@@ -9,8 +9,7 @@
 import Foundation
 
 public protocol AnisetteDataProvider {
-    // This is a suggestion and not a requirement. The default implementation
-    // does nothing.
+    // This is a suggestion and not a requirement.
     func resetProvisioning() async
     func provisioningData() -> ProvisioningData?
 
@@ -26,5 +25,4 @@ public struct ProvisioningData: Hashable, Codable {
 extension AnisetteDataProvider {
     public func provisioningData() -> ProvisioningData? { nil }
     public func setProvisioningData(_ data: ProvisioningData) {}
-    public func resetProvisioning() async {}
 }
