@@ -10,7 +10,6 @@ import Foundation
 public struct HTTPRequest {
     public enum Body {
         case buffer(Data)
-//        case stream(InputStream)
     }
 
     public var url: URL
@@ -51,8 +50,14 @@ public struct HTTPResponse {
 }
 
 public protocol HTTPClientProtocol {
-    func makeRequest(_ request: HTTPRequest) async throws -> HTTPResponse
+    func makeRequest(_ request: HTTPRequest, onProgress: (Double?) -> Void) async throws -> HTTPResponse
     func makeWebSocket(url: URL) async throws -> WebSocketSession
+}
+
+extension HTTPClientProtocol {
+    public func makeRequest(_ request: HTTPRequest) async throws -> HTTPResponse {
+        try await makeRequest(request) { _ in }
+    }
 }
 
 public protocol WebSocketSession {

@@ -20,15 +20,15 @@ final class URLHTTPClientFactory: HTTPClientFactory {
 }
 
 private final class Client: HTTPClientProtocol {
-    final class WebSocketDelegate: NSObject, URLSessionWebSocketDelegate {
-        var callbacks: [URLSessionWebSocketTask: (URLSessionWebSocketTask.CloseCode?) -> Void] = [:]
+    final class ClientDelegate: NSObject, URLSessionWebSocketDelegate {
+        var webSocketCallbacks: [URLSessionWebSocketTask: (URLSessionWebSocketTask.CloseCode?) -> Void] = [:]
 
         func urlSession(
             _ session: URLSession,
             webSocketTask: URLSessionWebSocketTask,
             didOpenWithProtocol protocol: String?
         ) {
-            callbacks.removeValue(forKey: webSocketTask)?(nil)
+            webSocketCallbacks.removeValue(forKey: webSocketTask)?(nil)
         }
 
         func urlSession(
@@ -37,21 +37,53 @@ private final class Client: HTTPClientProtocol {
             didCloseWith closeCode: URLSessionWebSocketTask.CloseCode,
             reason: Data?
         ) {
-            callbacks.removeValue(forKey: webSocketTask)?(closeCode)
+            webSocketCallbacks.removeValue(forKey: webSocketTask)?(closeCode)
         }
     }
 
-    private let webSocketDelegate = WebSocketDelegate()
+    private let clientDelegate = ClientDelegate()
     private let session: URLSession
 
     init() {
         // no need for cert handling since the Apple Root CA is already
         // installed on any devices which support the Security APIs which
         // would have been required to add the custom root anyway
-        self.session = URLSession(configuration: .ephemeral, delegate: webSocketDelegate, delegateQueue: .main)
+        self.session = URLSession(configuration: .ephemeral, delegate: clientDelegate, delegateQueue: .main)
     }
 
-    public func makeRequest(_ request: HTTPRequest) async throws -> HTTPResponse {
+    public func makeRequest(
+        _ request: HTTPRequest,
+        onProgress: @isolated(any) (Double?) -> Void
+    ) async throws -> HTTPResponse {
+        final class ProgressDelegate: NSObject, URLSessionDataDelegate {
+            private let progressContinuation: AsyncStream<Double>.Continuation
+            let progressStream: AsyncStream<Double>
+
+            @MainActor private var count = 0
+
+            override init() {
+                (progressStream, progressContinuation) = AsyncStream<Double>.makeStream(
+                    // it's okay to skip missed progress updates
+                    bufferingPolicy: .bufferingNewest(1)
+                )
+            }
+
+            func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+                let count = MainActor.assumeIsolated {
+                    self.count += data.count
+                    return self.count
+                }
+                if let contentLength = dataTask.response?.expectedContentLength, contentLength != -1 {
+                    let progress = min(Double(count) / Double(contentLength), 1)
+                    progressContinuation.yield(progress)
+                }
+            }
+
+            func finish() {
+                progressContinuation.finish()
+            }
+        }
+
         var req = URLRequest(url: request.url)
         req.httpMethod = request.method
         request.headers.forEach { k, v in
@@ -60,13 +92,25 @@ private final class Client: HTTPClientProtocol {
         switch request.body {
         case .buffer(let data):
             req.httpBody = data
-//        case .stream(let stream):
-//            req.httpBodyStream = stream
         case nil:
             break
         }
-        let (data, resp) = try await session.data(for: req)
-        guard let httpResp = resp as? HTTPURLResponse else { throw UnknownHTTPError() }
+
+        let delegate = ProgressDelegate()
+        async let progressWatcher: Void = {
+            for await progress in delegate.progressStream {
+                await onProgress(progress)
+            }
+        }()
+        let (data, response) = if #available(macOS 12, iOS 15, tvOS 15, watchOS 8, *) {
+            try await session.data(for: req, delegate: delegate)
+        } else {
+            try await session.data(for: req)
+        }
+        delegate.finish()
+        _ = await progressWatcher
+
+        guard let httpResp = response as? HTTPURLResponse else { throw UnknownHTTPError() }
         let headers = [String: String](
             uniqueKeysWithValues: httpResp.allHeaderFields.compactMap { k, v in
                 guard let kStr = k as? String,
@@ -85,11 +129,12 @@ private final class Client: HTTPClientProtocol {
 
     public func makeWebSocket(url: URL) async throws -> any WebSocketSession {
         let task = session.webSocketTask(with: url)
-        async let event = withCheckedContinuation { continuation in
-            webSocketDelegate.callbacks[task] = { continuation.resume(returning: $0) }
+        let (event, eventContinuation) = AsyncStream<URLSessionWebSocketTask.CloseCode?>.makeStream()
+        clientDelegate.webSocketCallbacks[task] = {
+            eventContinuation.yield($0)
+            eventContinuation.finish()
         }
-        task.resume()
-        let code = await event
+        let code = await event.first { _ in true } ?? nil
         if let code { throw Errors.webSocketClosed(code) }
         return WebSocketSessionWrapper(task: task)
     }
@@ -126,4 +171,11 @@ private final class WebSocketSessionWrapper: WebSocketSession {
         task.cancel(with: .normalClosure, reason: nil)
     }
 }
+
+extension Optional {
+    fileprivate mutating func inoutMap<E>(_ transform: (inout Wrapped) throws(E) -> Void) throws(E) {
+        if self != nil { try transform(&self!) }
+    }
+}
+
 #endif

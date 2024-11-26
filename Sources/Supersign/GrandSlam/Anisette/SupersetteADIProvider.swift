@@ -26,9 +26,16 @@ public struct SupersetteADIProvider: RawADIProvider {
 
             let applemusic = tmp.appending(path: "applemusic.apk")
             if !applemusic.exists {
-                print("Downloading libraries...")
+                print("[Downloading libraries] ...", terminator: "")
+                fflush(stdout)
                 let url = URL(string: "https://apps.mzstatic.com/content/android-apple-music-apk/applemusic.apk")!
-                let data = try await httpClient.makeRequest(HTTPRequest(url: url)).body!
+                defer { print("") }
+                let data = try await httpClient.makeRequest(HTTPRequest(url: url)) { progress in
+                    guard let progress else { return }
+                    let progString = "\(Int(progress * 100))%".padding(toLength: 4, leading: true)
+                    print("\r[Downloading libraries] \(progString)", terminator: "")
+                    fflush(stdout)
+                }.body!
                 try data.write(to: applemusic)
             }
 
@@ -164,6 +171,17 @@ public struct SupersetteADIProvider: RawADIProvider {
 private func check(_ adiStatus: Int32) throws {
     guard adiStatus == 0 else {
         throw ADIError(code: Int(adiStatus))
+    }
+}
+
+extension StringProtocol {
+    fileprivate func padding(
+        toLength minLength: Int,
+        withPad pad: Character = " ",
+        leading: Bool = false
+    ) -> String {
+        let justPadding = String(repeating: pad, count: Swift.max(minLength - count, 0))
+        return leading ? justPadding + self : self + justPadding
     }
 }
 

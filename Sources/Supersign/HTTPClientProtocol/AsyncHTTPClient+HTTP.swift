@@ -16,7 +16,7 @@ import WebSocketKit
 
 extension HTTPClient: HTTPClientProtocol {
     @discardableResult
-    public func makeRequest(_ request: HTTPRequest) async throws -> HTTPResponse {
+    public func makeRequest(_ request: HTTPRequest, onProgress: (Double?) -> Void) async throws -> HTTPResponse {
 //        print("Requesting \(request.url)")
         var httpRequest = HTTPClientRequest(url: request.url.absoluteString)
         httpRequest.method = request.method.map(HTTPMethod.init(rawValue:)) ?? .GET
@@ -24,13 +24,21 @@ extension HTTPClient: HTTPClientProtocol {
         httpRequest.body = switch request.body {
         case .buffer(let data):
             .bytes(data)
-//        case .stream(let stream): 
-//            .stream(...)
         case nil:
             nil
         }
         let response = try await execute(httpRequest, deadline: .distantFuture)
-        let body = try await response.body.map(\.readableBytesView).reduce(into: Data(), +=)
+        let expectedBytes = response.headers.first(name: "content-length").flatMap(Int.init).map(Double.init)
+        if expectedBytes == nil {
+            onProgress(nil)
+        }
+        var body = Data()
+        for try await chunk in response.body {
+            body += chunk.readableBytesView
+            if let expectedBytes {
+                onProgress(min(Double(body.count) / expectedBytes, 1))
+            }
+        }
         return HTTPResponse(
             url: request.url,
             status: Int(response.status.code),
