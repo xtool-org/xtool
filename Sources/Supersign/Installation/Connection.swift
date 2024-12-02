@@ -102,7 +102,7 @@ public actor Connection {
         client = try LockdownClient(device: device, label: Self.label, performHandshake: true)
 
         progress(3/4)
-        heartbeatHandler = HeartbeatHandler(device: device, client: client)
+        heartbeatHandler = try await HeartbeatHandler(device: device, client: client)
 
         progress(4/4)
     }

@@ -189,7 +189,7 @@ public actor IntegratedInstaller {
                 delegate?.setPresentedMessage(nextMessage)
                 currMessage = nextMessage
             }
-            try await Task.sleep(nanoseconds: UInt64(repeatAfter * 1_000_000_000))
+            try await Task.sleep(seconds: repeatAfter)
         }
     }
 
