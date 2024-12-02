@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftyMobileDevice
+import ConcurrencyExtras
 
 extension LockdownClient {
     static let installerLabel = "supersign"
@@ -101,19 +102,24 @@ public actor IntegratedInstaller {
 
     private var stage: String?
 
-    private func updateStage(
-        to stage: String,
-        initialProgress: Double? = 0
-    ) async throws {
-        await Task.yield()
-        try Task.checkCancellation()
-        updateStageIgnoringCancellation(to: stage, initialProgress: initialProgress)
+    private nonisolated let updateTask = LockIsolated<Task<Void, Never>?>(nil)
+
+    private nonisolated func queueUpdateTask(
+        _ perform: @escaping @Sendable (isolated IntegratedInstaller) async -> Void
+    ) {
+        updateTask.withValue { task in
+            task = Task { [prev = task] in
+                await prev?.value
+                await perform(self)
+            }
+        }
     }
 
     private func updateStage(
         to stage: String,
         initialProgress: Double? = 0
-    ) throws {
+    ) async throws {
+        await Task.yield()
         try Task.checkCancellation()
         updateStageIgnoringCancellation(to: stage, initialProgress: initialProgress)
     }
@@ -129,11 +135,6 @@ public actor IntegratedInstaller {
 
     private func updateProgress(to progress: Double?) async throws {
         await Task.yield()
-        try Task.checkCancellation()
-        updateProgressIgnoringCancellation(to: progress)
-    }
-
-    private func updateProgress(to progress: Double?) throws {
         try Task.checkCancellation()
         updateProgressIgnoringCancellation(to: progress)
     }
@@ -286,9 +287,9 @@ public actor IntegratedInstaller {
         self.appInstaller = appInstaller
         try await appInstaller.install(
             progress: { stage in
-                Task {
-                    await self.updateStageIgnoringCancellation(to: stage.displayName)
-                    await self.updateProgressIgnoringCancellation(to: stage.displayProgress)
+                self.queueUpdateTask {
+                    $0.updateStageIgnoringCancellation(to: stage.displayName)
+                    $0.updateProgressIgnoringCancellation(to: stage.displayProgress)
                 }
             }
         )
@@ -308,8 +309,8 @@ public actor IntegratedInstaller {
         let ipa = try await delegate?.compress(
             payloadDir: appDir.deletingLastPathComponent(),
             progress: { progress in
-                Task {
-                    await self.updateProgressIgnoringCancellation(to: progress)
+                self.queueUpdateTask {
+                    $0.updateProgressIgnoringCancellation(to: progress)
                 }
             }
         )
@@ -353,13 +354,13 @@ public actor IntegratedInstaller {
         let bundleID = try await signer.sign(
             app: appDir,
             status: { @Sendable status in
-                Task {
-                    await self.updateStageIgnoringCancellation(to: status)
+                self.queueUpdateTask {
+                    $0.updateStageIgnoringCancellation(to: status)
                 }
             },
             progress: { progress in
-                Task {
-                    _ = await self.updateProgressIgnoringCancellation(to: progress)
+                self.queueUpdateTask {
+                    $0.updateProgressIgnoringCancellation(to: progress)
                 }
             },
             didProvision: { @Sendable in
@@ -477,8 +478,8 @@ public actor IntegratedInstaller {
                 ipa: app,
                 in: tempDir,
                 progress: { progress in
-                    Task {
-                        await self.updateProgressIgnoringCancellation(to: progress)
+                    self.queueUpdateTask {
+                        $0.updateProgressIgnoringCancellation(to: progress)
                     }
                 }
             )

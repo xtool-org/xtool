@@ -1,5 +1,6 @@
 import Foundation
 import Supersign
+import ConcurrencyExtras
 
 private func _fetchCode() async -> String? {
     Console.prompt("Code: ")
@@ -21,6 +22,8 @@ actor SupersignCLIDelegate: IntegratedInstallerDelegate, TwoFactorAuthDelegate {
     init(preferredTeam: DeveloperServicesTeam.ID?) {
         self.preferredTeam = preferredTeam
     }
+
+    private let updateTask = LockIsolated<Task<Void, Never>?>(nil)
 
     func fetchCode() async -> String? {
         await _fetchCode()
@@ -100,7 +103,12 @@ actor SupersignCLIDelegate: IntegratedInstallerDelegate, TwoFactorAuthDelegate {
     }
 
     nonisolated func installerDidUpdate(toStage stage: String, progress: Double?) {
-        Task { await _installerDidUpdate(toStage: stage, progress: progress) }
+        updateTask.withValue { task in
+            task = Task { [prev = task] in
+                await prev?.value
+                await _installerDidUpdate(toStage: stage, progress: progress)
+            }
+        }
     }
 
     private static let expiryFormatter: DateFormatter = {

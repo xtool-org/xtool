@@ -99,6 +99,7 @@ public struct Signer {
             entitlementMapping: entitlements,
             progress: progress
         )
+        progress(1)
 
         return mainInfo.newBundleID
     }
