@@ -9,9 +9,10 @@
 import Foundation
 import CSupersign
 import SignerSupport
+import ConcurrencyExtras
 
 /// a wrapper around signer_t
-public struct SignerImpl {
+public actor SignerImpl {
 
     private static let signingQueue = DispatchQueue(
         label: "com.kabiroberai.Supercharge.signing-queue",
@@ -48,18 +49,18 @@ public struct SignerImpl {
         String(cString: signer.pointee.name)
     }
 
-    private init(signer: UnsafePointer<signer_t>) {
-        self.signer = signer
+    private init(signer: UncheckedSendable<UnsafePointer<signer_t>>) {
+        self.signer = signer.value
     }
 
-    public static func all() -> AnyCollection<SignerImpl> {
+    public static func all() -> some Collection<SignerImpl> {
         var list = get_signers()
         var arr: [SignerImpl] = []
         while let curr = list {
-            arr.append(SignerImpl(signer: curr))
+            arr.append(SignerImpl(signer: UncheckedSendable(curr)))
             list = curr.pointee.next
         }
-        return AnyCollection(arr)
+        return arr
     }
 
     public static func first() throws -> SignerImpl {
@@ -96,10 +97,17 @@ public struct SignerImpl {
                 $0.data.deallocate()
             }
         }
+        let sendableProgress = UncheckedSendable(progress)
+        let sendableEntsArray = UncheckedSendable(entsArray)
         try certificate.data().withUnsafeBytes { cert in
+            let sendableCert = UncheckedSendable(cert)
             try privateKey.data.withUnsafeBytes { priv in
                 var exception: UnsafeMutablePointer<Int8>?
                 defer { exception.map { free($0) } }
+
+                let progress = sendableProgress.value
+                let cert = sendableCert.value
+                let entsArray = sendableEntsArray.value
 
                 guard let certBase = cert.baseAddress,
                     let privBase = priv.baseAddress
@@ -137,22 +145,13 @@ public struct SignerImpl {
         entitlementMapping: [URL: Entitlements],
         progress: @escaping (Double?) -> Void
     ) async throws {
-        try await withCheckedThrowingContinuation { cont in
-            Self.signingQueue.async {
-                do {
-                    try self._sign(
-                        app: app,
-                        certificate: certificate,
-                        privateKey: privateKey,
-                        entitlementMapping: entitlementMapping,
-                        progress: progress
-                    )
-                    cont.resume()
-                } catch {
-                    cont.resume(throwing: error)
-                }
-            }
-        }
+        try self._sign(
+            app: app,
+            certificate: certificate,
+            privateKey: privateKey,
+            entitlementMapping: entitlementMapping,
+            progress: progress
+        )
     }
 
     public func analyze(executable: URL) throws -> Data {
@@ -160,8 +159,10 @@ public struct SignerImpl {
             guard let path = path else { throw Error.badFilePath }
             var exception: UnsafeMutablePointer<Int8>?
             defer { exception.map { free($0) } }
-            return try Data { signer.pointee.analyze(path, &$0, &exception) }
-                .orThrow(Error.signer(exception.map { String(cString: $0) }))
+            var count = 0
+            guard let bytes = signer.pointee.analyze(path, &count, &exception)
+                  else { throw Error.signer(exception.map { String(cString: $0) })}
+            return Data(bytesNoCopy: bytes, count: count, deallocator: .free)
         }
     }
 

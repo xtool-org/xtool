@@ -40,10 +40,10 @@ public struct Signer {
     }
 
     public let context: SigningContext
-    public let confirmRevocation: ([DeveloperServicesCertificate]) async -> Bool
+    public let confirmRevocation: @Sendable ([DeveloperServicesCertificate]) async -> Bool
     public init(
         context: SigningContext,
-        confirmRevocation: @escaping ([DeveloperServicesCertificate]) async -> Bool
+        confirmRevocation: @escaping @Sendable ([DeveloperServicesCertificate]) async -> Bool
     ) {
         self.context = context
         self.confirmRevocation = confirmRevocation
@@ -52,7 +52,7 @@ public struct Signer {
     public func sign(
         app: URL,
         status: @escaping (String) -> Void,
-        progress: @escaping (Double?) -> Void,
+        progress: @escaping @Sendable (Double?) -> Void,
         didProvision: @escaping () throws -> Void = {}
     ) async throws -> String {
         status(NSLocalizedString("signer.provisioning", value: "Provisioning", comment: ""))
@@ -101,20 +101,6 @@ public struct Signer {
         )
 
         return mainInfo.newBundleID
-    }
-
-    public func sign(
-        app: URL,
-        status: @escaping (String) -> Void,
-        progress: @escaping (Double?) -> Void,
-        didProvision: @escaping () throws -> Void = {},
-        completion: @escaping (Result<String, Swift.Error>) -> Void
-    ) {
-        Task {
-            completion(await Result { try await sign(
-                app: app, status: status, progress: progress, didProvision: didProvision)
-            })
-        }
     }
 
 }

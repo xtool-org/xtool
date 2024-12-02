@@ -3,7 +3,7 @@
 import Foundation
 import CSupersette
 
-public struct SupersetteADIProvider: RawADIProvider {
+public actor SupersetteADIProvider: RawADIProvider {
     @MainActor private static var loadTask: Task<Void, Error>?
 
     public let directory: URL
@@ -27,14 +27,14 @@ public struct SupersetteADIProvider: RawADIProvider {
             let applemusic = tmp.appending(path: "applemusic.apk")
             if !applemusic.exists {
                 print("[Downloading libraries] ...", terminator: "")
-                fflush(stdout)
+                fflush(stdoutSafe)
                 let url = URL(string: "https://apps.mzstatic.com/content/android-apple-music-apk/applemusic.apk")!
                 defer { print("") }
                 let data = try await httpClient.makeRequest(HTTPRequest(url: url)) { progress in
                     guard let progress else { return }
                     let progString = "\(Int(progress * 100))%".padding(toLength: 4, leading: true)
                     print("\r[Downloading libraries] \(progString)", terminator: "")
-                    fflush(stdout)
+                    fflush(stdoutSafe)
                 }.body!
                 try data.write(to: applemusic)
             }
@@ -48,6 +48,7 @@ public struct SupersetteADIProvider: RawADIProvider {
             #endif
             let archDir = "lib/\(arch)"
 
+            // TODO: Use ZIPFoundation
             let proc = Process()
             proc.executableURL = URL(filePath: "/usr/bin/unzip")
             proc.arguments = [

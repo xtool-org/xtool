@@ -7,8 +7,8 @@
 
 import Foundation
 
-public struct HTTPRequest {
-    public enum Body {
+public struct HTTPRequest: Sendable {
+    public enum Body: Sendable {
         case buffer(Data)
     }
 
@@ -30,7 +30,7 @@ public struct HTTPRequest {
     }
 }
 
-public struct HTTPResponse {
+public struct HTTPResponse: Sendable {
     public var url: URL
     public var status: Int
     public var headers: [String: String]
@@ -49,8 +49,11 @@ public struct HTTPResponse {
     }
 }
 
-public protocol HTTPClientProtocol {
-    func makeRequest(_ request: HTTPRequest, onProgress: (Double?) -> Void) async throws -> HTTPResponse
+public protocol HTTPClientProtocol: Sendable {
+    func makeRequest(
+        _ request: HTTPRequest,
+        onProgress: sending @isolated(any) (Double?) -> Void
+    ) async throws -> HTTPResponse
     func makeWebSocket(url: URL) async throws -> WebSocketSession
 }
 
@@ -60,18 +63,18 @@ extension HTTPClientProtocol {
     }
 }
 
-public protocol WebSocketSession {
+public protocol WebSocketSession: Sendable {
     func receive() async throws -> WebSocketMessage
     func send(_ message: WebSocketMessage) async throws
     func close()
 }
 
-public enum WebSocketMessage {
+public enum WebSocketMessage: Sendable {
     case text(String)
     case data(Data)
 }
 
-public protocol HTTPClientFactory {
+public protocol HTTPClientFactory: Sendable {
     func shutdown() // client is invalidated after this
     func makeClient() -> HTTPClientProtocol
 }

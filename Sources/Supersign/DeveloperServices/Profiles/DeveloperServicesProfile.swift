@@ -8,8 +8,8 @@
 
 import Foundation
 
-public struct DeveloperServicesProfile: Decodable {
-    public struct ID: RawRepresentable, Decodable {
+public struct DeveloperServicesProfile: Decodable, Sendable {
+    public struct ID: RawRepresentable, Decodable, Sendable {
         public let rawValue: String
         public init(rawValue: String) { self.rawValue = rawValue }
     }

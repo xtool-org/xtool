@@ -25,7 +25,7 @@ protocol GrandSlamDataDecoder {
     static func decode(data: Data) throws -> Value
 }
 
-protocol GrandSlamRequest {
+protocol GrandSlamRequest: Sendable {
     associatedtype Decoder: GrandSlamDataDecoder
 
     static var endpoint: GrandSlamEndpoint { get }

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public protocol AnisetteDataProvider {
+public protocol AnisetteDataProvider: Sendable {
     // This is a suggestion and not a requirement.
     func resetProvisioning() async
     func provisioningData() -> ProvisioningData?
@@ -16,7 +16,7 @@ public protocol AnisetteDataProvider {
     func fetchAnisetteData() async throws -> AnisetteData
 }
 
-public struct ProvisioningData: Hashable, Codable {
+public struct ProvisioningData: Hashable, Codable, Sendable {
     public var localUserUID: UUID
     public var routingInfo: UInt64
     public var adiPb: Data

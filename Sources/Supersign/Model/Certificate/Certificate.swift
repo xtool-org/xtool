@@ -11,7 +11,7 @@ import X509
 import SwiftASN1
 
 /// A certificate in DER format
-public struct Certificate: Codable {
+public struct Certificate: Codable, Sendable {
 
     public enum Error: Swift.Error {
         case invalidCertificate

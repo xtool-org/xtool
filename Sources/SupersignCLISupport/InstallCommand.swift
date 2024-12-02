@@ -3,7 +3,7 @@ import Supersign
 import SwiftyMobileDevice
 import ArgumentParser
 
-struct InstallCommand: ParsableCommand {
+struct InstallCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "install",
         abstract: "Install an ipa file to your device"
@@ -20,7 +20,7 @@ struct InstallCommand: ParsableCommand {
         help: "The path to a custom app/ipa to install"
     ) var path: String
 
-    func run() throws {
+    func run() async throws {
         let token = try account.flatMap(AuthToken.init(string:)) ?? AuthToken.saved()
 
         let username = token.appleID
@@ -28,10 +28,7 @@ struct InstallCommand: ParsableCommand {
 
         print("Installing to device: \(client.deviceName) (udid: \(client.udid))")
 
-        let semaphore = DispatchSemaphore(value: 0)
-        let installDelegate = SupersignCLIDelegate(preferredTeam: team.map(DeveloperServicesTeam.ID.init)) {
-            semaphore.signal()
-        }
+        let installDelegate = SupersignCLIDelegate(preferredTeam: team.map(DeveloperServicesTeam.ID.init))
         let installer = IntegratedInstaller(
             udid: client.udid,
             lookupMode: .only(client.connectionType),
@@ -41,8 +38,13 @@ struct InstallCommand: ParsableCommand {
             storage: SupersignCLI.config.storage,
             delegate: installDelegate
         )
-        installer.install(app: URL(fileURLWithPath: path))
-        semaphore.wait()
-        _ = installer
+
+        do {
+            try await installer.install(app: URL(fileURLWithPath: path))
+            print("\nSuccessfully installed!")
+        } catch {
+            print("\nFailed :(")
+            print("Error: \(error)")
+        }
     }
 }

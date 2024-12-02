@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum DeveloperServicesPlatform: Decodable, Hashable {
+public enum DeveloperServicesPlatform: Decodable, Hashable, Sendable {
     private static let known: ([String: DeveloperServicesPlatform], [DeveloperServicesPlatform: String]) = {
         var first: [String: DeveloperServicesPlatform] = [:]
         var second: [DeveloperServicesPlatform: String] = [:]

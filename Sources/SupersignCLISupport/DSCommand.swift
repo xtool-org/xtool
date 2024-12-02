@@ -30,7 +30,7 @@ private extension AuthToken {
             storage: SupersignCLI.config.storage
         )
         if resetProvisioning {
-            await provider.resetProvisioning()
+            provider.resetProvisioning()
         }
         let authDelegate = SupersignCLIAuthDelegate()
         let manager = try DeveloperServicesLoginManager(
@@ -120,7 +120,7 @@ struct DSTeamsListCommand: AsyncParsableCommand {
 }
 
 struct DSAnisetteCommand: AsyncParsableCommand {
-    private class Provider: RawADIProvider, RawADIProvisioningSession {
+    private final class Provider: RawADIProvider, RawADIProvisioningSession {
         func startProvisioning(spim: Data, userID: UUID) -> (RawADIProvisioningSession, Data) {
             print("spim: \(spim.base64EncodedString())")
             return (self, Data(base64Encoded: Console.prompt("cpim: ")!)!)

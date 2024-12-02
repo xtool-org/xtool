@@ -8,19 +8,19 @@
 
 import Foundation
 
-public struct DeveloperServicesCertificate: Decodable {
-    public struct ID: RawRepresentable, Decodable {
+public struct DeveloperServicesCertificate: Decodable, Sendable {
+    public struct ID: RawRepresentable, Decodable, Sendable {
         public let rawValue: String
         public init(rawValue: String) { self.rawValue = rawValue }
     }
     public let id: ID
 
-    public struct SerialNumber: RawRepresentable, Decodable {
+    public struct SerialNumber: RawRepresentable, Decodable, Sendable {
         public let rawValue: String
         public init(rawValue: String) { self.rawValue = rawValue }
     }
 
-    public enum Kind: String, Decodable, CaseIterable {
+    public enum Kind: String, Decodable, CaseIterable, Sendable {
         case development = "DEVELOPMENT"
         case distribution = "DISTRIBUTION"
         case iOSDevelopment = "IOS_DEVELOPMENT"
@@ -44,7 +44,7 @@ public struct DeveloperServicesCertificate: Decodable {
         }
     }
 
-    public struct Attributes: Decodable {
+    public struct Attributes: Decodable, Sendable {
         public let serialNumber: SerialNumber
         public let name: String
         public let kind: Kind

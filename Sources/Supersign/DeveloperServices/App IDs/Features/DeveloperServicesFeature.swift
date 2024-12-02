@@ -9,6 +9,6 @@
 import Foundation
 import ProtoCodable
 
-public protocol DeveloperServicesFeature: ProtoCodable {
+public protocol DeveloperServicesFeature: ProtoCodable, Sendable {
     static var identifier: String { get }
 }

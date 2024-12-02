@@ -8,8 +8,9 @@
 
 import Foundation
 import SwiftyMobileDevice
+import ConcurrencyExtras
 
-public final class HeartbeatHandler {
+public final class HeartbeatHandler: Sendable {
     private struct Error: Swift.Error {}
 
     private struct ReceivedPacket: Decodable {
@@ -49,8 +50,7 @@ public final class HeartbeatHandler {
     private let heartbeatQueue = DispatchQueue(
         label: "com.kabiroberai.Supersign.heartbeat-queue"
     )
-    private let stopLock = NSLock()
-    private var isStopped = false
+    private let isStopped = LockIsolated(false)
 
     private let device: Device
     private let client: LockdownClient
@@ -99,9 +99,7 @@ public final class HeartbeatHandler {
                 guard let self = self else { break }
 
                 do {
-                    self.stopLock.lock()
-                    defer { self.stopLock.unlock() }
-                    guard !self.isStopped else { break }
+                    guard !self.isStopped.value else { break }
                 }
 
                 do {
@@ -121,8 +119,6 @@ public final class HeartbeatHandler {
     }
 
     public func stop() {
-        stopLock.lock()
-        defer { stopLock.unlock() }
-        isStopped = true
+        self.isStopped.setValue(true)
     }
 }

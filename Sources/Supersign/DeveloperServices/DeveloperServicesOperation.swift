@@ -8,7 +8,7 @@
 
 import Foundation
 
-public protocol DeveloperServicesOperation {
+public protocol DeveloperServicesOperation: Sendable {
     associatedtype Response
 
     var context: SigningContext { get }

@@ -29,10 +29,10 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
     }
 
     public let context: SigningContext
-    public let confirmRevocation: ([DeveloperServicesCertificate]) async -> Bool
+    public let confirmRevocation: @Sendable ([DeveloperServicesCertificate]) async -> Bool
     public init(
         context: SigningContext,
-        confirmRevocation: @escaping ([DeveloperServicesCertificate]) async -> Bool
+        confirmRevocation: @escaping @Sendable ([DeveloperServicesCertificate]) async -> Bool
     ) {
         self.context = context
         self.confirmRevocation = confirmRevocation

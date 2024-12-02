@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct SigningContext {
+public struct SigningContext: Sendable {
 
     public let udid: String
     public let deviceName: String

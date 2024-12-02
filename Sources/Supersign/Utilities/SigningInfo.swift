@@ -7,13 +7,14 @@
 //
 
 import Foundation
+import ConcurrencyExtras
 
-public struct SigningInfo: Codable {
+public struct SigningInfo: Codable, Sendable {
     public let privateKey: PrivateKey
     public let certificate: Certificate
 }
 
-public protocol SigningInfoManager {
+public protocol SigningInfoManager: Sendable {
     func info(forTeamID teamID: DeveloperServicesTeam.ID) throws -> SigningInfo?
     func setInfo(_ info: SigningInfo?, forTeamID teamID: DeveloperServicesTeam.ID) throws
 }
@@ -29,8 +30,8 @@ extension SigningInfoManager {
     }
 }
 
-public class MemoryBackedSigningInfoManager: SigningInfoManager {
-    private var infos: [String: SigningInfo] = [:]
+public final class MemoryBackedSigningInfoManager: SigningInfoManager {
+    private let infos = LockIsolated<[String: SigningInfo]>([:])
 
     public init() {}
 
@@ -39,7 +40,9 @@ public class MemoryBackedSigningInfoManager: SigningInfoManager {
     }
 
     public func setInfo(_ info: SigningInfo?, forTeamID teamID: DeveloperServicesTeam.ID) throws {
-        infos[teamID.rawValue] = info
+        infos.withValue {
+            $0[teamID.rawValue] = info
+        }
     }
 }
 

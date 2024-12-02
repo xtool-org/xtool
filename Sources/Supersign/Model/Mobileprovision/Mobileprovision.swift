@@ -9,7 +9,7 @@
 import Foundation
 import CSupersign
 
-public final class Mobileprovision: Decodable {
+public final class Mobileprovision: Decodable, @unchecked Sendable {
 
     public enum Error: Swift.Error {
         case invalidProfile

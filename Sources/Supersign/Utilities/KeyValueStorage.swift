@@ -7,12 +7,13 @@
 //
 
 import Foundation
+import ConcurrencyExtras
 
 public enum KeyValueStorageError: Error {
     case stringConversionFailure
 }
 
-public protocol KeyValueStorage {
+public protocol KeyValueStorage: Sendable {
     func data(forKey key: String) throws -> Data?
     func setData(_ data: Data?, forKey key: String) throws
     // default implementations provided
@@ -43,9 +44,9 @@ extension KeyValueStorage {
     }
 }
 
-public class MemoryKeyValueStorage: KeyValueStorage {
+public final class MemoryKeyValueStorage: KeyValueStorage {
 
-    private var dict: [String: Data] = [:]
+    private let dict = LockIsolated<[String: Data]>([:])
     public init() {}
 
     public func data(forKey key: String) throws -> Data? {
@@ -53,7 +54,7 @@ public class MemoryKeyValueStorage: KeyValueStorage {
     }
 
     public func setData(_ data: Data?, forKey key: String) throws {
-        dict[key] = data
+        dict.withValue { $0[key] = data }
     }
 
 }

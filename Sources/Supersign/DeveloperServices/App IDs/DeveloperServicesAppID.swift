@@ -9,8 +9,8 @@
 import Foundation
 import ProtoCodable
 
-public struct DeveloperServicesAppID: Decodable {
-    public struct ID: RawRepresentable, Decodable {
+public struct DeveloperServicesAppID: Decodable, Sendable {
+    public struct ID: RawRepresentable, Decodable, Sendable {
         public let rawValue: String
         public init(rawValue: String) { self.rawValue = rawValue }
     }

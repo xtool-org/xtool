@@ -3,7 +3,7 @@ import Supersign
 import SwiftyMobileDevice
 import ArgumentParser
 
-struct UninstallCommand: ParsableCommand {
+struct UninstallCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "uninstall",
         abstract: "Uninstall an installed app"
@@ -15,25 +15,17 @@ struct UninstallCommand: ParsableCommand {
         help: "The app to uninstall"
     ) var bundleID: String
 
-    func run() throws {
+    func run() async throws {
         let installProxy = try InstallationProxyClient(device: connection.device, label: "supersign-inst")
-        let sem = DispatchSemaphore(value: 0)
-        var error: Error?
-        installProxy.uninstall(
-            bundleID: bundleID,
-            progress: { _ in },
-            completion: { result in
-                if case let .failure(err) = result {
-                    error = err
-                }
-                sem.signal()
-            }
-        )
-        sem.wait()
-        if let error = error {
+        do {
+            try await installProxy.uninstall(
+                bundleID: bundleID,
+                progress: { _ in }
+            )
+        } catch {
             print("Failed: \(error)")
-        } else {
-            print("Success!")
+            return
         }
+        print("Success!")
     }
 }

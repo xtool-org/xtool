@@ -8,8 +8,8 @@
 
 import Foundation
 
-public struct DeveloperServicesAppGroup: Decodable {
-    public struct ID: RawRepresentable, Decodable {
+public struct DeveloperServicesAppGroup: Decodable, Sendable {
+    public struct ID: RawRepresentable, Decodable, Sendable {
         public let rawValue: String
         public init(rawValue: String) { self.rawValue = rawValue }
     }
@@ -17,7 +17,7 @@ public struct DeveloperServicesAppGroup: Decodable {
 
     public let name: String
 
-    public struct GroupID: RawRepresentable, Hashable, Codable {
+    public struct GroupID: RawRepresentable, Hashable, Codable, Sendable {
         public let rawValue: String
         public init(rawValue: String) { self.rawValue = rawValue }
     }

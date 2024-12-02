@@ -10,7 +10,7 @@ import Foundation
 
 public struct DeveloperServicesGetProfileRequest: DeveloperServicesPlatformRequest {
 
-    public struct Response: Decodable {
+    public struct Response: Decodable, Sendable {
         public let provisioningProfile: DeveloperServicesProfile
     }
     public typealias Value = DeveloperServicesProfile
@@ -24,8 +24,8 @@ public struct DeveloperServicesGetProfileRequest: DeveloperServicesPlatformReque
         return ["teamId": teamID.rawValue, "appIdId": appIDID.rawValue]
     }
 
-    public func parse(_ response: Response, completion: @escaping (Result<Value, Error>) -> Void) {
-        completion(.success(response.provisioningProfile))
+    public func parse(_ response: Response) -> DeveloperServicesProfile {
+        response.provisioningProfile
     }
 
     public init(

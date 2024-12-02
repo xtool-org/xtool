@@ -9,7 +9,7 @@
 import Foundation
 import SwiftyMobileDevice
 
-public final class IPAUploader {
+public final class IPAUploader: Sendable {
 
     public enum Error: Swift.Error {
         case unexpectedSymlink(at: URL)
@@ -18,7 +18,7 @@ public final class IPAUploader {
     private static let packagePath = URL(fileURLWithPath: "PublicStaging")
     private static let bufferSize = 1 << 20 // 1 MB
 
-    public class UploadedIPA {
+    public final class UploadedIPA: Sendable {
         public let uploader: IPAUploader
         let location: URL
         fileprivate init(uploader: IPAUploader, location: URL) {
@@ -26,21 +26,19 @@ public final class IPAUploader {
             self.location = location
         }
 
-        public private(set) var isDeleted: Bool = false
-
         deinit { delete() }
+
         public func delete() {
-            guard !isDeleted else { return }
             try? uploader.client.removeItemAndContents(at: location)
         }
     }
 
     private let client: AFCClient
-    public init(connection: Connection) throws {
-        self.client = try connection.startClient()
+    public init(connection: Connection) async throws {
+        self.client = try await connection.startClient()
     }
 
-    private func upload(_ src: URL, to dest: URL, progress: (Double) -> Void) throws {
+    private func upload(_ src: URL, to dest: URL, progress: (Double) -> Void) async throws {
         let srcData = try Data(contentsOf: src)
         let size = srcData.count
         let sizeDouble = Double(size)
@@ -50,6 +48,10 @@ public final class IPAUploader {
 
         var totalWritten = 0
         while totalWritten != size {
+            if totalWritten != 0 {
+                await Task.yield()
+                try Task.checkCancellation()
+            }
             let buf = srcData.dropFirst(totalWritten).prefix(bufferSize)
             let bufSize = buf.count
             var bufWritten = 0
@@ -63,7 +65,7 @@ public final class IPAUploader {
         }
     }
 
-    public func upload(app: URL, progress: (Double) -> Void) throws -> UploadedIPA {
+    public func upload(app: URL, progress: (Double) -> Void) async throws -> UploadedIPA {
         if try !client.fileExists(at: Self.packagePath) {
             try client.createDirectory(at: Self.packagePath)
         }
@@ -73,7 +75,7 @@ public final class IPAUploader {
             try client.removeItemAndContents(at: dest)
         }
 
-        try upload(app, to: dest, progress: progress)
+        try await upload(app, to: dest, progress: progress)
 
         return UploadedIPA(uploader: self, location: dest)
     }
