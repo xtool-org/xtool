@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftyMobileDevice
+import ConcurrencyExtras
 
 extension LockdownClient {
     static let installerLabel = "supersign"
@@ -15,13 +16,13 @@ extension LockdownClient {
 
 #if !os(iOS)
 
-public protocol IntegratedInstallerDelegate: AnyObject {
+public protocol IntegratedInstallerDelegate: AnyObject, Sendable {
 
     func fetchCode() async -> String?
-    func fetchTeam(fromTeams teams: [DeveloperServicesTeam], completion: @escaping (DeveloperServicesTeam?) -> Void)
+    func fetchTeam(fromTeams teams: [DeveloperServicesTeam]) async -> DeveloperServicesTeam?
+
     func setPresentedMessage(_ message: IntegratedInstaller.Message?)
     func installerDidUpdate(toStage stage: String, progress: Double?)
-    func installerDidComplete(withResult result: Result<String, Error>)
 
     // defaults to always returning true
     func confirmRevocation(of certificates: [DeveloperServicesCertificate]) async -> Bool
@@ -32,14 +33,11 @@ public protocol IntegratedInstallerDelegate: AnyObject {
     /// - Parameter directory: The directory into which `ipa` should be decompressed.
     /// - Parameter progress: A closure to which the callee can provide progress updates.
     /// - Parameter currentProgress: The current progress, or `nil` to indicate it is indeterminate.
-    /// - Parameter completion: A completion handler to call once decompression is finished.
-    /// - Parameter success: Whether or not extraction was successful.
     func decompress(
         ipa: URL,
         in directory: URL,
-        progress: @escaping (_ currentProgress: Double?) -> Void,
-        completion: @escaping (_ success: Bool) -> Void
-    )
+        progress: @escaping @Sendable (_ currentProgress: Double?) -> Void
+    ) async throws
 
     // `compress` is required because the only way to upload symlinks via afc is by
     // putting them in a zip archive (afc_make_symlink was disabled due to security or
@@ -50,14 +48,10 @@ public protocol IntegratedInstallerDelegate: AnyObject {
     /// - Parameter payloadDir: The `Payload` directory which is to be compressed.
     /// - Parameter progress: A closure to which the callee can provide progress updates.
     /// - Parameter currentProgress: The current progress, or `nil` to indicate it is indeterminate.
-    /// - Parameter completion: A completion handler to call with the compressed file's URL.
-    /// - Parameter result: A result with the URL of the compressed file. The caller is responsible
-    /// for cleaning this up once installation is complete.
     func compress(
         payloadDir: URL,
-        progress: @escaping (_ currentProgress: Double?) -> Void,
-        completion: @escaping (_ result: Result<URL, Error>) -> Void
-    )
+        progress: @escaping @Sendable (_ currentProgress: Double?) -> Void
+    ) async throws -> URL
 
 }
 
@@ -67,13 +61,12 @@ extension IntegratedInstallerDelegate {
     }
 }
 
-public final class IntegratedInstaller {
+public actor IntegratedInstaller {
 
     public enum Error: LocalizedError {
         case alreadyInstalling
         case deviceInfoFetchFailed
         case noTeamFound
-        case userCancelled
         case appExtractionFailed
         case appCorrupted
         case appPackagingFailed
@@ -89,7 +82,7 @@ public final class IntegratedInstaller {
         case unlockDevice
     }
 
-    public enum Credentials {
+    public enum Credentials: Sendable {
         case password(String)
         case token(DeveloperServicesLoginToken)
     }
@@ -106,56 +99,51 @@ public final class IntegratedInstaller {
 
     private let tempDir = FileManager.default.temporaryDirectoryShim
         .appendingPathComponent("com.kabiroberai.Supercharge-Installer.Staging")
-    private let installQueue =
-        DispatchQueue(label: "com.kabiroberai.Supercharge-Installer.install-queue", qos: .userInitiated, attributes: [])
 
-    private enum ExecutionState {
-        case running
-        case complete
-    }
+    private var stage: String?
 
-    private var executionStateLock = NSLock()
-    private var executionState: ExecutionState = .running
+    private nonisolated let updateTask = LockIsolated<Task<Void, Never>?>(nil)
 
-    private func shouldContinue() -> Bool {
-        executionStateLock.lock()
-        defer { executionStateLock.unlock() }
-        switch executionState {
-        case .running:
-            return true
-        case .complete:
-            return false
+    private nonisolated func queueUpdateTask(
+        _ perform: @escaping @Sendable (isolated IntegratedInstaller) async -> Void
+    ) {
+        updateTask.withValue { task in
+            task = Task { [prev = task] in
+                await prev?.value
+                await perform(self)
+            }
         }
     }
 
-    private func completion(_ result: Result<String, Swift.Error>) {
-        executionStateLock.lock()
-        defer { executionStateLock.unlock() }
-        guard executionState != .complete else { return }
-        try? FileManager.default.removeItem(at: tempDir)
-        executionState = .complete
-        delegate?.installerDidComplete(withResult: result)
-        delegate = nil
+    private func updateStage(
+        to stage: String,
+        initialProgress: Double? = 0
+    ) async throws {
+        await Task.yield()
+        try Task.checkCancellation()
+        updateStageIgnoringCancellation(to: stage, initialProgress: initialProgress)
     }
 
-    public func cancel() {
-        completion(.failure(Error.userCancelled))
-    }
-
-    private var stage: String?
-    private func updateStage(to stage: String, initialProgress: Double? = 0, ignoreCancellation: Bool = false) -> Bool {
-        guard ignoreCancellation || shouldContinue(), self.stage != stage else { return false }
+    private func updateStageIgnoringCancellation(
+        to stage: String,
+        initialProgress: Double? = 0
+    ) {
+        guard self.stage != stage else { return }
         self.stage = stage
         delegate?.installerDidUpdate(toStage: stage, progress: initialProgress)
-        return true
     }
-    private func updateProgress(to progress: Double?, ignoreCancellation: Bool = false) -> Bool {
-        guard ignoreCancellation || shouldContinue() else { return false }
+
+    private func updateProgress(to progress: Double?) async throws {
+        await Task.yield()
+        try Task.checkCancellation()
+        updateProgressIgnoringCancellation(to: progress)
+    }
+
+    private func updateProgressIgnoringCancellation(to progress: Double?) {
         guard let stage = stage else {
             preconditionFailure("Cannot change progress without setting stage at least once")
         }
         delegate?.installerDidUpdate(toStage: stage, progress: progress)
-        return true
     }
 
     public init(
@@ -176,7 +164,10 @@ public final class IntegratedInstaller {
         self.delegate = delegate
     }
 
-    private func performWithRecovery<T>(repeatAfter: TimeInterval = 0.1, block: () throws -> T) throws -> T {
+    private func performWithRecovery<T>(
+        repeatAfter: TimeInterval = 0.1,
+        block: () async throws -> sending T
+    ) async throws -> sending T {
         var currMessage: Message?
 
         defer {
@@ -186,10 +177,9 @@ public final class IntegratedInstaller {
         }
 
         while true {
-            guard shouldContinue() else { throw Error.userCancelled }
             let nextMessage: Message
             do {
-                return try block()
+                return try await block()
             } catch let error as LockdownClient.Error where error == .pairingDialogResponsePending {
                 nextMessage = .pairDevice
             } catch let error as LockdownClient.Error where error == .passwordProtected {
@@ -199,24 +189,22 @@ public final class IntegratedInstaller {
                 delegate?.setPresentedMessage(nextMessage)
                 currMessage = nextMessage
             }
-            if repeatAfter > 0 {
-                Thread.sleep(forTimeInterval: repeatAfter)
-            }
+            try await Task.sleep(seconds: repeatAfter)
         }
     }
 
     // returns nil for pairingKeys if !configureDevice
     // returns nil overall if cancelled
-    private func prepareDevice() throws -> (deviceName: String, pairingKeys: Data?)? {
+    private func prepareDevice() async throws -> (deviceName: String, pairingKeys: Data?) {
         // TODO: Maybe use `Connection` here instead of creating the lockdown
         // client manually?
 
         let device = try Device(udid: udid, lookupMode: lookupMode)
 
-        guard updateProgress(to: 1/3) else { return nil }
+        try await updateProgress(to: 1/3)
 
         // we can't reuse any previously created client because we need to perform a handshake this time
-        let lockdownClient = try performWithRecovery {
+        let lockdownClient = try await performWithRecovery {
             try LockdownClient(
                 device: device,
                 label: LockdownClient.installerLabel,
@@ -227,14 +215,14 @@ public final class IntegratedInstaller {
         let deviceName = try lockdownClient.deviceName()
 
         if !configureDevice {
-            guard updateProgress(to: 1) else { return nil }
+            try await updateProgress(to: 1)
             return (deviceName, nil)
         }
 
         try lockdownClient.setValue(udid, forDomain: "com.apple.mobile.wireless_lockdown", key: "WirelessBuddyID")
         try lockdownClient.setValue(true, forDomain: "com.apple.mobile.wireless_lockdown", key: "EnableWifiConnections")
 
-        guard updateProgress(to: 2/3) else { return nil }
+        try await updateProgress(to: 2/3)
 
         // now create a new pair record based off the existing one, but replacing the
         // SystemBUID and HostID. This is necessary because if two machines with the
@@ -273,7 +261,7 @@ public final class IntegratedInstaller {
             hostID: hostID,
             systemBUID: newSystemBUID
         )
-        try performWithRecovery {
+        try await performWithRecovery {
             try lockdownClient.pair(withRecord: record)
         }
 
@@ -281,7 +269,7 @@ public final class IntegratedInstaller {
             fromPropertyList: plist, format: plistFormat, options: 0
         )
 
-        guard updateProgress(to: 1) else { return nil }
+        try await updateProgress(to: 1)
 
         return (deviceName, data)
     }
@@ -293,19 +281,19 @@ public final class IntegratedInstaller {
         team: DeveloperServicesTeam,
         ipa: URL,
         bundleID: String
-    ) {
-        guard shouldContinue() else { return }
-        executionStateLock.lock()
-        defer { executionStateLock.unlock() }
+    ) async throws -> String {
+        try Task.checkCancellation()
         let appInstaller = AppInstaller(ipa: ipa, udid: udid, connectionPreferences: .init(lookupMode: lookupMode))
         self.appInstaller = appInstaller
-        appInstaller.install(
+        try await appInstaller.install(
             progress: { stage in
-                _ = self.updateStage(to: stage.displayName, ignoreCancellation: true)
-                _ = self.updateProgress(to: stage.displayProgress, ignoreCancellation: true)
-            },
-            completion: { self.completion($0.map { bundleID }) }
+                self.queueUpdateTask {
+                    $0.updateStageIgnoringCancellation(to: stage.displayName)
+                    $0.updateProgressIgnoringCancellation(to: stage.displayProgress)
+                }
+            }
         )
+        return bundleID
     }
 
     private func packageAndInstall(
@@ -315,29 +303,27 @@ public final class IntegratedInstaller {
         team: DeveloperServicesTeam,
         appDir: URL,
         bundleID: String
-    ) {
-        guard self.updateStage(to: "Packaging", initialProgress: nil)
-            else { return }
+    ) async throws -> String {
+        try await self.updateStage(to: "Packaging", initialProgress: nil)
 
-        delegate?.compress(
+        let ipa = try await delegate?.compress(
             payloadDir: appDir.deletingLastPathComponent(),
             progress: { progress in
-                _ = self.updateProgress(to: progress, ignoreCancellation: true)
-            },
-            completion: { result in
-                guard self.updateProgress(to: 1) else { return self.completion(.failure(Error.userCancelled)) }
-                guard let ipa = result.get(withErrorHandler: self.completion) else { return }
-                self.installQueue.async {
-                    self.install(
-                        deviceInfo: deviceInfo,
-                        token: token,
-                        client: client,
-                        team: team,
-                        ipa: ipa,
-                        bundleID: bundleID
-                    )
+                self.queueUpdateTask {
+                    $0.updateProgressIgnoringCancellation(to: progress)
                 }
             }
+        )
+
+        try await self.updateProgress(to: 1)
+
+        return try await self.install(
+            deviceInfo: deviceInfo,
+            token: token,
+            client: client,
+            team: team,
+            ipa: ipa!,
+            bundleID: bundleID
         )
     }
 
@@ -348,46 +334,36 @@ public final class IntegratedInstaller {
         client: DeveloperServicesClient,
         team: DeveloperServicesTeam,
         appDir: URL
-    ) {
-        guard self.updateStage(to: "Preparing device") else { return }
+    ) async throws -> String {
+        try await self.updateStage(to: "Preparing device")
 
-        let deviceName: String
-        let pairingKeys: Data?
+        let (deviceName, pairingKeys) = try await prepareDevice()
 
-        do {
-            guard let prepareResult = try prepareDevice()
-                else { return } // nil: user cancelled
-            (deviceName, pairingKeys) = prepareResult
-        } catch {
-            return completion(.failure(error))
-        }
+        let context = try SigningContext(
+            udid: udid,
+            deviceName: deviceName,
+            teamID: team.id,
+            client: client,
+            signingInfoManager: KeyValueSigningInfoManager(storage: storage),
+            platform: .iOS
+        )
 
-        let context: SigningContext
-        do {
-            context = try SigningContext(
-                udid: udid,
-                deviceName: deviceName,
-                teamID: team.id,
-                client: client,
-                signingInfoManager: KeyValueSigningInfoManager(storage: storage),
-                platform: .iOS
-            )
-        } catch {
-            return completion(.failure(error))
-        }
         let signer = Signer(context: context) { certs in
-            guard let delegate = self.delegate else { return false }
-            return await delegate.confirmRevocation(of: certs)
+            await self.delegate?.confirmRevocation(of: certs) ?? false
         }
-        signer.sign(
+        let bundleID = try await signer.sign(
             app: appDir,
-            status: { status in
-                _ = self.updateStage(to: status, ignoreCancellation: true)
+            status: { @Sendable status in
+                self.queueUpdateTask {
+                    $0.updateStageIgnoringCancellation(to: status)
+                }
             },
             progress: { progress in
-                _ = self.updateProgress(to: progress, ignoreCancellation: true)
+                self.queueUpdateTask {
+                    $0.updateProgressIgnoringCancellation(to: progress)
+                }
             },
-            didProvision: {
+            didProvision: { @Sendable in
                 if let pairingKeys = pairingKeys {
                     let info = try context.signingInfoManager.info(forTeamID: context.teamID)
                     try Superconfig(
@@ -401,18 +377,15 @@ public final class IntegratedInstaller {
                         token: token
                     ).save(inAppDir: appDir)
                 }
-            },
-            completion: { result in
-                guard let bundleID = result.get(withErrorHandler: self.completion) else { return }
-                self.packageAndInstall(
-                    deviceInfo: deviceInfo,
-                    token: token,
-                    client: client,
-                    team: team,
-                    appDir: appDir,
-                    bundleID: bundleID
-                )
             }
+        )
+        return try await self.packageAndInstall(
+            deviceInfo: deviceInfo,
+            token: token,
+            client: client,
+            team: team,
+            appDir: appDir,
+            bundleID: bundleID
         )
     }
 
@@ -422,126 +395,105 @@ public final class IntegratedInstaller {
         token: DeveloperServicesLoginToken,
         anisetteProvider: AnisetteDataProvider,
         appDir: URL
-    ) {
+    ) async throws -> String {
         let client = DeveloperServicesClient(
             loginToken: token,
             deviceInfo: deviceInfo,
             anisetteProvider: anisetteProvider
         )
-        client.send(DeveloperServicesListTeamsRequest()) { result in
-            guard let teams = result.get(withErrorHandler: self.completion) else { return }
-            guard self.updateProgress(to: 1) else { return }
-            switch teams.count {
-            case 0:
-                return self.completion(.failure(Error.noTeamFound))
-            case 1:
-                self.install(deviceInfo: deviceInfo, provisioningData: provisioningData, token: token, client: client, team: teams[0], appDir: appDir)
-            default:
-                self.delegate?.fetchTeam(fromTeams: teams) { team in
-                    self.installQueue.async {
-                        guard let team = team else { return self.completion(.failure(Error.userCancelled)) }
-                        self.install(deviceInfo: deviceInfo, provisioningData: provisioningData, token: token, client: client, team: team, appDir: appDir)
-                    }
-                }
-            }
+        let teams = try await client.send(DeveloperServicesListTeamsRequest())
+        try await self.updateProgress(to: 1)
+        let team: DeveloperServicesTeam
+        switch teams.count {
+        case 0:
+            throw Error.noTeamFound
+        case 1:
+            team = teams[0]
+        default:
+            guard let selectedTeam = await self.delegate?.fetchTeam(fromTeams: teams)
+                  else { throw CancellationError() }
+            team = selectedTeam
         }
+        return try await self.install(
+            deviceInfo: deviceInfo,
+            provisioningData: provisioningData,
+            token: token,
+            client: client,
+            team: team,
+            appDir: appDir
+        )
     }
 
-    private func install(decompressionDidSucceed: Bool) {
+    private func installAfterDecompression() async throws -> String {
         let payload = self.tempDir.appendingPathComponent("Payload")
-        guard decompressionDidSucceed,
-            let appDir = payload.implicitContents.first(where: { $0.pathExtension == "app" })
-            else { return self.completion(.failure(Error.appExtractionFailed)) }
+        guard let appDir = payload.implicitContents.first(where: { $0.pathExtension == "app" })
+            else { throw Error.appExtractionFailed }
 
         guard let deviceInfo = DeviceInfo.current() else {
-            return completion(.failure(Error.deviceInfoFetchFailed))
+            throw Error.deviceInfoFetchFailed
         }
 
-        guard updateStage(to: "Logging in") else { return }
+        try await updateStage(to: "Logging in")
 
-        do {
-            let anisetteProvider = try ADIDataProvider.adiProvider(deviceInfo: deviceInfo, storage: storage)
-            switch credentials {
-            case .password(let password):
-                try DeveloperServicesLoginManager(
-                    deviceInfo: deviceInfo,
-                    anisetteProvider: anisetteProvider
-                ).logIn(
-                    withUsername: self.appleID,
-                    password: password,
-                    twoFactorDelegate: self
-                ) { result in
-                    guard let token = result.get(withErrorHandler: self.completion) else { return }
-                    guard self.updateProgress(to: 1/2) else { return }
-                    self.install(
-                        deviceInfo: deviceInfo,
-                        provisioningData: anisetteProvider.provisioningData(),
-                        token: token,
-                        anisetteProvider: anisetteProvider,
-                        appDir: appDir
-                    )
-                }
-            case .token(let token):
-                self.install(
-                    deviceInfo: deviceInfo,
-                    provisioningData: anisetteProvider.provisioningData(),
-                    token: token,
-                    anisetteProvider: anisetteProvider,
-                    appDir: appDir
-                )
-            }
-        } catch {
-            return completion(.failure(error))
+        let anisetteProvider = try ADIDataProvider.adiProvider(deviceInfo: deviceInfo, storage: storage)
+        let token: DeveloperServicesLoginToken
+        switch credentials {
+        case .password(let password):
+            let newToken = try await DeveloperServicesLoginManager(
+                deviceInfo: deviceInfo,
+                anisetteProvider: anisetteProvider
+            ).logIn(
+                withUsername: self.appleID,
+                password: password,
+                twoFactorDelegate: self
+            )
+            try await self.updateProgress(to: 1/2)
+            token = newToken
+        case .token(let existingToken):
+            token = existingToken
         }
+        return try await self.install(
+            deviceInfo: deviceInfo,
+            provisioningData: anisetteProvider.provisioningData(),
+            token: token,
+            anisetteProvider: anisetteProvider,
+            appDir: appDir
+        )
     }
 
-    private func installOnQueue(app: URL) {
-        guard self.updateStage(to: "Unpacking app", initialProgress: nil) else { return }
+    @discardableResult
+    public func install(app: URL) async throws -> String {
+        try await self.updateStage(to: "Unpacking app", initialProgress: nil)
 
         if FileManager.default.fileExists(atPath: tempDir.path) {
             try? FileManager.default.removeItem(at: tempDir)
         }
 
-        do {
-            try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        } catch {
-            return completion(.failure(error))
-        }
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
 
         switch app.pathExtension {
         case "ipa":
-            delegate?.decompress(
+            try await delegate?.decompress(
                 ipa: app,
                 in: tempDir,
                 progress: { progress in
-                    _ = self.updateProgress(to: progress, ignoreCancellation: true)
-                },
-                completion: { success in
-                    guard self.updateProgress(to: 1) else { return self.completion(.failure(Error.userCancelled)) }
-                    self.installQueue.async {
-                        self.install(decompressionDidSucceed: success)
+                    self.queueUpdateTask {
+                        $0.updateProgressIgnoringCancellation(to: progress)
                     }
                 }
             )
+            try await self.updateProgress(to: 1)
+            return try await self.installAfterDecompression()
         case "app":
             let payload = tempDir.appendingPathComponent("Payload")
             let dest = payload.appendingPathComponent(app.lastPathComponent)
-            do {
-                try FileManager.default.createDirectory(at: payload, withIntermediateDirectories: false)
-                try FileManager.default.copyItem(at: app, to: dest)
-            } catch {
-                return completion(.failure(error))
-            }
-            guard self.updateProgress(to: 1) else { return self.completion(.failure(Error.userCancelled)) }
-            self.install(decompressionDidSucceed: true)
+            try FileManager.default.createDirectory(at: payload, withIntermediateDirectories: false)
+            try FileManager.default.copyItem(at: app, to: dest)
+            try await self.updateProgress(to: 1)
+            return try await self.installAfterDecompression()
         default:
-            return completion(.failure(Error.appExtractionFailed))
-        }
-    }
-
-    public func install(app: URL) {
-        installQueue.async {
-            self.installOnQueue(app: app)
+            throw Error.appExtractionFailed
         }
     }
 

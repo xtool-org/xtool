@@ -10,7 +10,7 @@ import Foundation
 
 public struct DeveloperServicesDeleteProfileRequest: DeveloperServicesPlatformRequest {
 
-    public struct Response: Decodable {}
+    public struct Response: Decodable, Sendable {}
     public typealias Value = Response
 
     public let platform: DeveloperServicesPlatform

@@ -9,7 +9,7 @@
 import Foundation
 import Superutils
 
-public protocol DeveloperServicesAPIVersion {
+public protocol DeveloperServicesAPIVersion: Sendable {
     func url(forAction action: String) -> URL?
     var contentType: String { get }
     var accept: String { get }

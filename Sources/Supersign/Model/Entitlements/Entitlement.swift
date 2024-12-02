@@ -9,7 +9,7 @@
 import Foundation
 import ProtoCodable
 
-public protocol Entitlement: ProtoCodable {
+public protocol Entitlement: ProtoCodable, Sendable {
     static var identifier: String { get }
     static var isFree: Bool { get }
     /// whether this entitlement should be included in developer services API requests

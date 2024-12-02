@@ -8,9 +8,9 @@
 
 import Foundation
 
-public class DeveloperServicesAssignAppGroupRequest: DeveloperServicesPlatformRequest {
+public final class DeveloperServicesAssignAppGroupRequest: DeveloperServicesPlatformRequest {
 
-    public struct Response: Decodable {}
+    public struct Response: Decodable, Sendable {}
     public typealias Value = Response
 
     public let platform: DeveloperServicesPlatform

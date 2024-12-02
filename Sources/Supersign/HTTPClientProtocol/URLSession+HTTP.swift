@@ -7,6 +7,7 @@
 
 #if !os(Linux)
 import Foundation
+import ConcurrencyExtras
 
 public struct UnknownHTTPError: Error {}
 
@@ -21,14 +22,16 @@ final class URLHTTPClientFactory: HTTPClientFactory {
 
 private final class Client: HTTPClientProtocol {
     final class ClientDelegate: NSObject, URLSessionWebSocketDelegate {
-        var webSocketCallbacks: [URLSessionWebSocketTask: (URLSessionWebSocketTask.CloseCode?) -> Void] = [:]
+        let webSocketCallbacks = LockIsolated<[
+            URLSessionWebSocketTask: @Sendable (URLSessionWebSocketTask.CloseCode?) -> Void
+        ]>([:])
 
         func urlSession(
             _ session: URLSession,
             webSocketTask: URLSessionWebSocketTask,
             didOpenWithProtocol protocol: String?
         ) {
-            webSocketCallbacks.removeValue(forKey: webSocketTask)?(nil)
+            webSocketCallbacks.withValue { $0.removeValue(forKey: webSocketTask) }?(nil)
         }
 
         func urlSession(
@@ -37,7 +40,7 @@ private final class Client: HTTPClientProtocol {
             didCloseWith closeCode: URLSessionWebSocketTask.CloseCode,
             reason: Data?
         ) {
-            webSocketCallbacks.removeValue(forKey: webSocketTask)?(closeCode)
+            webSocketCallbacks.withValue { $0.removeValue(forKey: webSocketTask) }?(closeCode)
         }
     }
 
@@ -53,7 +56,7 @@ private final class Client: HTTPClientProtocol {
 
     public func makeRequest(
         _ request: HTTPRequest,
-        onProgress: @isolated(any) (Double?) -> Void
+        onProgress: sending @isolated(any) (Double?) -> Void
     ) async throws -> HTTPResponse {
         final class ProgressDelegate: NSObject, URLSessionDataDelegate {
             private let progressContinuation: AsyncStream<Double>.Continuation
@@ -130,9 +133,11 @@ private final class Client: HTTPClientProtocol {
     public func makeWebSocket(url: URL) async throws -> any WebSocketSession {
         let task = session.webSocketTask(with: url)
         let (event, eventContinuation) = AsyncStream<URLSessionWebSocketTask.CloseCode?>.makeStream()
-        clientDelegate.webSocketCallbacks[task] = {
-            eventContinuation.yield($0)
-            eventContinuation.finish()
+        clientDelegate.webSocketCallbacks.withValue {
+            $0[task] = {
+                eventContinuation.yield($0)
+                eventContinuation.finish()
+            }
         }
         let code = await event.first { _ in true } ?? nil
         if let code { throw Errors.webSocketClosed(code) }

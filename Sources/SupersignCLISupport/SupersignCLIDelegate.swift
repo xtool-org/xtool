@@ -1,5 +1,6 @@
 import Foundation
 import Supersign
+import ConcurrencyExtras
 
 private func _fetchCode() async -> String? {
     Console.prompt("Code: ")
@@ -11,30 +12,31 @@ final class SupersignCLIAuthDelegate: TwoFactorAuthDelegate {
     }
 }
 
-final class SupersignCLIDelegate: IntegratedInstallerDelegate, TwoFactorAuthDelegate {
+actor SupersignCLIDelegate: IntegratedInstallerDelegate, TwoFactorAuthDelegate {
     public enum Error: Swift.Error {
+        case decompressionFailed
         case compressionFailed
     }
 
     let preferredTeam: DeveloperServicesTeam.ID?
-    let completion: () -> Void
-    init(preferredTeam: DeveloperServicesTeam.ID?, completion: @escaping () -> Void) {
+    init(preferredTeam: DeveloperServicesTeam.ID?) {
         self.preferredTeam = preferredTeam
-        self.completion = completion
     }
+
+    private let updateTask = LockIsolated<Task<Void, Never>?>(nil)
 
     func fetchCode() async -> String? {
         await _fetchCode()
     }
 
-    func fetchTeam(fromTeams teams: [DeveloperServicesTeam], completion: @escaping (DeveloperServicesTeam?) -> Void) {
+    func fetchTeam(fromTeams teams: [DeveloperServicesTeam]) async -> DeveloperServicesTeam? {
         if let preferredTeam = preferredTeam {
             // Fails if a team with the requested ID isn't found.
             // This is intentional to avoid interactivity.
-            return completion(teams.first(where: { $0.id == preferredTeam }))
+            return teams.first(where: { $0.id == preferredTeam })
         }
 
-        let selected = Console.choose(
+        return Console.choose(
             from: teams,
             onNoElement: { fatalError("No development teams available") },
             multiPrompt: "\nSelect a team",
@@ -42,10 +44,9 @@ final class SupersignCLIDelegate: IntegratedInstallerDelegate, TwoFactorAuthDele
                 "\($0.name) (\($0.id.rawValue))"
             }
         )
-        completion(selected)
     }
 
-    func setPresentedMessage(_ message: IntegratedInstaller.Message?) {
+    nonisolated func setPresentedMessage(_ message: IntegratedInstaller.Message?) {
         let text: String
         switch message {
         case .pairDevice:
@@ -56,13 +57,13 @@ final class SupersignCLIDelegate: IntegratedInstallerDelegate, TwoFactorAuthDele
             text = "Continuing..."
         }
         print("\n\(text)", terminator: "")
-        fflush(stdout)
+        fflush(stdoutSafe)
     }
 
     var prevStage: String?
     var prevProgress: String?
 
-    func installerDidUpdate(toStage stage: String, progress: Double?) {
+    private func _installerDidUpdate(toStage stage: String, progress: Double?) {
         let progString: String?
         if let progress = progress {
             let progInt = Int(progress * 100)
@@ -85,39 +86,29 @@ final class SupersignCLIDelegate: IntegratedInstallerDelegate, TwoFactorAuthDele
         if stage != prevStage {
             if let progString = progString {
                 print("\n[\(stage)] \(progString)", terminator: "")
-                fflush(stdout)
+                fflush(stdoutSafe)
             } else {
                 print("\n[\(stage)] ...", terminator: "")
-                fflush(stdout)
+                fflush(stdoutSafe)
             }
         } else if progString != prevProgress {
             if let progString = progString {
                 print("\r[\(stage)] \(progString)", terminator: "")
-                fflush(stdout)
+                fflush(stdoutSafe)
             } else {
                 print("\r[\(stage)]", terminator: "")
-                fflush(stdout)
+                fflush(stdoutSafe)
             }
         }
     }
 
-    func installerDidComplete(withResult result: Result<String, Swift.Error>) {
-        print("\n")
-        switch result {
-        case .success(let bundleID):
-            print("Successfully installed!")
-            if let file = ProcessInfo.processInfo.environment["SUPERSIGN_METADATA_FILE"] {
-                do {
-                    try Data("\(bundleID)\n".utf8).write(to: URL(fileURLWithPath: file))
-                } catch {
-                    print("warning: Failed to write metadata to SUPERSIGN_METADATA_FILE: \(error)")
-                }
+    nonisolated func installerDidUpdate(toStage stage: String, progress: Double?) {
+        updateTask.withValue { task in
+            task = Task { [prev = task] in
+                await prev?.value
+                await _installerDidUpdate(toStage: stage, progress: progress)
             }
-        case .failure(let error):
-            print("Failed :(")
-            print("Error: \(error)")
         }
-        completion()
     }
 
     private static let expiryFormatter: DateFormatter = {
@@ -142,26 +133,23 @@ final class SupersignCLIDelegate: IntegratedInstallerDelegate, TwoFactorAuthDele
     func decompress(
         ipa: URL,
         in directory: URL,
-        progress: @escaping (Double?) -> Void,
-        completion: @escaping (_ success: Bool) -> Void
-    ) {
+        progress: @escaping (Double?) -> Void
+    ) async throws {
         progress(nil)
 
         let unzip = Process()
         unzip.launchPath = "/usr/bin/unzip"
         unzip.arguments = ["-q", ipa.path, "-d", directory.path]
-        unzip.launch()
-        unzip.waitUntilExit()
-        guard unzip.terminationStatus == 0 else { return completion(false) }
-
-        completion(true)
+        try await unzip.launchAndWait()
+        guard unzip.terminationStatus == 0 else {
+            throw Error.decompressionFailed
+        }
     }
 
     func compress(
         payloadDir: URL,
-        progress: @escaping (Double?) -> Void,
-        completion: @escaping (Result<URL, Swift.Error>) -> Void
-    ) {
+        progress: @escaping (Double?) -> Void
+    ) async throws -> URL {
         progress(nil)
 
         let dest = payloadDir.deletingLastPathComponent().appendingPathComponent("app.ipa")
@@ -170,10 +158,26 @@ final class SupersignCLIDelegate: IntegratedInstallerDelegate, TwoFactorAuthDele
         zip.launchPath = "/usr/bin/zip"
         zip.currentDirectoryPath = payloadDir.deletingLastPathComponent().path
         zip.arguments = ["-yqru0", dest.path, "Payload"]
-        zip.launch()
-        zip.waitUntilExit()
-        guard zip.terminationStatus == 0 else { return completion(.failure(Error.compressionFailed)) }
+        try await zip.launchAndWait()
+        guard zip.terminationStatus == 0 else { throw Error.compressionFailed }
 
-        completion(.success(dest))
+        return dest
+    }
+}
+
+extension Process {
+    fileprivate func launchAndWait() async throws {
+        try await withCheckedThrowingContinuation { continuation in
+            terminationHandler = { _ in
+                continuation.resume()
+            }
+            do {
+                try self.run()
+            } catch {
+                continuation.resume(throwing: error)
+                return
+            }
+            Task.detached { self.waitUntilExit() }
+        }
     }
 }

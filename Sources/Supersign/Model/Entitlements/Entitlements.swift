@@ -10,13 +10,13 @@ import Foundation
 import ProtoCodable
 import Superutils
 
-public struct EntitlementContainer: ProtoCodableContainer {
+public struct EntitlementContainer: ProtoCodableContainer, Sendable {
     public var value: Entitlement
     public init(value: Entitlement) { self.value = value }
 }
 
 // allows access to a parsable entitlements list while not losing unparsed entitlements when it's modified
-public struct Entitlements {
+public struct Entitlements: Sendable {
 
     private static let decoder = PropertyListDecoder()
     private static let encoder = PropertyListEncoder()

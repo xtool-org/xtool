@@ -2,7 +2,7 @@ import Foundation
 import Supersign
 import ArgumentParser
 
-extension ConnectionManager.SearchMode: @retroactive EnumerableFlag {
+extension ConnectionManager.SearchMode: EnumerableFlag {
 //    public static func name(for value: ConnectionManager.SearchMode) -> NameSpecification {
 //        [.short, .long]
 //    }

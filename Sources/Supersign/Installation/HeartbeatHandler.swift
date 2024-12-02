@@ -8,8 +8,9 @@
 
 import Foundation
 import SwiftyMobileDevice
+import ConcurrencyExtras
 
-public final class HeartbeatHandler {
+public actor HeartbeatHandler: Sendable {
     private struct Error: Swift.Error {}
 
     private struct ReceivedPacket: Decodable {
@@ -45,25 +46,55 @@ public final class HeartbeatHandler {
     // the timeout when receiving subsequent heartbeat packets
     private static let repeatedTimeout: TimeInterval = 5
 
-    // each handler should have its own heartbeat queue
-    private let heartbeatQueue = DispatchQueue(
-        label: "com.kabiroberai.Supersign.heartbeat-queue"
-    )
-    private let stopLock = NSLock()
-    private var isStopped = false
-
     private let device: Device
     private let client: LockdownClient
-    public init(device: Device, client: LockdownClient) {
+    private var task: Task<Void, Never>?
+
+    public init(device: Device, client: LockdownClient) async throws {
         self.device = device
         self.client = client
-        start()
+
+        let initialClient = try await createHeartbeatClient()
+
+        task = Task { [weak self] in
+            var client = initialClient
+            for iteration in 0... {
+                // only retains `self` for this iteration. This way, if the reference to
+                // the handler is dropped, the heartbeat stops
+                guard let self = self, !Task.isCancelled else { break }
+
+                do {
+                    try await beat(client: client, iteration: iteration)
+                } catch {
+                    NSLog("%@", "Heartbeat failed: \(error)" as NSString)
+                    do {
+                        try await Task.sleep(seconds: Self.restartInterval)
+                        client = try await createHeartbeatClient()
+                    } catch {
+                        return // cancelled
+                    }
+                }
+            }
+        }
+    }
+
+    private func createHeartbeatClient() async throws -> HeartbeatClient {
+        while true {
+            do {
+                return try HeartbeatClient(
+                    device: device,
+                    service: .init(client: client, type: HeartbeatClient.self)
+                )
+            } catch {
+                try await Task.sleep(seconds: Self.restartInterval)
+            }
+        }
     }
 
     // no need for a custom deinit because the `guard let self = self` in the loop stops it
     // when the handler deinits
 
-    private func beat(client: HeartbeatClient, iteration: Int) throws {
+    private func beat(client: HeartbeatClient, iteration: Int) async throws {
         // allow a 30 second timeout for the first heartbeat
         let received = try client.receive(
             ReceivedPacket.self,
@@ -73,56 +104,10 @@ public final class HeartbeatHandler {
 
         try client.send(SentPacket(command: .polo))
 
-        Thread.sleep(forTimeInterval: .init(received.interval))
+        try? await Task.sleep(seconds: Double(received.interval))
     }
 
-    // TODO: Separate initial establishment phase (blocking) from loop
-    // (non-blocking) and throw during initial phase if too many failed
-    // attempts. Also maybe try to eliminate recursion to avoid relying
-    // on TCO which is not deterministically applied.
-    private func start() {
-        let heartbeatClient: HeartbeatClient
-        do {
-            heartbeatClient = try HeartbeatClient(device: device, service: .init(client: client, type: HeartbeatClient.self))
-        } catch {
-            // we sleep instead of asyncAfter to allow the initial startHeartbeat
-            // call to block until a connection is established
-            Thread.sleep(forTimeInterval: Self.restartInterval)
-            start()
-            return
-        }
-
-        self.heartbeatQueue.async { [weak self] in
-            for iteration in 0... {
-                // only retains `self` for this iteration. This way, if the reference to
-                // the handler is dropped, the heartbeat stops
-                guard let self = self else { break }
-
-                do {
-                    self.stopLock.lock()
-                    defer { self.stopLock.unlock() }
-                    guard !self.isStopped else { break }
-                }
-
-                do {
-                    try self.beat(client: heartbeatClient, iteration: iteration)
-                } catch {
-                    "Heartbeat failed: \(error)".withCString {
-                        NSLog("%s", $0)
-                    }
-                    // dispatching async should prevent stack overflows.
-                    // We return to break out of the current loop.
-                    return self.heartbeatQueue.asyncAfter(deadline: .now() + Self.restartInterval) {
-                        self.start()
-                    }
-                }
-            }
-        }
-    }
-
-    public func stop() {
-        stopLock.lock()
-        defer { stopLock.unlock() }
-        isStopped = true
+    nonisolated public func stop() {
+        Task { await task?.cancel() }
     }
 }

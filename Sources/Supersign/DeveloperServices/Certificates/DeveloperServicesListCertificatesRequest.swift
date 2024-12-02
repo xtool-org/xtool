@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct DeveloperServicesListCertificatesRequest: DeveloperServicesRequest {
+public struct DeveloperServicesListCertificatesRequest: DeveloperServicesRequest, Sendable {
 
     public typealias Response = [DeveloperServicesCertificate]
     public typealias Value = Response

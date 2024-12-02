@@ -8,12 +8,12 @@
 
 import Foundation
 
-public struct EmptyResponse: Decodable {}
+public struct EmptyResponse: Decodable, Sendable {}
 
-public protocol DeveloperServicesRequest {
+public protocol DeveloperServicesRequest: Sendable {
 
-    associatedtype Response: Decodable
-    associatedtype Value
+    associatedtype Response: Decodable, Sendable
+    associatedtype Value: Sendable
 
     var apiVersion: DeveloperServicesAPIVersion { get }
 
@@ -23,7 +23,7 @@ public protocol DeveloperServicesRequest {
 
     func configure(urlRequest: inout HTTPRequest)
 
-    func parse(_ response: Response, completion: @escaping (Result<Value, Error>) -> Void)
+    func parse(_ response: Response) async throws -> Value
 }
 
 public extension DeveloperServicesRequest {
@@ -33,7 +33,7 @@ public extension DeveloperServicesRequest {
 }
 
 public extension DeveloperServicesRequest where Response == Value {
-    func parse(_ response: Response, completion: @escaping (Result<Value, Error>) -> Void) {
-        completion(.success(response))
+    func parse(_ response: Response) -> Response {
+        response
     }
 }

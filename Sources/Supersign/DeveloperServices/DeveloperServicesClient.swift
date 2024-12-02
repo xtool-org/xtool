@@ -8,7 +8,7 @@
 
 import Foundation
 
-public final class DeveloperServicesClient {
+public final class DeveloperServicesClient: Sendable {
 
     public enum Error: LocalizedError {
         case noData
@@ -111,26 +111,12 @@ public final class DeveloperServicesClient {
 
         let decoded: R.Response = try request.apiVersion.decode(response: data)
 
-        return try await withCheckedThrowingContinuation { continuation in
-            request.parse(decoded) { continuation.resume(with: $0) }
-        }
+        return try await request.parse(decoded)
     }
 
     public func send<R: DeveloperServicesRequest>(_ request: R) async throws -> R.Value {
         let anisetteData = try await anisetteDataProvider.fetchAnisetteData()
         return try await self.send(request, anisetteData: anisetteData)
-    }
-
-    @available(*, deprecated, message: "Use async overload")
-    public func send<R: DeveloperServicesRequest>(
-        _ request: R,
-        completion: @escaping (Result<R.Value, Swift.Error>) -> Void
-    ) {
-        Task {
-            completion(await Result {
-                try await send(request)
-            })
-        }
     }
 
 }

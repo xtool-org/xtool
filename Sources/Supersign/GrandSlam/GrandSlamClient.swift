@@ -8,7 +8,7 @@
 
 import Foundation
 
-class GrandSlamClient {
+final class GrandSlamClient: Sendable {
 
     private let encoder = PropertyListEncoder()
 
@@ -50,11 +50,6 @@ class GrandSlamClient {
 
         let resp = try await httpClient.makeRequest(httpRequest)
         return try R.Decoder.decode(data: resp.body ?? .init())
-    }
-
-    @available(*, deprecated, message: "Use async overload")
-    func send<R: GrandSlamRequest>(_ request: R, completion: @escaping (Result<R.Decoder.Value, Swift.Error>) -> Void) {
-        Task { completion(await Result { try await send(request) }) }
     }
 
 }

@@ -10,7 +10,7 @@ import Foundation
 
 public struct DeveloperServicesAddAppIDRequest: DeveloperServicesPlatformRequest {
 
-    public struct Response: Decodable {
+    public struct Response: Decodable, Sendable {
         let appId: DeveloperServicesAppID
     }
     public typealias Value = DeveloperServicesAppID
@@ -41,8 +41,8 @@ public struct DeveloperServicesAddAppIDRequest: DeveloperServicesPlatformRequest
         return parameters
     }
 
-    public func parse(_ response: Response, completion: @escaping (Result<Value, Error>) -> Void) {
-        completion(.success(response.appId))
+    public func parse(_ response: Response) -> DeveloperServicesAppID {
+        response.appId
     }
 
     public init(

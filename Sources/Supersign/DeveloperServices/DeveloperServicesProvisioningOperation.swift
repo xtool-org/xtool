@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct ProvisioningInfo {
+public struct ProvisioningInfo: Sendable {
     public let newBundleID: String
     public let entitlements: Entitlements
     public let mobileprovision: Mobileprovision
@@ -23,13 +23,13 @@ public struct DeveloperServicesProvisioningOperation: DeveloperServicesOperation
 
     public let context: SigningContext
     public let app: URL
-    public let confirmRevocation: ([DeveloperServicesCertificate]) async -> Bool
-    public let progress: (Double) -> Void
+    public let confirmRevocation: @Sendable ([DeveloperServicesCertificate]) async -> Bool
+    public let progress: @Sendable (Double) -> Void
     public init(
         context: SigningContext,
         app: URL,
-        confirmRevocation: @escaping ([DeveloperServicesCertificate]) async -> Bool,
-        progress: @escaping (Double) -> Void
+        confirmRevocation: @escaping @Sendable ([DeveloperServicesCertificate]) async -> Bool,
+        progress: @escaping @Sendable (Double) -> Void
     ) {
         self.context = context
         self.app = app

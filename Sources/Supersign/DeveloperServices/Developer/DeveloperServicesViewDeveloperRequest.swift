@@ -10,7 +10,7 @@ import Foundation
 
 public struct DeveloperServicesViewDeveloperRequest: DeveloperServicesRequest {
 
-    public struct Developer: Decodable {
+    public struct Developer: Decodable, Sendable {
         public let email: String
 
         public let firstName: String
@@ -22,7 +22,7 @@ public struct DeveloperServicesViewDeveloperRequest: DeveloperServicesRequest {
         public let developerStatus: String
     }
 
-    public struct Response: Decodable {
+    public struct Response: Decodable, Sendable {
         let developer: Developer
     }
     public typealias Value = Developer
@@ -30,8 +30,8 @@ public struct DeveloperServicesViewDeveloperRequest: DeveloperServicesRequest {
     public var action: String { return "viewDeveloper" }
     public var parameters: [String: Any] { return [:] }
 
-    public func parse(_ response: Response, completion: @escaping (Result<Value, Error>) -> Void) {
-        completion(.success(response.developer))
+    public func parse(_ response: Response) -> Developer {
+        response.developer
     }
 
     public init() {}

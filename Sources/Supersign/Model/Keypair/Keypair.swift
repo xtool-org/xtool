@@ -11,7 +11,7 @@ import Crypto
 import X509
 import _CryptoExtras
 
-public struct PrivateKey: Codable {
+public struct PrivateKey: Codable, Sendable {
     // pem encoded
     public let data: Data
 
@@ -20,7 +20,7 @@ public struct PrivateKey: Codable {
     }
 }
 
-public struct CSR {
+public struct CSR: Sendable {
     public let pemString: String
 
     public init(pemString: String) {

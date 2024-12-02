@@ -1,7 +1,8 @@
 import Foundation
 import Crypto
+import ConcurrencyExtras
 
-public protocol RawADIProvider {
+public protocol RawADIProvider: Sendable {
     func clientInfo() async throws -> String
 
     func startProvisioning(
@@ -25,7 +26,7 @@ extension RawADIProvider {
     }
 }
 
-public protocol RawADIProvisioningSession {
+public protocol RawADIProvisioningSession: Sendable {
     func endProvisioning(
         routingInfo: UInt64,
         ptm: Data,
@@ -52,7 +53,7 @@ public final class ADIDataProvider: AnisetteDataProvider {
     private let localUserUID: UUID
     private let localUserID: String
 
-    private var _clientInfo: String?
+    private let _clientInfo = LockIsolated<String?>(nil)
 
     public init(
         rawProvider: RawADIProvider,
@@ -127,9 +128,9 @@ public final class ADIDataProvider: AnisetteDataProvider {
     }()
 
     private func clientInfo() async throws -> String {
-        if let _clientInfo { return _clientInfo }
+        if let clientInfo = _clientInfo.value { return clientInfo }
         let clientInfo = try await rawProvider.clientInfo()
-        self._clientInfo = clientInfo
+        _clientInfo.setValue(clientInfo)
         return clientInfo
     }
 

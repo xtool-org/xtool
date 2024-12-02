@@ -10,7 +10,7 @@ import Foundation
 
 public struct DeveloperServicesAddAppGroupRequest: DeveloperServicesPlatformRequest {
 
-    public struct Response: Decodable {
+    public struct Response: Decodable, Sendable {
         let applicationGroup: DeveloperServicesAppGroup
     }
     public typealias Value = DeveloperServicesAppGroup
@@ -29,8 +29,8 @@ public struct DeveloperServicesAddAppGroupRequest: DeveloperServicesPlatformRequ
         ]
     }
 
-    public func parse(_ response: Response, completion: @escaping (Result<Value, Error>) -> Void) {
-        completion(.success(response.applicationGroup))
+    public func parse(_ response: Response) -> DeveloperServicesAppGroup {
+        response.applicationGroup
     }
 
     public init(

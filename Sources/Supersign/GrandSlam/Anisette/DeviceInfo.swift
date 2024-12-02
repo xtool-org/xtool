@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct DeviceInfo: Codable {
+public struct DeviceInfo: Codable, Sendable {
 
     /// `X-Xcode-Version`
     static let xcodeVersionKey = "X-Xcode-Version"

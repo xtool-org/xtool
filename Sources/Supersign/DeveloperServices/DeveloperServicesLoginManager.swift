@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct DeveloperServicesLoginToken: Codable {
+public struct DeveloperServicesLoginToken: Codable, Sendable {
     public let adsid: String
     public let token: String
     public let expiry: Date
@@ -20,7 +20,7 @@ public struct DeveloperServicesLoginToken: Codable {
     }
 }
 
-public struct DeveloperServicesLoginManager {
+public struct DeveloperServicesLoginManager: Sendable {
 
     public enum Error: Swift.Error {
         case missingLoginToken
@@ -69,24 +69,6 @@ public struct DeveloperServicesLoginManager {
             twoFactorDelegate: twoFactorDelegate
         ).authenticate()
         return try await self.logIn(withLoginData: loginData)
-    }
-
-    @available(*, deprecated, message: "Use async overload")
-    public func logIn(
-        withUsername username: String,
-        password: String,
-        twoFactorDelegate: TwoFactorAuthDelegate,
-        completion: @escaping (Result<DeveloperServicesLoginToken, Swift.Error>) -> Void
-    ) {
-        Task {
-            completion(await Result {
-                try await logIn(
-                    withUsername: username,
-                    password: password,
-                    twoFactorDelegate: twoFactorDelegate
-                )
-            })
-        }
     }
 
 }

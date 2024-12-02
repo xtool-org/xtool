@@ -8,9 +8,9 @@
 
 import Foundation
 
-public class DeveloperServicesSubmitCSRRequest: DeveloperServicesPlatformRequest {
+public final class DeveloperServicesSubmitCSRRequest: DeveloperServicesPlatformRequest {
 
-    public struct Response: Decodable {
+    public struct Response: Decodable, Sendable {
         public let certRequest: DeveloperServicesCSRResponse
     }
     public typealias Value = DeveloperServicesCSRResponse
@@ -31,8 +31,8 @@ public class DeveloperServicesSubmitCSRRequest: DeveloperServicesPlatformRequest
         ]
     }
 
-    public func parse(_ response: Response, completion: @escaping (Result<Value, Error>) -> Void) {
-        completion(.success(response.certRequest))
+    public func parse(_ response: Response) -> DeveloperServicesCSRResponse {
+        response.certRequest
     }
 
     public init(

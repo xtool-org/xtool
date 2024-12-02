@@ -8,7 +8,7 @@
 
 import Foundation
 
-public protocol TwoFactorAuthDelegate: AnyObject {
+public protocol TwoFactorAuthDelegate: AnyObject, Sendable {
     func fetchCode() async -> String?
 }
 

@@ -9,7 +9,7 @@
 import Foundation
 import SwiftyMobileDevice
 
-public final class AppInstaller {
+public actor AppInstaller {
 
     public enum Error: LocalizedError {
         case userCancelled
@@ -33,7 +33,7 @@ public final class AppInstaller {
         }
     }
 
-    public enum Stage {
+    public enum Stage: Sendable {
         case connecting(Double)
         case uploading(Double)
         case installing(String, Double?)
@@ -80,14 +80,6 @@ public final class AppInstaller {
         label: "com.kabiroberai.Supersign.install-queue"
     )
 
-    private var needsCancellation = false
-    // throws `Error.userCancelled` if the user cancelled this operation
-    private func cancelPoint() throws {
-        if needsCancellation {
-            throw Error.userCancelled
-        }
-    }
-
     public let ipa: URL
     public let udid: String
     public let connectionPreferences: Connection.Preferences
@@ -102,58 +94,40 @@ public final class AppInstaller {
     }
 
     // synchronous
-    private func installSync(progress: @escaping (Stage) -> Void) throws {
-        defer { needsCancellation = false }
-        try cancelPoint()
-
-        let connection = try Connection.connection(
+    public func install(progress: @escaping @Sendable (Stage) -> Void) async throws {
+        let connection = try await Connection.connection(
             forUDID: udid,
             preferences: connectionPreferences
         ) {
             progress(.connecting($0 * 4/6))
         }
 
-        try cancelPoint()
+        try Task.checkCancellation()
 
-        let uploader = try IPAUploader(connection: connection)
+        let uploader = try await IPAUploader(connection: connection)
         progress(.connecting(5/6))
 
-        try cancelPoint()
+        try Task.checkCancellation()
 
         // we need to start the installer quickly because sometimes it fails if we do it after
         // uploading the ipa to the device
-        let installer = try IPAInstaller(connection: connection)
+        let installer = try await IPAInstaller(connection: connection)
         progress(.connecting(6/6))
 
-        try cancelPoint()
+        try Task.checkCancellation()
 
-        let uploaded = try uploader.upload(app: ipa) { currentProgress in
+        let uploaded = try await uploader.upload(app: ipa) { currentProgress in
             progress(.uploading(currentProgress))
         }
         defer { uploaded.delete() }
 
-        try cancelPoint()
+        try Task.checkCancellation()
 
-        try installer.install(uploaded: uploaded) { currentProgress in
+        try await installer.install(uploaded: uploaded) { currentProgress in
             progress(.installing(currentProgress.details, currentProgress.progress))
         }
 
         _ = connection
-    }
-
-    public func install(
-        progress: @escaping (Stage) -> Void,
-        completion: @escaping (Result<(), Swift.Error>) -> Void
-    ) {
-        installQueue.async {
-            completion(Result {
-                try self.installSync(progress: progress)
-            })
-        }
-    }
-
-    public func cancel() {
-        needsCancellation = true
     }
 
 }

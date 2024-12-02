@@ -8,7 +8,7 @@
 
 import Foundation
 
-class GrandSlamLookupManager {
+actor GrandSlamLookupManager {
 
     private static let lookupURL = URL(string: "https://gsa.apple.com/grandslam/GsService2/lookup")!
 

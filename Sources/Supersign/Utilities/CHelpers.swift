@@ -7,6 +7,11 @@
 //
 
 import Foundation
+import CSupersign
+
+package var stdoutSafe: UnsafeMutablePointer<FILE> {
+    get_stdout()
+}
 
 extension Data {
     init?(deallocator: Deallocator = .free, acceptor: (inout Int) -> UnsafeMutableRawPointer?) {

@@ -1,4 +1,5 @@
 import Foundation
+import Supersign
 
 enum Console {
     // nil = EOF
@@ -6,7 +7,7 @@ enum Console {
         if !message.isEmpty {
             print(message, terminator: "")
         }
-        fflush(stdout)
+        fflush(stdoutSafe)
         return readLine()
     }
 

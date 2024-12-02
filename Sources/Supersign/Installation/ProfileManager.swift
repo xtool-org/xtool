@@ -26,8 +26,8 @@ public final class ProfileManager {
         return minor >= 3
     }()
 
-    public init(connection: Connection) throws {
-        self.client = try connection.startClient()
+    public init(connection: Connection) async throws {
+        self.client = try await connection.startClient()
         self.version = try connection.client.value(ofType: String.self, forDomain: nil, key: "ProductVersion")
     }
 
