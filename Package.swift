@@ -9,8 +9,8 @@ let cSettings: [CSetting] = [
 let package = Package(
     name: "Supersign",
     platforms: [
-        .iOS("14.0"),
-        .macOS("11.0"),
+        .iOS(.v15),
+        .macOS(.v12),
     ],
     products: [
         .library(

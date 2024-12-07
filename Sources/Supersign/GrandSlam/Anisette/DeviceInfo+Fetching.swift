@@ -24,7 +24,7 @@ extension DeviceInfo {
     }
 
     private static func hardwareProperty(forKey key: String) -> Data? {
-        let entry = IORegistryEntryFromPath(kIOMasterPortDefault, "IODeviceTree:/options")
+        let entry = IORegistryEntryFromPath(kIOMainPortDefault, "IODeviceTree:/options")
         guard entry != 0 else { return nil }
         defer { IOObjectRelease(entry) }
 
