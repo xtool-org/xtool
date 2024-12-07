@@ -29,6 +29,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/SuperchargeApp/SuperchargeCore", .upToNextMinor(from: "1.2.0")),
         .package(url: "https://github.com/SuperchargeApp/SwiftyMobileDevice", .upToNextMinor(from: "1.3.0")),
+        .package(url: "https://github.com/kabiroberai/swiftpack", .upToNextMinor(from: "1.0.1")),
         .package(url: "https://github.com/kabiroberai/zsign", .upToNextMinor(from: "1.3.0")),
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.0"),
         .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.15.0"),
@@ -62,6 +63,7 @@ let package = Package(
                 .product(name: "_CryptoExtras", package: "swift-crypto"),
                 .product(name: "X509", package: "swift-certificates"),
                 .product(name: "BigInt", package: "BigInt"),
+                .product(name: "PackLib", package: "swiftpack"),
                 .product(
                     name: "AsyncHTTPClient",
                     package: "async-http-client",

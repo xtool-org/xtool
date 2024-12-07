@@ -44,6 +44,7 @@ struct SupersignCommand: AsyncParsableCommand {
             DevicesCommand.self,
             InstallCommand.self,
             UninstallCommand.self,
+            DevCommand.self,
             // no Supercharge support... yet...
             // SuperchargeCommand.self,
             RunCommand.self,
