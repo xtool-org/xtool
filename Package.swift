@@ -63,7 +63,6 @@ let package = Package(
                 .product(name: "_CryptoExtras", package: "swift-crypto"),
                 .product(name: "X509", package: "swift-certificates"),
                 .product(name: "BigInt", package: "BigInt"),
-                .product(name: "PackLib", package: "swiftpack"),
                 .product(
                     name: "AsyncHTTPClient",
                     package: "async-http-client",
@@ -96,6 +95,7 @@ let package = Package(
             dependencies: [
                 "SwiftyMobileDevice",
                 "Supersign",
+                .product(name: "PackLib", package: "swiftpack"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
             cSettings: cSettings
