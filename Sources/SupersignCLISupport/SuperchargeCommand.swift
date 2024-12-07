@@ -9,52 +9,17 @@ struct InstallSuperchargeCommand: AsyncParsableCommand {
     )
 
     @Option(name: .shortAndLong) var udid: String?
-    @Option(name: .shortAndLong) var account: String?
 
     func run() async throws {
         guard let app = SupersignCLI.config.superchargeApp else {
             throw Console.Error("This copy of Supersign is not configured to install Supercharge.")
         }
 
-        let username: String
-        let credentials: IntegratedInstaller.Credentials
+        let auth = try AuthToken.saved()
+        let username = auth.appleID
+        let credentials: IntegratedInstaller.Credentials = .token(auth.dsToken)
 
-        if let account = account, let auth = AuthToken(string: account) {
-            username = auth.appleID
-            credentials = .token(auth.dsToken)
-        } else {
-            guard let appleID = account ?? Console.prompt("Apple ID: "),
-                  let password = Console.getPassword("Password: ")
-            else { return }
-            username = appleID
-            credentials = .password(password)
-        }
-
-        print("Waiting for device to be connected...")
-        var clients: [ConnectionManager.Client]!
-        let semaphore = DispatchSemaphore(value: 0)
-        let connDelegate = ConnectionDelegate { currClients in
-            if let udid = udid {
-                if let client = currClients.first(where: { $0.udid == udid }) {
-                    clients = [client]
-                } else {
-                    return
-                }
-            } else {
-                clients = currClients
-            }
-            semaphore.signal()
-        }
-        try withExtendedLifetime(ConnectionManager(searchMode: .usb, delegate: connDelegate)) {
-            semaphore.wait()
-        }
-
-        let client = Console.choose(
-            from: clients,
-            onNoElement: { fatalError("No devices available") },
-            multiPrompt: "Choose device",
-            formatter: { "\($0.deviceName) (udid: \($0.udid))" }
-        )
+        let client = try await ConnectionOptions(udid: udid, search: .usb).client()
 
         print("Installing to device: \(client.deviceName) (udid: \(client.udid))")
 

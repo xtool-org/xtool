@@ -11,12 +11,12 @@ import SupersignCLISupport
 // see https://github.com/atom/node-keytar
 
 let storage: KeyValueStorage
-#if os(macOS)
-storage = KeychainStorage(service: "com.kabiroberai.Supercharge-Keychain.credentials")
-#else
-let directory = URL.homeDirectory.appending(path: ".config/Supercharge/data")
+// #if os(macOS)
+// storage = KeychainStorage(service: "com.kabiroberai.Supercharge-Keychain.credentials")
+// #else
+let directory = URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".config/Supercharge/data")
 storage = DirectoryStorage(base: directory)
-#endif
+// #endif
 
 try await SupersignCLI.run(configuration: SupersignCLI.Configuration(
     superchargeApp: nil,

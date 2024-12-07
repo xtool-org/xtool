@@ -3,13 +3,13 @@ import Supersign
 import SwiftyMobileDevice
 import ArgumentParser
 
-struct RunCommand: ParsableCommand {
+struct RunCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "run",
         abstract: "Run an installed app"
     )
-
-    @OptionGroup @FromArguments var connection: ConnectionManager.Client
+    
+    @OptionGroup var connectionOptions: ConnectionOptions
 
     @Argument(
         help: "The app to run"
@@ -22,8 +22,10 @@ struct RunCommand: ParsableCommand {
         )
     ) var args: [String] = []
 
-    func run() throws {
-        let installProxy = try InstallationProxyClient(device: connection.device, label: "supersign-inst")
+    func run() async throws {
+        let client = try await connectionOptions.client()
+
+        let installProxy = try InstallationProxyClient(device: client.device, label: "supersign-inst")
         let executable: URL
         do {
             executable = try installProxy.executable(forBundleID: bundleID)
@@ -33,7 +35,7 @@ struct RunCommand: ParsableCommand {
 
         print("Launching \(executable.lastPathComponent)...")
 
-        let debugserver = try DebugserverClient(device: connection.device, label: "supersign")
+        let debugserver = try DebugserverClient(device: client.device, label: "supersign")
         guard try debugserver.launch(executable: executable, arguments: args) == "OK" else {
             throw Console.Error("Launch failed (!OK)")
         }

@@ -9,18 +9,13 @@
 import Foundation
 import SwiftyMobileDevice
 
-public protocol ConnectionManagerDelegate: AnyObject {
-    func connectionManager(_ manager: ConnectionManager, clientsDidChangeFrom oldValue: [ConnectionManager.Client])
-}
-
-public final class ConnectionManager {
-
-    public enum SearchMode: CaseIterable {
+public struct ClientDevice: Sendable {
+    public enum SearchMode: CaseIterable, Sendable {
         case usb
         case network
         case all
 
-        func allows(_ connectionType: ConnectionType) -> Bool {
+        fileprivate func allows(_ connectionType: ConnectionType) -> Bool {
             switch self {
             case .usb:
                 return connectionType == .usb
@@ -32,6 +27,25 @@ public final class ConnectionManager {
         }
     }
 
+    private let key: ConnectionManager.ConnectionKey
+    private let value: ConnectionManager.ConnectionValue
+
+    public var udid: String { key.udid }
+    public var connectionType: ConnectionType { key.connectionType }
+    public var device: Device { value.device }
+    public var deviceName: String { value.deviceName }
+
+    fileprivate init(key: ConnectionManager.ConnectionKey, value: ConnectionManager.ConnectionValue) {
+        self.key = key
+        self.value = value
+    }
+
+    public static func search(mode: SearchMode = .all) async throws -> AsyncStream<[ClientDevice]> {
+        try await ConnectionManager(searchMode: mode).clients
+    }
+}
+
+private actor ConnectionManager {
     fileprivate struct ConnectionKey: Hashable, Equatable, Comparable {
         let udid: String
         let connectionType: ConnectionType
@@ -50,7 +64,7 @@ public final class ConnectionManager {
         }
     }
 
-    fileprivate class ConnectionValue {
+    fileprivate struct ConnectionValue: Sendable {
         let device: Device
         let deviceName: String
 
@@ -75,58 +89,40 @@ public final class ConnectionManager {
         }
     }
 
-    public final class Client {
-        private let key: ConnectionKey
-        private let value: ConnectionValue
-
-        public var udid: String { key.udid }
-        public var connectionType: ConnectionType { key.connectionType }
-        public var device: Device { value.device }
-        public var deviceName: String { value.deviceName }
-
-        fileprivate init(key: ConnectionKey, value: ConnectionValue) {
-            self.key = key
-            self.value = value
-        }
-    }
-
     private var clientsDict: [ConnectionKey: ConnectionValue] {
         didSet {
             clientsDidChange()
         }
     }
 
-    public private(set) var clients: [Client] = [] {
-        didSet {
-            delegate?.connectionManager(self, clientsDidChangeFrom: oldValue)
-        }
-    }
+    private var subscription: Task<Void, Never>?
+    private let continuation: AsyncStream<[ClientDevice]>.Continuation
 
-    private var token: USBMux.SubscriptionToken?
-
-    public let searchMode: SearchMode
-    public private(set) weak var delegate: ConnectionManagerDelegate?
+    let searchMode: ClientDevice.SearchMode
+    let clients: AsyncStream<[ClientDevice]>
 
     private func clientsDidChange() {
-        clients = clientsDict.sorted { $0.0 < $1.0 }.map(Client.init)
+        continuation.yield(clientsDict.sorted { $0.0 < $1.0 }.map(ClientDevice.init))
     }
 
-    public init(searchMode: SearchMode = .all, delegate: ConnectionManagerDelegate? = nil) throws {
+    init(searchMode: ClientDevice.SearchMode = .all) async throws {
         self.searchMode = searchMode
-        self.delegate = delegate
         self.clientsDict = Dictionary(try USBMux.allDevices().compactMap { dev -> (ConnectionKey, ConnectionValue)? in
             guard searchMode.allows(dev.connectionType) else { return nil }
             let key = ConnectionKey(udid: dev.udid, connectionType: dev.connectionType)
             return try (key, ConnectionValue(key: key))
         }) { _, b in b }
 
-        if !clientsDict.isEmpty {
-            clientsDidChange()
-        }
+        let events = try USBMux.subscribe()
 
-        token = try USBMux.subscribe { [weak self] event in
-            guard let self = self else { return }
-            self.handleEvent(event)
+        (clients, continuation) = AsyncStream.makeStream()
+
+        clientsDidChange()
+
+        subscription = Task { [events] in
+            for await event in events {
+                handleEvent(event)
+            }
         }
     }
 
@@ -144,7 +140,5 @@ public final class ConnectionManager {
             clientsDict[key] = try? ConnectionValue(key: key)
         }
     }
-
-    deinit { try? token.map(USBMux.unsubscribe(withToken:)) }
 
 }

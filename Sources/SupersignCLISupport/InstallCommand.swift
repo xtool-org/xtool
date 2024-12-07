@@ -9,22 +9,24 @@ struct InstallCommand: AsyncParsableCommand {
         abstract: "Install an ipa file to your device"
     )
 
-    @Option(name: .shortAndLong) var account: String?
     @Option(
         name: .shortAndLong,
         help: "Preferred team ID"
     ) var team: String?
-    @OptionGroup @FromArguments var client: ConnectionManager.Client
+
+    @OptionGroup var connectionOptions: ConnectionOptions
 
     @Argument(
         help: "The path to a custom app/ipa to install"
     ) var path: String
 
     func run() async throws {
-        let token = try account.flatMap(AuthToken.init(string:)) ?? AuthToken.saved()
+        let token = try AuthToken.saved()
 
         let username = token.appleID
         let credentials: IntegratedInstaller.Credentials = .token(token.dsToken)
+
+        let client = try await connectionOptions.client()
 
         print("Installing to device: \(client.deviceName) (udid: \(client.udid))")
 

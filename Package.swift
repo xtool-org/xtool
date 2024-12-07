@@ -28,7 +28,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/SuperchargeApp/SuperchargeCore", .upToNextMinor(from: "1.2.0")),
-        .package(url: "https://github.com/SuperchargeApp/SwiftyMobileDevice", .upToNextMinor(from: "1.2.1")),
+        .package(url: "https://github.com/SuperchargeApp/SwiftyMobileDevice", .upToNextMinor(from: "1.3.0")),
         .package(url: "https://github.com/kabiroberai/zsign", .upToNextMinor(from: "1.3.0")),
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.0"),
         .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.15.0"),
@@ -36,7 +36,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-crypto", from: "3.9.1"),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.5.0"),
         .package(url: "https://github.com/attaswift/BigInt", from: "5.5.0"),
-        .package(url: "https://github.com/pointfreeco/swift-concurrency-extras.git", from: "1.3.0"),
+        .package(url: "https://github.com/pointfreeco/swift-concurrency-extras", from: "1.3.0"),
     ],
     targets: [
         .systemLibrary(name: "CSupersette"),
