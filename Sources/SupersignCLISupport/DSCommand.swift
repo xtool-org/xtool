@@ -11,19 +11,29 @@ extension DeviceInfo {
     }
 }
 
-private extension AuthToken {
-    static func retrieve(
-        deviceInfo: DeviceInfo,
-        username: String?,
-        password: String?,
-        resetProvisioning: Bool = false
-    ) async throws -> Self {
+struct DSLoginCommand: AsyncParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "login",
+        abstract: "Obtain an Apple ID authentication token"
+    )
+
+    @Flag(name: [.short, .long]) var resetProvisioning = false
+    @Option(name: [.short, .long], help: "Apple ID") var username: String?
+    @Option(name: [.short, .long]) var password: String?
+    @Flag(
+        name: [.long],
+        help: "Print the auth token to standard output instead of persisting it."
+    ) var printToken = false
+
+    func run() async throws {
         guard let username = username ?? Console.prompt("Apple ID: "), !username.isEmpty else {
             throw Console.Error("A non-empty Apple ID is required.")
         }
         guard let password = password ?? Console.getPassword("Password: "), !password.isEmpty else {
             throw Console.Error("A non-empty password is required.")
         }
+
+        let deviceInfo = try DeviceInfo.fetch()
 
         let provider = try ADIDataProvider.adiProvider(
             deviceInfo: deviceInfo,
@@ -42,40 +52,8 @@ private extension AuthToken {
             password: password,
             twoFactorDelegate: authDelegate
         )
-        _ = authDelegate
-        return AuthToken(appleID: username, dsToken: token)
-    }
+        let fullToken = AuthToken(appleID: username, dsToken: token)
 
-    static func retrieve(deviceInfo: DeviceInfo, account: String?) async throws -> Self {
-        if let account = account, let token = Self(string: account) {
-            return token
-        } else {
-            return try await retrieve(deviceInfo: deviceInfo, username: account, password: nil)
-        }
-    }
-}
-
-struct DSLoginCommand: AsyncParsableCommand {
-    static let configuration = CommandConfiguration(
-        commandName: "login",
-        abstract: "Obtain an Apple ID authentication token"
-    )
-
-    @Flag(name: [.short, .long]) var resetProvisioning = false
-    @Option(name: [.short, .long], help: "Apple ID") var username: String?
-    @Option(name: [.short, .long]) var password: String?
-    @Flag(
-        name: [.long],
-        help: "Print the auth token to standard output instead of persisting it."
-    ) var printToken = false
-
-    func run() async throws {
-        let fullToken = try await AuthToken.retrieve(
-            deviceInfo: .fetch(),
-            username: self.username,
-            password: self.password,
-            resetProvisioning: resetProvisioning
-        )
         if printToken {
             guard let string = fullToken.string else {
                 throw Console.Error("Could not encode token.")

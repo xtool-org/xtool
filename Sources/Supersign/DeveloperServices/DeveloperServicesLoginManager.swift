@@ -68,6 +68,7 @@ public struct DeveloperServicesLoginManager: Sendable {
             password: password,
             twoFactorDelegate: twoFactorDelegate
         ).authenticate()
+        _ = twoFactorDelegate
         return try await self.logIn(withLoginData: loginData)
     }
 

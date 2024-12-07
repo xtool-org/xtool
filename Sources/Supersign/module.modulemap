@@ -1,6 +1,0 @@
-framework module Supersign {
-  umbrella header "Supersign.h"
-
-  export *
-  module * { export * }
-}
