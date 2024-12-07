@@ -18,7 +18,6 @@ extension LockdownClient {
 
 public protocol IntegratedInstallerDelegate: AnyObject, Sendable {
 
-    func fetchCode() async -> String?
     func fetchTeam(fromTeams teams: [DeveloperServicesTeam]) async -> DeveloperServicesTeam?
 
     func setPresentedMessage(_ message: IntegratedInstaller.Message?)
@@ -82,15 +81,10 @@ public actor IntegratedInstaller {
         case unlockDevice
     }
 
-    public enum Credentials: Sendable {
-        case password(String)
-        case token(DeveloperServicesLoginToken)
-    }
-
     let udid: String
     let lookupMode: LookupMode
     let appleID: String
-    let credentials: Credentials
+    let token: DeveloperServicesLoginToken
     let configureDevice: Bool
     let storage: KeyValueStorage
     public weak var delegate: IntegratedInstallerDelegate?
@@ -150,7 +144,7 @@ public actor IntegratedInstaller {
         udid: String,
         lookupMode: LookupMode,
         appleID: String,
-        credentials: Credentials,
+        token: DeveloperServicesLoginToken,
         configureDevice: Bool,
         storage: KeyValueStorage,
         delegate: IntegratedInstallerDelegate
@@ -158,7 +152,7 @@ public actor IntegratedInstaller {
         self.udid = udid
         self.lookupMode = lookupMode
         self.appleID = appleID
-        self.credentials = credentials
+        self.token = token
         self.configureDevice = configureDevice
         self.storage = storage
         self.delegate = delegate
@@ -436,22 +430,6 @@ public actor IntegratedInstaller {
         try await updateStage(to: "Logging in")
 
         let anisetteProvider = try ADIDataProvider.adiProvider(deviceInfo: deviceInfo, storage: storage)
-        let token: DeveloperServicesLoginToken
-        switch credentials {
-        case .password(let password):
-            let newToken = try await DeveloperServicesLoginManager(
-                deviceInfo: deviceInfo,
-                anisetteProvider: anisetteProvider
-            ).logIn(
-                withUsername: self.appleID,
-                password: password,
-                twoFactorDelegate: self
-            )
-            try await self.updateProgress(to: 1/2)
-            token = newToken
-        case .token(let existingToken):
-            token = existingToken
-        }
         return try await self.install(
             deviceInfo: deviceInfo,
             provisioningData: anisetteProvider.provisioningData(),
@@ -497,15 +475,6 @@ public actor IntegratedInstaller {
         }
     }
 
-}
-
-extension IntegratedInstaller: TwoFactorAuthDelegate {
-    public func fetchCode() async -> String? {
-        guard let delegate = delegate else {
-            return nil
-        }
-        return await delegate.fetchCode()
-    }
 }
 
 #endif

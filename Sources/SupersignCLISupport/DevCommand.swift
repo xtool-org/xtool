@@ -59,9 +59,6 @@ struct DevCommand: AsyncParsableCommand {
 
         let token = try AuthToken.saved()
 
-        let username = token.appleID
-        let credentials: IntegratedInstaller.Credentials = .token(token.dsToken)
-
         let client = try await connectionOptions.client()
         print("Installing to device: \(client.deviceName) (udid: \(client.udid))")
 
@@ -69,8 +66,8 @@ struct DevCommand: AsyncParsableCommand {
         let installer = IntegratedInstaller(
             udid: client.udid,
             lookupMode: .only(client.connectionType),
-            appleID: username,
-            credentials: credentials,
+            appleID: token.appleID,
+            token: token.dsToken,
             configureDevice: false,
             storage: SupersignCLI.config.storage,
             delegate: installDelegate

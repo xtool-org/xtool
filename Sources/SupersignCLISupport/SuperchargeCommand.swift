@@ -16,8 +16,6 @@ struct InstallSuperchargeCommand: AsyncParsableCommand {
         }
 
         let auth = try AuthToken.saved()
-        let username = auth.appleID
-        let credentials: IntegratedInstaller.Credentials = .token(auth.dsToken)
 
         let client = try await ConnectionOptions(udid: udid, search: .usb).client()
 
@@ -27,8 +25,8 @@ struct InstallSuperchargeCommand: AsyncParsableCommand {
         let installer = IntegratedInstaller(
             udid: client.udid,
             lookupMode: .only(.usb),
-            appleID: username,
-            credentials: credentials,
+            appleID: auth.appleID,
+            token: auth.dsToken,
             configureDevice: true,
             storage: SupersignCLI.config.storage,
             delegate: installDelegate

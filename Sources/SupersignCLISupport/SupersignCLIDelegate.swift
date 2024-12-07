@@ -2,17 +2,13 @@ import Foundation
 import Supersign
 import ConcurrencyExtras
 
-private func _fetchCode() async -> String? {
-    Console.prompt("Code: ")
-}
-
 final class SupersignCLIAuthDelegate: TwoFactorAuthDelegate {
     func fetchCode() async -> String? {
-        await _fetchCode()
+        Console.prompt("Code: ")
     }
 }
 
-actor SupersignCLIDelegate: IntegratedInstallerDelegate, TwoFactorAuthDelegate {
+actor SupersignCLIDelegate: IntegratedInstallerDelegate {
     public enum Error: Swift.Error {
         case decompressionFailed
         case compressionFailed
@@ -24,10 +20,6 @@ actor SupersignCLIDelegate: IntegratedInstallerDelegate, TwoFactorAuthDelegate {
     }
 
     private let updateTask = LockIsolated<Task<Void, Never>?>(nil)
-
-    func fetchCode() async -> String? {
-        await _fetchCode()
-    }
 
     func fetchTeam(fromTeams teams: [DeveloperServicesTeam]) async -> DeveloperServicesTeam? {
         if let preferredTeam = preferredTeam {
@@ -111,18 +103,11 @@ actor SupersignCLIDelegate: IntegratedInstallerDelegate, TwoFactorAuthDelegate {
         }
     }
 
-    private static let expiryFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter
-    }()
-
     func confirmRevocation(of certificates: [DeveloperServicesCertificate]) async -> Bool {
         print("\nThe following certificates must be revoked:")
         print(
             certificates.map {
-                "- \($0.attributes.name) (expires \(Self.expiryFormatter.string(from: $0.attributes.expiry)))"
+                "- \($0.attributes.name) (expires \($0.attributes.expiry.formatted(date: .abbreviated, time: .shortened)))"
             }.joined(separator: "\n")
         )
         return await Task.detached { Console.confirm("Continue?") }.value
