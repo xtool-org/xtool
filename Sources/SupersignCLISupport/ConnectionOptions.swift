@@ -3,21 +3,20 @@ import Supersign
 import ArgumentParser
 
 struct ConnectionOptions: ParsableArguments {
-    @Option(name: .shortAndLong) var udid: String?
-
-    @Flag var search: ClientDevice.SearchMode = .all
-
-    init() {}
-
-    init(
-        udid: String?,
-        search: ClientDevice.SearchMode = .all
-    ) {
-        self.udid = udid
-        self.search = search
+    struct WithoutSearchMode: ParsableArguments {
+        @Option(name: .shortAndLong) var udid: String?
     }
 
+    @OptionGroup var base: WithoutSearchMode
+    @Flag var search: ClientDevice.SearchMode = .all
+
     func client() async throws -> ClientDevice {
+        try await base.client(searchMode: search)
+    }
+}
+
+extension ConnectionOptions.WithoutSearchMode {
+    func client(searchMode search: ClientDevice.SearchMode) async throws -> ClientDevice {
         print("Waiting for device to be connected...")
 
         let stream = try await ClientDevice.search(mode: search)

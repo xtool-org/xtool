@@ -8,7 +8,7 @@ struct InstallSuperchargeCommand: AsyncParsableCommand {
         abstract: "Install Supercharge"
     )
 
-    @Option(name: .shortAndLong) var udid: String?
+    @OptionGroup var connectionOptions: ConnectionOptions.WithoutSearchMode
 
     func run() async throws {
         guard let app = SupersignCLI.config.superchargeApp else {
@@ -17,14 +17,14 @@ struct InstallSuperchargeCommand: AsyncParsableCommand {
 
         let auth = try AuthToken.saved()
 
-        let client = try await ConnectionOptions(udid: udid, search: .usb).client()
+        let client = try await connectionOptions.client(searchMode: .usb)
 
         print("Installing to device: \(client.deviceName) (udid: \(client.udid))")
 
         let installDelegate = SupersignCLIDelegate(preferredTeam: nil)
         let installer = IntegratedInstaller(
             udid: client.udid,
-            lookupMode: .only(.usb),
+            lookupMode: .only(client.connectionType),
             appleID: auth.appleID,
             token: auth.dsToken,
             configureDevice: true,
