@@ -10,7 +10,7 @@ import struct Foundation.Data
 import struct Foundation.Date
 #endif
 import HTTPTypes
-public struct DeveloperAPIClient: APIProtocol {
+package struct DeveloperAPIClient: APIProtocol {
     /// The underlying HTTP client.
     private let client: UniversalClient
     /// Creates a new client.
@@ -21,7 +21,7 @@ public struct DeveloperAPIClient: APIProtocol {
     ///   - configuration: A set of configuration values for the client.
     ///   - transport: A transport that performs HTTP operations.
     ///   - middlewares: A list of middlewares to call before the transport.
-    public init(
+    package init(
         serverURL: Foundation.URL,
         configuration: Configuration = .init(),
         transport: any ClientTransport,
@@ -39,7 +39,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `POST /v1/bundleIdCapabilities`.
     /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/post(bundleIdCapabilities_createInstance)`.
-    public func bundleIdCapabilities_createInstance(_ input: Operations.bundleIdCapabilities_createInstance.Input) async throws -> Operations.bundleIdCapabilities_createInstance.Output {
+    package func bundleIdCapabilities_createInstance(_ input: Operations.bundleIdCapabilities_createInstance.Input) async throws -> Operations.bundleIdCapabilities_createInstance.Output {
         try await client.send(
             input: input,
             forOperation: Operations.bundleIdCapabilities_createInstance.id,
@@ -216,7 +216,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `PATCH /v1/bundleIdCapabilities/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/patch(bundleIdCapabilities_updateInstance)`.
-    public func bundleIdCapabilities_updateInstance(_ input: Operations.bundleIdCapabilities_updateInstance.Input) async throws -> Operations.bundleIdCapabilities_updateInstance.Output {
+    package func bundleIdCapabilities_updateInstance(_ input: Operations.bundleIdCapabilities_updateInstance.Input) async throws -> Operations.bundleIdCapabilities_updateInstance.Output {
         try await client.send(
             input: input,
             forOperation: Operations.bundleIdCapabilities_updateInstance.id,
@@ -417,7 +417,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `DELETE /v1/bundleIdCapabilities/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/delete(bundleIdCapabilities_deleteInstance)`.
-    public func bundleIdCapabilities_deleteInstance(_ input: Operations.bundleIdCapabilities_deleteInstance.Input) async throws -> Operations.bundleIdCapabilities_deleteInstance.Output {
+    package func bundleIdCapabilities_deleteInstance(_ input: Operations.bundleIdCapabilities_deleteInstance.Input) async throws -> Operations.bundleIdCapabilities_deleteInstance.Output {
         try await client.send(
             input: input,
             forOperation: Operations.bundleIdCapabilities_deleteInstance.id,
@@ -567,7 +567,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/bundleIds`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/get(bundleIds_getCollection)`.
-    public func bundleIds_getCollection(_ input: Operations.bundleIds_getCollection.Input) async throws -> Operations.bundleIds_getCollection.Output {
+    package func bundleIds_getCollection(_ input: Operations.bundleIds_getCollection.Input) async throws -> Operations.bundleIds_getCollection.Output {
         try await client.send(
             input: input,
             forOperation: Operations.bundleIds_getCollection.id,
@@ -789,7 +789,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `POST /v1/bundleIds`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/post(bundleIds_createInstance)`.
-    public func bundleIds_createInstance(_ input: Operations.bundleIds_createInstance.Input) async throws -> Operations.bundleIds_createInstance.Output {
+    package func bundleIds_createInstance(_ input: Operations.bundleIds_createInstance.Input) async throws -> Operations.bundleIds_createInstance.Output {
         try await client.send(
             input: input,
             forOperation: Operations.bundleIds_createInstance.id,
@@ -966,7 +966,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/bundleIds/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/get(bundleIds_getInstance)`.
-    public func bundleIds_getInstance(_ input: Operations.bundleIds_getInstance.Input) async throws -> Operations.bundleIds_getInstance.Output {
+    package func bundleIds_getInstance(_ input: Operations.bundleIds_getInstance.Input) async throws -> Operations.bundleIds_getInstance.Output {
         try await client.send(
             input: input,
             forOperation: Operations.bundleIds_getInstance.id,
@@ -1163,7 +1163,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `PATCH /v1/bundleIds/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/patch(bundleIds_updateInstance)`.
-    public func bundleIds_updateInstance(_ input: Operations.bundleIds_updateInstance.Input) async throws -> Operations.bundleIds_updateInstance.Output {
+    package func bundleIds_updateInstance(_ input: Operations.bundleIds_updateInstance.Input) async throws -> Operations.bundleIds_updateInstance.Output {
         try await client.send(
             input: input,
             forOperation: Operations.bundleIds_updateInstance.id,
@@ -1364,7 +1364,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `DELETE /v1/bundleIds/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/delete(bundleIds_deleteInstance)`.
-    public func bundleIds_deleteInstance(_ input: Operations.bundleIds_deleteInstance.Input) async throws -> Operations.bundleIds_deleteInstance.Output {
+    package func bundleIds_deleteInstance(_ input: Operations.bundleIds_deleteInstance.Input) async throws -> Operations.bundleIds_deleteInstance.Output {
         try await client.send(
             input: input,
             forOperation: Operations.bundleIds_deleteInstance.id,
@@ -1514,7 +1514,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/certificates`.
     /// - Remark: Generated from `#/paths//v1/certificates/get(certificates_getCollection)`.
-    public func certificates_getCollection(_ input: Operations.certificates_getCollection.Input) async throws -> Operations.certificates_getCollection.Output {
+    package func certificates_getCollection(_ input: Operations.certificates_getCollection.Input) async throws -> Operations.certificates_getCollection.Output {
         try await client.send(
             input: input,
             forOperation: Operations.certificates_getCollection.id,
@@ -1687,7 +1687,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `POST /v1/certificates`.
     /// - Remark: Generated from `#/paths//v1/certificates/post(certificates_createInstance)`.
-    public func certificates_createInstance(_ input: Operations.certificates_createInstance.Input) async throws -> Operations.certificates_createInstance.Output {
+    package func certificates_createInstance(_ input: Operations.certificates_createInstance.Input) async throws -> Operations.certificates_createInstance.Output {
         try await client.send(
             input: input,
             forOperation: Operations.certificates_createInstance.id,
@@ -1864,7 +1864,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/certificates/{id}`.
     /// - Remark: Generated from `#/paths//v1/certificates/{id}/get(certificates_getInstance)`.
-    public func certificates_getInstance(_ input: Operations.certificates_getInstance.Input) async throws -> Operations.certificates_getInstance.Output {
+    package func certificates_getInstance(_ input: Operations.certificates_getInstance.Input) async throws -> Operations.certificates_getInstance.Output {
         try await client.send(
             input: input,
             forOperation: Operations.certificates_getInstance.id,
@@ -2019,7 +2019,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `DELETE /v1/certificates/{id}`.
     /// - Remark: Generated from `#/paths//v1/certificates/{id}/delete(certificates_deleteInstance)`.
-    public func certificates_deleteInstance(_ input: Operations.certificates_deleteInstance.Input) async throws -> Operations.certificates_deleteInstance.Output {
+    package func certificates_deleteInstance(_ input: Operations.certificates_deleteInstance.Input) async throws -> Operations.certificates_deleteInstance.Output {
         try await client.send(
             input: input,
             forOperation: Operations.certificates_deleteInstance.id,
@@ -2169,7 +2169,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/devices`.
     /// - Remark: Generated from `#/paths//v1/devices/get(devices_getCollection)`.
-    public func devices_getCollection(_ input: Operations.devices_getCollection.Input) async throws -> Operations.devices_getCollection.Output {
+    package func devices_getCollection(_ input: Operations.devices_getCollection.Input) async throws -> Operations.devices_getCollection.Output {
         try await client.send(
             input: input,
             forOperation: Operations.devices_getCollection.id,
@@ -2349,7 +2349,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `POST /v1/devices`.
     /// - Remark: Generated from `#/paths//v1/devices/post(devices_createInstance)`.
-    public func devices_createInstance(_ input: Operations.devices_createInstance.Input) async throws -> Operations.devices_createInstance.Output {
+    package func devices_createInstance(_ input: Operations.devices_createInstance.Input) async throws -> Operations.devices_createInstance.Output {
         try await client.send(
             input: input,
             forOperation: Operations.devices_createInstance.id,
@@ -2526,7 +2526,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/devices/{id}`.
     /// - Remark: Generated from `#/paths//v1/devices/{id}/get(devices_getInstance)`.
-    public func devices_getInstance(_ input: Operations.devices_getInstance.Input) async throws -> Operations.devices_getInstance.Output {
+    package func devices_getInstance(_ input: Operations.devices_getInstance.Input) async throws -> Operations.devices_getInstance.Output {
         try await client.send(
             input: input,
             forOperation: Operations.devices_getInstance.id,
@@ -2681,7 +2681,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `PATCH /v1/devices/{id}`.
     /// - Remark: Generated from `#/paths//v1/devices/{id}/patch(devices_updateInstance)`.
-    public func devices_updateInstance(_ input: Operations.devices_updateInstance.Input) async throws -> Operations.devices_updateInstance.Output {
+    package func devices_updateInstance(_ input: Operations.devices_updateInstance.Input) async throws -> Operations.devices_updateInstance.Output {
         try await client.send(
             input: input,
             forOperation: Operations.devices_updateInstance.id,
@@ -2882,7 +2882,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/profiles`.
     /// - Remark: Generated from `#/paths//v1/profiles/get(profiles_getCollection)`.
-    public func profiles_getCollection(_ input: Operations.profiles_getCollection.Input) async throws -> Operations.profiles_getCollection.Output {
+    package func profiles_getCollection(_ input: Operations.profiles_getCollection.Input) async throws -> Operations.profiles_getCollection.Output {
         try await client.send(
             input: input,
             forOperation: Operations.profiles_getCollection.id,
@@ -3097,7 +3097,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `POST /v1/profiles`.
     /// - Remark: Generated from `#/paths//v1/profiles/post(profiles_createInstance)`.
-    public func profiles_createInstance(_ input: Operations.profiles_createInstance.Input) async throws -> Operations.profiles_createInstance.Output {
+    package func profiles_createInstance(_ input: Operations.profiles_createInstance.Input) async throws -> Operations.profiles_createInstance.Output {
         try await client.send(
             input: input,
             forOperation: Operations.profiles_createInstance.id,
@@ -3274,7 +3274,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/profiles/{id}`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/get(profiles_getInstance)`.
-    public func profiles_getInstance(_ input: Operations.profiles_getInstance.Input) async throws -> Operations.profiles_getInstance.Output {
+    package func profiles_getInstance(_ input: Operations.profiles_getInstance.Input) async throws -> Operations.profiles_getInstance.Output {
         try await client.send(
             input: input,
             forOperation: Operations.profiles_getInstance.id,
@@ -3471,7 +3471,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `DELETE /v1/profiles/{id}`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/delete(profiles_deleteInstance)`.
-    public func profiles_deleteInstance(_ input: Operations.profiles_deleteInstance.Input) async throws -> Operations.profiles_deleteInstance.Output {
+    package func profiles_deleteInstance(_ input: Operations.profiles_deleteInstance.Input) async throws -> Operations.profiles_deleteInstance.Output {
         try await client.send(
             input: input,
             forOperation: Operations.profiles_deleteInstance.id,
@@ -3621,7 +3621,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/app`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/app/get(bundleIds_app_getToOneRelated)`.
-    public func bundleIds_app_getToOneRelated(_ input: Operations.bundleIds_app_getToOneRelated.Input) async throws -> Operations.bundleIds_app_getToOneRelated.Output {
+    package func bundleIds_app_getToOneRelated(_ input: Operations.bundleIds_app_getToOneRelated.Input) async throws -> Operations.bundleIds_app_getToOneRelated.Output {
         try await client.send(
             input: input,
             forOperation: Operations.bundleIds_app_getToOneRelated.id,
@@ -3776,7 +3776,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/bundleIdCapabilities`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelated)`.
-    public func bundleIds_bundleIdCapabilities_getToManyRelated(_ input: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Input) async throws -> Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output {
+    package func bundleIds_bundleIdCapabilities_getToManyRelated(_ input: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Input) async throws -> Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output {
         try await client.send(
             input: input,
             forOperation: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.id,
@@ -3938,7 +3938,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/profiles`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/profiles/get(bundleIds_profiles_getToManyRelated)`.
-    public func bundleIds_profiles_getToManyRelated(_ input: Operations.bundleIds_profiles_getToManyRelated.Input) async throws -> Operations.bundleIds_profiles_getToManyRelated.Output {
+    package func bundleIds_profiles_getToManyRelated(_ input: Operations.bundleIds_profiles_getToManyRelated.Input) async throws -> Operations.bundleIds_profiles_getToManyRelated.Output {
         try await client.send(
             input: input,
             forOperation: Operations.bundleIds_profiles_getToManyRelated.id,
@@ -4100,7 +4100,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/profiles/{id}/bundleId`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/bundleId/get(profiles_bundleId_getToOneRelated)`.
-    public func profiles_bundleId_getToOneRelated(_ input: Operations.profiles_bundleId_getToOneRelated.Input) async throws -> Operations.profiles_bundleId_getToOneRelated.Output {
+    package func profiles_bundleId_getToOneRelated(_ input: Operations.profiles_bundleId_getToOneRelated.Input) async throws -> Operations.profiles_bundleId_getToOneRelated.Output {
         try await client.send(
             input: input,
             forOperation: Operations.profiles_bundleId_getToOneRelated.id,
@@ -4255,7 +4255,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/profiles/{id}/certificates`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/certificates/get(profiles_certificates_getToManyRelated)`.
-    public func profiles_certificates_getToManyRelated(_ input: Operations.profiles_certificates_getToManyRelated.Input) async throws -> Operations.profiles_certificates_getToManyRelated.Output {
+    package func profiles_certificates_getToManyRelated(_ input: Operations.profiles_certificates_getToManyRelated.Input) async throws -> Operations.profiles_certificates_getToManyRelated.Output {
         try await client.send(
             input: input,
             forOperation: Operations.profiles_certificates_getToManyRelated.id,
@@ -4417,7 +4417,7 @@ public struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/profiles/{id}/devices`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/devices/get(profiles_devices_getToManyRelated)`.
-    public func profiles_devices_getToManyRelated(_ input: Operations.profiles_devices_getToManyRelated.Input) async throws -> Operations.profiles_devices_getToManyRelated.Output {
+    package func profiles_devices_getToManyRelated(_ input: Operations.profiles_devices_getToManyRelated.Input) async throws -> Operations.profiles_devices_getToManyRelated.Output {
         try await client.send(
             input: input,
             forOperation: Operations.profiles_devices_getToManyRelated.id,

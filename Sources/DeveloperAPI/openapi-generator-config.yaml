@@ -1,7 +1,7 @@
 generate:
   - types
   - client
-accessModifier: public
+accessModifier: package
 filter:
   tags:
     - BundleIds
