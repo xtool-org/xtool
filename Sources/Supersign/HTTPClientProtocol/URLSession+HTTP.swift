@@ -18,7 +18,6 @@ final class URLHTTPClientFactory: HTTPClientFactory {
 
     private let client = Client()
 
-    func shutdown() {}
     func makeClient() -> HTTPClientProtocol { client }
 }
 

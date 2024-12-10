@@ -21,7 +21,6 @@ public enum SupersignCLI {
 
     public static func run(configuration: Configuration, arguments: [String]? = nil) async throws {
         _config = configuration
-        defer { defaultHTTPClientFactory.shutdown() }
         do {
             var command = try SupersignCommand.parseAsRoot(arguments)
             if var asyncCommand = command as? AsyncParsableCommand {

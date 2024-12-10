@@ -78,7 +78,6 @@ public enum WebSocketMessage: Sendable {
 }
 
 public protocol HTTPClientFactory: Sendable {
-    func shutdown() // client is invalidated after this
     func makeClient() -> HTTPClientProtocol
 }
 

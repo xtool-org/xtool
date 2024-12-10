@@ -165,11 +165,6 @@ final class AsyncHTTPClientFactory: HTTPClientFactory {
     }
     static let shared = AsyncHTTPClientFactory()
 
-    func shutdown() {
-        // swiftlint:disable:next force_try
-        try! client.syncShutdown()
-    }
-
     func makeClient() -> HTTPClientProtocol { client }
 }
 #endif
