@@ -33,7 +33,7 @@ extension NetcatAnisetteDataProvider {
 extension ADIDataProvider {
 
     static func test(storage: KeyValueStorage) throws -> ADIDataProvider {
-        try supersetteProvider(deviceInfo: Config.current.deviceInfo, storage: storage)
+        try adiProvider(deviceInfo: Config.current.deviceInfo, storage: storage)
     }
 
 }
@@ -57,14 +57,6 @@ extension DeveloperServicesClient {
             deviceInfo: Config.current.deviceInfo,
             anisetteProvider: ADIDataProvider.test(storage: storage)
         )
-    }
-
-    func sendTest<T: DeveloperServicesRequest>(
-        _ request: T, file: StaticString = #file, line: UInt = #line
-    ) throws -> T.Value {
-        let waiter = ResultWaiter<T.Value>(description: "Could not finish request: \(request.action)")
-        send(request, completion: waiter.completion)
-        return try waiter.wait(timeout: 10, file: file, line: line)
     }
 
 }

@@ -30,9 +30,9 @@ class SupersignDeveloperServicesTests: XCTestCase {
     }
 
     // integration test for provisioning
-    func testProvisioningIntegration() throws {
+    func testProvisioningIntegration() async throws {
         let listTeams = DeveloperServicesListTeamsRequest()
-        let teams = try XCTTry(client.sendTest(listTeams))
+        let teams = try await client.send(listTeams)
         let team = teams.first { $0.status == "active" && $0.memberships.contains { $0.platform == .iOS } }!
 
         let source = try XCTUnwrap(Bundle.module.url(forResource: "test", withExtension: "app"))
@@ -45,21 +45,18 @@ class SupersignDeveloperServicesTests: XCTestCase {
             signingInfoManager: MemoryBackedSigningInfoManager()
         ))
 
-        let waiter = ResultWaiter<DeveloperServicesProvisioningOperation.Response>(description: "Failed to provision")
-        DeveloperServicesProvisioningOperation(
+        let response = try await DeveloperServicesProvisioningOperation(
             context: context,
             app: source,
-            confirmRevocation: { $1(true) },
+            confirmRevocation: { _ in true },
             progress: { _ in }
-        ).perform(completion: waiter.completion)
-        let response = try XCTTry(waiter.wait(timeout: 10000))
-
+        ).perform()
         print(response)
     }
 
-    func testListTeams() throws {
+    func testListTeams() async throws {
         let listTeams = DeveloperServicesListTeamsRequest()
-        let teams = try XCTTry(client.sendTest(listTeams))
+        let teams = try await client.send(listTeams)
         XCTAssertFalse(teams.isEmpty, "No teams found")
 
         let team = try XCTUnwrap(

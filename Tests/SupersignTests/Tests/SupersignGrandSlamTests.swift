@@ -12,10 +12,10 @@ import XCTest
 import SuperutilsTestSupport
 @testable import Supersign
 
-class TwoFactorAuthenticator: TwoFactorAuthDelegate {
-    func fetchCode(completion: @escaping (String?) -> Void) {
+final class TwoFactorAuthenticator: TwoFactorAuthDelegate {
+    func fetchCode() async -> String? {
         print("Code: ", terminator: "")
-        completion(readLine() ?? "")
+        return readLine() ?? ""
     }
 }
 
@@ -39,15 +39,13 @@ class SupersignGrandSlamTests: XCTestCase {
         authenticator = nil
     }
 
-    func testAuthentication() throws {
-        let authWaiter = ResultWaiter<GrandSlamLoginData>(description: "Login timed out")
-        GrandSlamAuthenticateOperation(
+    func testAuthentication() async throws {
+        let loginData = try await GrandSlamAuthenticateOperation(
             client: client,
             username: Config.current.appleID.username,
             password: Config.current.appleID.password,
             twoFactorDelegate: authenticator
-        ).authenticate(completion: authWaiter.completion)
-        let loginData = try XCTTry(authWaiter.wait(timeout: 10000))
+        ).authenticate()
         XCTAssertFalse(loginData.adsid.isEmpty)
         XCTAssertFalse(loginData.cookie.isEmpty)
         XCTAssertFalse(loginData.identityToken.isEmpty)
@@ -56,15 +54,11 @@ class SupersignGrandSlamTests: XCTestCase {
 
         let now = Date() // *before* the actual request is made
 
-        let tokWaiter = ResultWaiter<[AppTokenKey: GrandSlamFetchAppTokensOperation.Token]>(
-            description: "Token request timed out"
-        )
-        GrandSlamFetchAppTokensOperation(
+        let tokens = try await GrandSlamFetchAppTokensOperation(
             client: client,
             apps: [.xcode],
             loginData: loginData
-        ).perform(completion: tokWaiter.completion)
-        let tokens = try XCTTry(tokWaiter.wait(timeout: 10000))
+        ).perform()
         let token = try XCTUnwrap(tokens[.xcode], "Xcode token absent from response")
         XCTAssertGreaterThanOrEqual(token.expiry, now)
         XCTAssertFalse(token.value.isEmpty)
