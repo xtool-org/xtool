@@ -117,9 +117,8 @@ public struct DeveloperAPIXcodeMiddleware: ClientMiddleware {
             var workingBody: [String: Any] = [:]
             if let existingBody = body {
                 let data = try await Data(collecting: existingBody, upTo: .max)
-                print("Original body: \(String(decoding: data, as: UTF8.self))")
                 guard let decodedBody = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                    fatalError("Bad body")
+                    throw Errors.malformedPayload("body")
                 }
                 workingBody = decodedBody
             }
@@ -127,7 +126,7 @@ public struct DeveloperAPIXcodeMiddleware: ClientMiddleware {
             var workingData: [String: Any] = [:]
             if let existingData = workingBody["data"] {
                 guard let decodedData = existingData as? [String: Any] else {
-                    fatalError("Found `data` key but it was not an object")
+                    throw Errors.malformedPayload("data")
                 }
                 workingData = decodedData
             }
@@ -135,7 +134,7 @@ public struct DeveloperAPIXcodeMiddleware: ClientMiddleware {
             var workingAttributes: [String: Any] = [:]
             if let existingAttributes = workingData["attributes"] {
                 guard let decodedAttributes = existingAttributes as? [String: Any] else {
-                    fatalError("Found `attributes` key but it was not an object")
+                    throw Errors.malformedPayload("attributes")
                 }
                 workingAttributes = decodedAttributes
             }
@@ -149,8 +148,7 @@ public struct DeveloperAPIXcodeMiddleware: ClientMiddleware {
             body = HTTPBody(encodedBody)
             request.headerFields[.contentLength] = "\(encodedBody.count)"
         default:
-            print("warning: DeveloperServices: unrecognized http method: \(originalMethod)")
-            break
+            throw Errors.unrecognizedHTTPMethod(originalMethod.rawValue)
         }
 
         var (response, responseBody) = try await next(request, body, Self.baseURL)
@@ -160,5 +158,10 @@ public struct DeveloperAPIXcodeMiddleware: ClientMiddleware {
         }
 
         return (response, responseBody)
+    }
+
+    public enum Errors: Error {
+        case unrecognizedHTTPMethod(String)
+        case malformedPayload(String)
     }
 }
