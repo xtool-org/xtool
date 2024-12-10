@@ -13,6 +13,8 @@ import NIOHTTP1
 import NIOSSL
 import NIOFoundationCompat
 import WebSocketKit
+import OpenAPIRuntime
+import OpenAPIAsyncHTTPClient
 
 extension HTTPClient: HTTPClientProtocol {
     @discardableResult
@@ -67,6 +69,10 @@ extension HTTPClient: HTTPClientProtocol {
 
     private enum Errors: Error {
         case connectFailed
+    }
+
+    public var asOpenAPITransport: any ClientTransport {
+        AsyncHTTPClientTransport(configuration: .init(client: self))
     }
 }
 

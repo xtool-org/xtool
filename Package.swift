@@ -38,6 +38,11 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.5.0"),
         .package(url: "https://github.com/attaswift/BigInt", from: "5.5.0"),
         .package(url: "https://github.com/pointfreeco/swift-concurrency-extras", from: "1.3.0"),
+
+        .package(url: "https://github.com/apple/swift-openapi-generator", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-openapi-urlsession", from: "1.0.0"),
+        .package(url: "https://github.com/swift-server/swift-openapi-async-http-client", from: "1.0.0"),
     ],
     targets: [
         .systemLibrary(name: "CSupersette"),
@@ -49,8 +54,16 @@ let package = Package(
             cSettings: cSettings
         ),
         .target(
+            name: "DeveloperAPI",
+            dependencies: [
+                .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
+            ],
+            exclude: ["openapi-generator-config.yaml"]
+        ),
+        .target(
             name: "Supersign",
             dependencies: [
+                "DeveloperAPI",
                 "CSupersign",
                 .byName(name: "CSupersette", condition: .when(platforms: [.linux])),
                 .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
@@ -63,6 +76,12 @@ let package = Package(
                 .product(name: "_CryptoExtras", package: "swift-crypto"),
                 .product(name: "X509", package: "swift-certificates"),
                 .product(name: "BigInt", package: "BigInt"),
+                .product(name: "OpenAPIURLSession", package: "swift-openapi-urlsession"),
+                .product(
+                    name: "OpenAPIAsyncHTTPClient",
+                    package: "swift-openapi-async-http-client",
+                    condition: .when(platforms: [.linux])
+                ),
                 .product(
                     name: "AsyncHTTPClient",
                     package: "async-http-client",

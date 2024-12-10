@@ -1,5 +1,5 @@
 {
-  "originHash" : "3ecc8ef518ebe5b230ad4f24ebf6cc8d0ac4194ce4281a4b596f65355978fe83",
+  "originHash" : "093c707d9a59dbc3862fcc4682cd2a725695bec85446dcc453245f6ec0363481",
   "pins" : [
     {
       "identity" : "aexml",
@@ -35,6 +35,15 @@
       "state" : {
         "revision" : "128d2ffc22467f69569ef8ff971683e2393191a0",
         "version" : "4.2.0"
+      }
+    },
+    {
+      "identity" : "openapikit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mattpolzin/OpenAPIKit",
+      "state" : {
+        "revision" : "5b5ee49624dda5b3e3b85aff184f44a007862fb7",
+        "version" : "3.3.0"
       }
     },
     {
@@ -214,6 +223,42 @@
       "location" : "https://github.com/apple/swift-numerics.git",
       "state" : {
         "revision" : "0a5bc04095a675662cf24757cc0640aa2204253b",
+        "version" : "1.0.2"
+      }
+    },
+    {
+      "identity" : "swift-openapi-async-http-client",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swift-server/swift-openapi-async-http-client",
+      "state" : {
+        "revision" : "abfe558a66992ef1e896a577010f957915f30591",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "swift-openapi-generator",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-openapi-generator",
+      "state" : {
+        "revision" : "e971af5c5374e4ea83c20d0ad0a0df2cc84d39ad",
+        "version" : "1.5.0"
+      }
+    },
+    {
+      "identity" : "swift-openapi-runtime",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-openapi-runtime",
+      "state" : {
+        "revision" : "5e119a3d52dde0229312ed586be99c666c6b6f64",
+        "version" : "1.7.0"
+      }
+    },
+    {
+      "identity" : "swift-openapi-urlsession",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-openapi-urlsession",
+      "state" : {
+        "revision" : "9bf4c712ad7989d6a91dbe68748b8829a50837e4",
         "version" : "1.0.2"
       }
     },

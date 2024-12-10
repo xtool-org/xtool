@@ -1,0 +1,11 @@
+generate:
+  - types
+  - client
+accessModifier: public
+filter:
+  tags:
+    - BundleIds
+    - BundleIdCapabilities
+    - Certificates
+    - Devices
+    - Profiles

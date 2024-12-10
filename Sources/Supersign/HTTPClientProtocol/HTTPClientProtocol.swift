@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import OpenAPIRuntime
 
 public struct HTTPRequest: Sendable {
     public enum Body: Sendable {
@@ -50,6 +51,8 @@ public struct HTTPResponse: Sendable {
 }
 
 public protocol HTTPClientProtocol: Sendable {
+    var asOpenAPITransport: ClientTransport { get }
+
     func makeRequest(
         _ request: HTTPRequest,
         onProgress: sending @isolated(any) (Double?) -> Void

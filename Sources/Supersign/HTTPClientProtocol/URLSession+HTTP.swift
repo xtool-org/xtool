@@ -8,6 +8,8 @@
 #if !os(Linux)
 import Foundation
 import ConcurrencyExtras
+import OpenAPIRuntime
+import OpenAPIURLSession
 
 public struct UnknownHTTPError: Error {}
 
@@ -52,6 +54,10 @@ private final class Client: HTTPClientProtocol {
         // installed on any devices which support the Security APIs which
         // would have been required to add the custom root anyway
         self.session = URLSession(configuration: .ephemeral, delegate: clientDelegate, delegateQueue: .main)
+    }
+
+    var asOpenAPITransport: any ClientTransport {
+        URLSessionTransport(configuration: .init(session: session))
     }
 
     public func makeRequest(
