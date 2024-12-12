@@ -3,12 +3,6 @@ import ArgumentParser
 import PackLib
 import Supersign
 
-struct AddSDKOperation {
-    func run() async throws {
-        print("TODO: install Swift SDK for iOS")
-    }
-}
-
 struct DevSetupCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "setup",
@@ -22,18 +16,7 @@ struct DevSetupCommand: AsyncParsableCommand {
 
     func run() async throws {
         try await AuthOperation(logoutFromExisting: false).run()
-        try await AddSDKOperation().run()
-    }
-}
-
-struct DevSDKCommand: AsyncParsableCommand {
-    static let configuration = CommandConfiguration(
-        commandName: "sdk",
-        abstract: "Manages the Swift SDK for iOS"
-    )
-
-    func run() async throws {
-        try await AddSDKOperation().run()
+        try await InstallSDKOperation().run()
     }
 }
 

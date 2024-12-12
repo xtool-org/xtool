@@ -46,6 +46,7 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-concurrency-extras", from: "1.3.0"),
 
         .package(url: "https://github.com/attaswift/BigInt", from: "5.5.0"),
+        .package(url: "https://github.com/mxcl/Version", from: "2.1.0"),
     ],
     targets: [
         .systemLibrary(name: "CSupersette"),
@@ -118,7 +119,8 @@ let package = Package(
                 "SwiftyMobileDevice",
                 "Supersign",
                 .product(name: "PackLib", package: "swiftpack"),
-                .product(name: "ArgumentParser", package: "swift-argument-parser")
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "Version", package: "Version"),
             ],
             cSettings: cSettings
         ),
