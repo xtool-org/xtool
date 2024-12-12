@@ -7,7 +7,7 @@ struct OmnisetteADIProvider: RawADIProvider {
     private let url: URL
     private let client: HTTPClientProtocol
     init(
-        url: URL = URL(string: "https://ani3server.fly.dev")!, // URL(string: "http://localhost:6969")!,
+        url: URL = URL(string: "https://ani.sidestore.io")!, // URL(string: "http://localhost:6969")!,
         httpFactory: HTTPClientFactory = defaultHTTPClientFactory
     ) {
         self.url = url
