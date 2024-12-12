@@ -99,9 +99,9 @@ struct DevBuildCommand: AsyncParsableCommand {
     }
 }
 
-struct DevDeployCommand: AsyncParsableCommand {
+struct DevRunCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "deploy",
+        commandName: "run",
         abstract: "Build and run app with SwiftPM",
         discussion: """
         This command deploys the SwiftPM-based iOS app in the current directory \
@@ -149,9 +149,9 @@ struct DevCommand: AsyncParsableCommand {
             DevSetupCommand.self,
             DevSDKCommand.self,
             DevBuildCommand.self,
-            DevDeployCommand.self,
+            DevRunCommand.self,
         ],
-        defaultSubcommand: DevDeployCommand.self
+        defaultSubcommand: DevRunCommand.self
     )
 }
 
