@@ -3,9 +3,43 @@ import ArgumentParser
 import PackLib
 import Supersign
 
-struct DevCommand: AsyncParsableCommand {
+struct AddSDKOperation {
+    func run() async throws {
+        print("TODO: install Swift SDK for iOS")
+    }
+}
+
+struct DevSetupCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "dev",
+        commandName: "setup",
+        abstract: "Set up Supersign for iOS development",
+        discussion: """
+        Authenticates with Apple if needed, then adds the iOS SDK to SwiftPM.
+
+        Equivalent to running `supersign auth && supersign dev sdk`
+        """
+    )
+
+    func run() async throws {
+        try await AuthOperation(logoutFromExisting: false).run()
+        try await AddSDKOperation().run()
+    }
+}
+
+struct DevSDKCommand: AsyncParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "sdk",
+        abstract: "Manages the Swift SDK for iOS"
+    )
+
+    func run() async throws {
+        try await AddSDKOperation().run()
+    }
+}
+
+struct DevDeployCommand: AsyncParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "deploy",
         abstract: "Build and run apps with SwiftPM",
         discussion: """
         This command deploys the SwiftPM-based iOS app in the current directory \
@@ -75,6 +109,19 @@ struct DevCommand: AsyncParsableCommand {
 
         try await installer.install(app: output)
     }
+}
+
+struct DevCommand: AsyncParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "dev",
+        abstract: "Develop iOS apps with SwiftPM",
+        subcommands: [
+            DevSetupCommand.self,
+            DevSDKCommand.self,
+            DevDeployCommand.self,
+        ],
+        defaultSubcommand: DevDeployCommand.self
+    )
 }
 
 extension BuildConfiguration: @retroactive ExpressibleByArgument {}

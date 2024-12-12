@@ -39,6 +39,7 @@ struct SupersignCommand: AsyncParsableCommand {
         commandName: "supersign",
         abstract: "The Supersign command line tool",
         subcommands: [
+            AuthCommand.self,
             DSCommand.self,
             DevicesCommand.self,
             InstallCommand.self,

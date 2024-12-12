@@ -65,6 +65,10 @@ extension AuthToken {
         return token
     }
 
+    static func clear() throws {
+        try SupersignCLI.config.storage.setString(nil, forKey: "SUPAuthToken")
+    }
+
     func save() throws {
         try SupersignCLI.config.storage.setString(string, forKey: "SUPAuthToken")
     }

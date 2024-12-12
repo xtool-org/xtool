@@ -2,70 +2,6 @@ import Foundation
 import Supersign
 import ArgumentParser
 
-extension DeviceInfo {
-    static func fetch() throws -> Self {
-        guard let deviceInfo = DeviceInfo.current() else {
-            throw Console.Error("Could not fetch client info.")
-        }
-        return deviceInfo
-    }
-}
-
-struct DSLoginCommand: AsyncParsableCommand {
-    static let configuration = CommandConfiguration(
-        commandName: "login",
-        abstract: "Obtain an Apple ID authentication token"
-    )
-
-    @Flag(name: [.short, .long]) var resetProvisioning = false
-    @Option(name: [.short, .long], help: "Apple ID") var username: String?
-    @Option(name: [.short, .long]) var password: String?
-    @Flag(
-        name: [.long],
-        help: "Print the auth token to standard output instead of persisting it."
-    ) var printToken = false
-
-    func run() async throws {
-        guard let username = username ?? Console.prompt("Apple ID: "), !username.isEmpty else {
-            throw Console.Error("A non-empty Apple ID is required.")
-        }
-        guard let password = password ?? Console.getPassword("Password: "), !password.isEmpty else {
-            throw Console.Error("A non-empty password is required.")
-        }
-
-        let deviceInfo = try DeviceInfo.fetch()
-
-        let provider = try ADIDataProvider.adiProvider(
-            deviceInfo: deviceInfo,
-            storage: SupersignCLI.config.storage
-        )
-        if resetProvisioning {
-            provider.resetProvisioning()
-        }
-        let authDelegate = SupersignCLIAuthDelegate()
-        let manager = try DeveloperServicesLoginManager(
-            deviceInfo: deviceInfo,
-            anisetteProvider: provider
-        )
-        let token = try await manager.logIn(
-            withUsername: username,
-            password: password,
-            twoFactorDelegate: authDelegate
-        )
-        let fullToken = AuthToken(appleID: username, dsToken: token)
-
-        if printToken {
-            guard let string = fullToken.string else {
-                throw Console.Error("Could not encode token.")
-            }
-            print(string)
-        } else {
-            try fullToken.save()
-            print("Logged in!")
-        }
-    }
-}
-
 struct DSTeamsListCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "list",
@@ -158,9 +94,8 @@ struct DSCommand: AsyncParsableCommand {
         commandName: "ds",
         abstract: "Interact with Apple Developer Services",
         subcommands: [
-            DSLoginCommand.self,
             DSTeamsCommand.self,
-            DSAnisetteCommand.self
+            DSAnisetteCommand.self,
         ]
     )
 }
