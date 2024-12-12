@@ -37,29 +37,18 @@ struct DevSDKCommand: AsyncParsableCommand {
     }
 }
 
-struct DevDeployCommand: AsyncParsableCommand {
-    static let configuration = CommandConfiguration(
-        commandName: "deploy",
-        abstract: "Build and run apps with SwiftPM",
-        discussion: """
-        This command deploys the SwiftPM-based iOS app in the current directory \
-        using https://github.com/kabiroberai/swiftpack
-        """
-    )
+struct PackOperation {
+    struct Options: ParsableArguments {
+        @Option(
+            name: .shortAndLong,
+            help: "Build with configuration"
+        ) var configuration: BuildConfiguration = .debug
+    }
 
-    @OptionGroup var connectionOptions: ConnectionOptions
+    var options: Options
 
-    @Option(
-        name: .shortAndLong,
-        help: "Build with configuration"
-    ) var configuration: BuildConfiguration = .debug
-
-    @Option(
-        name: .shortAndLong,
-        help: "Preferred team ID"
-    ) var team: String?
-
-    func run() async throws {
+    @discardableResult
+    func run() async throws -> URL {
         print("Planning...")
 
         let schema: PackSchema
@@ -75,7 +64,7 @@ struct DevDeployCommand: AsyncParsableCommand {
         }
 
         let buildSettings = try await BuildSettings(
-            configuration: configuration,
+            configuration: options.configuration,
             options: []
         )
 
@@ -89,7 +78,48 @@ struct DevDeployCommand: AsyncParsableCommand {
             buildSettings: buildSettings,
             plan: plan
         )
-        let output = try await packer.pack()
+        return try await packer.pack()
+    }
+}
+
+struct DevBuildCommand: AsyncParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "build",
+        abstract: "Build app with SwiftPM",
+        discussion: """
+        This command builds the SwiftPM-based iOS app in the current directory \
+        using https://github.com/kabiroberai/swiftpack
+        """
+    )
+
+    @OptionGroup var packOptions: PackOperation.Options
+
+    func run() async throws {
+        try await PackOperation(options: packOptions).run()
+    }
+}
+
+struct DevDeployCommand: AsyncParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "deploy",
+        abstract: "Build and run app with SwiftPM",
+        discussion: """
+        This command deploys the SwiftPM-based iOS app in the current directory \
+        using https://github.com/kabiroberai/swiftpack
+        """
+    )
+
+    @OptionGroup var packOptions: PackOperation.Options
+
+    @OptionGroup var connectionOptions: ConnectionOptions
+
+    @Option(
+        name: .shortAndLong,
+        help: "Preferred team ID"
+    ) var team: String?
+
+    func run() async throws {
+        let output = try await PackOperation(options: packOptions).run()
 
         let token = try AuthToken.saved()
 
@@ -118,6 +148,7 @@ struct DevCommand: AsyncParsableCommand {
         subcommands: [
             DevSetupCommand.self,
             DevSDKCommand.self,
+            DevBuildCommand.self,
             DevDeployCommand.self,
         ],
         defaultSubcommand: DevDeployCommand.self
