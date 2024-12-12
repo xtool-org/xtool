@@ -144,6 +144,7 @@ private final class Client: HTTPClientProtocol {
                 eventContinuation.finish()
             }
         }
+        task.resume()
         let code = await event.first { _ in true } ?? nil
         if let code { throw Errors.webSocketClosed(code) }
         return WebSocketSessionWrapper(task: task)
