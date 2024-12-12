@@ -64,7 +64,8 @@ public struct DeveloperServicesLoginManager: Sendable {
     ) async throws -> DeveloperServicesLoginToken {
         let loginData = try await GrandSlamAuthenticateOperation(
             client: client,
-            username: username,
+            // GSA requires Apple IDs in lowercase for SRP
+            username: username.lowercased(),
             password: password,
             twoFactorDelegate: twoFactorDelegate
         ).authenticate()
