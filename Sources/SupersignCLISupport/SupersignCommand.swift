@@ -50,7 +50,7 @@ extension ParsableCommand {
             for await _ in canStart {}
             guard !Task.isCancelled else { return }
             do {
-                var command = try self.parseAsRoot()
+                var command = try self.parseAsRoot(arguments)
                 if var asyncCommand = command as? AsyncParsableCommand {
                     try await asyncCommand.run()
                 } else {
