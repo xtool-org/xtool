@@ -30,13 +30,13 @@ extension ConnectionOptions.WithoutSearchMode {
             } else {
                 return try Console.choose(
                     from: devices,
-                    onNoElement: { throw ValidationError("Device not found") },
+                    onNoElement: { throw Console.Error("Device not found") },
                     multiPrompt: "Choose device",
                     formatter: { "\($0.deviceName) (\($0.connectionType), udid: \($0.udid))" }
                 )
             }
         }
 
-        throw ValidationError("Device not found")
+        throw CancellationError()
     }
 }

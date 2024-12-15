@@ -56,7 +56,8 @@ extension ParsableCommand {
                 } else {
                     try command.run()
                 }
-            } catch is CancellationError {
+            } catch where error is CancellationError || Task.isCancelled {
+                print("Cancelled.")
                 self.exit()
             } catch {
                 self.exit(withError: error)
