@@ -28,7 +28,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/SuperchargeApp/SuperchargeCore", .upToNextMinor(from: "1.2.0")),
-        .package(url: "https://github.com/SuperchargeApp/SwiftyMobileDevice", .upToNextMinor(from: "1.3.0")),
+        .package(url: "https://github.com/SuperchargeApp/SwiftyMobileDevice", .upToNextMinor(from: "1.3.1")),
         .package(url: "https://github.com/kabiroberai/swiftpack", .upToNextMinor(from: "1.0.1")),
         .package(url: "https://github.com/kabiroberai/zsign", .upToNextMinor(from: "1.3.0")),
 

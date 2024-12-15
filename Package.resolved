@@ -1,5 +1,5 @@
 {
-  "originHash" : "093c707d9a59dbc3862fcc4682cd2a725695bec85446dcc453245f6ec0363481",
+  "originHash" : "9d51e39cf59eb5e4b323babb234343919cbd46905692468ce76c44c32c6867b1",
   "pins" : [
     {
       "identity" : "aexml",
@@ -294,8 +294,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/SuperchargeApp/SwiftyMobileDevice",
       "state" : {
-        "revision" : "954fff0438c181b64c0ab5dac5428486cc0cb6e0",
-        "version" : "1.3.0"
+        "revision" : "a7fb063c3819618773c2a9a10c19be7682fd8395",
+        "version" : "1.3.1"
       }
     },
     {
