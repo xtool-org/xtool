@@ -35,22 +35,22 @@ struct DSTeamsListCommand: AsyncParsableCommand {
 
 struct DSAnisetteCommand: AsyncParsableCommand {
     private final class Provider: RawADIProvider, RawADIProvisioningSession {
-        func startProvisioning(spim: Data, userID: UUID) -> (RawADIProvisioningSession, Data) {
+        func startProvisioning(spim: Data, userID: UUID) async throws -> (RawADIProvisioningSession, Data) {
             print("spim: \(spim.base64EncodedString())")
-            return (self, Data(base64Encoded: Console.prompt("cpim: ")!)!)
+            return (self, Data(base64Encoded: try await Console.prompt("cpim: "))!)
         }
 
         func endProvisioning(
             routingInfo: UInt64,
             ptm: Data,
             tk: Data
-        ) -> Data {
+        ) async throws -> Data {
             print("""
             rinfo: \(routingInfo)
             ptm: \(ptm.base64EncodedString())
             tk: \(tk.base64EncodedString())
             """)
-            return Data(base64Encoded: Console.prompt("pinfo: ")!)!
+            return Data(base64Encoded: try await Console.prompt("pinfo: "))!
         }
 
         func requestOTP(

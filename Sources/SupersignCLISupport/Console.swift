@@ -1,26 +1,65 @@
 import Foundation
 import Supersign
+import SystemPackage
+import NIOPosix
+import NIOCore
 
 enum Console {
-    // nil = EOF
-    static func prompt(_ message: String) -> String? {
+    private static func withStandardInput<T>(
+        _ body: (NIOAsyncChannelInboundStream<ByteBuffer>) async throws -> T
+    ) async throws -> T {
+        let copy = try FileDescriptor.standardInput.duplicate()
+        return try await NIOPipeBootstrap(group: .singletonMultiThreadedEventLoopGroup)
+            .takingOwnershipOfDescriptor(input: copy.rawValue)
+            .flatMapThrowing { try NIOAsyncChannel(wrappingChannelSynchronously: $0) }
+            .get()
+            .executeThenClose { try await body($0) }
+    }
+
+    static func prompt(_ message: String) async throws -> String {
         if !message.isEmpty {
             print(message, terminator: "")
         }
         fflush(stdoutSafe)
-        return readLine()
+
+        return try await withStandardInput { stdin in
+            var data = Data()
+            for try await chunk in stdin {
+                let view = chunk.readableBytesView
+                if let endIndex = view.firstIndex(of: UInt8(ascii: "\n")) {
+                    data += view[..<endIndex]
+                    break
+                } else {
+                    data += view
+                }
+            }
+            return String(decoding: data, as: UTF8.self)
+        }
     }
 
-    static func getPassword(_ message: String) -> String? {
+    static func promptRequired(_ message: String, existing: String?) async throws -> String {
+        let value: String
+        if let existing {
+            value = existing
+        } else {
+            value = try await Console.prompt(message)
+        }
+        guard !value.isEmpty else {
+            throw Console.Error("Input cannot be empty.")
+        }
+        return value
+    }
+
+    static func getPassword(_ message: String) async throws -> String {
         if !message.isEmpty {
             print(message, terminator: "")
         }
-        let password = withoutEcho { prompt("") }
+        let password = try await withoutEcho { try await prompt("") }
         print()
         return password
     }
 
-    private static func withoutEcho<T>(_ action: () throws -> T) rethrows -> T {
+    private static func withoutEcho<T>(_ action: () async throws -> T) async rethrows -> T {
         #if os(Windows)
         // based on https://stackoverflow.com/a/4497117/3769927
         // TODO: Confirm that this works (or even compiles)
@@ -43,14 +82,14 @@ enum Console {
         tcsetattr(STDIN_FILENO, TCSANOW, &newAttr)
         defer { tcsetattr(STDIN_FILENO, TCSANOW, &origAttr) }
 
-        return try action()
+        return try await action()
         #endif
     }
 
-    static func chooseNumber(in range: Range<Int>) -> Int {
+    static func chooseNumber(in range: Range<Int>) async throws -> Int {
         let message = "Choice (\(range.lowerBound)-\(range.upperBound - 1)): "
         while true {
-            if let choice = prompt(message).flatMap(Int.init), range.contains(choice) {
+            if let choice = try await Int(prompt(message)), range.contains(choice) {
                 return choice
             }
         }
@@ -61,7 +100,7 @@ enum Console {
         onNoElement: () throws -> T,
         multiPrompt: @autoclosure () -> String,
         formatter: (T) throws -> String
-    ) rethrows -> T {
+    ) async throws -> T {
         switch elements.count {
         case 0:
             return try onNoElement()
@@ -72,7 +111,7 @@ enum Console {
             try elements.enumerated().forEach { index, element in
                 try print("\(index): \(formatter(element))")
             }
-            let choice = chooseNumber(in: elements.indices)
+            let choice = try await chooseNumber(in: elements.indices)
             return elements[choice]
         }
     }
@@ -80,14 +119,13 @@ enum Console {
     private static let yesSet: Set<String> = ["yes", "y"]
     private static let noSet: Set<String> = ["no", "n"]
 
-    static func confirm(_ message: String) -> Bool {
+    static func confirm(_ message: String) async throws -> Bool {
         while true {
-            if let resp = prompt("\(message) (yes/no): ")?.lowercased() {
-                if yesSet.contains(resp) {
-                    return true
-                } else if noSet.contains(resp) {
-                    return false
-                }
+            let resp = try await prompt("\(message) (yes/no): ").lowercased()
+            if yesSet.contains(resp) {
+                return true
+            } else if noSet.contains(resp) {
+                return false
             }
         }
     }

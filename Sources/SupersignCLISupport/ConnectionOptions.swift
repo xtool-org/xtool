@@ -28,7 +28,7 @@ extension ConnectionOptions.WithoutSearchMode {
                 }
                 return device
             } else {
-                return try Console.choose(
+                return try await Console.choose(
                     from: devices,
                     onNoElement: { throw Console.Error("Device not found") },
                     multiPrompt: "Choose device",

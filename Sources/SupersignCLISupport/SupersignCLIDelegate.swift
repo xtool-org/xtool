@@ -4,7 +4,7 @@ import ConcurrencyExtras
 
 final class SupersignCLIAuthDelegate: TwoFactorAuthDelegate {
     func fetchCode() async -> String? {
-        Console.prompt("Code: ")
+        try? await Console.prompt("Code: ")
     }
 }
 
@@ -28,7 +28,7 @@ actor SupersignCLIDelegate: IntegratedInstallerDelegate {
             return teams.first(where: { $0.id == preferredTeam })
         }
 
-        return Console.choose(
+        return try? await Console.choose(
             from: teams,
             onNoElement: { fatalError("No development teams available") },
             multiPrompt: "\nSelect a team",
@@ -110,7 +110,11 @@ actor SupersignCLIDelegate: IntegratedInstallerDelegate {
                 "- \($0.attributes.name) (expires \($0.attributes.expiry.formatted(date: .abbreviated, time: .shortened)))"
             }.joined(separator: "\n")
         )
-        return await Task.detached { Console.confirm("Continue?") }.value
+        do {
+            return try await Console.confirm("Continue?")
+        } catch {
+            return false
+        }
     }
 
     // TODO: Use `powershell Compress-Archive` and `powershell Expand-Archive` on Windows

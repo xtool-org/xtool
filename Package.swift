@@ -32,12 +32,14 @@ let package = Package(
         .package(url: "https://github.com/kabiroberai/swiftpack", .upToNextMinor(from: "1.0.1")),
         .package(url: "https://github.com/kabiroberai/zsign", .upToNextMinor(from: "1.3.0")),
 
+        .package(url: "https://github.com/apple/swift-system", from: "1.4.0"),
         .package(url: "https://github.com/apple/swift-certificates", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-crypto", from: "3.9.1"),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.5.0"),
         .package(url: "https://github.com/apple/swift-openapi-generator", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-openapi-urlsession", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-nio", from: "2.77.0"),
 
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.0"),
         .package(url: "https://github.com/swift-server/swift-openapi-async-http-client", from: "1.0.0"),
@@ -120,6 +122,8 @@ let package = Package(
                 "Supersign",
                 .product(name: "PackLib", package: "swiftpack"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "SystemPackage", package: "swift-system"),
+                .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "Version", package: "Version"),
             ],
             cSettings: cSettings

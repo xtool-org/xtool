@@ -17,11 +17,16 @@ struct AuthOperation {
             }
         }
 
-        guard let username = username ?? Console.prompt("Apple ID: "), !username.isEmpty else {
-            throw Console.Error("A non-empty Apple ID is required.")
+        let username = try await Console.promptRequired("Apple ID: ", existing: username)
+
+        let password: String
+        if let existing = self.password {
+            password = existing
+        } else {
+            password = try await Console.getPassword("Password: ")
         }
-        guard let password = password ?? Console.getPassword("Password: "), !password.isEmpty else {
-            throw Console.Error("A non-empty password is required.")
+        guard !password.isEmpty else {
+            throw Console.Error("Password cannot be empty.")
         }
 
         let deviceInfo = try DeviceInfo.fetch()
