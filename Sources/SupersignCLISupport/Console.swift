@@ -5,24 +5,26 @@ import NIOPosix
 import NIOCore
 
 enum Console {
-    private static func withStandardInput<T>(
-        _ body: (NIOAsyncChannelInboundStream<ByteBuffer>) async throws -> T
+    private static func withStdio<T>(
+        _ body: (
+            _ stdin: NIOAsyncChannelInboundStream<ByteBuffer>,
+            _ stdout: NIOAsyncChannelOutboundWriter<ByteBuffer>
+        ) async throws -> T
     ) async throws -> T {
-        let copy = try FileDescriptor.standardInput.duplicate()
-        return try await NIOPipeBootstrap(group: .singletonMultiThreadedEventLoopGroup)
-            .takingOwnershipOfDescriptor(input: copy.rawValue)
+        try await NIOPipeBootstrap(group: .singletonMultiThreadedEventLoopGroup)
+            .takingOwnershipOfDescriptors(
+                input: FileDescriptor.standardInput.duplicate().rawValue,
+                output: FileDescriptor.standardOutput.duplicate().rawValue
+            )
             .flatMapThrowing { try NIOAsyncChannel(wrappingChannelSynchronously: $0) }
             .get()
-            .executeThenClose { try await body($0) }
+            .executeThenClose { try await body($0, $1) }
     }
 
     static func prompt(_ message: String) async throws -> String {
-        if !message.isEmpty {
-            print(message, terminator: "")
-        }
-        fflush(stdoutSafe)
+        try await withStdio { stdin, stdout in
+            try await stdout.write(ByteBuffer(bytes: message.utf8))
 
-        return try await withStandardInput { stdin in
             var data = Data()
             for try await chunk in stdin {
                 let view = chunk.readableBytesView
