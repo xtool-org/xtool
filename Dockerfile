@@ -1,7 +1,7 @@
 # Note: We use 20.04 since AppImage recommends building on the
 # oldest configuration that you support
 
-FROM ubuntu:focal AS limd-build
+FROM swift:6.0-focal AS build-base
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -16,11 +16,13 @@ RUN apt-get update \
     pkg-config \
     libxml2 \
     curl libcurl4-openssl-dev \
+    zip unzip \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir /prefix
 
-RUN curl -fsS https://dlang.org/install.sh | bash -s ldc
+FROM build-base AS build-limd
+
+RUN mkdir -p /prefix
 
 RUN git clone https://github.com/libimobiledevice/libplist.git \
     && cd libplist \
@@ -67,6 +69,13 @@ RUN git clone https://github.com/libimobiledevice/libimobiledevice.git \
     && cd .. \
     && rm -rf libimobiledevice
 
+
+FROM build-base AS build-supersette
+
+RUN mkdir -p /prefix/usr/lib
+
+RUN curl -fsS https://dlang.org/install.sh | bash -s ldc
+
 ADD https://api.github.com/repos/SuperchargeApp/SupersetteD/git/refs/heads/main Supersette-version.json
 
 RUN git clone https://github.com/SuperchargeApp/SupersetteD.git \
@@ -76,18 +85,11 @@ RUN git clone https://github.com/SuperchargeApp/SupersetteD.git \
     && cd .. \
     && rm -rf SupersetteD
 
-FROM swift:6.0-focal
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-    curl \
-    libssl-dev \
-    ca-certificates \
-    zip unzip \
-    && rm -rf /var/lib/apt/lists/*
+FROM build-base
 
-
-COPY --from=limd-build /prefix/usr /usr
+COPY --from=build-limd /prefix/usr /usr
+COPY --from=build-supersette /prefix/usr /usr
 
 # Docker doesn't support FUSE
 ENV APPIMAGE_EXTRACT_AND_RUN=1
