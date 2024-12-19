@@ -24,50 +24,45 @@ FROM build-base AS build-limd
 
 RUN mkdir -p /prefix
 
-RUN git clone https://github.com/libimobiledevice/libplist.git \
-    && cd libplist \
+ADD --keep-git-dir=true https://github.com/libimobiledevice/libplist.git#2.6.0 /libplist
+
+RUN cd libplist \
     && ./autogen.sh --prefix /usr --without-cython \
     && make \
     && make install \
-    && make install DESTDIR=/prefix \
-    && cd .. \
-    && rm -rf libplist
+    && make install DESTDIR=/prefix
 
-RUN git clone https://github.com/libimobiledevice/libimobiledevice-glue.git \
-    && cd libimobiledevice-glue \
+ADD --keep-git-dir=true https://github.com/libimobiledevice/libimobiledevice-glue.git#1.3.1 /libimobiledevice-glue
+
+RUN cd libimobiledevice-glue \
     && ./autogen.sh --prefix /usr \
     && make \
     && make install \
-    && make install DESTDIR=/prefix \
-    && cd .. \
-    && rm -rf libimobiledevice-glue
+    && make install DESTDIR=/prefix
 
-RUN git clone https://github.com/libimobiledevice/libusbmuxd.git \
-    && cd libusbmuxd \
+ADD --keep-git-dir=true https://github.com/libimobiledevice/libusbmuxd.git#2.1.0 /libusbmuxd
+
+RUN cd libusbmuxd \
     && ./autogen.sh --prefix /usr \
     && make \
     && make install \
-    && make install DESTDIR=/prefix \
-    && cd .. \
-    && rm -rf libusbmuxd
+    && make install DESTDIR=/prefix
 
-RUN git clone https://github.com/libimobiledevice/libtatsu.git \
-    && cd libtatsu \
+ADD --keep-git-dir=true https://github.com/libimobiledevice/libtatsu.git#1.0.4 /libtatsu
+
+RUN cd libtatsu \
     && ./autogen.sh --prefix /usr \
     && make \
     && make install \
-    && make install DESTDIR=/prefix \
-    && cd .. \
-    && rm -rf libtatsu
+    && make install DESTDIR=/prefix
 
-RUN git clone https://github.com/libimobiledevice/libimobiledevice.git \
-    && cd libimobiledevice \
+ADD --keep-git-dir=true https://github.com/libimobiledevice/libimobiledevice.git#master /libimobiledevice
+
+RUN cd libimobiledevice \
     && ./autogen.sh --prefix /usr --without-cython --enable-debug \
     && make \
     && make install \
-    && make install DESTDIR=/prefix \
-    && cd .. \
-    && rm -rf libimobiledevice
+    && make install DESTDIR=/prefix
 
 
 FROM build-base AS build-supersette
@@ -76,14 +71,11 @@ RUN mkdir -p /prefix/usr/lib
 
 RUN curl -fsS https://dlang.org/install.sh | bash -s ldc
 
-ADD https://api.github.com/repos/SuperchargeApp/SupersetteD/git/refs/heads/main Supersette-version.json
+ADD https://github.com/SuperchargeApp/SupersetteD.git#main /SupersetteD
 
-RUN git clone https://github.com/SuperchargeApp/SupersetteD.git \
-    && cd SupersetteD \
+RUN cd SupersetteD \
     && /bin/bash -c 'source $(/root/dlang/install.sh ldc -a) && dub build --build=release' \
-    && cp -r bin/libsupersette.so /prefix/usr/lib/libsupersette.so \
-    && cd .. \
-    && rm -rf SupersetteD
+    && cp -r bin/libsupersette.so /prefix/usr/lib/libsupersette.so
 
 
 FROM build-base
