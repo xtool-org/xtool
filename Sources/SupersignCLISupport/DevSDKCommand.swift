@@ -9,7 +9,7 @@ import FoundationNetworking
 struct DevSDKCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "sdk",
-        abstract: "Manages the Darwin Swift SDK",
+        abstract: "Manage the Darwin Swift SDK",
         subcommands: [
             DevSDKInstallCommand.self,
             DevSDKRemoveCommand.self,
