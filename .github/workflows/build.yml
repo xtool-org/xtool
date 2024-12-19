@@ -10,7 +10,7 @@ jobs:
         run: |
           docker compose run --build --rm supersign -c "swift build --product SupersignCLI"
   build-macos:
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
