@@ -59,7 +59,7 @@ RUN cd libtatsu \
 ADD --keep-git-dir=true https://github.com/libimobiledevice/libimobiledevice.git#master /libimobiledevice
 
 RUN cd libimobiledevice \
-    && ./autogen.sh --prefix /usr --without-cython --enable-debug \
+    && ./autogen.sh --prefix /usr --without-cython \
     && make \
     && make install \
     && make install DESTDIR=/prefix
