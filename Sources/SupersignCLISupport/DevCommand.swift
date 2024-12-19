@@ -130,6 +130,7 @@ struct DevCommand: AsyncParsableCommand {
         abstract: "Develop iOS apps with SwiftPM",
         subcommands: [
             DevSetupCommand.self,
+            DevNewCommand.self,
             DevSDKCommand.self,
             DevBuildCommand.self,
             DevRunCommand.self,
