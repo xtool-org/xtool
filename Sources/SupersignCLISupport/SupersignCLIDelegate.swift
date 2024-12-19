@@ -127,8 +127,8 @@ actor SupersignCLIDelegate: IntegratedInstallerDelegate {
         progress(nil)
 
         let unzip = Process()
-        unzip.launchPath = "/usr/bin/unzip"
-        unzip.arguments = ["-q", ipa.path, "-d", directory.path]
+        unzip.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        unzip.arguments = ["unzip", "-q", ipa.path, "-d", directory.path]
         try await unzip.launchAndWait()
         guard unzip.terminationStatus == 0 else {
             throw Error.decompressionFailed
@@ -144,9 +144,9 @@ actor SupersignCLIDelegate: IntegratedInstallerDelegate {
         let dest = payloadDir.deletingLastPathComponent().appendingPathComponent("app.ipa")
 
         let zip = Process()
-        zip.launchPath = "/usr/bin/zip"
-        zip.currentDirectoryPath = payloadDir.deletingLastPathComponent().path
-        zip.arguments = ["-yqru0", dest.path, "Payload"]
+        zip.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        zip.currentDirectoryURL = payloadDir.deletingLastPathComponent()
+        zip.arguments = ["zip", "-yqru0", dest.path, "Payload"]
         try await zip.launchAndWait()
         guard zip.terminationStatus == 0 else { throw Error.compressionFailed }
 
