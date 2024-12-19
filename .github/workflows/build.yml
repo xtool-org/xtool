@@ -1,7 +1,7 @@
 on:
   - push
 jobs:
-  build:
+  build-linux:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -9,3 +9,11 @@ jobs:
       - name: Build
         run: |
           docker compose run --build --rm supersign -c "swift build --product SupersignCLI"
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build
+        run: |
+          swift build --product SupersignCLI
