@@ -188,32 +188,7 @@ public actor IntegratedInstaller {
         }
     }
 
-    // returns nil for pairingKeys if !configureDevice
-    // returns nil overall if cancelled
-    private func prepareDevice() async throws -> (deviceName: String, pairingKeys: Data?) {
-        // TODO: Maybe use `Connection` here instead of creating the lockdown
-        // client manually?
-
-        let device = try Device(udid: udid, lookupMode: lookupMode)
-
-        try await updateProgress(to: 1/3)
-
-        // we can't reuse any previously created client because we need to perform a handshake this time
-        let lockdownClient = try await performWithRecovery {
-            try LockdownClient(
-                device: device,
-                label: LockdownClient.installerLabel,
-                performHandshake: true
-            )
-        }
-
-        let deviceName = try lockdownClient.deviceName()
-
-        if !configureDevice {
-            try await updateProgress(to: 1)
-            return (deviceName, nil)
-        }
-
+    private func fetchPairingKeys(with lockdownClient: LockdownClient) async throws -> Data {
         try lockdownClient.setValue(udid, forDomain: "com.apple.mobile.wireless_lockdown", key: "WirelessBuddyID")
         try lockdownClient.setValue(true, forDomain: "com.apple.mobile.wireless_lockdown", key: "EnableWifiConnections")
 
@@ -266,70 +241,90 @@ public actor IntegratedInstaller {
 
         try await updateProgress(to: 1)
 
-        return (deviceName, data)
+        return data
     }
 
-    private func install(
-        deviceInfo: DeviceInfo,
-        token: DeveloperServicesLoginToken,
-        client: DeveloperServicesClient,
-        ipa: URL,
-        bundleID: String
-    ) async throws -> String {
-        try Task.checkCancellation()
-        let appInstaller = AppInstaller(ipa: ipa, udid: udid, connectionPreferences: .init(lookupMode: lookupMode))
-        self.appInstaller = appInstaller
-        try await appInstaller.install(
-            progress: { stage in
-                self.queueUpdateTask {
-                    $0.updateStageIgnoringCancellation(to: stage.displayName)
-                    $0.updateProgressIgnoringCancellation(to: stage.displayProgress)
-                }
-            }
-        )
-        return bundleID
-    }
+    @discardableResult
+    public func install(app: URL) async throws -> String {
+        try await self.updateStage(to: "Unpacking app", initialProgress: nil)
 
-    private func packageAndInstall(
-        deviceInfo: DeviceInfo,
-        token: DeveloperServicesLoginToken,
-        client: DeveloperServicesClient,
-        appDir: URL,
-        bundleID: String
-    ) async throws -> String {
-        try await self.updateStage(to: "Packaging", initialProgress: nil)
+        if FileManager.default.fileExists(atPath: tempDir.path) {
+            try? FileManager.default.removeItem(at: tempDir)
+        }
 
-        let ipa = try await delegate?.compress(
-            payloadDir: appDir.deletingLastPathComponent(),
-            progress: { progress in
-                self.queueUpdateTask {
-                    $0.updateProgressIgnoringCancellation(to: progress)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        switch app.pathExtension {
+        case "ipa":
+            try await delegate?.decompress(
+                ipa: app,
+                in: tempDir,
+                progress: { progress in
+                    self.queueUpdateTask {
+                        $0.updateProgressIgnoringCancellation(to: progress)
+                    }
                 }
-            }
-        )
+            )
+        case "app":
+            let payload = tempDir.appendingPathComponent("Payload")
+            let dest = payload.appendingPathComponent(app.lastPathComponent)
+            try FileManager.default.createDirectory(at: payload, withIntermediateDirectories: false)
+            try FileManager.default.copyItem(at: app, to: dest)
+        default:
+            throw Error.appExtractionFailed
+        }
 
         try await self.updateProgress(to: 1)
 
-        return try await self.install(
-            deviceInfo: deviceInfo,
-            token: token,
-            client: client,
-            ipa: ipa!,
-            bundleID: bundleID
-        )
-    }
+        let payload = self.tempDir.appendingPathComponent("Payload")
+        guard let appDir = payload.implicitContents.first(where: { $0.pathExtension == "app" })
+            else { throw Error.appExtractionFailed }
 
-    private func install(
-        deviceInfo: DeviceInfo,
-        provisioningData: ProvisioningData?,
-        token: DeveloperServicesLoginToken,
-        client: DeveloperServicesClient,
-        teamID: DeveloperServicesTeam.ID,
-        appDir: URL
-    ) async throws -> String {
+        guard let deviceInfo = DeviceInfo.current() else {
+            throw Error.deviceInfoFetchFailed
+        }
+
+        try await updateStage(to: "Logging in")
+
+        let anisetteProvider = try ADIDataProvider.adiProvider(deviceInfo: deviceInfo, storage: storage)
+        let provisioningData = anisetteProvider.provisioningData()
+
+        let teamID = self.teamID
+        let token = self.token
+
         try await self.updateStage(to: "Preparing device")
 
-        let (deviceName, pairingKeys) = try await prepareDevice()
+        // TODO: Maybe use `Connection` here instead of creating the lockdown
+        // client manually?
+        let device = try Device(udid: udid, lookupMode: lookupMode)
+
+        try await updateProgress(to: configureDevice ? 1/3 : 1/2)
+
+        // we can't reuse any previously created client because we need to perform a handshake this time
+        let lockdownClient = try await performWithRecovery {
+            try LockdownClient(
+                device: device,
+                label: LockdownClient.installerLabel,
+                performHandshake: true
+            )
+        }
+
+        let deviceName = try lockdownClient.deviceName()
+
+        let pairingKeys: Data? = if configureDevice {
+            try await fetchPairingKeys(with: lockdownClient)
+        } else {
+            nil
+        }
+
+        try await updateProgress(to: 1)
+
+        let client = DeveloperServicesClient(
+            loginToken: token,
+            deviceInfo: deviceInfo,
+            anisetteProvider: anisetteProvider
+        )
 
         let context = try SigningContext(
             udid: udid,
@@ -371,92 +366,31 @@ public actor IntegratedInstaller {
                 }
             }
         )
-        return try await self.packageAndInstall(
-            deviceInfo: deviceInfo,
-            token: token,
-            client: client,
-            appDir: appDir,
-            bundleID: bundleID
-        )
-    }
 
-    private func install(
-        deviceInfo: DeviceInfo,
-        provisioningData: ProvisioningData?,
-        token: DeveloperServicesLoginToken,
-        anisetteProvider: AnisetteDataProvider,
-        appDir: URL
-    ) async throws -> String {
-        let client = DeveloperServicesClient(
-            loginToken: token,
-            deviceInfo: deviceInfo,
-            anisetteProvider: anisetteProvider
-        )
-        return try await self.install(
-            deviceInfo: deviceInfo,
-            provisioningData: provisioningData,
-            token: token,
-            client: client,
-            teamID: teamID,
-            appDir: appDir
-        )
-    }
+        try await self.updateStage(to: "Packaging", initialProgress: nil)
 
-    private func installAfterDecompression() async throws -> String {
-        let payload = self.tempDir.appendingPathComponent("Payload")
-        guard let appDir = payload.implicitContents.first(where: { $0.pathExtension == "app" })
-            else { throw Error.appExtractionFailed }
-
-        guard let deviceInfo = DeviceInfo.current() else {
-            throw Error.deviceInfoFetchFailed
-        }
-
-        try await updateStage(to: "Logging in")
-
-        let anisetteProvider = try ADIDataProvider.adiProvider(deviceInfo: deviceInfo, storage: storage)
-        return try await self.install(
-            deviceInfo: deviceInfo,
-            provisioningData: anisetteProvider.provisioningData(),
-            token: token,
-            anisetteProvider: anisetteProvider,
-            appDir: appDir
-        )
-    }
-
-    @discardableResult
-    public func install(app: URL) async throws -> String {
-        try await self.updateStage(to: "Unpacking app", initialProgress: nil)
-
-        if FileManager.default.fileExists(atPath: tempDir.path) {
-            try? FileManager.default.removeItem(at: tempDir)
-        }
-
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
-
-        switch app.pathExtension {
-        case "ipa":
-            try await delegate?.decompress(
-                ipa: app,
-                in: tempDir,
-                progress: { progress in
-                    self.queueUpdateTask {
-                        $0.updateProgressIgnoringCancellation(to: progress)
-                    }
+        let ipa = try await delegate?.compress(
+            payloadDir: appDir.deletingLastPathComponent(),
+            progress: { progress in
+                self.queueUpdateTask {
+                    $0.updateProgressIgnoringCancellation(to: progress)
                 }
-            )
-            try await self.updateProgress(to: 1)
-            return try await self.installAfterDecompression()
-        case "app":
-            let payload = tempDir.appendingPathComponent("Payload")
-            let dest = payload.appendingPathComponent(app.lastPathComponent)
-            try FileManager.default.createDirectory(at: payload, withIntermediateDirectories: false)
-            try FileManager.default.copyItem(at: app, to: dest)
-            try await self.updateProgress(to: 1)
-            return try await self.installAfterDecompression()
-        default:
-            throw Error.appExtractionFailed
-        }
+            }
+        )
+
+        try await self.updateProgress(to: 1)
+
+        let appInstaller = AppInstaller(ipa: ipa!, udid: udid, connectionPreferences: .init(lookupMode: lookupMode))
+        self.appInstaller = appInstaller
+        try await appInstaller.install(
+            progress: { stage in
+                self.queueUpdateTask {
+                    $0.updateStageIgnoringCancellation(to: stage.displayName)
+                    $0.updateProgressIgnoringCancellation(to: stage.displayProgress)
+                }
+            }
+        )
+        return bundleID
     }
 
 }
