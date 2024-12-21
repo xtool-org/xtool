@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import DeveloperAPI
 
 public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
 
@@ -50,32 +51,40 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
         bundleID: String,
         entitlements: Entitlements,
         isFreeTeam: Bool,
-        appIDs: [String: DeveloperServicesAppID]
+        appIDs: [String: Components.Schemas.BundleId]
     ) async throws -> DeveloperServicesAppID {
+        let appIDID: String
         if let appID = appIDs[bundleID] {
-            let request = DeveloperServicesUpdateAppIDRequest(
-                platform: self.context.platform,
-                teamID: self.context.teamID,
-                appIDID: appID.id,
-                entitlements: entitlements,
-                additionalFeatures: [],
-                isFree: isFreeTeam
-            )
-            return try await context.client.send(request)
+            appIDID = appID.id
         } else {
             let newBundleID = ProvisioningIdentifiers.identifier(fromSanitized: bundleID, context: self.context)
             let name = ProvisioningIdentifiers.appName(fromSanitized: bundleID)
-            let request = DeveloperServicesAddAppIDRequest(
-                platform: self.context.platform,
-                teamID: self.context.teamID,
-                bundleID: newBundleID,
-                appName: name,
-                entitlements: entitlements,
-                additionalFeatures: [],
-                isFree: isFreeTeam
+            let createResponse = try await context.developerAPIClient.bundleIdsCreateInstance(
+                body: .json(
+                    .init(
+                        data: .init(
+                            _type: .bundleIds,
+                            attributes: .init(
+                                name: name,
+                                platform: .ios,
+                                identifier: newBundleID
+                            )
+                        )
+                    )
+                )
             )
-            return try await context.client.send(request)
+            appIDID = try createResponse.created.body.json.data.id
         }
+
+        let request = DeveloperServicesUpdateAppIDRequest(
+            platform: self.context.platform,
+            teamID: self.context.teamID,
+            appIDID: .init(rawValue: appIDID),
+            entitlements: entitlements,
+            additionalFeatures: [],
+            isFree: isFreeTeam
+        )
+        return try await context.client.send(request)
     }
 
     /// Registers the app and creates a profile. Returns the resultant entitlements as well as
@@ -84,7 +93,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
     private func addApp(
         _ app: URL,
         isFreeTeam: Bool,
-        appIDs: [String: DeveloperServicesAppID]
+        appIDs: [String: Components.Schemas.BundleId]
     ) async throws -> ProvisioningInfo {
         let infoURL = app.appendingPathComponent("Info.plist")
         guard let data = try? Data(contentsOf: infoURL),
@@ -154,10 +163,13 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
     }
 
     // keyed by sanitized bundle ID
-    private func getCurrentAppIDs() async throws -> [String: DeveloperServicesAppID] {
-        let request = DeveloperServicesListAppIDsRequest(platform: context.platform, teamID: context.teamID)
-        let appIDs = try await context.client.send(request)
-        let keyedIDs = appIDs.map { (ProvisioningIdentifiers.sanitize(identifier: $0.bundleID), $0) }
+    private func getCurrentAppIDs() async throws -> [String: Components.Schemas.BundleId] {
+        let bundleIDs = try await context.developerAPIClient.bundleIdsGetCollection().ok.body.json.data
+        let keyedIDs = bundleIDs
+            .compactMap { id -> (String, Components.Schemas.BundleId)? in
+                guard let bundleID = id.attributes?.identifier else { return nil }
+                return (ProvisioningIdentifiers.sanitize(identifier: bundleID), id)
+            }
         return Dictionary(keyedIDs, uniquingKeysWith: { $1 })
     }
 

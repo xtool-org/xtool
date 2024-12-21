@@ -29,24 +29,30 @@ public struct DeveloperServicesFetchProfileOperation: DeveloperServicesOperation
         let bundleIDs = try await context.developerAPIClient
             .bundleIdsGetCollection(query: .init(
                 filter_lbrack_identifier_rbrack_: [bundleID],
+                fields_lbrack_profiles_rbrack_: [.bundleId],
                 include: [.profiles]
             ))
             .ok.body.json
 
+        // filter[identifier] is a prefix filter so we need to manually upgrade to equality
+        let filtered = bundleIDs.data.filter { $0.attributes?.identifier == self.bundleID }
+
         let bundleID: Components.Schemas.BundleId
-        switch bundleIDs.data.count {
+        switch filtered.count {
         case 0:
             throw Errors.bundleIDNotFound
         case 1:
-            bundleID = bundleIDs.data[0]
+            bundleID = filtered[0]
         default:
             throw Errors.tooManyMatchingBundleIDs
         }
 
+        // note: free developer accounts don't seem to persist profiles at all
+        // so this will often be empty.
         let profiles = bundleIDs
             .included?
             .compactMap { included -> Components.Schemas.Profile? in
-                if case .Profile(let profile) = included {
+                if case .Profile(let profile) = included, profile.relationships?.bundleId?.data?.id == bundleID.id {
                     profile
                 } else {
                     nil
