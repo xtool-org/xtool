@@ -11,6 +11,32 @@ struct DevNewCommand: AsyncParsableCommand {
 
     func run() async throws {
         let name = try await Console.promptRequired("Package name: ", existing: self.name)
+
+        // TODO: support '-' in package name, replace with _ or CamelCase in Swift identifiers.
+        var allowedFirstCharacters: CharacterSet = ["_"]
+        allowedFirstCharacters.insert(charactersIn: "a"..."z")
+        allowedFirstCharacters.insert(charactersIn: "A"..."Z")
+
+        var allowedOtherCharacters = allowedFirstCharacters
+        allowedOtherCharacters.insert(charactersIn: "0"..."9")
+
+        // promptRequired validates !isEmpty
+        let firstScalar = name.unicodeScalars.first!
+        guard allowedFirstCharacters.contains(firstScalar) else {
+            throw Console.Error("""
+            Package name '\(name)' is invalid. \
+            The package name must start with [a-z, A-Z, or _]. Found '\(firstScalar)'.
+            """)
+        }
+
+        if let firstInvalid = name.rangeOfCharacter(from: allowedOtherCharacters.inverted) {
+            let invalidValue = name[firstInvalid]
+            throw Console.Error("""
+            Package name '\(name)' is invalid. \
+            The package name may only contain [a-z, A-Z, 0-9, and _]. Found '\(invalidValue)'.
+            """)
+        }
+
         let baseURL = URL(fileURLWithPath: name)
 
         guard !baseURL.exists else {
