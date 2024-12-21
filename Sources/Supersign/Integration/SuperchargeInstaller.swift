@@ -287,12 +287,6 @@ public actor IntegratedInstaller {
 
         try await updateStage(to: "Logging in")
 
-        let anisetteProvider = try ADIDataProvider.adiProvider(deviceInfo: deviceInfo, storage: storage)
-        let provisioningData = anisetteProvider.provisioningData()
-
-        let teamID = self.teamID
-        let token = self.token
-
         try await self.updateStage(to: "Preparing device")
 
         // TODO: Maybe use `Connection` here instead of creating the lockdown
@@ -320,6 +314,7 @@ public actor IntegratedInstaller {
 
         try await updateProgress(to: 1)
 
+        let anisetteProvider = try ADIDataProvider.adiProvider(deviceInfo: deviceInfo, storage: storage)
         let client = DeveloperServicesClient(
             loginToken: token,
             deviceInfo: deviceInfo,
@@ -350,17 +345,17 @@ public actor IntegratedInstaller {
                     $0.updateProgressIgnoringCancellation(to: progress)
                 }
             },
-            didProvision: { @Sendable in
+            didProvision: { @Sendable [self] in
                 if let pairingKeys = pairingKeys {
                     let info = try context.signingInfoManager.info(forTeamID: context.teamID)
                     try Superconfig(
-                        udid: self.udid,
+                        udid: udid,
                         pairingKeys: pairingKeys,
                         deviceInfo: deviceInfo,
                         preferredTeamID: teamID.rawValue,
                         preferredSigningInfo: info,
-                        appleID: self.appleID,
-                        provisioningData: provisioningData,
+                        appleID: appleID,
+                        provisioningData: anisetteProvider.provisioningData(),
                         token: token
                     ).save(inAppDir: appDir)
                 }
