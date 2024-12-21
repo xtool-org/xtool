@@ -25,6 +25,8 @@ enum Console {
         try await withStdio { stdin, stdout in
             try await stdout.write(ByteBuffer(bytes: message.utf8))
 
+            fflush(stdoutSafe)
+
             var data = Data()
             for try await chunk in stdin {
                 let view = chunk.readableBytesView

@@ -29,6 +29,8 @@ struct AuthOperation {
             throw Console.Error("Password cannot be empty.")
         }
 
+        print("Logging in...")
+
         let deviceInfo = try DeviceInfo.fetch()
 
         let provider = try ADIDataProvider.adiProvider(
