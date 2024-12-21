@@ -10,14 +10,11 @@ import Foundation
 
 public struct DeveloperServicesUpdateAppIDRequest: DeveloperServicesPlatformRequest {
 
-    public struct Response: Decodable, Sendable {
-        let appId: DeveloperServicesAppID
-    }
-    public typealias Value = DeveloperServicesAppID
+    public typealias Value = EmptyResponse
 
     public let platform: DeveloperServicesPlatform
     public let teamID: DeveloperServicesTeam.ID
-    public let appIDID: DeveloperServicesAppID.ID
+    public let appIDID: String
     public let entitlements: Entitlements
     public let additionalFeatures: [DeveloperServicesFeature]
     public let isFree: Bool
@@ -26,27 +23,31 @@ public struct DeveloperServicesUpdateAppIDRequest: DeveloperServicesPlatformRequ
     var subParameters: [String: Any] {
         var parameters: [String: Any] = [
             "teamId": teamID.rawValue,
-            "appIdId": appIDID.rawValue
+            "appIdId": appIDID
         ]
 
-        DeveloperServicesAppIDRequestApplier.apply(
-            entitlements: entitlements,
-            additionalFeatures: additionalFeatures,
-            to: &parameters,
-            isFree: isFree
-        )
+        var entitlements = entitlements
+        try? entitlements.updateEntitlements {
+            $0.removeAll {
+                let type = Swift.type(of: $0)
+                return !type.canList || (isFree && !type.isFree)
+            }
+        }
+        parameters["entitlements"] = try? entitlements.plistValue()
+
+        let entFeatures = (try? entitlements.entitlements().compactMap { $0.feature() }) ?? []
+        let allFeatures = entFeatures + additionalFeatures
+        if let features = try? DeveloperServicesFeatures(values: allFeatures).plistValue() as? [String: Any] {
+            parameters.merge(features) { a, _ in a }
+        }
 
         return parameters
-    }
-
-    public func parse(_ response: Response) -> DeveloperServicesAppID {
-        response.appId
     }
 
     public init(
         platform: DeveloperServicesPlatform,
         teamID: DeveloperServicesTeam.ID,
-        appIDID: DeveloperServicesAppID.ID,
+        appIDID: String,
         entitlements: Entitlements,
         additionalFeatures: [DeveloperServicesFeature],
         isFree: Bool

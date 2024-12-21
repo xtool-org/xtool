@@ -52,10 +52,10 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
         entitlements: Entitlements,
         isFreeTeam: Bool,
         appIDs: [String: Components.Schemas.BundleId]
-    ) async throws -> DeveloperServicesAppID {
-        let appIDID: String
-        if let appID = appIDs[bundleID] {
-            appIDID = appID.id
+    ) async throws -> Components.Schemas.BundleId {
+        let appID: Components.Schemas.BundleId
+        if let existing = appIDs[bundleID] {
+            appID = existing
         } else {
             let newBundleID = ProvisioningIdentifiers.identifier(fromSanitized: bundleID, context: self.context)
             let name = ProvisioningIdentifiers.appName(fromSanitized: bundleID)
@@ -73,18 +73,20 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
                     )
                 )
             )
-            appIDID = try createResponse.created.body.json.data.id
+            appID = try createResponse.created.body.json.data
         }
 
         let request = DeveloperServicesUpdateAppIDRequest(
             platform: self.context.platform,
             teamID: self.context.teamID,
-            appIDID: .init(rawValue: appIDID),
+            appIDID: appID.id,
             entitlements: entitlements,
             additionalFeatures: [],
             isFree: isFreeTeam
         )
-        return try await context.client.send(request)
+        _ = try await context.client.send(request)
+
+        return appID
     }
 
     /// Registers the app and creates a profile. Returns the resultant entitlements as well as
@@ -122,8 +124,12 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
         }
 
         let appID = try await upsertApp(bundleID: bundleID, entitlements: entitlements, isFreeTeam: isFreeTeam, appIDs: appIDs)
+        let newBundleID = appID.attributes!.identifier!
 
-        try entitlements.update(teamID: self.context.teamID, bundleID: appID.bundleID)
+        try entitlements.update(
+            teamID: self.context.teamID,
+            bundleID: newBundleID
+        )
         // set get-task-allow to YES, required for dev certs
         try entitlements.updateEntitlements { ents in
             if let getTaskAllow = ents.firstIndex(where: { $0 is GetTaskAllowEntitlement }) {
@@ -148,9 +154,15 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
             try entitlements.setEntitlements(entitlementsArray)
         }
 
-        let mobileprovision = try await DeveloperServicesFetchProfileOperation(context: self.context, bundleID: appID.bundleID).perform()
+        let mobileprovision = try await DeveloperServicesFetchProfileOperation(
+            context: self.context,
+            bundleID: newBundleID
+        ).perform()
+
         return ProvisioningInfo(
-            newBundleID: appID.bundleID, entitlements: entitlements, mobileprovision: mobileprovision
+            newBundleID: newBundleID,
+            entitlements: entitlements,
+            mobileprovision: mobileprovision
         )
     }
 

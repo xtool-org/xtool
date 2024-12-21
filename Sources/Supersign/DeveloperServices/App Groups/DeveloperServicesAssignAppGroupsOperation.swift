@@ -7,13 +7,18 @@
 //
 
 import Foundation
+import DeveloperAPI
 
 public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperation {
 
     public let context: SigningContext
     public let groupIDs: [DeveloperServicesAppGroup.GroupID]
-    public let appID: DeveloperServicesAppID
-    public init(context: SigningContext, groupIDs: [DeveloperServicesAppGroup.GroupID], appID: DeveloperServicesAppID) {
+    public let appID: Components.Schemas.BundleId
+    public init(
+        context: SigningContext,
+        groupIDs: [DeveloperServicesAppGroup.GroupID],
+        appID: Components.Schemas.BundleId
+    ) {
         self.context = context
         self.groupIDs = groupIDs
         self.appID = appID
@@ -21,8 +26,7 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
 
     private func upsertAppGroup(
         _ groupID: DeveloperServicesAppGroup.GroupID,
-        existingGroups: [String: DeveloperServicesAppGroup],
-        appID: DeveloperServicesAppID
+        existingGroups: [String: DeveloperServicesAppGroup]
     ) async throws -> DeveloperServicesAppGroup.GroupID {
         let sanitized = ProvisioningIdentifiers.sanitize(groupID: groupID)
         let group: DeveloperServicesAppGroup
@@ -37,9 +41,14 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
             group = try await context.client.send(request)
         }
 
-        _ = try await context.client.send(DeveloperServicesAssignAppGroupRequest(
-            platform: context.platform, teamID: context.teamID, appIDID: appID.id, groupID: group.id
-        ))
+        _ = try await context.client.send(
+            DeveloperServicesAssignAppGroupRequest(
+                platform: context.platform,
+                teamID: context.teamID,
+                appIDID: appID.id,
+                groupID: group.id
+            )
+        )
 
         return group.groupID
     }
@@ -53,7 +62,7 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
         return try await withThrowingTaskGroup(of: DeveloperServicesAppGroup.GroupID.self) { group in
             for groupID in groupIDs {
                 group.addTask {
-                    try await upsertAppGroup(groupID, existingGroups: dict, appID: appID)
+                    try await upsertAppGroup(groupID, existingGroups: dict)
                 }
             }
             return try await group.reduce(into: []) { $0.append($1) }

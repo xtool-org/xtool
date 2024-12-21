@@ -15,14 +15,14 @@ public final class DeveloperServicesAssignAppGroupRequest: DeveloperServicesPlat
 
     public let platform: DeveloperServicesPlatform
     public let teamID: DeveloperServicesTeam.ID
-    public let appIDID: DeveloperServicesAppID.ID
+    public let appIDID: String
     public let groupID: DeveloperServicesAppGroup.ID
 
     var subAction: String { return "assignApplicationGroupToAppId" }
     var subParameters: [String: Any] {
         return [
             "teamId": teamID.rawValue,
-            "appIdId": appIDID.rawValue,
+            "appIdId": appIDID,
             "applicationGroups": groupID.rawValue
         ]
     }
@@ -30,7 +30,7 @@ public final class DeveloperServicesAssignAppGroupRequest: DeveloperServicesPlat
     public init(
         platform: DeveloperServicesPlatform,
         teamID: DeveloperServicesTeam.ID,
-        appIDID: DeveloperServicesAppID.ID,
+        appIDID: String,
         groupID: DeveloperServicesAppGroup.ID
     ) {
         self.platform = platform
