@@ -45,8 +45,27 @@ struct AuthOperation {
             password: password,
             twoFactorDelegate: authDelegate
         )
-        let fullToken = AuthToken(appleID: username, dsToken: token)
+
+        let client = DeveloperServicesClient(
+            loginToken: token,
+            deviceInfo: deviceInfo,
+            anisetteProvider: provider
+        )
+        let teams = try await client.send(DeveloperServicesListTeamsRequest())
+        let team = try await Console.choose(
+            from: teams,
+            onNoElement: {
+                throw Console.Error("No development teams found")
+            },
+            multiPrompt: "\nSelect a team",
+            formatter: {
+                "\($0.name) (\($0.id.rawValue))"
+            }
+        )
+
+        let fullToken = AuthToken(appleID: username, teamID: team.id, dsToken: token)
         try fullToken.save()
+
         print("Logged in")
     }
 }

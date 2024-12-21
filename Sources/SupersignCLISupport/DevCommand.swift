@@ -109,12 +109,13 @@ struct DevRunCommand: AsyncParsableCommand {
         let client = try await connectionOptions.client()
         print("Installing to device: \(client.deviceName) (udid: \(client.udid))")
 
-        let installDelegate = SupersignCLIDelegate(preferredTeam: team.map(DeveloperServicesTeam.ID.init))
+        let installDelegate = SupersignCLIDelegate()
         let installer = IntegratedInstaller(
             udid: client.udid,
             lookupMode: .only(client.connectionType),
             appleID: token.appleID,
             token: token.dsToken,
+            teamID: token.teamID,
             configureDevice: false,
             storage: SupersignCLI.config.storage,
             delegate: installDelegate

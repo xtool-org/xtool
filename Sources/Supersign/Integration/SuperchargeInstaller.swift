@@ -18,8 +18,6 @@ extension LockdownClient {
 
 public protocol IntegratedInstallerDelegate: AnyObject, Sendable {
 
-    func fetchTeam(fromTeams teams: [DeveloperServicesTeam]) async -> DeveloperServicesTeam?
-
     func setPresentedMessage(_ message: IntegratedInstaller.Message?)
     func installerDidUpdate(toStage stage: String, progress: Double?)
 
@@ -85,6 +83,7 @@ public actor IntegratedInstaller {
     let lookupMode: LookupMode
     let appleID: String
     let token: DeveloperServicesLoginToken
+    let teamID: DeveloperServicesTeam.ID
     let configureDevice: Bool
     let storage: KeyValueStorage
     public weak var delegate: IntegratedInstallerDelegate?
@@ -145,6 +144,7 @@ public actor IntegratedInstaller {
         lookupMode: LookupMode,
         appleID: String,
         token: DeveloperServicesLoginToken,
+        teamID: DeveloperServicesTeam.ID,
         configureDevice: Bool,
         storage: KeyValueStorage,
         delegate: IntegratedInstallerDelegate
@@ -153,6 +153,7 @@ public actor IntegratedInstaller {
         self.lookupMode = lookupMode
         self.appleID = appleID
         self.token = token
+        self.teamID = teamID
         self.configureDevice = configureDevice
         self.storage = storage
         self.delegate = delegate
@@ -272,7 +273,6 @@ public actor IntegratedInstaller {
         deviceInfo: DeviceInfo,
         token: DeveloperServicesLoginToken,
         client: DeveloperServicesClient,
-        team: DeveloperServicesTeam,
         ipa: URL,
         bundleID: String
     ) async throws -> String {
@@ -294,7 +294,6 @@ public actor IntegratedInstaller {
         deviceInfo: DeviceInfo,
         token: DeveloperServicesLoginToken,
         client: DeveloperServicesClient,
-        team: DeveloperServicesTeam,
         appDir: URL,
         bundleID: String
     ) async throws -> String {
@@ -315,7 +314,6 @@ public actor IntegratedInstaller {
             deviceInfo: deviceInfo,
             token: token,
             client: client,
-            team: team,
             ipa: ipa!,
             bundleID: bundleID
         )
@@ -326,7 +324,7 @@ public actor IntegratedInstaller {
         provisioningData: ProvisioningData?,
         token: DeveloperServicesLoginToken,
         client: DeveloperServicesClient,
-        team: DeveloperServicesTeam,
+        teamID: DeveloperServicesTeam.ID,
         appDir: URL
     ) async throws -> String {
         try await self.updateStage(to: "Preparing device")
@@ -336,7 +334,7 @@ public actor IntegratedInstaller {
         let context = try SigningContext(
             udid: udid,
             deviceName: deviceName,
-            teamID: team.id,
+            teamID: teamID,
             client: client,
             signingInfoManager: KeyValueSigningInfoManager(storage: storage),
             platform: .iOS
@@ -364,7 +362,7 @@ public actor IntegratedInstaller {
                         udid: self.udid,
                         pairingKeys: pairingKeys,
                         deviceInfo: deviceInfo,
-                        preferredTeamID: team.id.rawValue,
+                        preferredTeamID: teamID.rawValue,
                         preferredSigningInfo: info,
                         appleID: self.appleID,
                         provisioningData: provisioningData,
@@ -377,7 +375,6 @@ public actor IntegratedInstaller {
             deviceInfo: deviceInfo,
             token: token,
             client: client,
-            team: team,
             appDir: appDir,
             bundleID: bundleID
         )
@@ -395,25 +392,12 @@ public actor IntegratedInstaller {
             deviceInfo: deviceInfo,
             anisetteProvider: anisetteProvider
         )
-        let teams = try await client.send(DeveloperServicesListTeamsRequest())
-        try await self.updateProgress(to: 1)
-        let team: DeveloperServicesTeam
-        switch teams.count {
-        case 0:
-            throw Error.noTeamFound
-        case 1:
-            team = teams[0]
-        default:
-            guard let selectedTeam = await self.delegate?.fetchTeam(fromTeams: teams)
-                  else { throw CancellationError() }
-            team = selectedTeam
-        }
         return try await self.install(
             deviceInfo: deviceInfo,
             provisioningData: provisioningData,
             token: token,
             client: client,
-            team: team,
+            teamID: teamID,
             appDir: appDir
         )
     }

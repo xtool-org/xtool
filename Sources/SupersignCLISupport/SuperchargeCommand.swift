@@ -21,12 +21,13 @@ struct InstallSuperchargeCommand: AsyncParsableCommand {
 
         print("Installing to device: \(client.deviceName) (udid: \(client.udid))")
 
-        let installDelegate = SupersignCLIDelegate(preferredTeam: nil)
+        let installDelegate = SupersignCLIDelegate()
         let installer = IntegratedInstaller(
             udid: client.udid,
             lookupMode: .only(client.connectionType),
             appleID: auth.appleID,
             token: auth.dsToken,
+            teamID: auth.teamID,
             configureDevice: true,
             storage: SupersignCLI.config.storage,
             delegate: installDelegate

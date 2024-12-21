@@ -8,10 +8,8 @@ struct DSTeamsListCommand: AsyncParsableCommand {
         abstract: "List Developer Services teams"
     )
 
-    @Option(name: .shortAndLong) var account: String?
-
     func run() async throws {
-        let token = try account.flatMap(AuthToken.init(string:)) ?? AuthToken.saved()
+        let token = try AuthToken.saved()
 
         let deviceInfo = try DeviceInfo.fetch()
         let anisetteProvider = try ADIDataProvider.adiProvider(

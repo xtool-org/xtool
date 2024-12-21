@@ -14,29 +14,9 @@ actor SupersignCLIDelegate: IntegratedInstallerDelegate {
         case compressionFailed
     }
 
-    let preferredTeam: DeveloperServicesTeam.ID?
-    init(preferredTeam: DeveloperServicesTeam.ID?) {
-        self.preferredTeam = preferredTeam
-    }
+    init() {}
 
     private let updateTask = LockIsolated<Task<Void, Never>?>(nil)
-
-    func fetchTeam(fromTeams teams: [DeveloperServicesTeam]) async -> DeveloperServicesTeam? {
-        if let preferredTeam = preferredTeam {
-            // Fails if a team with the requested ID isn't found.
-            // This is intentional to avoid interactivity.
-            return teams.first(where: { $0.id == preferredTeam })
-        }
-
-        return try? await Console.choose(
-            from: teams,
-            onNoElement: { fatalError("No development teams available") },
-            multiPrompt: "\nSelect a team",
-            formatter: {
-                "\($0.name) (\($0.id.rawValue))"
-            }
-        )
-    }
 
     nonisolated func setPresentedMessage(_ message: IntegratedInstaller.Message?) {
         let text: String
