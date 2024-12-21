@@ -139,9 +139,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
             try entitlements.setEntitlements(entitlementsArray)
         }
 
-        let profile = try await DeveloperServicesFetchProfileOperation(context: self.context, appID: appID).perform()
-        guard let mobileprovision = profile.mobileprovision
-            else { throw Mobileprovision.Error.invalidProfile }
+        let mobileprovision = try await DeveloperServicesFetchProfileOperation(context: self.context, bundleID: appID.bundleID).perform()
         return ProvisioningInfo(
             newBundleID: appID.bundleID, entitlements: entitlements, mobileprovision: mobileprovision
         )
