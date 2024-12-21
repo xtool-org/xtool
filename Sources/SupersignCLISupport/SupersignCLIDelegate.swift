@@ -87,7 +87,7 @@ actor SupersignCLIDelegate: IntegratedInstallerDelegate {
         print("\nThe following certificates must be revoked:")
         print(
             certificates.map {
-                "- \($0.attributes.name) (expires \($0.attributes.expiry.formatted(date: .abbreviated, time: .shortened)))"
+                "- \($0.attributes!.name!) (expires \($0.attributes!.expirationDate!.formatted(date: .abbreviated, time: .shortened)))"
             }.joined(separator: "\n")
         )
         do {

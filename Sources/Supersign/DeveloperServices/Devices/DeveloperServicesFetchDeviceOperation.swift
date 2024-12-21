@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import DeveloperAPI
 
 public struct DeveloperServicesFetchDeviceOperation: DeveloperServicesOperation {
     public let context: SigningContext
@@ -14,20 +15,25 @@ public struct DeveloperServicesFetchDeviceOperation: DeveloperServicesOperation 
         self.context = context
     }
 
-    public func perform() async throws -> DeveloperServicesDevice {
-        let listRequest = DeveloperServicesListDevicesRequest(platform: context.platform, teamID: context.teamID)
-        let devices = try await context.client.send(listRequest)
-        if let device = devices.first(where: { $0.udid == self.context.udid }) {
+    public func perform() async throws -> Components.Schemas.Device {
+        let devices = try await context.developerAPIClient.devicesGetCollection().ok.body.json.data
+
+        if let device = devices.first(where: { $0.attributes?.udid == self.context.udid }) {
             return device
         }
 
-        let addRequest = DeveloperServicesAddDeviceRequest(
-            platform: self.context.platform,
-            teamID: self.context.teamID,
-            udid: self.context.udid,
-            name: self.context.deviceName
+        let response = try await context.developerAPIClient.devicesCreateInstance(
+            body: .json(.init(data: .init(
+                _type: .devices,
+                attributes: .init(
+                    name: self.context.deviceName,
+                    platform: .ios,
+                    udid: self.context.udid
+                )
+            )))
         )
-        return try await context.client.send(addRequest)
+
+        return try response.created.body.json.data
     }
 
 }

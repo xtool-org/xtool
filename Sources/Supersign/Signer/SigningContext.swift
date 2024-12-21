@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import DeveloperAPI
 
 public struct SigningContext: Sendable {
 
@@ -17,6 +18,17 @@ public struct SigningContext: Sendable {
     public let signingInfoManager: SigningInfoManager
     public let platform: DeveloperServicesPlatform
     public let signerImpl: SignerImpl
+
+    public var developerAPIClient: DeveloperAPIClient {
+        DeveloperAPIClient(
+            xcodeAPI: DeveloperAPIXcodeMiddleware(
+                anisetteDataProvider: client.anisetteDataProvider,
+                loginToken: client.loginToken,
+                deviceInfo: client.deviceInfo,
+                teamID: teamID.rawValue
+            )
+        )
+    }
 
     public init(
         udid: String,

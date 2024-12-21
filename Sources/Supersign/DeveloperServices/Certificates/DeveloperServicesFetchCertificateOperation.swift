@@ -7,6 +7,9 @@
 //
 
 import Foundation
+import DeveloperAPI
+
+public typealias DeveloperServicesCertificate = Components.Schemas.Certificate
 
 public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOperation {
 
@@ -43,37 +46,39 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
         let csr = try keypair.generateCSR()
         let privateKey = try keypair.privateKey()
 
-        let request = DeveloperServicesSubmitCSRRequest(
-            platform: context.platform,
-            teamID: context.teamID,
-            csr: csr,
-            machineName: "Supercharge: \(SigningContext.hostName)",
-            machineID: context.client.deviceInfo.deviceID
+        let response = try await context.developerAPIClient.certificatesCreateInstance(
+            body: .json(.init(data: .init(
+                _type: .certificates,
+                attributes: .init(
+                    csrContent: csr.pemString,
+                    certificateType: .development
+                )
+            )))
         )
-        let partialCert = try await context.client.send(request)
 
-        let serialNumber = partialCert.serialNumber
-        let listRequest = DeveloperServicesListCertificatesRequest(
-            teamID: self.context.teamID, certificateKind: .init(platform: self.context.platform)
-        )
-        let certificates = try await context.client.send(listRequest)
-        guard let fullCert = certificates.first(where: { $0.attributes.serialNumber == serialNumber })
-            else { throw Error.csrFailed }
-        return .init(privateKey: privateKey, certificate: fullCert.attributes.content)
+        guard let contentString = try response.created.body.json.data.attributes?.certificateContent,
+              let contentData = Data(base64Encoded: contentString)
+              else { throw Error.csrFailed }
+
+        let certificate = try Certificate(data: contentData)
+
+        return SigningInfo(privateKey: privateKey, certificate: certificate)
     }
 
-    private func revokeCreateSaveCertificate(certificates: [DeveloperServicesCertificate]) async throws -> SigningInfo {
-        if !certificates.isEmpty {
+    private func replaceCertificates(
+        _ certificates: [DeveloperServicesCertificate],
+        requireConfirmation: Bool
+    ) async throws -> SigningInfo {
+        if !certificates.isEmpty, requireConfirmation {
             guard await confirmRevocation(certificates)
                 else { throw CancellationError() }
         }
         try await withThrowingTaskGroup(of: Void.self) { group in
             for certificate in certificates {
                 group.addTask {
-                    let request = DeveloperServicesRevokeCertificateRequest(
-                        teamID: context.teamID, certificateID: certificate.id
-                    )
-                    _ = try await context.client.send(request)
+                    _ = try await context.developerAPIClient
+                        .certificatesDeleteInstance(path: .init(id: certificate.id))
+                        .noContent
                 }
             }
             try await group.waitForAll()
@@ -84,26 +89,27 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
     }
 
     public func perform() async throws -> SigningInfo {
-        let request = DeveloperServicesListCertificatesRequest(
-            teamID: context.teamID, certificateKind: .init(platform: context.platform)
-        )
-        let certificates = try await context.client.send(request)
+        let certificates = try await context.developerAPIClient.certificatesGetCollection().ok.body.json.data
 
-        guard let certificate = certificates.first(where: {
-            $0.attributes.machineID == self.context.client.deviceInfo.deviceID
-        }) else {
+        guard let signingInfo = self.context.signingInfoManager[self.context.teamID] else {
+            return try await self.replaceCertificates(certificates, requireConfirmation: true)
+        }
+
+        let knownSerialNumber = signingInfo.certificate.serialNumber()
+        guard let certificate = certificates.first(where: { $0.attributes?.serialNumber == knownSerialNumber }) else {
             // we need to revoke existing certs, otherwise it doesn't always let us make a new one
-            return try await self.revokeCreateSaveCertificate(certificates: certificates)
+            return try await self.replaceCertificates(certificates, requireConfirmation: true)
         }
 
-        guard let signingInfo = self.context.signingInfoManager[self.context.teamID],
-              certificate.attributes.serialNumber.rawValue == signingInfo.certificate.serialNumber(),
-              certificate.attributes.expiry > Date() else {
+        if let date = certificate.attributes?.expirationDate, date > Date() {
+            return signingInfo
+        } else {
             // we have a certificate for this machine but it's not usable
-            return try await self.revokeCreateSaveCertificate(certificates: [certificate])
+            return try await self.replaceCertificates(
+                [certificate],
+                requireConfirmation: false
+            )
         }
-
-        return signingInfo
     }
 
 }
