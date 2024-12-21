@@ -121,6 +121,8 @@ struct DevRunCommand: AsyncParsableCommand {
             delegate: installDelegate
         )
 
+        defer { print() }
+
         try await installer.install(app: output)
     }
 }
