@@ -1,7 +1,7 @@
 generate:
   - types
   - client
-accessModifier: package
+accessModifier: public
 namingStrategy: idiomatic
 filter:
   tags:
