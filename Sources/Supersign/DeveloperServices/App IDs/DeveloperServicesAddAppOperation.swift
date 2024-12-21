@@ -49,7 +49,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
     private func upsertApp(
         bundleID: String,
         entitlements: Entitlements,
-        team: DeveloperServicesTeam,
+        isFreeTeam: Bool,
         appIDs: [String: DeveloperServicesAppID]
     ) async throws -> DeveloperServicesAppID {
         if let appID = appIDs[bundleID] {
@@ -59,7 +59,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
                 appIDID: appID.id,
                 entitlements: entitlements,
                 additionalFeatures: [],
-                isFree: team.isFree
+                isFree: isFreeTeam
             )
             return try await context.client.send(request)
         } else {
@@ -72,7 +72,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
                 appName: name,
                 entitlements: entitlements,
                 additionalFeatures: [],
-                isFree: team.isFree
+                isFree: isFreeTeam
             )
             return try await context.client.send(request)
         }
@@ -83,7 +83,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
     /// that the app has).
     private func addApp(
         _ app: URL,
-        team: DeveloperServicesTeam,
+        isFreeTeam: Bool,
         appIDs: [String: DeveloperServicesAppID]
     ) async throws -> ProvisioningInfo {
         let infoURL = app.appendingPathComponent("Info.plist")
@@ -102,7 +102,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
             let decodedEntitlements = try? PropertyListDecoder().decode(Entitlements.self, from: entitlementsData) {
             entitlements = decodedEntitlements
 
-            if team.isFree {
+            if isFreeTeam {
                 // re-assign rather than using updateEntitlements since the latter will
                 // retain unrecognized entitlements
                 let filtered = try entitlements.entitlements().filter { type(of: $0).isFree }
@@ -112,7 +112,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
             entitlements = try Entitlements(entitlements: [])
         }
 
-        let appID = try await upsertApp(bundleID: bundleID, entitlements: entitlements, team: team, appIDs: appIDs)
+        let appID = try await upsertApp(bundleID: bundleID, entitlements: entitlements, isFreeTeam: isFreeTeam, appIDs: appIDs)
 
         try entitlements.update(teamID: self.context.teamID, bundleID: appID.bundleID)
         // set get-task-allow to YES, required for dev certs
@@ -147,12 +147,12 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
         )
     }
 
-    private func getTeam() async throws -> DeveloperServicesTeam {
+    private func getTeamIsFree() async throws -> Bool {
         let request = DeveloperServicesListTeamsRequest()
         let teams = try await context.client.send(request)
         guard let team = teams.first(where: { $0.id == self.context.teamID })
             else { throw Error.teamNotFound(self.context.teamID) }
-        return team
+        return team.isFree
     }
 
     // keyed by sanitized bundle ID
@@ -171,9 +171,9 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
             apps += plugins.implicitContents.filter { $0.pathExtension.lowercased() == "appex" }
         }
 
-        async let teamTask = getTeam()
+        async let isFreeTeamTask = getTeamIsFree()
         async let appIDsTask = getCurrentAppIDs()
-        let (team, appIDs) = try await (teamTask, appIDsTask)
+        let (isFreeTeam, appIDs) = try await (isFreeTeamTask, appIDsTask)
 
         return try await withThrowingTaskGroup(
             of: (URL, ProvisioningInfo).self,
@@ -181,7 +181,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
         ) { group in
             for app in apps {
                 group.addTask {
-                    let info = try await addApp(app, team: team, appIDs: appIDs)
+                    let info = try await addApp(app, isFreeTeam: isFreeTeam, appIDs: appIDs)
                     return (app, info)
                 }
             }
