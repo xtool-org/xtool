@@ -2,6 +2,7 @@ generate:
   - types
   - client
 accessModifier: package
+namingStrategy: idiomatic
 filter:
   tags:
     - BundleIds

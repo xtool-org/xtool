@@ -39,10 +39,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `POST /v1/bundleIdCapabilities`.
     /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/post(bundleIdCapabilities_createInstance)`.
-    package func bundleIdCapabilities_createInstance(_ input: Operations.bundleIdCapabilities_createInstance.Input) async throws -> Operations.bundleIdCapabilities_createInstance.Output {
+    package func bundleIdCapabilitiesCreateInstance(_ input: Operations.BundleIdCapabilitiesCreateInstance.Input) async throws -> Operations.BundleIdCapabilitiesCreateInstance.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.bundleIdCapabilities_createInstance.id,
+            forOperation: Operations.BundleIdCapabilitiesCreateInstance.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/bundleIdCapabilities",
@@ -72,7 +72,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIdCapabilities_createInstance.Output.BadRequest.Body
+                    let body: Operations.BundleIdCapabilitiesCreateInstance.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -94,7 +94,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIdCapabilities_createInstance.Output.Unauthorized.Body
+                    let body: Operations.BundleIdCapabilitiesCreateInstance.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -116,7 +116,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIdCapabilities_createInstance.Output.Forbidden.Body
+                    let body: Operations.BundleIdCapabilitiesCreateInstance.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -138,7 +138,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 422:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIdCapabilities_createInstance.Output.UnprocessableContent.Body
+                    let body: Operations.BundleIdCapabilitiesCreateInstance.Output.UnprocessableContent.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -160,7 +160,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unprocessableContent(.init(body: body))
                 case 201:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIdCapabilities_createInstance.Output.Created.Body
+                    let body: Operations.BundleIdCapabilitiesCreateInstance.Output.Created.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -182,7 +182,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .created(.init(body: body))
                 case 409:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIdCapabilities_createInstance.Output.Conflict.Body
+                    let body: Operations.BundleIdCapabilitiesCreateInstance.Output.Conflict.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -216,10 +216,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `PATCH /v1/bundleIdCapabilities/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/patch(bundleIdCapabilities_updateInstance)`.
-    package func bundleIdCapabilities_updateInstance(_ input: Operations.bundleIdCapabilities_updateInstance.Input) async throws -> Operations.bundleIdCapabilities_updateInstance.Output {
+    package func bundleIdCapabilitiesUpdateInstance(_ input: Operations.BundleIdCapabilitiesUpdateInstance.Input) async throws -> Operations.BundleIdCapabilitiesUpdateInstance.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.bundleIdCapabilities_updateInstance.id,
+            forOperation: Operations.BundleIdCapabilitiesUpdateInstance.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/bundleIdCapabilities/{}",
@@ -251,7 +251,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIdCapabilities_updateInstance.Output.BadRequest.Body
+                    let body: Operations.BundleIdCapabilitiesUpdateInstance.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -273,7 +273,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIdCapabilities_updateInstance.Output.Unauthorized.Body
+                    let body: Operations.BundleIdCapabilitiesUpdateInstance.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -295,7 +295,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIdCapabilities_updateInstance.Output.Forbidden.Body
+                    let body: Operations.BundleIdCapabilitiesUpdateInstance.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -317,7 +317,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 404:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIdCapabilities_updateInstance.Output.NotFound.Body
+                    let body: Operations.BundleIdCapabilitiesUpdateInstance.Output.NotFound.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -339,7 +339,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .notFound(.init(body: body))
                 case 422:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIdCapabilities_updateInstance.Output.UnprocessableContent.Body
+                    let body: Operations.BundleIdCapabilitiesUpdateInstance.Output.UnprocessableContent.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -361,7 +361,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unprocessableContent(.init(body: body))
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIdCapabilities_updateInstance.Output.Ok.Body
+                    let body: Operations.BundleIdCapabilitiesUpdateInstance.Output.Ok.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -383,7 +383,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .ok(.init(body: body))
                 case 409:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIdCapabilities_updateInstance.Output.Conflict.Body
+                    let body: Operations.BundleIdCapabilitiesUpdateInstance.Output.Conflict.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -417,10 +417,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `DELETE /v1/bundleIdCapabilities/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/delete(bundleIdCapabilities_deleteInstance)`.
-    package func bundleIdCapabilities_deleteInstance(_ input: Operations.bundleIdCapabilities_deleteInstance.Input) async throws -> Operations.bundleIdCapabilities_deleteInstance.Output {
+    package func bundleIdCapabilitiesDeleteInstance(_ input: Operations.BundleIdCapabilitiesDeleteInstance.Input) async throws -> Operations.BundleIdCapabilitiesDeleteInstance.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.bundleIdCapabilities_deleteInstance.id,
+            forOperation: Operations.BundleIdCapabilitiesDeleteInstance.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/bundleIdCapabilities/{}",
@@ -443,7 +443,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIdCapabilities_deleteInstance.Output.BadRequest.Body
+                    let body: Operations.BundleIdCapabilitiesDeleteInstance.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -465,7 +465,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIdCapabilities_deleteInstance.Output.Unauthorized.Body
+                    let body: Operations.BundleIdCapabilitiesDeleteInstance.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -487,7 +487,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIdCapabilities_deleteInstance.Output.Forbidden.Body
+                    let body: Operations.BundleIdCapabilitiesDeleteInstance.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -509,7 +509,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 404:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIdCapabilities_deleteInstance.Output.NotFound.Body
+                    let body: Operations.BundleIdCapabilitiesDeleteInstance.Output.NotFound.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -531,7 +531,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .notFound(.init(body: body))
                 case 409:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIdCapabilities_deleteInstance.Output.Conflict.Body
+                    let body: Operations.BundleIdCapabilitiesDeleteInstance.Output.Conflict.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -567,10 +567,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/bundleIds`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/get(bundleIds_getCollection)`.
-    package func bundleIds_getCollection(_ input: Operations.bundleIds_getCollection.Input) async throws -> Operations.bundleIds_getCollection.Output {
+    package func bundleIdsGetCollection(_ input: Operations.BundleIdsGetCollection.Input) async throws -> Operations.BundleIdsGetCollection.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.bundleIds_getCollection.id,
+            forOperation: Operations.BundleIdsGetCollection.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/bundleIds",
@@ -689,7 +689,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_getCollection.Output.BadRequest.Body
+                    let body: Operations.BundleIdsGetCollection.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -711,7 +711,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_getCollection.Output.Unauthorized.Body
+                    let body: Operations.BundleIdsGetCollection.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -733,7 +733,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_getCollection.Output.Forbidden.Body
+                    let body: Operations.BundleIdsGetCollection.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -755,7 +755,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_getCollection.Output.Ok.Body
+                    let body: Operations.BundleIdsGetCollection.Output.Ok.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -789,10 +789,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `POST /v1/bundleIds`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/post(bundleIds_createInstance)`.
-    package func bundleIds_createInstance(_ input: Operations.bundleIds_createInstance.Input) async throws -> Operations.bundleIds_createInstance.Output {
+    package func bundleIdsCreateInstance(_ input: Operations.BundleIdsCreateInstance.Input) async throws -> Operations.BundleIdsCreateInstance.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.bundleIds_createInstance.id,
+            forOperation: Operations.BundleIdsCreateInstance.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/bundleIds",
@@ -822,7 +822,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_createInstance.Output.BadRequest.Body
+                    let body: Operations.BundleIdsCreateInstance.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -844,7 +844,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_createInstance.Output.Unauthorized.Body
+                    let body: Operations.BundleIdsCreateInstance.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -866,7 +866,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_createInstance.Output.Forbidden.Body
+                    let body: Operations.BundleIdsCreateInstance.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -888,7 +888,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 422:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_createInstance.Output.UnprocessableContent.Body
+                    let body: Operations.BundleIdsCreateInstance.Output.UnprocessableContent.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -910,7 +910,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unprocessableContent(.init(body: body))
                 case 201:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_createInstance.Output.Created.Body
+                    let body: Operations.BundleIdsCreateInstance.Output.Created.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -932,7 +932,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .created(.init(body: body))
                 case 409:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_createInstance.Output.Conflict.Body
+                    let body: Operations.BundleIdsCreateInstance.Output.Conflict.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -966,10 +966,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/bundleIds/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/get(bundleIds_getInstance)`.
-    package func bundleIds_getInstance(_ input: Operations.bundleIds_getInstance.Input) async throws -> Operations.bundleIds_getInstance.Output {
+    package func bundleIdsGetInstance(_ input: Operations.BundleIdsGetInstance.Input) async throws -> Operations.BundleIdsGetInstance.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.bundleIds_getInstance.id,
+            forOperation: Operations.BundleIdsGetInstance.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/bundleIds/{}",
@@ -1041,7 +1041,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_getInstance.Output.BadRequest.Body
+                    let body: Operations.BundleIdsGetInstance.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1063,7 +1063,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_getInstance.Output.Unauthorized.Body
+                    let body: Operations.BundleIdsGetInstance.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1085,7 +1085,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_getInstance.Output.Forbidden.Body
+                    let body: Operations.BundleIdsGetInstance.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1107,7 +1107,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 404:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_getInstance.Output.NotFound.Body
+                    let body: Operations.BundleIdsGetInstance.Output.NotFound.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1129,7 +1129,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .notFound(.init(body: body))
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_getInstance.Output.Ok.Body
+                    let body: Operations.BundleIdsGetInstance.Output.Ok.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1163,10 +1163,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `PATCH /v1/bundleIds/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/patch(bundleIds_updateInstance)`.
-    package func bundleIds_updateInstance(_ input: Operations.bundleIds_updateInstance.Input) async throws -> Operations.bundleIds_updateInstance.Output {
+    package func bundleIdsUpdateInstance(_ input: Operations.BundleIdsUpdateInstance.Input) async throws -> Operations.BundleIdsUpdateInstance.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.bundleIds_updateInstance.id,
+            forOperation: Operations.BundleIdsUpdateInstance.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/bundleIds/{}",
@@ -1198,7 +1198,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_updateInstance.Output.BadRequest.Body
+                    let body: Operations.BundleIdsUpdateInstance.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1220,7 +1220,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_updateInstance.Output.Unauthorized.Body
+                    let body: Operations.BundleIdsUpdateInstance.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1242,7 +1242,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_updateInstance.Output.Forbidden.Body
+                    let body: Operations.BundleIdsUpdateInstance.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1264,7 +1264,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 404:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_updateInstance.Output.NotFound.Body
+                    let body: Operations.BundleIdsUpdateInstance.Output.NotFound.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1286,7 +1286,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .notFound(.init(body: body))
                 case 422:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_updateInstance.Output.UnprocessableContent.Body
+                    let body: Operations.BundleIdsUpdateInstance.Output.UnprocessableContent.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1308,7 +1308,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unprocessableContent(.init(body: body))
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_updateInstance.Output.Ok.Body
+                    let body: Operations.BundleIdsUpdateInstance.Output.Ok.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1330,7 +1330,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .ok(.init(body: body))
                 case 409:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_updateInstance.Output.Conflict.Body
+                    let body: Operations.BundleIdsUpdateInstance.Output.Conflict.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1364,10 +1364,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `DELETE /v1/bundleIds/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/delete(bundleIds_deleteInstance)`.
-    package func bundleIds_deleteInstance(_ input: Operations.bundleIds_deleteInstance.Input) async throws -> Operations.bundleIds_deleteInstance.Output {
+    package func bundleIdsDeleteInstance(_ input: Operations.BundleIdsDeleteInstance.Input) async throws -> Operations.BundleIdsDeleteInstance.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.bundleIds_deleteInstance.id,
+            forOperation: Operations.BundleIdsDeleteInstance.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/bundleIds/{}",
@@ -1390,7 +1390,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_deleteInstance.Output.BadRequest.Body
+                    let body: Operations.BundleIdsDeleteInstance.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1412,7 +1412,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_deleteInstance.Output.Unauthorized.Body
+                    let body: Operations.BundleIdsDeleteInstance.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1434,7 +1434,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_deleteInstance.Output.Forbidden.Body
+                    let body: Operations.BundleIdsDeleteInstance.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1456,7 +1456,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 404:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_deleteInstance.Output.NotFound.Body
+                    let body: Operations.BundleIdsDeleteInstance.Output.NotFound.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1478,7 +1478,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .notFound(.init(body: body))
                 case 409:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_deleteInstance.Output.Conflict.Body
+                    let body: Operations.BundleIdsDeleteInstance.Output.Conflict.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1514,10 +1514,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/certificates`.
     /// - Remark: Generated from `#/paths//v1/certificates/get(certificates_getCollection)`.
-    package func certificates_getCollection(_ input: Operations.certificates_getCollection.Input) async throws -> Operations.certificates_getCollection.Output {
+    package func certificatesGetCollection(_ input: Operations.CertificatesGetCollection.Input) async throws -> Operations.CertificatesGetCollection.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.certificates_getCollection.id,
+            forOperation: Operations.CertificatesGetCollection.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/certificates",
@@ -1587,7 +1587,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_getCollection.Output.BadRequest.Body
+                    let body: Operations.CertificatesGetCollection.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1609,7 +1609,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_getCollection.Output.Unauthorized.Body
+                    let body: Operations.CertificatesGetCollection.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1631,7 +1631,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_getCollection.Output.Forbidden.Body
+                    let body: Operations.CertificatesGetCollection.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1653,7 +1653,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_getCollection.Output.Ok.Body
+                    let body: Operations.CertificatesGetCollection.Output.Ok.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1687,10 +1687,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `POST /v1/certificates`.
     /// - Remark: Generated from `#/paths//v1/certificates/post(certificates_createInstance)`.
-    package func certificates_createInstance(_ input: Operations.certificates_createInstance.Input) async throws -> Operations.certificates_createInstance.Output {
+    package func certificatesCreateInstance(_ input: Operations.CertificatesCreateInstance.Input) async throws -> Operations.CertificatesCreateInstance.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.certificates_createInstance.id,
+            forOperation: Operations.CertificatesCreateInstance.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/certificates",
@@ -1720,7 +1720,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_createInstance.Output.BadRequest.Body
+                    let body: Operations.CertificatesCreateInstance.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1742,7 +1742,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_createInstance.Output.Unauthorized.Body
+                    let body: Operations.CertificatesCreateInstance.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1764,7 +1764,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_createInstance.Output.Forbidden.Body
+                    let body: Operations.CertificatesCreateInstance.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1786,7 +1786,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 422:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_createInstance.Output.UnprocessableContent.Body
+                    let body: Operations.CertificatesCreateInstance.Output.UnprocessableContent.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1808,7 +1808,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unprocessableContent(.init(body: body))
                 case 201:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_createInstance.Output.Created.Body
+                    let body: Operations.CertificatesCreateInstance.Output.Created.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1830,7 +1830,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .created(.init(body: body))
                 case 409:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_createInstance.Output.Conflict.Body
+                    let body: Operations.CertificatesCreateInstance.Output.Conflict.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1864,10 +1864,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/certificates/{id}`.
     /// - Remark: Generated from `#/paths//v1/certificates/{id}/get(certificates_getInstance)`.
-    package func certificates_getInstance(_ input: Operations.certificates_getInstance.Input) async throws -> Operations.certificates_getInstance.Output {
+    package func certificatesGetInstance(_ input: Operations.CertificatesGetInstance.Input) async throws -> Operations.CertificatesGetInstance.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.certificates_getInstance.id,
+            forOperation: Operations.CertificatesGetInstance.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/certificates/{}",
@@ -1897,7 +1897,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_getInstance.Output.BadRequest.Body
+                    let body: Operations.CertificatesGetInstance.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1919,7 +1919,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_getInstance.Output.Unauthorized.Body
+                    let body: Operations.CertificatesGetInstance.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1941,7 +1941,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_getInstance.Output.Forbidden.Body
+                    let body: Operations.CertificatesGetInstance.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1963,7 +1963,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 404:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_getInstance.Output.NotFound.Body
+                    let body: Operations.CertificatesGetInstance.Output.NotFound.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1985,7 +1985,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .notFound(.init(body: body))
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_getInstance.Output.Ok.Body
+                    let body: Operations.CertificatesGetInstance.Output.Ok.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2019,10 +2019,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `DELETE /v1/certificates/{id}`.
     /// - Remark: Generated from `#/paths//v1/certificates/{id}/delete(certificates_deleteInstance)`.
-    package func certificates_deleteInstance(_ input: Operations.certificates_deleteInstance.Input) async throws -> Operations.certificates_deleteInstance.Output {
+    package func certificatesDeleteInstance(_ input: Operations.CertificatesDeleteInstance.Input) async throws -> Operations.CertificatesDeleteInstance.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.certificates_deleteInstance.id,
+            forOperation: Operations.CertificatesDeleteInstance.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/certificates/{}",
@@ -2045,7 +2045,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_deleteInstance.Output.BadRequest.Body
+                    let body: Operations.CertificatesDeleteInstance.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2067,7 +2067,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_deleteInstance.Output.Unauthorized.Body
+                    let body: Operations.CertificatesDeleteInstance.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2089,7 +2089,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_deleteInstance.Output.Forbidden.Body
+                    let body: Operations.CertificatesDeleteInstance.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2111,7 +2111,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 404:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_deleteInstance.Output.NotFound.Body
+                    let body: Operations.CertificatesDeleteInstance.Output.NotFound.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2133,7 +2133,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .notFound(.init(body: body))
                 case 409:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.certificates_deleteInstance.Output.Conflict.Body
+                    let body: Operations.CertificatesDeleteInstance.Output.Conflict.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2169,10 +2169,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/devices`.
     /// - Remark: Generated from `#/paths//v1/devices/get(devices_getCollection)`.
-    package func devices_getCollection(_ input: Operations.devices_getCollection.Input) async throws -> Operations.devices_getCollection.Output {
+    package func devicesGetCollection(_ input: Operations.DevicesGetCollection.Input) async throws -> Operations.DevicesGetCollection.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.devices_getCollection.id,
+            forOperation: Operations.DevicesGetCollection.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/devices",
@@ -2249,7 +2249,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_getCollection.Output.BadRequest.Body
+                    let body: Operations.DevicesGetCollection.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2271,7 +2271,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_getCollection.Output.Unauthorized.Body
+                    let body: Operations.DevicesGetCollection.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2293,7 +2293,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_getCollection.Output.Forbidden.Body
+                    let body: Operations.DevicesGetCollection.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2315,7 +2315,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_getCollection.Output.Ok.Body
+                    let body: Operations.DevicesGetCollection.Output.Ok.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2349,10 +2349,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `POST /v1/devices`.
     /// - Remark: Generated from `#/paths//v1/devices/post(devices_createInstance)`.
-    package func devices_createInstance(_ input: Operations.devices_createInstance.Input) async throws -> Operations.devices_createInstance.Output {
+    package func devicesCreateInstance(_ input: Operations.DevicesCreateInstance.Input) async throws -> Operations.DevicesCreateInstance.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.devices_createInstance.id,
+            forOperation: Operations.DevicesCreateInstance.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/devices",
@@ -2382,7 +2382,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_createInstance.Output.BadRequest.Body
+                    let body: Operations.DevicesCreateInstance.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2404,7 +2404,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_createInstance.Output.Unauthorized.Body
+                    let body: Operations.DevicesCreateInstance.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2426,7 +2426,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_createInstance.Output.Forbidden.Body
+                    let body: Operations.DevicesCreateInstance.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2448,7 +2448,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 422:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_createInstance.Output.UnprocessableContent.Body
+                    let body: Operations.DevicesCreateInstance.Output.UnprocessableContent.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2470,7 +2470,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unprocessableContent(.init(body: body))
                 case 201:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_createInstance.Output.Created.Body
+                    let body: Operations.DevicesCreateInstance.Output.Created.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2492,7 +2492,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .created(.init(body: body))
                 case 409:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_createInstance.Output.Conflict.Body
+                    let body: Operations.DevicesCreateInstance.Output.Conflict.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2526,10 +2526,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/devices/{id}`.
     /// - Remark: Generated from `#/paths//v1/devices/{id}/get(devices_getInstance)`.
-    package func devices_getInstance(_ input: Operations.devices_getInstance.Input) async throws -> Operations.devices_getInstance.Output {
+    package func devicesGetInstance(_ input: Operations.DevicesGetInstance.Input) async throws -> Operations.DevicesGetInstance.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.devices_getInstance.id,
+            forOperation: Operations.DevicesGetInstance.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/devices/{}",
@@ -2559,7 +2559,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_getInstance.Output.BadRequest.Body
+                    let body: Operations.DevicesGetInstance.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2581,7 +2581,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_getInstance.Output.Unauthorized.Body
+                    let body: Operations.DevicesGetInstance.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2603,7 +2603,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_getInstance.Output.Forbidden.Body
+                    let body: Operations.DevicesGetInstance.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2625,7 +2625,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 404:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_getInstance.Output.NotFound.Body
+                    let body: Operations.DevicesGetInstance.Output.NotFound.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2647,7 +2647,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .notFound(.init(body: body))
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_getInstance.Output.Ok.Body
+                    let body: Operations.DevicesGetInstance.Output.Ok.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2681,10 +2681,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `PATCH /v1/devices/{id}`.
     /// - Remark: Generated from `#/paths//v1/devices/{id}/patch(devices_updateInstance)`.
-    package func devices_updateInstance(_ input: Operations.devices_updateInstance.Input) async throws -> Operations.devices_updateInstance.Output {
+    package func devicesUpdateInstance(_ input: Operations.DevicesUpdateInstance.Input) async throws -> Operations.DevicesUpdateInstance.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.devices_updateInstance.id,
+            forOperation: Operations.DevicesUpdateInstance.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/devices/{}",
@@ -2716,7 +2716,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_updateInstance.Output.BadRequest.Body
+                    let body: Operations.DevicesUpdateInstance.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2738,7 +2738,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_updateInstance.Output.Unauthorized.Body
+                    let body: Operations.DevicesUpdateInstance.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2760,7 +2760,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_updateInstance.Output.Forbidden.Body
+                    let body: Operations.DevicesUpdateInstance.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2782,7 +2782,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 404:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_updateInstance.Output.NotFound.Body
+                    let body: Operations.DevicesUpdateInstance.Output.NotFound.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2804,7 +2804,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .notFound(.init(body: body))
                 case 422:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_updateInstance.Output.UnprocessableContent.Body
+                    let body: Operations.DevicesUpdateInstance.Output.UnprocessableContent.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2826,7 +2826,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unprocessableContent(.init(body: body))
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_updateInstance.Output.Ok.Body
+                    let body: Operations.DevicesUpdateInstance.Output.Ok.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2848,7 +2848,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .ok(.init(body: body))
                 case 409:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.devices_updateInstance.Output.Conflict.Body
+                    let body: Operations.DevicesUpdateInstance.Output.Conflict.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -2882,10 +2882,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/profiles`.
     /// - Remark: Generated from `#/paths//v1/profiles/get(profiles_getCollection)`.
-    package func profiles_getCollection(_ input: Operations.profiles_getCollection.Input) async throws -> Operations.profiles_getCollection.Output {
+    package func profilesGetCollection(_ input: Operations.ProfilesGetCollection.Input) async throws -> Operations.ProfilesGetCollection.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.profiles_getCollection.id,
+            forOperation: Operations.ProfilesGetCollection.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/profiles",
@@ -2997,7 +2997,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_getCollection.Output.BadRequest.Body
+                    let body: Operations.ProfilesGetCollection.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3019,7 +3019,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_getCollection.Output.Unauthorized.Body
+                    let body: Operations.ProfilesGetCollection.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3041,7 +3041,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_getCollection.Output.Forbidden.Body
+                    let body: Operations.ProfilesGetCollection.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3063,7 +3063,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_getCollection.Output.Ok.Body
+                    let body: Operations.ProfilesGetCollection.Output.Ok.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3097,10 +3097,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `POST /v1/profiles`.
     /// - Remark: Generated from `#/paths//v1/profiles/post(profiles_createInstance)`.
-    package func profiles_createInstance(_ input: Operations.profiles_createInstance.Input) async throws -> Operations.profiles_createInstance.Output {
+    package func profilesCreateInstance(_ input: Operations.ProfilesCreateInstance.Input) async throws -> Operations.ProfilesCreateInstance.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.profiles_createInstance.id,
+            forOperation: Operations.ProfilesCreateInstance.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/profiles",
@@ -3130,7 +3130,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_createInstance.Output.BadRequest.Body
+                    let body: Operations.ProfilesCreateInstance.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3152,7 +3152,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_createInstance.Output.Unauthorized.Body
+                    let body: Operations.ProfilesCreateInstance.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3174,7 +3174,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_createInstance.Output.Forbidden.Body
+                    let body: Operations.ProfilesCreateInstance.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3196,7 +3196,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 422:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_createInstance.Output.UnprocessableContent.Body
+                    let body: Operations.ProfilesCreateInstance.Output.UnprocessableContent.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3218,7 +3218,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unprocessableContent(.init(body: body))
                 case 201:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_createInstance.Output.Created.Body
+                    let body: Operations.ProfilesCreateInstance.Output.Created.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3240,7 +3240,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .created(.init(body: body))
                 case 409:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_createInstance.Output.Conflict.Body
+                    let body: Operations.ProfilesCreateInstance.Output.Conflict.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3274,10 +3274,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/profiles/{id}`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/get(profiles_getInstance)`.
-    package func profiles_getInstance(_ input: Operations.profiles_getInstance.Input) async throws -> Operations.profiles_getInstance.Output {
+    package func profilesGetInstance(_ input: Operations.ProfilesGetInstance.Input) async throws -> Operations.ProfilesGetInstance.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.profiles_getInstance.id,
+            forOperation: Operations.ProfilesGetInstance.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/profiles/{}",
@@ -3349,7 +3349,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_getInstance.Output.BadRequest.Body
+                    let body: Operations.ProfilesGetInstance.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3371,7 +3371,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_getInstance.Output.Unauthorized.Body
+                    let body: Operations.ProfilesGetInstance.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3393,7 +3393,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_getInstance.Output.Forbidden.Body
+                    let body: Operations.ProfilesGetInstance.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3415,7 +3415,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 404:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_getInstance.Output.NotFound.Body
+                    let body: Operations.ProfilesGetInstance.Output.NotFound.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3437,7 +3437,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .notFound(.init(body: body))
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_getInstance.Output.Ok.Body
+                    let body: Operations.ProfilesGetInstance.Output.Ok.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3471,10 +3471,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `DELETE /v1/profiles/{id}`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/delete(profiles_deleteInstance)`.
-    package func profiles_deleteInstance(_ input: Operations.profiles_deleteInstance.Input) async throws -> Operations.profiles_deleteInstance.Output {
+    package func profilesDeleteInstance(_ input: Operations.ProfilesDeleteInstance.Input) async throws -> Operations.ProfilesDeleteInstance.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.profiles_deleteInstance.id,
+            forOperation: Operations.ProfilesDeleteInstance.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/profiles/{}",
@@ -3497,7 +3497,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_deleteInstance.Output.BadRequest.Body
+                    let body: Operations.ProfilesDeleteInstance.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3519,7 +3519,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_deleteInstance.Output.Unauthorized.Body
+                    let body: Operations.ProfilesDeleteInstance.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3541,7 +3541,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_deleteInstance.Output.Forbidden.Body
+                    let body: Operations.ProfilesDeleteInstance.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3563,7 +3563,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 404:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_deleteInstance.Output.NotFound.Body
+                    let body: Operations.ProfilesDeleteInstance.Output.NotFound.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3585,7 +3585,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .notFound(.init(body: body))
                 case 409:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_deleteInstance.Output.Conflict.Body
+                    let body: Operations.ProfilesDeleteInstance.Output.Conflict.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3621,10 +3621,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/app`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/app/get(bundleIds_app_getToOneRelated)`.
-    package func bundleIds_app_getToOneRelated(_ input: Operations.bundleIds_app_getToOneRelated.Input) async throws -> Operations.bundleIds_app_getToOneRelated.Output {
+    package func bundleIdsAppGetToOneRelated(_ input: Operations.BundleIdsAppGetToOneRelated.Input) async throws -> Operations.BundleIdsAppGetToOneRelated.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.bundleIds_app_getToOneRelated.id,
+            forOperation: Operations.BundleIdsAppGetToOneRelated.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/bundleIds/{}/app",
@@ -3654,7 +3654,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_app_getToOneRelated.Output.BadRequest.Body
+                    let body: Operations.BundleIdsAppGetToOneRelated.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3676,7 +3676,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_app_getToOneRelated.Output.Unauthorized.Body
+                    let body: Operations.BundleIdsAppGetToOneRelated.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3698,7 +3698,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_app_getToOneRelated.Output.Forbidden.Body
+                    let body: Operations.BundleIdsAppGetToOneRelated.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3720,7 +3720,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 404:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_app_getToOneRelated.Output.NotFound.Body
+                    let body: Operations.BundleIdsAppGetToOneRelated.Output.NotFound.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3742,7 +3742,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .notFound(.init(body: body))
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_app_getToOneRelated.Output.Ok.Body
+                    let body: Operations.BundleIdsAppGetToOneRelated.Output.Ok.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3776,10 +3776,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/bundleIdCapabilities`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelated)`.
-    package func bundleIds_bundleIdCapabilities_getToManyRelated(_ input: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Input) async throws -> Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output {
+    package func bundleIdsBundleIdCapabilitiesGetToManyRelated(_ input: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Input) async throws -> Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.id,
+            forOperation: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/bundleIds/{}/bundleIdCapabilities",
@@ -3816,7 +3816,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.BadRequest.Body
+                    let body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3838,7 +3838,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.Unauthorized.Body
+                    let body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3860,7 +3860,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.Forbidden.Body
+                    let body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3882,7 +3882,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 404:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.NotFound.Body
+                    let body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.NotFound.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3904,7 +3904,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .notFound(.init(body: body))
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.Ok.Body
+                    let body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.Ok.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -3938,10 +3938,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/profiles`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/profiles/get(bundleIds_profiles_getToManyRelated)`.
-    package func bundleIds_profiles_getToManyRelated(_ input: Operations.bundleIds_profiles_getToManyRelated.Input) async throws -> Operations.bundleIds_profiles_getToManyRelated.Output {
+    package func bundleIdsProfilesGetToManyRelated(_ input: Operations.BundleIdsProfilesGetToManyRelated.Input) async throws -> Operations.BundleIdsProfilesGetToManyRelated.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.bundleIds_profiles_getToManyRelated.id,
+            forOperation: Operations.BundleIdsProfilesGetToManyRelated.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/bundleIds/{}/profiles",
@@ -3978,7 +3978,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_profiles_getToManyRelated.Output.BadRequest.Body
+                    let body: Operations.BundleIdsProfilesGetToManyRelated.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -4000,7 +4000,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_profiles_getToManyRelated.Output.Unauthorized.Body
+                    let body: Operations.BundleIdsProfilesGetToManyRelated.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -4022,7 +4022,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_profiles_getToManyRelated.Output.Forbidden.Body
+                    let body: Operations.BundleIdsProfilesGetToManyRelated.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -4044,7 +4044,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 404:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_profiles_getToManyRelated.Output.NotFound.Body
+                    let body: Operations.BundleIdsProfilesGetToManyRelated.Output.NotFound.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -4066,7 +4066,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .notFound(.init(body: body))
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.bundleIds_profiles_getToManyRelated.Output.Ok.Body
+                    let body: Operations.BundleIdsProfilesGetToManyRelated.Output.Ok.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -4100,10 +4100,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/profiles/{id}/bundleId`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/bundleId/get(profiles_bundleId_getToOneRelated)`.
-    package func profiles_bundleId_getToOneRelated(_ input: Operations.profiles_bundleId_getToOneRelated.Input) async throws -> Operations.profiles_bundleId_getToOneRelated.Output {
+    package func profilesBundleIdGetToOneRelated(_ input: Operations.ProfilesBundleIdGetToOneRelated.Input) async throws -> Operations.ProfilesBundleIdGetToOneRelated.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.profiles_bundleId_getToOneRelated.id,
+            forOperation: Operations.ProfilesBundleIdGetToOneRelated.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/profiles/{}/bundleId",
@@ -4133,7 +4133,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_bundleId_getToOneRelated.Output.BadRequest.Body
+                    let body: Operations.ProfilesBundleIdGetToOneRelated.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -4155,7 +4155,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_bundleId_getToOneRelated.Output.Unauthorized.Body
+                    let body: Operations.ProfilesBundleIdGetToOneRelated.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -4177,7 +4177,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_bundleId_getToOneRelated.Output.Forbidden.Body
+                    let body: Operations.ProfilesBundleIdGetToOneRelated.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -4199,7 +4199,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 404:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_bundleId_getToOneRelated.Output.NotFound.Body
+                    let body: Operations.ProfilesBundleIdGetToOneRelated.Output.NotFound.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -4221,7 +4221,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .notFound(.init(body: body))
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_bundleId_getToOneRelated.Output.Ok.Body
+                    let body: Operations.ProfilesBundleIdGetToOneRelated.Output.Ok.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -4255,10 +4255,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/profiles/{id}/certificates`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/certificates/get(profiles_certificates_getToManyRelated)`.
-    package func profiles_certificates_getToManyRelated(_ input: Operations.profiles_certificates_getToManyRelated.Input) async throws -> Operations.profiles_certificates_getToManyRelated.Output {
+    package func profilesCertificatesGetToManyRelated(_ input: Operations.ProfilesCertificatesGetToManyRelated.Input) async throws -> Operations.ProfilesCertificatesGetToManyRelated.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.profiles_certificates_getToManyRelated.id,
+            forOperation: Operations.ProfilesCertificatesGetToManyRelated.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/profiles/{}/certificates",
@@ -4295,7 +4295,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_certificates_getToManyRelated.Output.BadRequest.Body
+                    let body: Operations.ProfilesCertificatesGetToManyRelated.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -4317,7 +4317,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_certificates_getToManyRelated.Output.Unauthorized.Body
+                    let body: Operations.ProfilesCertificatesGetToManyRelated.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -4339,7 +4339,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_certificates_getToManyRelated.Output.Forbidden.Body
+                    let body: Operations.ProfilesCertificatesGetToManyRelated.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -4361,7 +4361,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 404:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_certificates_getToManyRelated.Output.NotFound.Body
+                    let body: Operations.ProfilesCertificatesGetToManyRelated.Output.NotFound.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -4383,7 +4383,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .notFound(.init(body: body))
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_certificates_getToManyRelated.Output.Ok.Body
+                    let body: Operations.ProfilesCertificatesGetToManyRelated.Output.Ok.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -4417,10 +4417,10 @@ package struct DeveloperAPIClient: APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/profiles/{id}/devices`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/devices/get(profiles_devices_getToManyRelated)`.
-    package func profiles_devices_getToManyRelated(_ input: Operations.profiles_devices_getToManyRelated.Input) async throws -> Operations.profiles_devices_getToManyRelated.Output {
+    package func profilesDevicesGetToManyRelated(_ input: Operations.ProfilesDevicesGetToManyRelated.Input) async throws -> Operations.ProfilesDevicesGetToManyRelated.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.profiles_devices_getToManyRelated.id,
+            forOperation: Operations.ProfilesDevicesGetToManyRelated.id,
             serializer: { input in
                 let path = try converter.renderedPath(
                     template: "/v1/profiles/{}/devices",
@@ -4457,7 +4457,7 @@ package struct DeveloperAPIClient: APIProtocol {
                 switch response.status.code {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_devices_getToManyRelated.Output.BadRequest.Body
+                    let body: Operations.ProfilesDevicesGetToManyRelated.Output.BadRequest.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -4479,7 +4479,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .badRequest(.init(body: body))
                 case 401:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_devices_getToManyRelated.Output.Unauthorized.Body
+                    let body: Operations.ProfilesDevicesGetToManyRelated.Output.Unauthorized.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -4501,7 +4501,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .unauthorized(.init(body: body))
                 case 403:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_devices_getToManyRelated.Output.Forbidden.Body
+                    let body: Operations.ProfilesDevicesGetToManyRelated.Output.Forbidden.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -4523,7 +4523,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .forbidden(.init(body: body))
                 case 404:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_devices_getToManyRelated.Output.NotFound.Body
+                    let body: Operations.ProfilesDevicesGetToManyRelated.Output.NotFound.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -4545,7 +4545,7 @@ package struct DeveloperAPIClient: APIProtocol {
                     return .notFound(.init(body: body))
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.profiles_devices_getToManyRelated.Output.Ok.Body
+                    let body: Operations.ProfilesDevicesGetToManyRelated.Output.Ok.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [

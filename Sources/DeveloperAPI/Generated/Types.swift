@@ -13,105 +13,105 @@ import struct Foundation.Date
 package protocol APIProtocol: Sendable {
     /// - Remark: HTTP `POST /v1/bundleIdCapabilities`.
     /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/post(bundleIdCapabilities_createInstance)`.
-    func bundleIdCapabilities_createInstance(_ input: Operations.bundleIdCapabilities_createInstance.Input) async throws -> Operations.bundleIdCapabilities_createInstance.Output
+    func bundleIdCapabilitiesCreateInstance(_ input: Operations.BundleIdCapabilitiesCreateInstance.Input) async throws -> Operations.BundleIdCapabilitiesCreateInstance.Output
     /// - Remark: HTTP `PATCH /v1/bundleIdCapabilities/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/patch(bundleIdCapabilities_updateInstance)`.
-    func bundleIdCapabilities_updateInstance(_ input: Operations.bundleIdCapabilities_updateInstance.Input) async throws -> Operations.bundleIdCapabilities_updateInstance.Output
+    func bundleIdCapabilitiesUpdateInstance(_ input: Operations.BundleIdCapabilitiesUpdateInstance.Input) async throws -> Operations.BundleIdCapabilitiesUpdateInstance.Output
     /// - Remark: HTTP `DELETE /v1/bundleIdCapabilities/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/delete(bundleIdCapabilities_deleteInstance)`.
-    func bundleIdCapabilities_deleteInstance(_ input: Operations.bundleIdCapabilities_deleteInstance.Input) async throws -> Operations.bundleIdCapabilities_deleteInstance.Output
+    func bundleIdCapabilitiesDeleteInstance(_ input: Operations.BundleIdCapabilitiesDeleteInstance.Input) async throws -> Operations.BundleIdCapabilitiesDeleteInstance.Output
     /// - Remark: HTTP `GET /v1/bundleIds`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/get(bundleIds_getCollection)`.
-    func bundleIds_getCollection(_ input: Operations.bundleIds_getCollection.Input) async throws -> Operations.bundleIds_getCollection.Output
+    func bundleIdsGetCollection(_ input: Operations.BundleIdsGetCollection.Input) async throws -> Operations.BundleIdsGetCollection.Output
     /// - Remark: HTTP `POST /v1/bundleIds`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/post(bundleIds_createInstance)`.
-    func bundleIds_createInstance(_ input: Operations.bundleIds_createInstance.Input) async throws -> Operations.bundleIds_createInstance.Output
+    func bundleIdsCreateInstance(_ input: Operations.BundleIdsCreateInstance.Input) async throws -> Operations.BundleIdsCreateInstance.Output
     /// - Remark: HTTP `GET /v1/bundleIds/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/get(bundleIds_getInstance)`.
-    func bundleIds_getInstance(_ input: Operations.bundleIds_getInstance.Input) async throws -> Operations.bundleIds_getInstance.Output
+    func bundleIdsGetInstance(_ input: Operations.BundleIdsGetInstance.Input) async throws -> Operations.BundleIdsGetInstance.Output
     /// - Remark: HTTP `PATCH /v1/bundleIds/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/patch(bundleIds_updateInstance)`.
-    func bundleIds_updateInstance(_ input: Operations.bundleIds_updateInstance.Input) async throws -> Operations.bundleIds_updateInstance.Output
+    func bundleIdsUpdateInstance(_ input: Operations.BundleIdsUpdateInstance.Input) async throws -> Operations.BundleIdsUpdateInstance.Output
     /// - Remark: HTTP `DELETE /v1/bundleIds/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/delete(bundleIds_deleteInstance)`.
-    func bundleIds_deleteInstance(_ input: Operations.bundleIds_deleteInstance.Input) async throws -> Operations.bundleIds_deleteInstance.Output
+    func bundleIdsDeleteInstance(_ input: Operations.BundleIdsDeleteInstance.Input) async throws -> Operations.BundleIdsDeleteInstance.Output
     /// - Remark: HTTP `GET /v1/certificates`.
     /// - Remark: Generated from `#/paths//v1/certificates/get(certificates_getCollection)`.
-    func certificates_getCollection(_ input: Operations.certificates_getCollection.Input) async throws -> Operations.certificates_getCollection.Output
+    func certificatesGetCollection(_ input: Operations.CertificatesGetCollection.Input) async throws -> Operations.CertificatesGetCollection.Output
     /// - Remark: HTTP `POST /v1/certificates`.
     /// - Remark: Generated from `#/paths//v1/certificates/post(certificates_createInstance)`.
-    func certificates_createInstance(_ input: Operations.certificates_createInstance.Input) async throws -> Operations.certificates_createInstance.Output
+    func certificatesCreateInstance(_ input: Operations.CertificatesCreateInstance.Input) async throws -> Operations.CertificatesCreateInstance.Output
     /// - Remark: HTTP `GET /v1/certificates/{id}`.
     /// - Remark: Generated from `#/paths//v1/certificates/{id}/get(certificates_getInstance)`.
-    func certificates_getInstance(_ input: Operations.certificates_getInstance.Input) async throws -> Operations.certificates_getInstance.Output
+    func certificatesGetInstance(_ input: Operations.CertificatesGetInstance.Input) async throws -> Operations.CertificatesGetInstance.Output
     /// - Remark: HTTP `DELETE /v1/certificates/{id}`.
     /// - Remark: Generated from `#/paths//v1/certificates/{id}/delete(certificates_deleteInstance)`.
-    func certificates_deleteInstance(_ input: Operations.certificates_deleteInstance.Input) async throws -> Operations.certificates_deleteInstance.Output
+    func certificatesDeleteInstance(_ input: Operations.CertificatesDeleteInstance.Input) async throws -> Operations.CertificatesDeleteInstance.Output
     /// - Remark: HTTP `GET /v1/devices`.
     /// - Remark: Generated from `#/paths//v1/devices/get(devices_getCollection)`.
-    func devices_getCollection(_ input: Operations.devices_getCollection.Input) async throws -> Operations.devices_getCollection.Output
+    func devicesGetCollection(_ input: Operations.DevicesGetCollection.Input) async throws -> Operations.DevicesGetCollection.Output
     /// - Remark: HTTP `POST /v1/devices`.
     /// - Remark: Generated from `#/paths//v1/devices/post(devices_createInstance)`.
-    func devices_createInstance(_ input: Operations.devices_createInstance.Input) async throws -> Operations.devices_createInstance.Output
+    func devicesCreateInstance(_ input: Operations.DevicesCreateInstance.Input) async throws -> Operations.DevicesCreateInstance.Output
     /// - Remark: HTTP `GET /v1/devices/{id}`.
     /// - Remark: Generated from `#/paths//v1/devices/{id}/get(devices_getInstance)`.
-    func devices_getInstance(_ input: Operations.devices_getInstance.Input) async throws -> Operations.devices_getInstance.Output
+    func devicesGetInstance(_ input: Operations.DevicesGetInstance.Input) async throws -> Operations.DevicesGetInstance.Output
     /// - Remark: HTTP `PATCH /v1/devices/{id}`.
     /// - Remark: Generated from `#/paths//v1/devices/{id}/patch(devices_updateInstance)`.
-    func devices_updateInstance(_ input: Operations.devices_updateInstance.Input) async throws -> Operations.devices_updateInstance.Output
+    func devicesUpdateInstance(_ input: Operations.DevicesUpdateInstance.Input) async throws -> Operations.DevicesUpdateInstance.Output
     /// - Remark: HTTP `GET /v1/profiles`.
     /// - Remark: Generated from `#/paths//v1/profiles/get(profiles_getCollection)`.
-    func profiles_getCollection(_ input: Operations.profiles_getCollection.Input) async throws -> Operations.profiles_getCollection.Output
+    func profilesGetCollection(_ input: Operations.ProfilesGetCollection.Input) async throws -> Operations.ProfilesGetCollection.Output
     /// - Remark: HTTP `POST /v1/profiles`.
     /// - Remark: Generated from `#/paths//v1/profiles/post(profiles_createInstance)`.
-    func profiles_createInstance(_ input: Operations.profiles_createInstance.Input) async throws -> Operations.profiles_createInstance.Output
+    func profilesCreateInstance(_ input: Operations.ProfilesCreateInstance.Input) async throws -> Operations.ProfilesCreateInstance.Output
     /// - Remark: HTTP `GET /v1/profiles/{id}`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/get(profiles_getInstance)`.
-    func profiles_getInstance(_ input: Operations.profiles_getInstance.Input) async throws -> Operations.profiles_getInstance.Output
+    func profilesGetInstance(_ input: Operations.ProfilesGetInstance.Input) async throws -> Operations.ProfilesGetInstance.Output
     /// - Remark: HTTP `DELETE /v1/profiles/{id}`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/delete(profiles_deleteInstance)`.
-    func profiles_deleteInstance(_ input: Operations.profiles_deleteInstance.Input) async throws -> Operations.profiles_deleteInstance.Output
+    func profilesDeleteInstance(_ input: Operations.ProfilesDeleteInstance.Input) async throws -> Operations.ProfilesDeleteInstance.Output
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/app`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/app/get(bundleIds_app_getToOneRelated)`.
-    func bundleIds_app_getToOneRelated(_ input: Operations.bundleIds_app_getToOneRelated.Input) async throws -> Operations.bundleIds_app_getToOneRelated.Output
+    func bundleIdsAppGetToOneRelated(_ input: Operations.BundleIdsAppGetToOneRelated.Input) async throws -> Operations.BundleIdsAppGetToOneRelated.Output
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/bundleIdCapabilities`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelated)`.
-    func bundleIds_bundleIdCapabilities_getToManyRelated(_ input: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Input) async throws -> Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output
+    func bundleIdsBundleIdCapabilitiesGetToManyRelated(_ input: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Input) async throws -> Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/profiles`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/profiles/get(bundleIds_profiles_getToManyRelated)`.
-    func bundleIds_profiles_getToManyRelated(_ input: Operations.bundleIds_profiles_getToManyRelated.Input) async throws -> Operations.bundleIds_profiles_getToManyRelated.Output
+    func bundleIdsProfilesGetToManyRelated(_ input: Operations.BundleIdsProfilesGetToManyRelated.Input) async throws -> Operations.BundleIdsProfilesGetToManyRelated.Output
     /// - Remark: HTTP `GET /v1/profiles/{id}/bundleId`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/bundleId/get(profiles_bundleId_getToOneRelated)`.
-    func profiles_bundleId_getToOneRelated(_ input: Operations.profiles_bundleId_getToOneRelated.Input) async throws -> Operations.profiles_bundleId_getToOneRelated.Output
+    func profilesBundleIdGetToOneRelated(_ input: Operations.ProfilesBundleIdGetToOneRelated.Input) async throws -> Operations.ProfilesBundleIdGetToOneRelated.Output
     /// - Remark: HTTP `GET /v1/profiles/{id}/certificates`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/certificates/get(profiles_certificates_getToManyRelated)`.
-    func profiles_certificates_getToManyRelated(_ input: Operations.profiles_certificates_getToManyRelated.Input) async throws -> Operations.profiles_certificates_getToManyRelated.Output
+    func profilesCertificatesGetToManyRelated(_ input: Operations.ProfilesCertificatesGetToManyRelated.Input) async throws -> Operations.ProfilesCertificatesGetToManyRelated.Output
     /// - Remark: HTTP `GET /v1/profiles/{id}/devices`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/devices/get(profiles_devices_getToManyRelated)`.
-    func profiles_devices_getToManyRelated(_ input: Operations.profiles_devices_getToManyRelated.Input) async throws -> Operations.profiles_devices_getToManyRelated.Output
+    func profilesDevicesGetToManyRelated(_ input: Operations.ProfilesDevicesGetToManyRelated.Input) async throws -> Operations.ProfilesDevicesGetToManyRelated.Output
 }
 
 /// Convenience overloads for operation inputs.
 extension APIProtocol {
     /// - Remark: HTTP `POST /v1/bundleIdCapabilities`.
     /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/post(bundleIdCapabilities_createInstance)`.
-    package func bundleIdCapabilities_createInstance(
-        headers: Operations.bundleIdCapabilities_createInstance.Input.Headers = .init(),
-        body: Operations.bundleIdCapabilities_createInstance.Input.Body
-    ) async throws -> Operations.bundleIdCapabilities_createInstance.Output {
-        try await bundleIdCapabilities_createInstance(Operations.bundleIdCapabilities_createInstance.Input(
+    package func bundleIdCapabilitiesCreateInstance(
+        headers: Operations.BundleIdCapabilitiesCreateInstance.Input.Headers = .init(),
+        body: Operations.BundleIdCapabilitiesCreateInstance.Input.Body
+    ) async throws -> Operations.BundleIdCapabilitiesCreateInstance.Output {
+        try await bundleIdCapabilitiesCreateInstance(Operations.BundleIdCapabilitiesCreateInstance.Input(
             headers: headers,
             body: body
         ))
     }
     /// - Remark: HTTP `PATCH /v1/bundleIdCapabilities/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/patch(bundleIdCapabilities_updateInstance)`.
-    package func bundleIdCapabilities_updateInstance(
-        path: Operations.bundleIdCapabilities_updateInstance.Input.Path,
-        headers: Operations.bundleIdCapabilities_updateInstance.Input.Headers = .init(),
-        body: Operations.bundleIdCapabilities_updateInstance.Input.Body
-    ) async throws -> Operations.bundleIdCapabilities_updateInstance.Output {
-        try await bundleIdCapabilities_updateInstance(Operations.bundleIdCapabilities_updateInstance.Input(
+    package func bundleIdCapabilitiesUpdateInstance(
+        path: Operations.BundleIdCapabilitiesUpdateInstance.Input.Path,
+        headers: Operations.BundleIdCapabilitiesUpdateInstance.Input.Headers = .init(),
+        body: Operations.BundleIdCapabilitiesUpdateInstance.Input.Body
+    ) async throws -> Operations.BundleIdCapabilitiesUpdateInstance.Output {
+        try await bundleIdCapabilitiesUpdateInstance(Operations.BundleIdCapabilitiesUpdateInstance.Input(
             path: path,
             headers: headers,
             body: body
@@ -119,45 +119,45 @@ extension APIProtocol {
     }
     /// - Remark: HTTP `DELETE /v1/bundleIdCapabilities/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/delete(bundleIdCapabilities_deleteInstance)`.
-    package func bundleIdCapabilities_deleteInstance(
-        path: Operations.bundleIdCapabilities_deleteInstance.Input.Path,
-        headers: Operations.bundleIdCapabilities_deleteInstance.Input.Headers = .init()
-    ) async throws -> Operations.bundleIdCapabilities_deleteInstance.Output {
-        try await bundleIdCapabilities_deleteInstance(Operations.bundleIdCapabilities_deleteInstance.Input(
+    package func bundleIdCapabilitiesDeleteInstance(
+        path: Operations.BundleIdCapabilitiesDeleteInstance.Input.Path,
+        headers: Operations.BundleIdCapabilitiesDeleteInstance.Input.Headers = .init()
+    ) async throws -> Operations.BundleIdCapabilitiesDeleteInstance.Output {
+        try await bundleIdCapabilitiesDeleteInstance(Operations.BundleIdCapabilitiesDeleteInstance.Input(
             path: path,
             headers: headers
         ))
     }
     /// - Remark: HTTP `GET /v1/bundleIds`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/get(bundleIds_getCollection)`.
-    package func bundleIds_getCollection(
-        query: Operations.bundleIds_getCollection.Input.Query = .init(),
-        headers: Operations.bundleIds_getCollection.Input.Headers = .init()
-    ) async throws -> Operations.bundleIds_getCollection.Output {
-        try await bundleIds_getCollection(Operations.bundleIds_getCollection.Input(
+    package func bundleIdsGetCollection(
+        query: Operations.BundleIdsGetCollection.Input.Query = .init(),
+        headers: Operations.BundleIdsGetCollection.Input.Headers = .init()
+    ) async throws -> Operations.BundleIdsGetCollection.Output {
+        try await bundleIdsGetCollection(Operations.BundleIdsGetCollection.Input(
             query: query,
             headers: headers
         ))
     }
     /// - Remark: HTTP `POST /v1/bundleIds`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/post(bundleIds_createInstance)`.
-    package func bundleIds_createInstance(
-        headers: Operations.bundleIds_createInstance.Input.Headers = .init(),
-        body: Operations.bundleIds_createInstance.Input.Body
-    ) async throws -> Operations.bundleIds_createInstance.Output {
-        try await bundleIds_createInstance(Operations.bundleIds_createInstance.Input(
+    package func bundleIdsCreateInstance(
+        headers: Operations.BundleIdsCreateInstance.Input.Headers = .init(),
+        body: Operations.BundleIdsCreateInstance.Input.Body
+    ) async throws -> Operations.BundleIdsCreateInstance.Output {
+        try await bundleIdsCreateInstance(Operations.BundleIdsCreateInstance.Input(
             headers: headers,
             body: body
         ))
     }
     /// - Remark: HTTP `GET /v1/bundleIds/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/get(bundleIds_getInstance)`.
-    package func bundleIds_getInstance(
-        path: Operations.bundleIds_getInstance.Input.Path,
-        query: Operations.bundleIds_getInstance.Input.Query = .init(),
-        headers: Operations.bundleIds_getInstance.Input.Headers = .init()
-    ) async throws -> Operations.bundleIds_getInstance.Output {
-        try await bundleIds_getInstance(Operations.bundleIds_getInstance.Input(
+    package func bundleIdsGetInstance(
+        path: Operations.BundleIdsGetInstance.Input.Path,
+        query: Operations.BundleIdsGetInstance.Input.Query = .init(),
+        headers: Operations.BundleIdsGetInstance.Input.Headers = .init()
+    ) async throws -> Operations.BundleIdsGetInstance.Output {
+        try await bundleIdsGetInstance(Operations.BundleIdsGetInstance.Input(
             path: path,
             query: query,
             headers: headers
@@ -165,12 +165,12 @@ extension APIProtocol {
     }
     /// - Remark: HTTP `PATCH /v1/bundleIds/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/patch(bundleIds_updateInstance)`.
-    package func bundleIds_updateInstance(
-        path: Operations.bundleIds_updateInstance.Input.Path,
-        headers: Operations.bundleIds_updateInstance.Input.Headers = .init(),
-        body: Operations.bundleIds_updateInstance.Input.Body
-    ) async throws -> Operations.bundleIds_updateInstance.Output {
-        try await bundleIds_updateInstance(Operations.bundleIds_updateInstance.Input(
+    package func bundleIdsUpdateInstance(
+        path: Operations.BundleIdsUpdateInstance.Input.Path,
+        headers: Operations.BundleIdsUpdateInstance.Input.Headers = .init(),
+        body: Operations.BundleIdsUpdateInstance.Input.Body
+    ) async throws -> Operations.BundleIdsUpdateInstance.Output {
+        try await bundleIdsUpdateInstance(Operations.BundleIdsUpdateInstance.Input(
             path: path,
             headers: headers,
             body: body
@@ -178,45 +178,45 @@ extension APIProtocol {
     }
     /// - Remark: HTTP `DELETE /v1/bundleIds/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/delete(bundleIds_deleteInstance)`.
-    package func bundleIds_deleteInstance(
-        path: Operations.bundleIds_deleteInstance.Input.Path,
-        headers: Operations.bundleIds_deleteInstance.Input.Headers = .init()
-    ) async throws -> Operations.bundleIds_deleteInstance.Output {
-        try await bundleIds_deleteInstance(Operations.bundleIds_deleteInstance.Input(
+    package func bundleIdsDeleteInstance(
+        path: Operations.BundleIdsDeleteInstance.Input.Path,
+        headers: Operations.BundleIdsDeleteInstance.Input.Headers = .init()
+    ) async throws -> Operations.BundleIdsDeleteInstance.Output {
+        try await bundleIdsDeleteInstance(Operations.BundleIdsDeleteInstance.Input(
             path: path,
             headers: headers
         ))
     }
     /// - Remark: HTTP `GET /v1/certificates`.
     /// - Remark: Generated from `#/paths//v1/certificates/get(certificates_getCollection)`.
-    package func certificates_getCollection(
-        query: Operations.certificates_getCollection.Input.Query = .init(),
-        headers: Operations.certificates_getCollection.Input.Headers = .init()
-    ) async throws -> Operations.certificates_getCollection.Output {
-        try await certificates_getCollection(Operations.certificates_getCollection.Input(
+    package func certificatesGetCollection(
+        query: Operations.CertificatesGetCollection.Input.Query = .init(),
+        headers: Operations.CertificatesGetCollection.Input.Headers = .init()
+    ) async throws -> Operations.CertificatesGetCollection.Output {
+        try await certificatesGetCollection(Operations.CertificatesGetCollection.Input(
             query: query,
             headers: headers
         ))
     }
     /// - Remark: HTTP `POST /v1/certificates`.
     /// - Remark: Generated from `#/paths//v1/certificates/post(certificates_createInstance)`.
-    package func certificates_createInstance(
-        headers: Operations.certificates_createInstance.Input.Headers = .init(),
-        body: Operations.certificates_createInstance.Input.Body
-    ) async throws -> Operations.certificates_createInstance.Output {
-        try await certificates_createInstance(Operations.certificates_createInstance.Input(
+    package func certificatesCreateInstance(
+        headers: Operations.CertificatesCreateInstance.Input.Headers = .init(),
+        body: Operations.CertificatesCreateInstance.Input.Body
+    ) async throws -> Operations.CertificatesCreateInstance.Output {
+        try await certificatesCreateInstance(Operations.CertificatesCreateInstance.Input(
             headers: headers,
             body: body
         ))
     }
     /// - Remark: HTTP `GET /v1/certificates/{id}`.
     /// - Remark: Generated from `#/paths//v1/certificates/{id}/get(certificates_getInstance)`.
-    package func certificates_getInstance(
-        path: Operations.certificates_getInstance.Input.Path,
-        query: Operations.certificates_getInstance.Input.Query = .init(),
-        headers: Operations.certificates_getInstance.Input.Headers = .init()
-    ) async throws -> Operations.certificates_getInstance.Output {
-        try await certificates_getInstance(Operations.certificates_getInstance.Input(
+    package func certificatesGetInstance(
+        path: Operations.CertificatesGetInstance.Input.Path,
+        query: Operations.CertificatesGetInstance.Input.Query = .init(),
+        headers: Operations.CertificatesGetInstance.Input.Headers = .init()
+    ) async throws -> Operations.CertificatesGetInstance.Output {
+        try await certificatesGetInstance(Operations.CertificatesGetInstance.Input(
             path: path,
             query: query,
             headers: headers
@@ -224,45 +224,45 @@ extension APIProtocol {
     }
     /// - Remark: HTTP `DELETE /v1/certificates/{id}`.
     /// - Remark: Generated from `#/paths//v1/certificates/{id}/delete(certificates_deleteInstance)`.
-    package func certificates_deleteInstance(
-        path: Operations.certificates_deleteInstance.Input.Path,
-        headers: Operations.certificates_deleteInstance.Input.Headers = .init()
-    ) async throws -> Operations.certificates_deleteInstance.Output {
-        try await certificates_deleteInstance(Operations.certificates_deleteInstance.Input(
+    package func certificatesDeleteInstance(
+        path: Operations.CertificatesDeleteInstance.Input.Path,
+        headers: Operations.CertificatesDeleteInstance.Input.Headers = .init()
+    ) async throws -> Operations.CertificatesDeleteInstance.Output {
+        try await certificatesDeleteInstance(Operations.CertificatesDeleteInstance.Input(
             path: path,
             headers: headers
         ))
     }
     /// - Remark: HTTP `GET /v1/devices`.
     /// - Remark: Generated from `#/paths//v1/devices/get(devices_getCollection)`.
-    package func devices_getCollection(
-        query: Operations.devices_getCollection.Input.Query = .init(),
-        headers: Operations.devices_getCollection.Input.Headers = .init()
-    ) async throws -> Operations.devices_getCollection.Output {
-        try await devices_getCollection(Operations.devices_getCollection.Input(
+    package func devicesGetCollection(
+        query: Operations.DevicesGetCollection.Input.Query = .init(),
+        headers: Operations.DevicesGetCollection.Input.Headers = .init()
+    ) async throws -> Operations.DevicesGetCollection.Output {
+        try await devicesGetCollection(Operations.DevicesGetCollection.Input(
             query: query,
             headers: headers
         ))
     }
     /// - Remark: HTTP `POST /v1/devices`.
     /// - Remark: Generated from `#/paths//v1/devices/post(devices_createInstance)`.
-    package func devices_createInstance(
-        headers: Operations.devices_createInstance.Input.Headers = .init(),
-        body: Operations.devices_createInstance.Input.Body
-    ) async throws -> Operations.devices_createInstance.Output {
-        try await devices_createInstance(Operations.devices_createInstance.Input(
+    package func devicesCreateInstance(
+        headers: Operations.DevicesCreateInstance.Input.Headers = .init(),
+        body: Operations.DevicesCreateInstance.Input.Body
+    ) async throws -> Operations.DevicesCreateInstance.Output {
+        try await devicesCreateInstance(Operations.DevicesCreateInstance.Input(
             headers: headers,
             body: body
         ))
     }
     /// - Remark: HTTP `GET /v1/devices/{id}`.
     /// - Remark: Generated from `#/paths//v1/devices/{id}/get(devices_getInstance)`.
-    package func devices_getInstance(
-        path: Operations.devices_getInstance.Input.Path,
-        query: Operations.devices_getInstance.Input.Query = .init(),
-        headers: Operations.devices_getInstance.Input.Headers = .init()
-    ) async throws -> Operations.devices_getInstance.Output {
-        try await devices_getInstance(Operations.devices_getInstance.Input(
+    package func devicesGetInstance(
+        path: Operations.DevicesGetInstance.Input.Path,
+        query: Operations.DevicesGetInstance.Input.Query = .init(),
+        headers: Operations.DevicesGetInstance.Input.Headers = .init()
+    ) async throws -> Operations.DevicesGetInstance.Output {
+        try await devicesGetInstance(Operations.DevicesGetInstance.Input(
             path: path,
             query: query,
             headers: headers
@@ -270,12 +270,12 @@ extension APIProtocol {
     }
     /// - Remark: HTTP `PATCH /v1/devices/{id}`.
     /// - Remark: Generated from `#/paths//v1/devices/{id}/patch(devices_updateInstance)`.
-    package func devices_updateInstance(
-        path: Operations.devices_updateInstance.Input.Path,
-        headers: Operations.devices_updateInstance.Input.Headers = .init(),
-        body: Operations.devices_updateInstance.Input.Body
-    ) async throws -> Operations.devices_updateInstance.Output {
-        try await devices_updateInstance(Operations.devices_updateInstance.Input(
+    package func devicesUpdateInstance(
+        path: Operations.DevicesUpdateInstance.Input.Path,
+        headers: Operations.DevicesUpdateInstance.Input.Headers = .init(),
+        body: Operations.DevicesUpdateInstance.Input.Body
+    ) async throws -> Operations.DevicesUpdateInstance.Output {
+        try await devicesUpdateInstance(Operations.DevicesUpdateInstance.Input(
             path: path,
             headers: headers,
             body: body
@@ -283,34 +283,34 @@ extension APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/profiles`.
     /// - Remark: Generated from `#/paths//v1/profiles/get(profiles_getCollection)`.
-    package func profiles_getCollection(
-        query: Operations.profiles_getCollection.Input.Query = .init(),
-        headers: Operations.profiles_getCollection.Input.Headers = .init()
-    ) async throws -> Operations.profiles_getCollection.Output {
-        try await profiles_getCollection(Operations.profiles_getCollection.Input(
+    package func profilesGetCollection(
+        query: Operations.ProfilesGetCollection.Input.Query = .init(),
+        headers: Operations.ProfilesGetCollection.Input.Headers = .init()
+    ) async throws -> Operations.ProfilesGetCollection.Output {
+        try await profilesGetCollection(Operations.ProfilesGetCollection.Input(
             query: query,
             headers: headers
         ))
     }
     /// - Remark: HTTP `POST /v1/profiles`.
     /// - Remark: Generated from `#/paths//v1/profiles/post(profiles_createInstance)`.
-    package func profiles_createInstance(
-        headers: Operations.profiles_createInstance.Input.Headers = .init(),
-        body: Operations.profiles_createInstance.Input.Body
-    ) async throws -> Operations.profiles_createInstance.Output {
-        try await profiles_createInstance(Operations.profiles_createInstance.Input(
+    package func profilesCreateInstance(
+        headers: Operations.ProfilesCreateInstance.Input.Headers = .init(),
+        body: Operations.ProfilesCreateInstance.Input.Body
+    ) async throws -> Operations.ProfilesCreateInstance.Output {
+        try await profilesCreateInstance(Operations.ProfilesCreateInstance.Input(
             headers: headers,
             body: body
         ))
     }
     /// - Remark: HTTP `GET /v1/profiles/{id}`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/get(profiles_getInstance)`.
-    package func profiles_getInstance(
-        path: Operations.profiles_getInstance.Input.Path,
-        query: Operations.profiles_getInstance.Input.Query = .init(),
-        headers: Operations.profiles_getInstance.Input.Headers = .init()
-    ) async throws -> Operations.profiles_getInstance.Output {
-        try await profiles_getInstance(Operations.profiles_getInstance.Input(
+    package func profilesGetInstance(
+        path: Operations.ProfilesGetInstance.Input.Path,
+        query: Operations.ProfilesGetInstance.Input.Query = .init(),
+        headers: Operations.ProfilesGetInstance.Input.Headers = .init()
+    ) async throws -> Operations.ProfilesGetInstance.Output {
+        try await profilesGetInstance(Operations.ProfilesGetInstance.Input(
             path: path,
             query: query,
             headers: headers
@@ -318,23 +318,23 @@ extension APIProtocol {
     }
     /// - Remark: HTTP `DELETE /v1/profiles/{id}`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/delete(profiles_deleteInstance)`.
-    package func profiles_deleteInstance(
-        path: Operations.profiles_deleteInstance.Input.Path,
-        headers: Operations.profiles_deleteInstance.Input.Headers = .init()
-    ) async throws -> Operations.profiles_deleteInstance.Output {
-        try await profiles_deleteInstance(Operations.profiles_deleteInstance.Input(
+    package func profilesDeleteInstance(
+        path: Operations.ProfilesDeleteInstance.Input.Path,
+        headers: Operations.ProfilesDeleteInstance.Input.Headers = .init()
+    ) async throws -> Operations.ProfilesDeleteInstance.Output {
+        try await profilesDeleteInstance(Operations.ProfilesDeleteInstance.Input(
             path: path,
             headers: headers
         ))
     }
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/app`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/app/get(bundleIds_app_getToOneRelated)`.
-    package func bundleIds_app_getToOneRelated(
-        path: Operations.bundleIds_app_getToOneRelated.Input.Path,
-        query: Operations.bundleIds_app_getToOneRelated.Input.Query = .init(),
-        headers: Operations.bundleIds_app_getToOneRelated.Input.Headers = .init()
-    ) async throws -> Operations.bundleIds_app_getToOneRelated.Output {
-        try await bundleIds_app_getToOneRelated(Operations.bundleIds_app_getToOneRelated.Input(
+    package func bundleIdsAppGetToOneRelated(
+        path: Operations.BundleIdsAppGetToOneRelated.Input.Path,
+        query: Operations.BundleIdsAppGetToOneRelated.Input.Query = .init(),
+        headers: Operations.BundleIdsAppGetToOneRelated.Input.Headers = .init()
+    ) async throws -> Operations.BundleIdsAppGetToOneRelated.Output {
+        try await bundleIdsAppGetToOneRelated(Operations.BundleIdsAppGetToOneRelated.Input(
             path: path,
             query: query,
             headers: headers
@@ -342,12 +342,12 @@ extension APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/bundleIdCapabilities`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelated)`.
-    package func bundleIds_bundleIdCapabilities_getToManyRelated(
-        path: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Input.Path,
-        query: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Input.Query = .init(),
-        headers: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Input.Headers = .init()
-    ) async throws -> Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output {
-        try await bundleIds_bundleIdCapabilities_getToManyRelated(Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Input(
+    package func bundleIdsBundleIdCapabilitiesGetToManyRelated(
+        path: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Input.Path,
+        query: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Input.Query = .init(),
+        headers: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Input.Headers = .init()
+    ) async throws -> Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output {
+        try await bundleIdsBundleIdCapabilitiesGetToManyRelated(Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Input(
             path: path,
             query: query,
             headers: headers
@@ -355,12 +355,12 @@ extension APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/profiles`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/profiles/get(bundleIds_profiles_getToManyRelated)`.
-    package func bundleIds_profiles_getToManyRelated(
-        path: Operations.bundleIds_profiles_getToManyRelated.Input.Path,
-        query: Operations.bundleIds_profiles_getToManyRelated.Input.Query = .init(),
-        headers: Operations.bundleIds_profiles_getToManyRelated.Input.Headers = .init()
-    ) async throws -> Operations.bundleIds_profiles_getToManyRelated.Output {
-        try await bundleIds_profiles_getToManyRelated(Operations.bundleIds_profiles_getToManyRelated.Input(
+    package func bundleIdsProfilesGetToManyRelated(
+        path: Operations.BundleIdsProfilesGetToManyRelated.Input.Path,
+        query: Operations.BundleIdsProfilesGetToManyRelated.Input.Query = .init(),
+        headers: Operations.BundleIdsProfilesGetToManyRelated.Input.Headers = .init()
+    ) async throws -> Operations.BundleIdsProfilesGetToManyRelated.Output {
+        try await bundleIdsProfilesGetToManyRelated(Operations.BundleIdsProfilesGetToManyRelated.Input(
             path: path,
             query: query,
             headers: headers
@@ -368,12 +368,12 @@ extension APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/profiles/{id}/bundleId`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/bundleId/get(profiles_bundleId_getToOneRelated)`.
-    package func profiles_bundleId_getToOneRelated(
-        path: Operations.profiles_bundleId_getToOneRelated.Input.Path,
-        query: Operations.profiles_bundleId_getToOneRelated.Input.Query = .init(),
-        headers: Operations.profiles_bundleId_getToOneRelated.Input.Headers = .init()
-    ) async throws -> Operations.profiles_bundleId_getToOneRelated.Output {
-        try await profiles_bundleId_getToOneRelated(Operations.profiles_bundleId_getToOneRelated.Input(
+    package func profilesBundleIdGetToOneRelated(
+        path: Operations.ProfilesBundleIdGetToOneRelated.Input.Path,
+        query: Operations.ProfilesBundleIdGetToOneRelated.Input.Query = .init(),
+        headers: Operations.ProfilesBundleIdGetToOneRelated.Input.Headers = .init()
+    ) async throws -> Operations.ProfilesBundleIdGetToOneRelated.Output {
+        try await profilesBundleIdGetToOneRelated(Operations.ProfilesBundleIdGetToOneRelated.Input(
             path: path,
             query: query,
             headers: headers
@@ -381,12 +381,12 @@ extension APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/profiles/{id}/certificates`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/certificates/get(profiles_certificates_getToManyRelated)`.
-    package func profiles_certificates_getToManyRelated(
-        path: Operations.profiles_certificates_getToManyRelated.Input.Path,
-        query: Operations.profiles_certificates_getToManyRelated.Input.Query = .init(),
-        headers: Operations.profiles_certificates_getToManyRelated.Input.Headers = .init()
-    ) async throws -> Operations.profiles_certificates_getToManyRelated.Output {
-        try await profiles_certificates_getToManyRelated(Operations.profiles_certificates_getToManyRelated.Input(
+    package func profilesCertificatesGetToManyRelated(
+        path: Operations.ProfilesCertificatesGetToManyRelated.Input.Path,
+        query: Operations.ProfilesCertificatesGetToManyRelated.Input.Query = .init(),
+        headers: Operations.ProfilesCertificatesGetToManyRelated.Input.Headers = .init()
+    ) async throws -> Operations.ProfilesCertificatesGetToManyRelated.Output {
+        try await profilesCertificatesGetToManyRelated(Operations.ProfilesCertificatesGetToManyRelated.Input(
             path: path,
             query: query,
             headers: headers
@@ -394,12 +394,12 @@ extension APIProtocol {
     }
     /// - Remark: HTTP `GET /v1/profiles/{id}/devices`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/devices/get(profiles_devices_getToManyRelated)`.
-    package func profiles_devices_getToManyRelated(
-        path: Operations.profiles_devices_getToManyRelated.Input.Path,
-        query: Operations.profiles_devices_getToManyRelated.Input.Query = .init(),
-        headers: Operations.profiles_devices_getToManyRelated.Input.Headers = .init()
-    ) async throws -> Operations.profiles_devices_getToManyRelated.Output {
-        try await profiles_devices_getToManyRelated(Operations.profiles_devices_getToManyRelated.Input(
+    package func profilesDevicesGetToManyRelated(
+        path: Operations.ProfilesDevicesGetToManyRelated.Input.Path,
+        query: Operations.ProfilesDevicesGetToManyRelated.Input.Query = .init(),
+        headers: Operations.ProfilesDevicesGetToManyRelated.Input.Headers = .init()
+    ) async throws -> Operations.ProfilesDevicesGetToManyRelated.Output {
+        try await profilesDevicesGetToManyRelated(Operations.ProfilesDevicesGetToManyRelated.Input(
             path: path,
             query: query,
             headers: headers
@@ -433,15 +433,15 @@ package enum Components {
         /// - Remark: Generated from `#/components/schemas/App`.
         package struct App: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/App/type`.
-            @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+            @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                 case apps = "apps"
             }
             /// - Remark: Generated from `#/components/schemas/App/type`.
-            package var _type: Components.Schemas.App._typePayload
+            package var _type: Components.Schemas.App._TypePayload
             /// - Remark: Generated from `#/components/schemas/App/id`.
             package var id: Swift.String
             /// - Remark: Generated from `#/components/schemas/App/attributes`.
-            package struct attributesPayload: Codable, Hashable, Sendable {
+            package struct AttributesPayload: Codable, Hashable, Sendable {
                 /// - Remark: Generated from `#/components/schemas/App/attributes/name`.
                 package var name: Swift.String?
                 /// - Remark: Generated from `#/components/schemas/App/attributes/bundleId`.
@@ -461,15 +461,15 @@ package enum Components {
                 /// - Remark: Generated from `#/components/schemas/App/attributes/subscriptionStatusUrlVersionForSandbox`.
                 package var subscriptionStatusUrlVersionForSandbox: Components.Schemas.SubscriptionStatusUrlVersion?
                 /// - Remark: Generated from `#/components/schemas/App/attributes/contentRightsDeclaration`.
-                @frozen package enum contentRightsDeclarationPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                    case DOES_NOT_USE_THIRD_PARTY_CONTENT = "DOES_NOT_USE_THIRD_PARTY_CONTENT"
-                    case USES_THIRD_PARTY_CONTENT = "USES_THIRD_PARTY_CONTENT"
+                @frozen package enum ContentRightsDeclarationPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case doesNotUseThirdPartyContent = "DOES_NOT_USE_THIRD_PARTY_CONTENT"
+                    case usesThirdPartyContent = "USES_THIRD_PARTY_CONTENT"
                 }
                 /// - Remark: Generated from `#/components/schemas/App/attributes/contentRightsDeclaration`.
-                package var contentRightsDeclaration: Components.Schemas.App.attributesPayload.contentRightsDeclarationPayload?
+                package var contentRightsDeclaration: Components.Schemas.App.AttributesPayload.ContentRightsDeclarationPayload?
                 /// - Remark: Generated from `#/components/schemas/App/attributes/streamlinedPurchasingEnabled`.
                 package var streamlinedPurchasingEnabled: Swift.Bool?
-                /// Creates a new `attributesPayload`.
+                /// Creates a new `AttributesPayload`.
                 ///
                 /// - Parameters:
                 ///   - name:
@@ -493,7 +493,7 @@ package enum Components {
                     subscriptionStatusUrlVersion: Components.Schemas.SubscriptionStatusUrlVersion? = nil,
                     subscriptionStatusUrlForSandbox: Swift.String? = nil,
                     subscriptionStatusUrlVersionForSandbox: Components.Schemas.SubscriptionStatusUrlVersion? = nil,
-                    contentRightsDeclaration: Components.Schemas.App.attributesPayload.contentRightsDeclarationPayload? = nil,
+                    contentRightsDeclaration: Components.Schemas.App.AttributesPayload.ContentRightsDeclarationPayload? = nil,
                     streamlinedPurchasingEnabled: Swift.Bool? = nil
                 ) {
                     self.name = name
@@ -523,32 +523,32 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/App/attributes`.
-            package var attributes: Components.Schemas.App.attributesPayload?
+            package var attributes: Components.Schemas.App.AttributesPayload?
             /// - Remark: Generated from `#/components/schemas/App/relationships`.
-            package struct relationshipsPayload: Codable, Hashable, Sendable {
+            package struct RelationshipsPayload: Codable, Hashable, Sendable {
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appEncryptionDeclarations`.
-                package struct appEncryptionDeclarationsPayload: Codable, Hashable, Sendable {
+                package struct AppEncryptionDeclarationsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appEncryptionDeclarations/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appEncryptionDeclarations/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/App/relationships/appEncryptionDeclarations/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appEncryptionDeclarations/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/appEncryptionDeclarations/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appEncryptionDeclarations/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case appEncryptionDeclarations = "appEncryptionDeclarations"
                         }
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appEncryptionDeclarations/dataPayload/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.appEncryptionDeclarationsPayload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appEncryptionDeclarations/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appEncryptionDeclarations/DataPayload/type`.
+                        package var _type: Components.Schemas.App.RelationshipsPayload.AppEncryptionDeclarationsPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appEncryptionDeclarations/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.appEncryptionDeclarationsPayload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.AppEncryptionDeclarationsPayload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -560,10 +560,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appEncryptionDeclarations/data`.
-                    package typealias dataPayload = [Components.Schemas.App.relationshipsPayload.appEncryptionDeclarationsPayload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.App.RelationshipsPayload.AppEncryptionDeclarationsPayload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appEncryptionDeclarations/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.appEncryptionDeclarationsPayload.dataPayload?
-                    /// Creates a new `appEncryptionDeclarationsPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.AppEncryptionDeclarationsPayload.DataPayload?
+                    /// Creates a new `AppEncryptionDeclarationsPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -572,7 +572,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.appEncryptionDeclarationsPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.AppEncryptionDeclarationsPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -585,28 +585,28 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appEncryptionDeclarations`.
-                package var appEncryptionDeclarations: Components.Schemas.App.relationshipsPayload.appEncryptionDeclarationsPayload?
+                package var appEncryptionDeclarations: Components.Schemas.App.RelationshipsPayload.AppEncryptionDeclarationsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/ciProduct`.
-                package struct ciProductPayload: Codable, Hashable, Sendable {
+                package struct CiProductPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/ciProduct/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/ciProduct/data`.
-                    package struct dataPayload: Codable, Hashable, Sendable {
+                    package struct DataPayload: Codable, Hashable, Sendable {
                         /// - Remark: Generated from `#/components/schemas/App/relationships/ciProduct/data/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case ciProducts = "ciProducts"
                         }
                         /// - Remark: Generated from `#/components/schemas/App/relationships/ciProduct/data/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.ciProductPayload.dataPayload._typePayload
+                        package var _type: Components.Schemas.App.RelationshipsPayload.CiProductPayload.DataPayload._TypePayload
                         /// - Remark: Generated from `#/components/schemas/App/relationships/ciProduct/data/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayload`.
+                        /// Creates a new `DataPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.ciProductPayload.dataPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.CiProductPayload.DataPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -618,15 +618,15 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/ciProduct/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.ciProductPayload.dataPayload?
-                    /// Creates a new `ciProductPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.CiProductPayload.DataPayload?
+                    /// Creates a new `CiProductPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
                     ///   - data:
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.ciProductPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.CiProductPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.data = data
@@ -637,12 +637,12 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/ciProduct`.
-                package var ciProduct: Components.Schemas.App.relationshipsPayload.ciProductPayload?
+                package var ciProduct: Components.Schemas.App.RelationshipsPayload.CiProductPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/betaTesters`.
-                package struct betaTestersPayload: Codable, Hashable, Sendable {
+                package struct BetaTestersPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/betaTesters/links`.
                     package var links: Components.Schemas.RelationshipLinks?
-                    /// Creates a new `betaTestersPayload`.
+                    /// Creates a new `BetaTestersPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -654,30 +654,30 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/betaTesters`.
-                package var betaTesters: Components.Schemas.App.relationshipsPayload.betaTestersPayload?
+                package var betaTesters: Components.Schemas.App.RelationshipsPayload.BetaTestersPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/betaGroups`.
-                package struct betaGroupsPayload: Codable, Hashable, Sendable {
+                package struct BetaGroupsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/betaGroups/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/betaGroups/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/App/relationships/betaGroups/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/betaGroups/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/betaGroups/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/betaGroups/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case betaGroups = "betaGroups"
                         }
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/betaGroups/dataPayload/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.betaGroupsPayload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/betaGroups/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/betaGroups/DataPayload/type`.
+                        package var _type: Components.Schemas.App.RelationshipsPayload.BetaGroupsPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/betaGroups/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.betaGroupsPayload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.BetaGroupsPayload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -689,10 +689,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/betaGroups/data`.
-                    package typealias dataPayload = [Components.Schemas.App.relationshipsPayload.betaGroupsPayload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.App.RelationshipsPayload.BetaGroupsPayload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/App/relationships/betaGroups/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.betaGroupsPayload.dataPayload?
-                    /// Creates a new `betaGroupsPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.BetaGroupsPayload.DataPayload?
+                    /// Creates a new `BetaGroupsPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -701,7 +701,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.betaGroupsPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.BetaGroupsPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -714,30 +714,30 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/betaGroups`.
-                package var betaGroups: Components.Schemas.App.relationshipsPayload.betaGroupsPayload?
+                package var betaGroups: Components.Schemas.App.RelationshipsPayload.BetaGroupsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersions`.
-                package struct appStoreVersionsPayload: Codable, Hashable, Sendable {
+                package struct AppStoreVersionsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersions/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersions/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersions/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersions/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersions/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersions/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case appStoreVersions = "appStoreVersions"
                         }
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersions/dataPayload/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.appStoreVersionsPayload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersions/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersions/DataPayload/type`.
+                        package var _type: Components.Schemas.App.RelationshipsPayload.AppStoreVersionsPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersions/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.appStoreVersionsPayload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.AppStoreVersionsPayload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -749,10 +749,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersions/data`.
-                    package typealias dataPayload = [Components.Schemas.App.relationshipsPayload.appStoreVersionsPayload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.App.RelationshipsPayload.AppStoreVersionsPayload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersions/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.appStoreVersionsPayload.dataPayload?
-                    /// Creates a new `appStoreVersionsPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.AppStoreVersionsPayload.DataPayload?
+                    /// Creates a new `AppStoreVersionsPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -761,7 +761,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.appStoreVersionsPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.AppStoreVersionsPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -774,30 +774,30 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersions`.
-                package var appStoreVersions: Components.Schemas.App.relationshipsPayload.appStoreVersionsPayload?
+                package var appStoreVersions: Components.Schemas.App.RelationshipsPayload.AppStoreVersionsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/preReleaseVersions`.
-                package struct preReleaseVersionsPayload: Codable, Hashable, Sendable {
+                package struct PreReleaseVersionsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/preReleaseVersions/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/preReleaseVersions/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/App/relationships/preReleaseVersions/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/preReleaseVersions/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/preReleaseVersions/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/preReleaseVersions/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case preReleaseVersions = "preReleaseVersions"
                         }
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/preReleaseVersions/dataPayload/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.preReleaseVersionsPayload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/preReleaseVersions/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/preReleaseVersions/DataPayload/type`.
+                        package var _type: Components.Schemas.App.RelationshipsPayload.PreReleaseVersionsPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/preReleaseVersions/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.preReleaseVersionsPayload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.PreReleaseVersionsPayload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -809,10 +809,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/preReleaseVersions/data`.
-                    package typealias dataPayload = [Components.Schemas.App.relationshipsPayload.preReleaseVersionsPayload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.App.RelationshipsPayload.PreReleaseVersionsPayload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/App/relationships/preReleaseVersions/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.preReleaseVersionsPayload.dataPayload?
-                    /// Creates a new `preReleaseVersionsPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.PreReleaseVersionsPayload.DataPayload?
+                    /// Creates a new `PreReleaseVersionsPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -821,7 +821,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.preReleaseVersionsPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.PreReleaseVersionsPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -834,30 +834,30 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/preReleaseVersions`.
-                package var preReleaseVersions: Components.Schemas.App.relationshipsPayload.preReleaseVersionsPayload?
+                package var preReleaseVersions: Components.Schemas.App.RelationshipsPayload.PreReleaseVersionsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppLocalizations`.
-                package struct betaAppLocalizationsPayload: Codable, Hashable, Sendable {
+                package struct BetaAppLocalizationsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppLocalizations/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppLocalizations/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppLocalizations/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppLocalizations/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppLocalizations/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppLocalizations/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case betaAppLocalizations = "betaAppLocalizations"
                         }
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppLocalizations/dataPayload/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.betaAppLocalizationsPayload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppLocalizations/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppLocalizations/DataPayload/type`.
+                        package var _type: Components.Schemas.App.RelationshipsPayload.BetaAppLocalizationsPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppLocalizations/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.betaAppLocalizationsPayload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.BetaAppLocalizationsPayload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -869,10 +869,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppLocalizations/data`.
-                    package typealias dataPayload = [Components.Schemas.App.relationshipsPayload.betaAppLocalizationsPayload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.App.RelationshipsPayload.BetaAppLocalizationsPayload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppLocalizations/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.betaAppLocalizationsPayload.dataPayload?
-                    /// Creates a new `betaAppLocalizationsPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.BetaAppLocalizationsPayload.DataPayload?
+                    /// Creates a new `BetaAppLocalizationsPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -881,7 +881,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.betaAppLocalizationsPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.BetaAppLocalizationsPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -894,30 +894,30 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppLocalizations`.
-                package var betaAppLocalizations: Components.Schemas.App.relationshipsPayload.betaAppLocalizationsPayload?
+                package var betaAppLocalizations: Components.Schemas.App.RelationshipsPayload.BetaAppLocalizationsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/builds`.
-                package struct buildsPayload: Codable, Hashable, Sendable {
+                package struct BuildsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/builds/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/builds/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/App/relationships/builds/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/builds/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/builds/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/builds/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case builds = "builds"
                         }
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/builds/dataPayload/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.buildsPayload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/builds/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/builds/DataPayload/type`.
+                        package var _type: Components.Schemas.App.RelationshipsPayload.BuildsPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/builds/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.buildsPayload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.BuildsPayload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -929,10 +929,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/builds/data`.
-                    package typealias dataPayload = [Components.Schemas.App.relationshipsPayload.buildsPayload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.App.RelationshipsPayload.BuildsPayload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/App/relationships/builds/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.buildsPayload.dataPayload?
-                    /// Creates a new `buildsPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.BuildsPayload.DataPayload?
+                    /// Creates a new `BuildsPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -941,7 +941,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.buildsPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.BuildsPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -954,28 +954,28 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/builds`.
-                package var builds: Components.Schemas.App.relationshipsPayload.buildsPayload?
+                package var builds: Components.Schemas.App.RelationshipsPayload.BuildsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/betaLicenseAgreement`.
-                package struct betaLicenseAgreementPayload: Codable, Hashable, Sendable {
+                package struct BetaLicenseAgreementPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/betaLicenseAgreement/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/betaLicenseAgreement/data`.
-                    package struct dataPayload: Codable, Hashable, Sendable {
+                    package struct DataPayload: Codable, Hashable, Sendable {
                         /// - Remark: Generated from `#/components/schemas/App/relationships/betaLicenseAgreement/data/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case betaLicenseAgreements = "betaLicenseAgreements"
                         }
                         /// - Remark: Generated from `#/components/schemas/App/relationships/betaLicenseAgreement/data/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.betaLicenseAgreementPayload.dataPayload._typePayload
+                        package var _type: Components.Schemas.App.RelationshipsPayload.BetaLicenseAgreementPayload.DataPayload._TypePayload
                         /// - Remark: Generated from `#/components/schemas/App/relationships/betaLicenseAgreement/data/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayload`.
+                        /// Creates a new `DataPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.betaLicenseAgreementPayload.dataPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.BetaLicenseAgreementPayload.DataPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -987,15 +987,15 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/betaLicenseAgreement/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.betaLicenseAgreementPayload.dataPayload?
-                    /// Creates a new `betaLicenseAgreementPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.BetaLicenseAgreementPayload.DataPayload?
+                    /// Creates a new `BetaLicenseAgreementPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
                     ///   - data:
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.betaLicenseAgreementPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.BetaLicenseAgreementPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.data = data
@@ -1006,28 +1006,28 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/betaLicenseAgreement`.
-                package var betaLicenseAgreement: Components.Schemas.App.relationshipsPayload.betaLicenseAgreementPayload?
+                package var betaLicenseAgreement: Components.Schemas.App.RelationshipsPayload.BetaLicenseAgreementPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppReviewDetail`.
-                package struct betaAppReviewDetailPayload: Codable, Hashable, Sendable {
+                package struct BetaAppReviewDetailPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppReviewDetail/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppReviewDetail/data`.
-                    package struct dataPayload: Codable, Hashable, Sendable {
+                    package struct DataPayload: Codable, Hashable, Sendable {
                         /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppReviewDetail/data/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case betaAppReviewDetails = "betaAppReviewDetails"
                         }
                         /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppReviewDetail/data/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.betaAppReviewDetailPayload.dataPayload._typePayload
+                        package var _type: Components.Schemas.App.RelationshipsPayload.BetaAppReviewDetailPayload.DataPayload._TypePayload
                         /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppReviewDetail/data/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayload`.
+                        /// Creates a new `DataPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.betaAppReviewDetailPayload.dataPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.BetaAppReviewDetailPayload.DataPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -1039,15 +1039,15 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppReviewDetail/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.betaAppReviewDetailPayload.dataPayload?
-                    /// Creates a new `betaAppReviewDetailPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.BetaAppReviewDetailPayload.DataPayload?
+                    /// Creates a new `BetaAppReviewDetailPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
                     ///   - data:
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.betaAppReviewDetailPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.BetaAppReviewDetailPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.data = data
@@ -1058,30 +1058,30 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/betaAppReviewDetail`.
-                package var betaAppReviewDetail: Components.Schemas.App.relationshipsPayload.betaAppReviewDetailPayload?
+                package var betaAppReviewDetail: Components.Schemas.App.RelationshipsPayload.BetaAppReviewDetailPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appInfos`.
-                package struct appInfosPayload: Codable, Hashable, Sendable {
+                package struct AppInfosPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appInfos/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appInfos/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/App/relationships/appInfos/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appInfos/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/appInfos/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appInfos/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case appInfos = "appInfos"
                         }
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appInfos/dataPayload/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.appInfosPayload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appInfos/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appInfos/DataPayload/type`.
+                        package var _type: Components.Schemas.App.RelationshipsPayload.AppInfosPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appInfos/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.appInfosPayload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.AppInfosPayload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -1093,10 +1093,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appInfos/data`.
-                    package typealias dataPayload = [Components.Schemas.App.relationshipsPayload.appInfosPayload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.App.RelationshipsPayload.AppInfosPayload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appInfos/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.appInfosPayload.dataPayload?
-                    /// Creates a new `appInfosPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.AppInfosPayload.DataPayload?
+                    /// Creates a new `AppInfosPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -1105,7 +1105,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.appInfosPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.AppInfosPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -1118,30 +1118,30 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appInfos`.
-                package var appInfos: Components.Schemas.App.relationshipsPayload.appInfosPayload?
+                package var appInfos: Components.Schemas.App.RelationshipsPayload.AppInfosPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appClips`.
-                package struct appClipsPayload: Codable, Hashable, Sendable {
+                package struct AppClipsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appClips/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appClips/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/App/relationships/appClips/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appClips/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/appClips/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appClips/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case appClips = "appClips"
                         }
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appClips/dataPayload/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.appClipsPayload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appClips/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appClips/DataPayload/type`.
+                        package var _type: Components.Schemas.App.RelationshipsPayload.AppClipsPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appClips/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.appClipsPayload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.AppClipsPayload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -1153,10 +1153,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appClips/data`.
-                    package typealias dataPayload = [Components.Schemas.App.relationshipsPayload.appClipsPayload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.App.RelationshipsPayload.AppClipsPayload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appClips/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.appClipsPayload.dataPayload?
-                    /// Creates a new `appClipsPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.AppClipsPayload.DataPayload?
+                    /// Creates a new `AppClipsPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -1165,7 +1165,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.appClipsPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.AppClipsPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -1178,12 +1178,12 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appClips`.
-                package var appClips: Components.Schemas.App.relationshipsPayload.appClipsPayload?
+                package var appClips: Components.Schemas.App.RelationshipsPayload.AppClipsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appPricePoints`.
-                package struct appPricePointsPayload: Codable, Hashable, Sendable {
+                package struct AppPricePointsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appPricePoints/links`.
                     package var links: Components.Schemas.RelationshipLinks?
-                    /// Creates a new `appPricePointsPayload`.
+                    /// Creates a new `AppPricePointsPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -1195,28 +1195,28 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appPricePoints`.
-                package var appPricePoints: Components.Schemas.App.relationshipsPayload.appPricePointsPayload?
+                package var appPricePoints: Components.Schemas.App.RelationshipsPayload.AppPricePointsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/endUserLicenseAgreement`.
-                package struct endUserLicenseAgreementPayload: Codable, Hashable, Sendable {
+                package struct EndUserLicenseAgreementPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/endUserLicenseAgreement/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/endUserLicenseAgreement/data`.
-                    package struct dataPayload: Codable, Hashable, Sendable {
+                    package struct DataPayload: Codable, Hashable, Sendable {
                         /// - Remark: Generated from `#/components/schemas/App/relationships/endUserLicenseAgreement/data/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case endUserLicenseAgreements = "endUserLicenseAgreements"
                         }
                         /// - Remark: Generated from `#/components/schemas/App/relationships/endUserLicenseAgreement/data/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.endUserLicenseAgreementPayload.dataPayload._typePayload
+                        package var _type: Components.Schemas.App.RelationshipsPayload.EndUserLicenseAgreementPayload.DataPayload._TypePayload
                         /// - Remark: Generated from `#/components/schemas/App/relationships/endUserLicenseAgreement/data/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayload`.
+                        /// Creates a new `DataPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.endUserLicenseAgreementPayload.dataPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.EndUserLicenseAgreementPayload.DataPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -1228,15 +1228,15 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/endUserLicenseAgreement/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.endUserLicenseAgreementPayload.dataPayload?
-                    /// Creates a new `endUserLicenseAgreementPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.EndUserLicenseAgreementPayload.DataPayload?
+                    /// Creates a new `EndUserLicenseAgreementPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
                     ///   - data:
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.endUserLicenseAgreementPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.EndUserLicenseAgreementPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.data = data
@@ -1247,12 +1247,12 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/endUserLicenseAgreement`.
-                package var endUserLicenseAgreement: Components.Schemas.App.relationshipsPayload.endUserLicenseAgreementPayload?
+                package var endUserLicenseAgreement: Components.Schemas.App.RelationshipsPayload.EndUserLicenseAgreementPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appPriceSchedule`.
-                package struct appPriceSchedulePayload: Codable, Hashable, Sendable {
+                package struct AppPriceSchedulePayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appPriceSchedule/links`.
                     package var links: Components.Schemas.RelationshipLinks?
-                    /// Creates a new `appPriceSchedulePayload`.
+                    /// Creates a new `AppPriceSchedulePayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -1264,12 +1264,12 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appPriceSchedule`.
-                package var appPriceSchedule: Components.Schemas.App.relationshipsPayload.appPriceSchedulePayload?
+                package var appPriceSchedule: Components.Schemas.App.RelationshipsPayload.AppPriceSchedulePayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appAvailabilityV2`.
-                package struct appAvailabilityV2Payload: Codable, Hashable, Sendable {
+                package struct AppAvailabilityV2Payload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appAvailabilityV2/links`.
                     package var links: Components.Schemas.RelationshipLinks?
-                    /// Creates a new `appAvailabilityV2Payload`.
+                    /// Creates a new `AppAvailabilityV2Payload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -1281,31 +1281,31 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appAvailabilityV2`.
-                package var appAvailabilityV2: Components.Schemas.App.relationshipsPayload.appAvailabilityV2Payload?
+                package var appAvailabilityV2: Components.Schemas.App.RelationshipsPayload.AppAvailabilityV2Payload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchases`.
                 @available(*, deprecated)
-                package struct inAppPurchasesPayload: Codable, Hashable, Sendable {
+                package struct InAppPurchasesPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchases/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchases/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchases/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchases/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchases/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchases/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case inAppPurchases = "inAppPurchases"
                         }
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchases/dataPayload/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.inAppPurchasesPayload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchases/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchases/DataPayload/type`.
+                        package var _type: Components.Schemas.App.RelationshipsPayload.InAppPurchasesPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchases/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.inAppPurchasesPayload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.InAppPurchasesPayload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -1317,10 +1317,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchases/data`.
-                    package typealias dataPayload = [Components.Schemas.App.relationshipsPayload.inAppPurchasesPayload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.App.RelationshipsPayload.InAppPurchasesPayload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchases/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.inAppPurchasesPayload.dataPayload?
-                    /// Creates a new `inAppPurchasesPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.InAppPurchasesPayload.DataPayload?
+                    /// Creates a new `InAppPurchasesPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -1329,7 +1329,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.inAppPurchasesPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.InAppPurchasesPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -1343,30 +1343,30 @@ package enum Components {
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchases`.
                 @available(*, deprecated)
-                package var inAppPurchases: Components.Schemas.App.relationshipsPayload.inAppPurchasesPayload?
+                package var inAppPurchases: Components.Schemas.App.RelationshipsPayload.InAppPurchasesPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGroups`.
-                package struct subscriptionGroupsPayload: Codable, Hashable, Sendable {
+                package struct SubscriptionGroupsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGroups/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGroups/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGroups/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGroups/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGroups/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGroups/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case subscriptionGroups = "subscriptionGroups"
                         }
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGroups/dataPayload/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.subscriptionGroupsPayload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGroups/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGroups/DataPayload/type`.
+                        package var _type: Components.Schemas.App.RelationshipsPayload.SubscriptionGroupsPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGroups/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.subscriptionGroupsPayload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.SubscriptionGroupsPayload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -1378,10 +1378,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGroups/data`.
-                    package typealias dataPayload = [Components.Schemas.App.relationshipsPayload.subscriptionGroupsPayload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.App.RelationshipsPayload.SubscriptionGroupsPayload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGroups/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.subscriptionGroupsPayload.dataPayload?
-                    /// Creates a new `subscriptionGroupsPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.SubscriptionGroupsPayload.DataPayload?
+                    /// Creates a new `SubscriptionGroupsPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -1390,7 +1390,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.subscriptionGroupsPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.SubscriptionGroupsPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -1403,30 +1403,30 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGroups`.
-                package var subscriptionGroups: Components.Schemas.App.relationshipsPayload.subscriptionGroupsPayload?
+                package var subscriptionGroups: Components.Schemas.App.RelationshipsPayload.SubscriptionGroupsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterEnabledVersions`.
-                package struct gameCenterEnabledVersionsPayload: Codable, Hashable, Sendable {
+                package struct GameCenterEnabledVersionsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterEnabledVersions/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterEnabledVersions/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterEnabledVersions/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterEnabledVersions/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterEnabledVersions/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterEnabledVersions/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case gameCenterEnabledVersions = "gameCenterEnabledVersions"
                         }
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterEnabledVersions/dataPayload/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.gameCenterEnabledVersionsPayload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterEnabledVersions/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterEnabledVersions/DataPayload/type`.
+                        package var _type: Components.Schemas.App.RelationshipsPayload.GameCenterEnabledVersionsPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterEnabledVersions/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.gameCenterEnabledVersionsPayload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.GameCenterEnabledVersionsPayload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -1438,10 +1438,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterEnabledVersions/data`.
-                    package typealias dataPayload = [Components.Schemas.App.relationshipsPayload.gameCenterEnabledVersionsPayload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.App.RelationshipsPayload.GameCenterEnabledVersionsPayload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterEnabledVersions/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.gameCenterEnabledVersionsPayload.dataPayload?
-                    /// Creates a new `gameCenterEnabledVersionsPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.GameCenterEnabledVersionsPayload.DataPayload?
+                    /// Creates a new `GameCenterEnabledVersionsPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -1450,7 +1450,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.gameCenterEnabledVersionsPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.GameCenterEnabledVersionsPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -1463,12 +1463,12 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterEnabledVersions`.
-                package var gameCenterEnabledVersions: Components.Schemas.App.relationshipsPayload.gameCenterEnabledVersionsPayload?
+                package var gameCenterEnabledVersions: Components.Schemas.App.RelationshipsPayload.GameCenterEnabledVersionsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/perfPowerMetrics`.
-                package struct perfPowerMetricsPayload: Codable, Hashable, Sendable {
+                package struct PerfPowerMetricsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/perfPowerMetrics/links`.
                     package var links: Components.Schemas.RelationshipLinks?
-                    /// Creates a new `perfPowerMetricsPayload`.
+                    /// Creates a new `PerfPowerMetricsPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -1480,30 +1480,30 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/perfPowerMetrics`.
-                package var perfPowerMetrics: Components.Schemas.App.relationshipsPayload.perfPowerMetricsPayload?
+                package var perfPowerMetrics: Components.Schemas.App.RelationshipsPayload.PerfPowerMetricsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appCustomProductPages`.
-                package struct appCustomProductPagesPayload: Codable, Hashable, Sendable {
+                package struct AppCustomProductPagesPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appCustomProductPages/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appCustomProductPages/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/App/relationships/appCustomProductPages/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appCustomProductPages/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/appCustomProductPages/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appCustomProductPages/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case appCustomProductPages = "appCustomProductPages"
                         }
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appCustomProductPages/dataPayload/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.appCustomProductPagesPayload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appCustomProductPages/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appCustomProductPages/DataPayload/type`.
+                        package var _type: Components.Schemas.App.RelationshipsPayload.AppCustomProductPagesPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appCustomProductPages/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.appCustomProductPagesPayload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.AppCustomProductPagesPayload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -1515,10 +1515,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appCustomProductPages/data`.
-                    package typealias dataPayload = [Components.Schemas.App.relationshipsPayload.appCustomProductPagesPayload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.App.RelationshipsPayload.AppCustomProductPagesPayload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appCustomProductPages/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.appCustomProductPagesPayload.dataPayload?
-                    /// Creates a new `appCustomProductPagesPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.AppCustomProductPagesPayload.DataPayload?
+                    /// Creates a new `AppCustomProductPagesPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -1527,7 +1527,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.appCustomProductPagesPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.AppCustomProductPagesPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -1540,30 +1540,30 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appCustomProductPages`.
-                package var appCustomProductPages: Components.Schemas.App.relationshipsPayload.appCustomProductPagesPayload?
+                package var appCustomProductPages: Components.Schemas.App.RelationshipsPayload.AppCustomProductPagesPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchasesV2`.
-                package struct inAppPurchasesV2Payload: Codable, Hashable, Sendable {
+                package struct InAppPurchasesV2Payload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchasesV2/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchasesV2/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchasesV2/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchasesV2/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchasesV2/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchasesV2/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case inAppPurchases = "inAppPurchases"
                         }
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchasesV2/dataPayload/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.inAppPurchasesV2Payload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchasesV2/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchasesV2/DataPayload/type`.
+                        package var _type: Components.Schemas.App.RelationshipsPayload.InAppPurchasesV2Payload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchasesV2/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.inAppPurchasesV2Payload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.InAppPurchasesV2Payload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -1575,10 +1575,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchasesV2/data`.
-                    package typealias dataPayload = [Components.Schemas.App.relationshipsPayload.inAppPurchasesV2Payload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.App.RelationshipsPayload.InAppPurchasesV2Payload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchasesV2/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.inAppPurchasesV2Payload.dataPayload?
-                    /// Creates a new `inAppPurchasesV2Payload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.InAppPurchasesV2Payload.DataPayload?
+                    /// Creates a new `InAppPurchasesV2Payload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -1587,7 +1587,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.inAppPurchasesV2Payload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.InAppPurchasesV2Payload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -1600,30 +1600,30 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchasesV2`.
-                package var inAppPurchasesV2: Components.Schemas.App.relationshipsPayload.inAppPurchasesV2Payload?
+                package var inAppPurchasesV2: Components.Schemas.App.RelationshipsPayload.InAppPurchasesV2Payload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/promotedPurchases`.
-                package struct promotedPurchasesPayload: Codable, Hashable, Sendable {
+                package struct PromotedPurchasesPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/promotedPurchases/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/promotedPurchases/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/App/relationships/promotedPurchases/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/promotedPurchases/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/promotedPurchases/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/promotedPurchases/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case promotedPurchases = "promotedPurchases"
                         }
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/promotedPurchases/dataPayload/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.promotedPurchasesPayload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/promotedPurchases/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/promotedPurchases/DataPayload/type`.
+                        package var _type: Components.Schemas.App.RelationshipsPayload.PromotedPurchasesPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/promotedPurchases/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.promotedPurchasesPayload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.PromotedPurchasesPayload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -1635,10 +1635,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/promotedPurchases/data`.
-                    package typealias dataPayload = [Components.Schemas.App.relationshipsPayload.promotedPurchasesPayload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.App.RelationshipsPayload.PromotedPurchasesPayload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/App/relationships/promotedPurchases/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.promotedPurchasesPayload.dataPayload?
-                    /// Creates a new `promotedPurchasesPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.PromotedPurchasesPayload.DataPayload?
+                    /// Creates a new `PromotedPurchasesPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -1647,7 +1647,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.promotedPurchasesPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.PromotedPurchasesPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -1660,30 +1660,30 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/promotedPurchases`.
-                package var promotedPurchases: Components.Schemas.App.relationshipsPayload.promotedPurchasesPayload?
+                package var promotedPurchases: Components.Schemas.App.RelationshipsPayload.PromotedPurchasesPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appEvents`.
-                package struct appEventsPayload: Codable, Hashable, Sendable {
+                package struct AppEventsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appEvents/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appEvents/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/App/relationships/appEvents/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appEvents/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/appEvents/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appEvents/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case appEvents = "appEvents"
                         }
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appEvents/dataPayload/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.appEventsPayload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appEvents/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appEvents/DataPayload/type`.
+                        package var _type: Components.Schemas.App.RelationshipsPayload.AppEventsPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appEvents/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.appEventsPayload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.AppEventsPayload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -1695,10 +1695,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appEvents/data`.
-                    package typealias dataPayload = [Components.Schemas.App.relationshipsPayload.appEventsPayload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.App.RelationshipsPayload.AppEventsPayload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appEvents/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.appEventsPayload.dataPayload?
-                    /// Creates a new `appEventsPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.AppEventsPayload.DataPayload?
+                    /// Creates a new `AppEventsPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -1707,7 +1707,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.appEventsPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.AppEventsPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -1720,30 +1720,30 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appEvents`.
-                package var appEvents: Components.Schemas.App.relationshipsPayload.appEventsPayload?
+                package var appEvents: Components.Schemas.App.RelationshipsPayload.AppEventsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/reviewSubmissions`.
-                package struct reviewSubmissionsPayload: Codable, Hashable, Sendable {
+                package struct ReviewSubmissionsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/reviewSubmissions/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/reviewSubmissions/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/App/relationships/reviewSubmissions/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/reviewSubmissions/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/reviewSubmissions/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/reviewSubmissions/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case reviewSubmissions = "reviewSubmissions"
                         }
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/reviewSubmissions/dataPayload/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.reviewSubmissionsPayload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/reviewSubmissions/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/reviewSubmissions/DataPayload/type`.
+                        package var _type: Components.Schemas.App.RelationshipsPayload.ReviewSubmissionsPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/reviewSubmissions/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.reviewSubmissionsPayload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.ReviewSubmissionsPayload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -1755,10 +1755,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/reviewSubmissions/data`.
-                    package typealias dataPayload = [Components.Schemas.App.relationshipsPayload.reviewSubmissionsPayload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.App.RelationshipsPayload.ReviewSubmissionsPayload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/App/relationships/reviewSubmissions/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.reviewSubmissionsPayload.dataPayload?
-                    /// Creates a new `reviewSubmissionsPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.ReviewSubmissionsPayload.DataPayload?
+                    /// Creates a new `ReviewSubmissionsPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -1767,7 +1767,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.reviewSubmissionsPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.ReviewSubmissionsPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -1780,28 +1780,28 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/reviewSubmissions`.
-                package var reviewSubmissions: Components.Schemas.App.relationshipsPayload.reviewSubmissionsPayload?
+                package var reviewSubmissions: Components.Schemas.App.RelationshipsPayload.ReviewSubmissionsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGracePeriod`.
-                package struct subscriptionGracePeriodPayload: Codable, Hashable, Sendable {
+                package struct SubscriptionGracePeriodPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGracePeriod/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGracePeriod/data`.
-                    package struct dataPayload: Codable, Hashable, Sendable {
+                    package struct DataPayload: Codable, Hashable, Sendable {
                         /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGracePeriod/data/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case subscriptionGracePeriods = "subscriptionGracePeriods"
                         }
                         /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGracePeriod/data/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.subscriptionGracePeriodPayload.dataPayload._typePayload
+                        package var _type: Components.Schemas.App.RelationshipsPayload.SubscriptionGracePeriodPayload.DataPayload._TypePayload
                         /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGracePeriod/data/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayload`.
+                        /// Creates a new `DataPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.subscriptionGracePeriodPayload.dataPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.SubscriptionGracePeriodPayload.DataPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -1813,15 +1813,15 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGracePeriod/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.subscriptionGracePeriodPayload.dataPayload?
-                    /// Creates a new `subscriptionGracePeriodPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.SubscriptionGracePeriodPayload.DataPayload?
+                    /// Creates a new `SubscriptionGracePeriodPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
                     ///   - data:
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.subscriptionGracePeriodPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.SubscriptionGracePeriodPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.data = data
@@ -1832,12 +1832,12 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGracePeriod`.
-                package var subscriptionGracePeriod: Components.Schemas.App.relationshipsPayload.subscriptionGracePeriodPayload?
+                package var subscriptionGracePeriod: Components.Schemas.App.RelationshipsPayload.SubscriptionGracePeriodPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/customerReviews`.
-                package struct customerReviewsPayload: Codable, Hashable, Sendable {
+                package struct CustomerReviewsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/customerReviews/links`.
                     package var links: Components.Schemas.RelationshipLinks?
-                    /// Creates a new `customerReviewsPayload`.
+                    /// Creates a new `CustomerReviewsPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -1849,28 +1849,28 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/customerReviews`.
-                package var customerReviews: Components.Schemas.App.relationshipsPayload.customerReviewsPayload?
+                package var customerReviews: Components.Schemas.App.RelationshipsPayload.CustomerReviewsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterDetail`.
-                package struct gameCenterDetailPayload: Codable, Hashable, Sendable {
+                package struct GameCenterDetailPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterDetail/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterDetail/data`.
-                    package struct dataPayload: Codable, Hashable, Sendable {
+                    package struct DataPayload: Codable, Hashable, Sendable {
                         /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterDetail/data/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case gameCenterDetails = "gameCenterDetails"
                         }
                         /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterDetail/data/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.gameCenterDetailPayload.dataPayload._typePayload
+                        package var _type: Components.Schemas.App.RelationshipsPayload.GameCenterDetailPayload.DataPayload._TypePayload
                         /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterDetail/data/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayload`.
+                        /// Creates a new `DataPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.gameCenterDetailPayload.dataPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.GameCenterDetailPayload.DataPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -1882,15 +1882,15 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterDetail/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.gameCenterDetailPayload.dataPayload?
-                    /// Creates a new `gameCenterDetailPayload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.GameCenterDetailPayload.DataPayload?
+                    /// Creates a new `GameCenterDetailPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
                     ///   - data:
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.gameCenterDetailPayload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.GameCenterDetailPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.data = data
@@ -1901,30 +1901,30 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterDetail`.
-                package var gameCenterDetail: Components.Schemas.App.relationshipsPayload.gameCenterDetailPayload?
+                package var gameCenterDetail: Components.Schemas.App.RelationshipsPayload.GameCenterDetailPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersionExperimentsV2`.
-                package struct appStoreVersionExperimentsV2Payload: Codable, Hashable, Sendable {
+                package struct AppStoreVersionExperimentsV2Payload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersionExperimentsV2/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersionExperimentsV2/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersionExperimentsV2/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersionExperimentsV2/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersionExperimentsV2/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersionExperimentsV2/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case appStoreVersionExperiments = "appStoreVersionExperiments"
                         }
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersionExperimentsV2/dataPayload/type`.
-                        package var _type: Components.Schemas.App.relationshipsPayload.appStoreVersionExperimentsV2Payload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersionExperimentsV2/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersionExperimentsV2/DataPayload/type`.
+                        package var _type: Components.Schemas.App.RelationshipsPayload.AppStoreVersionExperimentsV2Payload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersionExperimentsV2/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.App.relationshipsPayload.appStoreVersionExperimentsV2Payload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.App.RelationshipsPayload.AppStoreVersionExperimentsV2Payload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -1936,10 +1936,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersionExperimentsV2/data`.
-                    package typealias dataPayload = [Components.Schemas.App.relationshipsPayload.appStoreVersionExperimentsV2Payload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.App.RelationshipsPayload.AppStoreVersionExperimentsV2Payload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersionExperimentsV2/data`.
-                    package var data: Components.Schemas.App.relationshipsPayload.appStoreVersionExperimentsV2Payload.dataPayload?
-                    /// Creates a new `appStoreVersionExperimentsV2Payload`.
+                    package var data: Components.Schemas.App.RelationshipsPayload.AppStoreVersionExperimentsV2Payload.DataPayload?
+                    /// Creates a new `AppStoreVersionExperimentsV2Payload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -1948,7 +1948,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.App.relationshipsPayload.appStoreVersionExperimentsV2Payload.dataPayload? = nil
+                        data: Components.Schemas.App.RelationshipsPayload.AppStoreVersionExperimentsV2Payload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -1961,12 +1961,12 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersionExperimentsV2`.
-                package var appStoreVersionExperimentsV2: Components.Schemas.App.relationshipsPayload.appStoreVersionExperimentsV2Payload?
+                package var appStoreVersionExperimentsV2: Components.Schemas.App.RelationshipsPayload.AppStoreVersionExperimentsV2Payload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/alternativeDistributionKey`.
-                package struct alternativeDistributionKeyPayload: Codable, Hashable, Sendable {
+                package struct AlternativeDistributionKeyPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/alternativeDistributionKey/links`.
                     package var links: Components.Schemas.RelationshipLinks?
-                    /// Creates a new `alternativeDistributionKeyPayload`.
+                    /// Creates a new `AlternativeDistributionKeyPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -1978,12 +1978,12 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/alternativeDistributionKey`.
-                package var alternativeDistributionKey: Components.Schemas.App.relationshipsPayload.alternativeDistributionKeyPayload?
+                package var alternativeDistributionKey: Components.Schemas.App.RelationshipsPayload.AlternativeDistributionKeyPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/analyticsReportRequests`.
-                package struct analyticsReportRequestsPayload: Codable, Hashable, Sendable {
+                package struct AnalyticsReportRequestsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/analyticsReportRequests/links`.
                     package var links: Components.Schemas.RelationshipLinks?
-                    /// Creates a new `analyticsReportRequestsPayload`.
+                    /// Creates a new `AnalyticsReportRequestsPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -1995,12 +1995,12 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/analyticsReportRequests`.
-                package var analyticsReportRequests: Components.Schemas.App.relationshipsPayload.analyticsReportRequestsPayload?
+                package var analyticsReportRequests: Components.Schemas.App.RelationshipsPayload.AnalyticsReportRequestsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/marketplaceSearchDetail`.
-                package struct marketplaceSearchDetailPayload: Codable, Hashable, Sendable {
+                package struct MarketplaceSearchDetailPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/marketplaceSearchDetail/links`.
                     package var links: Components.Schemas.RelationshipLinks?
-                    /// Creates a new `marketplaceSearchDetailPayload`.
+                    /// Creates a new `MarketplaceSearchDetailPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -2012,8 +2012,8 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/marketplaceSearchDetail`.
-                package var marketplaceSearchDetail: Components.Schemas.App.relationshipsPayload.marketplaceSearchDetailPayload?
-                /// Creates a new `relationshipsPayload`.
+                package var marketplaceSearchDetail: Components.Schemas.App.RelationshipsPayload.MarketplaceSearchDetailPayload?
+                /// Creates a new `RelationshipsPayload`.
                 ///
                 /// - Parameters:
                 ///   - appEncryptionDeclarations:
@@ -2049,38 +2049,38 @@ package enum Components {
                 ///   - analyticsReportRequests:
                 ///   - marketplaceSearchDetail:
                 package init(
-                    appEncryptionDeclarations: Components.Schemas.App.relationshipsPayload.appEncryptionDeclarationsPayload? = nil,
-                    ciProduct: Components.Schemas.App.relationshipsPayload.ciProductPayload? = nil,
-                    betaTesters: Components.Schemas.App.relationshipsPayload.betaTestersPayload? = nil,
-                    betaGroups: Components.Schemas.App.relationshipsPayload.betaGroupsPayload? = nil,
-                    appStoreVersions: Components.Schemas.App.relationshipsPayload.appStoreVersionsPayload? = nil,
-                    preReleaseVersions: Components.Schemas.App.relationshipsPayload.preReleaseVersionsPayload? = nil,
-                    betaAppLocalizations: Components.Schemas.App.relationshipsPayload.betaAppLocalizationsPayload? = nil,
-                    builds: Components.Schemas.App.relationshipsPayload.buildsPayload? = nil,
-                    betaLicenseAgreement: Components.Schemas.App.relationshipsPayload.betaLicenseAgreementPayload? = nil,
-                    betaAppReviewDetail: Components.Schemas.App.relationshipsPayload.betaAppReviewDetailPayload? = nil,
-                    appInfos: Components.Schemas.App.relationshipsPayload.appInfosPayload? = nil,
-                    appClips: Components.Schemas.App.relationshipsPayload.appClipsPayload? = nil,
-                    appPricePoints: Components.Schemas.App.relationshipsPayload.appPricePointsPayload? = nil,
-                    endUserLicenseAgreement: Components.Schemas.App.relationshipsPayload.endUserLicenseAgreementPayload? = nil,
-                    appPriceSchedule: Components.Schemas.App.relationshipsPayload.appPriceSchedulePayload? = nil,
-                    appAvailabilityV2: Components.Schemas.App.relationshipsPayload.appAvailabilityV2Payload? = nil,
-                    inAppPurchases: Components.Schemas.App.relationshipsPayload.inAppPurchasesPayload? = nil,
-                    subscriptionGroups: Components.Schemas.App.relationshipsPayload.subscriptionGroupsPayload? = nil,
-                    gameCenterEnabledVersions: Components.Schemas.App.relationshipsPayload.gameCenterEnabledVersionsPayload? = nil,
-                    perfPowerMetrics: Components.Schemas.App.relationshipsPayload.perfPowerMetricsPayload? = nil,
-                    appCustomProductPages: Components.Schemas.App.relationshipsPayload.appCustomProductPagesPayload? = nil,
-                    inAppPurchasesV2: Components.Schemas.App.relationshipsPayload.inAppPurchasesV2Payload? = nil,
-                    promotedPurchases: Components.Schemas.App.relationshipsPayload.promotedPurchasesPayload? = nil,
-                    appEvents: Components.Schemas.App.relationshipsPayload.appEventsPayload? = nil,
-                    reviewSubmissions: Components.Schemas.App.relationshipsPayload.reviewSubmissionsPayload? = nil,
-                    subscriptionGracePeriod: Components.Schemas.App.relationshipsPayload.subscriptionGracePeriodPayload? = nil,
-                    customerReviews: Components.Schemas.App.relationshipsPayload.customerReviewsPayload? = nil,
-                    gameCenterDetail: Components.Schemas.App.relationshipsPayload.gameCenterDetailPayload? = nil,
-                    appStoreVersionExperimentsV2: Components.Schemas.App.relationshipsPayload.appStoreVersionExperimentsV2Payload? = nil,
-                    alternativeDistributionKey: Components.Schemas.App.relationshipsPayload.alternativeDistributionKeyPayload? = nil,
-                    analyticsReportRequests: Components.Schemas.App.relationshipsPayload.analyticsReportRequestsPayload? = nil,
-                    marketplaceSearchDetail: Components.Schemas.App.relationshipsPayload.marketplaceSearchDetailPayload? = nil
+                    appEncryptionDeclarations: Components.Schemas.App.RelationshipsPayload.AppEncryptionDeclarationsPayload? = nil,
+                    ciProduct: Components.Schemas.App.RelationshipsPayload.CiProductPayload? = nil,
+                    betaTesters: Components.Schemas.App.RelationshipsPayload.BetaTestersPayload? = nil,
+                    betaGroups: Components.Schemas.App.RelationshipsPayload.BetaGroupsPayload? = nil,
+                    appStoreVersions: Components.Schemas.App.RelationshipsPayload.AppStoreVersionsPayload? = nil,
+                    preReleaseVersions: Components.Schemas.App.RelationshipsPayload.PreReleaseVersionsPayload? = nil,
+                    betaAppLocalizations: Components.Schemas.App.RelationshipsPayload.BetaAppLocalizationsPayload? = nil,
+                    builds: Components.Schemas.App.RelationshipsPayload.BuildsPayload? = nil,
+                    betaLicenseAgreement: Components.Schemas.App.RelationshipsPayload.BetaLicenseAgreementPayload? = nil,
+                    betaAppReviewDetail: Components.Schemas.App.RelationshipsPayload.BetaAppReviewDetailPayload? = nil,
+                    appInfos: Components.Schemas.App.RelationshipsPayload.AppInfosPayload? = nil,
+                    appClips: Components.Schemas.App.RelationshipsPayload.AppClipsPayload? = nil,
+                    appPricePoints: Components.Schemas.App.RelationshipsPayload.AppPricePointsPayload? = nil,
+                    endUserLicenseAgreement: Components.Schemas.App.RelationshipsPayload.EndUserLicenseAgreementPayload? = nil,
+                    appPriceSchedule: Components.Schemas.App.RelationshipsPayload.AppPriceSchedulePayload? = nil,
+                    appAvailabilityV2: Components.Schemas.App.RelationshipsPayload.AppAvailabilityV2Payload? = nil,
+                    inAppPurchases: Components.Schemas.App.RelationshipsPayload.InAppPurchasesPayload? = nil,
+                    subscriptionGroups: Components.Schemas.App.RelationshipsPayload.SubscriptionGroupsPayload? = nil,
+                    gameCenterEnabledVersions: Components.Schemas.App.RelationshipsPayload.GameCenterEnabledVersionsPayload? = nil,
+                    perfPowerMetrics: Components.Schemas.App.RelationshipsPayload.PerfPowerMetricsPayload? = nil,
+                    appCustomProductPages: Components.Schemas.App.RelationshipsPayload.AppCustomProductPagesPayload? = nil,
+                    inAppPurchasesV2: Components.Schemas.App.RelationshipsPayload.InAppPurchasesV2Payload? = nil,
+                    promotedPurchases: Components.Schemas.App.RelationshipsPayload.PromotedPurchasesPayload? = nil,
+                    appEvents: Components.Schemas.App.RelationshipsPayload.AppEventsPayload? = nil,
+                    reviewSubmissions: Components.Schemas.App.RelationshipsPayload.ReviewSubmissionsPayload? = nil,
+                    subscriptionGracePeriod: Components.Schemas.App.RelationshipsPayload.SubscriptionGracePeriodPayload? = nil,
+                    customerReviews: Components.Schemas.App.RelationshipsPayload.CustomerReviewsPayload? = nil,
+                    gameCenterDetail: Components.Schemas.App.RelationshipsPayload.GameCenterDetailPayload? = nil,
+                    appStoreVersionExperimentsV2: Components.Schemas.App.RelationshipsPayload.AppStoreVersionExperimentsV2Payload? = nil,
+                    alternativeDistributionKey: Components.Schemas.App.RelationshipsPayload.AlternativeDistributionKeyPayload? = nil,
+                    analyticsReportRequests: Components.Schemas.App.RelationshipsPayload.AnalyticsReportRequestsPayload? = nil,
+                    marketplaceSearchDetail: Components.Schemas.App.RelationshipsPayload.MarketplaceSearchDetailPayload? = nil
                 ) {
                     self.appEncryptionDeclarations = appEncryptionDeclarations
                     self.ciProduct = ciProduct
@@ -2151,7 +2151,7 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/App/relationships`.
-            package var relationships: Components.Schemas.App.relationshipsPayload?
+            package var relationships: Components.Schemas.App.RelationshipsPayload?
             /// - Remark: Generated from `#/components/schemas/App/links`.
             package var links: Components.Schemas.ResourceLinks?
             /// Creates a new `App`.
@@ -2163,10 +2163,10 @@ package enum Components {
             ///   - relationships:
             ///   - links:
             package init(
-                _type: Components.Schemas.App._typePayload,
+                _type: Components.Schemas.App._TypePayload,
                 id: Swift.String,
-                attributes: Components.Schemas.App.attributesPayload? = nil,
-                relationships: Components.Schemas.App.relationshipsPayload? = nil,
+                attributes: Components.Schemas.App.AttributesPayload? = nil,
+                relationships: Components.Schemas.App.RelationshipsPayload? = nil,
                 links: Components.Schemas.ResourceLinks? = nil
             ) {
                 self._type = _type
@@ -2186,20 +2186,20 @@ package enum Components {
         /// - Remark: Generated from `#/components/schemas/BundleIdCapability`.
         package struct BundleIdCapability: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/BundleIdCapability/type`.
-            @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+            @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                 case bundleIdCapabilities = "bundleIdCapabilities"
             }
             /// - Remark: Generated from `#/components/schemas/BundleIdCapability/type`.
-            package var _type: Components.Schemas.BundleIdCapability._typePayload
+            package var _type: Components.Schemas.BundleIdCapability._TypePayload
             /// - Remark: Generated from `#/components/schemas/BundleIdCapability/id`.
             package var id: Swift.String
             /// - Remark: Generated from `#/components/schemas/BundleIdCapability/attributes`.
-            package struct attributesPayload: Codable, Hashable, Sendable {
+            package struct AttributesPayload: Codable, Hashable, Sendable {
                 /// - Remark: Generated from `#/components/schemas/BundleIdCapability/attributes/capabilityType`.
                 package var capabilityType: Components.Schemas.CapabilityType?
                 /// - Remark: Generated from `#/components/schemas/BundleIdCapability/attributes/settings`.
                 package var settings: [Components.Schemas.CapabilitySetting]?
-                /// Creates a new `attributesPayload`.
+                /// Creates a new `AttributesPayload`.
                 ///
                 /// - Parameters:
                 ///   - capabilityType:
@@ -2217,7 +2217,7 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/BundleIdCapability/attributes`.
-            package var attributes: Components.Schemas.BundleIdCapability.attributesPayload?
+            package var attributes: Components.Schemas.BundleIdCapability.AttributesPayload?
             /// - Remark: Generated from `#/components/schemas/BundleIdCapability/links`.
             package var links: Components.Schemas.ResourceLinks?
             /// Creates a new `BundleIdCapability`.
@@ -2228,9 +2228,9 @@ package enum Components {
             ///   - attributes:
             ///   - links:
             package init(
-                _type: Components.Schemas.BundleIdCapability._typePayload,
+                _type: Components.Schemas.BundleIdCapability._TypePayload,
                 id: Swift.String,
-                attributes: Components.Schemas.BundleIdCapability.attributesPayload? = nil,
+                attributes: Components.Schemas.BundleIdCapability.AttributesPayload? = nil,
                 links: Components.Schemas.ResourceLinks? = nil
             ) {
                 self._type = _type
@@ -2271,20 +2271,20 @@ package enum Components {
         /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest`.
         package struct BundleIdCapabilityCreateRequest: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data`.
-            package struct dataPayload: Codable, Hashable, Sendable {
+            package struct DataPayload: Codable, Hashable, Sendable {
                 /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/type`.
-                @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case bundleIdCapabilities = "bundleIdCapabilities"
                 }
                 /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/type`.
-                package var _type: Components.Schemas.BundleIdCapabilityCreateRequest.dataPayload._typePayload
+                package var _type: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload._TypePayload
                 /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/attributes`.
-                package struct attributesPayload: Codable, Hashable, Sendable {
+                package struct AttributesPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/attributes/capabilityType`.
                     package var capabilityType: Components.Schemas.CapabilityType
                     /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/attributes/settings`.
                     package var settings: [Components.Schemas.CapabilitySetting]?
-                    /// Creates a new `attributesPayload`.
+                    /// Creates a new `AttributesPayload`.
                     ///
                     /// - Parameters:
                     ///   - capabilityType:
@@ -2302,28 +2302,28 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/attributes`.
-                package var attributes: Components.Schemas.BundleIdCapabilityCreateRequest.dataPayload.attributesPayload
+                package var attributes: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.AttributesPayload
                 /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/relationships`.
-                package struct relationshipsPayload: Codable, Hashable, Sendable {
+                package struct RelationshipsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/relationships/bundleId`.
-                    package struct bundleIdPayload: Codable, Hashable, Sendable {
+                    package struct BundleIdPayload: Codable, Hashable, Sendable {
                         /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/relationships/bundleId/data`.
-                        package struct dataPayload: Codable, Hashable, Sendable {
+                        package struct DataPayload: Codable, Hashable, Sendable {
                             /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/relationships/bundleId/data/type`.
-                            @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                            @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                                 case bundleIds = "bundleIds"
                             }
                             /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/relationships/bundleId/data/type`.
-                            package var _type: Components.Schemas.BundleIdCapabilityCreateRequest.dataPayload.relationshipsPayload.bundleIdPayload.dataPayload._typePayload
+                            package var _type: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.BundleIdPayload.DataPayload._TypePayload
                             /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/relationships/bundleId/data/id`.
                             package var id: Swift.String
-                            /// Creates a new `dataPayload`.
+                            /// Creates a new `DataPayload`.
                             ///
                             /// - Parameters:
                             ///   - _type:
                             ///   - id:
                             package init(
-                                _type: Components.Schemas.BundleIdCapabilityCreateRequest.dataPayload.relationshipsPayload.bundleIdPayload.dataPayload._typePayload,
+                                _type: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.BundleIdPayload.DataPayload._TypePayload,
                                 id: Swift.String
                             ) {
                                 self._type = _type
@@ -2335,12 +2335,12 @@ package enum Components {
                             }
                         }
                         /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/relationships/bundleId/data`.
-                        package var data: Components.Schemas.BundleIdCapabilityCreateRequest.dataPayload.relationshipsPayload.bundleIdPayload.dataPayload
-                        /// Creates a new `bundleIdPayload`.
+                        package var data: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.BundleIdPayload.DataPayload
+                        /// Creates a new `BundleIdPayload`.
                         ///
                         /// - Parameters:
                         ///   - data:
-                        package init(data: Components.Schemas.BundleIdCapabilityCreateRequest.dataPayload.relationshipsPayload.bundleIdPayload.dataPayload) {
+                        package init(data: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.BundleIdPayload.DataPayload) {
                             self.data = data
                         }
                         package enum CodingKeys: String, CodingKey {
@@ -2348,12 +2348,12 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/relationships/bundleId`.
-                    package var bundleId: Components.Schemas.BundleIdCapabilityCreateRequest.dataPayload.relationshipsPayload.bundleIdPayload
-                    /// Creates a new `relationshipsPayload`.
+                    package var bundleId: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.BundleIdPayload
+                    /// Creates a new `RelationshipsPayload`.
                     ///
                     /// - Parameters:
                     ///   - bundleId:
-                    package init(bundleId: Components.Schemas.BundleIdCapabilityCreateRequest.dataPayload.relationshipsPayload.bundleIdPayload) {
+                    package init(bundleId: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.BundleIdPayload) {
                         self.bundleId = bundleId
                     }
                     package enum CodingKeys: String, CodingKey {
@@ -2361,17 +2361,17 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/relationships`.
-                package var relationships: Components.Schemas.BundleIdCapabilityCreateRequest.dataPayload.relationshipsPayload
-                /// Creates a new `dataPayload`.
+                package var relationships: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload
+                /// Creates a new `DataPayload`.
                 ///
                 /// - Parameters:
                 ///   - _type:
                 ///   - attributes:
                 ///   - relationships:
                 package init(
-                    _type: Components.Schemas.BundleIdCapabilityCreateRequest.dataPayload._typePayload,
-                    attributes: Components.Schemas.BundleIdCapabilityCreateRequest.dataPayload.attributesPayload,
-                    relationships: Components.Schemas.BundleIdCapabilityCreateRequest.dataPayload.relationshipsPayload
+                    _type: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload._TypePayload,
+                    attributes: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.AttributesPayload,
+                    relationships: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload
                 ) {
                     self._type = _type
                     self.attributes = attributes
@@ -2384,12 +2384,12 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data`.
-            package var data: Components.Schemas.BundleIdCapabilityCreateRequest.dataPayload
+            package var data: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload
             /// Creates a new `BundleIdCapabilityCreateRequest`.
             ///
             /// - Parameters:
             ///   - data:
-            package init(data: Components.Schemas.BundleIdCapabilityCreateRequest.dataPayload) {
+            package init(data: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload) {
                 self.data = data
             }
             package enum CodingKeys: String, CodingKey {
@@ -2399,22 +2399,22 @@ package enum Components {
         /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityUpdateRequest`.
         package struct BundleIdCapabilityUpdateRequest: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityUpdateRequest/data`.
-            package struct dataPayload: Codable, Hashable, Sendable {
+            package struct DataPayload: Codable, Hashable, Sendable {
                 /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityUpdateRequest/data/type`.
-                @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case bundleIdCapabilities = "bundleIdCapabilities"
                 }
                 /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityUpdateRequest/data/type`.
-                package var _type: Components.Schemas.BundleIdCapabilityUpdateRequest.dataPayload._typePayload
+                package var _type: Components.Schemas.BundleIdCapabilityUpdateRequest.DataPayload._TypePayload
                 /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityUpdateRequest/data/id`.
                 package var id: Swift.String
                 /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityUpdateRequest/data/attributes`.
-                package struct attributesPayload: Codable, Hashable, Sendable {
+                package struct AttributesPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityUpdateRequest/data/attributes/capabilityType`.
                     package var capabilityType: Components.Schemas.CapabilityType?
                     /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityUpdateRequest/data/attributes/settings`.
                     package var settings: [Components.Schemas.CapabilitySetting]?
-                    /// Creates a new `attributesPayload`.
+                    /// Creates a new `AttributesPayload`.
                     ///
                     /// - Parameters:
                     ///   - capabilityType:
@@ -2432,17 +2432,17 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityUpdateRequest/data/attributes`.
-                package var attributes: Components.Schemas.BundleIdCapabilityUpdateRequest.dataPayload.attributesPayload?
-                /// Creates a new `dataPayload`.
+                package var attributes: Components.Schemas.BundleIdCapabilityUpdateRequest.DataPayload.AttributesPayload?
+                /// Creates a new `DataPayload`.
                 ///
                 /// - Parameters:
                 ///   - _type:
                 ///   - id:
                 ///   - attributes:
                 package init(
-                    _type: Components.Schemas.BundleIdCapabilityUpdateRequest.dataPayload._typePayload,
+                    _type: Components.Schemas.BundleIdCapabilityUpdateRequest.DataPayload._TypePayload,
                     id: Swift.String,
-                    attributes: Components.Schemas.BundleIdCapabilityUpdateRequest.dataPayload.attributesPayload? = nil
+                    attributes: Components.Schemas.BundleIdCapabilityUpdateRequest.DataPayload.AttributesPayload? = nil
                 ) {
                     self._type = _type
                     self.id = id
@@ -2455,12 +2455,12 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityUpdateRequest/data`.
-            package var data: Components.Schemas.BundleIdCapabilityUpdateRequest.dataPayload
+            package var data: Components.Schemas.BundleIdCapabilityUpdateRequest.DataPayload
             /// Creates a new `BundleIdCapabilityUpdateRequest`.
             ///
             /// - Parameters:
             ///   - data:
-            package init(data: Components.Schemas.BundleIdCapabilityUpdateRequest.dataPayload) {
+            package init(data: Components.Schemas.BundleIdCapabilityUpdateRequest.DataPayload) {
                 self.data = data
             }
             package enum CodingKeys: String, CodingKey {
@@ -2470,15 +2470,15 @@ package enum Components {
         /// - Remark: Generated from `#/components/schemas/BundleId`.
         package struct BundleId: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/BundleId/type`.
-            @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+            @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                 case bundleIds = "bundleIds"
             }
             /// - Remark: Generated from `#/components/schemas/BundleId/type`.
-            package var _type: Components.Schemas.BundleId._typePayload
+            package var _type: Components.Schemas.BundleId._TypePayload
             /// - Remark: Generated from `#/components/schemas/BundleId/id`.
             package var id: Swift.String
             /// - Remark: Generated from `#/components/schemas/BundleId/attributes`.
-            package struct attributesPayload: Codable, Hashable, Sendable {
+            package struct AttributesPayload: Codable, Hashable, Sendable {
                 /// - Remark: Generated from `#/components/schemas/BundleId/attributes/name`.
                 package var name: Swift.String?
                 /// - Remark: Generated from `#/components/schemas/BundleId/attributes/platform`.
@@ -2487,7 +2487,7 @@ package enum Components {
                 package var identifier: Swift.String?
                 /// - Remark: Generated from `#/components/schemas/BundleId/attributes/seedId`.
                 package var seedId: Swift.String?
-                /// Creates a new `attributesPayload`.
+                /// Creates a new `AttributesPayload`.
                 ///
                 /// - Parameters:
                 ///   - name:
@@ -2513,32 +2513,32 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/BundleId/attributes`.
-            package var attributes: Components.Schemas.BundleId.attributesPayload?
+            package var attributes: Components.Schemas.BundleId.AttributesPayload?
             /// - Remark: Generated from `#/components/schemas/BundleId/relationships`.
-            package struct relationshipsPayload: Codable, Hashable, Sendable {
+            package struct RelationshipsPayload: Codable, Hashable, Sendable {
                 /// - Remark: Generated from `#/components/schemas/BundleId/relationships/profiles`.
-                package struct profilesPayload: Codable, Hashable, Sendable {
+                package struct ProfilesPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/BundleId/relationships/profiles/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/BundleId/relationships/profiles/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/BundleId/relationships/profiles/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/BundleId/relationships/profiles/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/BundleId/relationships/profiles/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/BundleId/relationships/profiles/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case profiles = "profiles"
                         }
-                        /// - Remark: Generated from `#/components/schemas/BundleId/relationships/profiles/dataPayload/type`.
-                        package var _type: Components.Schemas.BundleId.relationshipsPayload.profilesPayload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/BundleId/relationships/profiles/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/BundleId/relationships/profiles/DataPayload/type`.
+                        package var _type: Components.Schemas.BundleId.RelationshipsPayload.ProfilesPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/BundleId/relationships/profiles/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.BundleId.relationshipsPayload.profilesPayload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.BundleId.RelationshipsPayload.ProfilesPayload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -2550,10 +2550,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/BundleId/relationships/profiles/data`.
-                    package typealias dataPayload = [Components.Schemas.BundleId.relationshipsPayload.profilesPayload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.BundleId.RelationshipsPayload.ProfilesPayload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/BundleId/relationships/profiles/data`.
-                    package var data: Components.Schemas.BundleId.relationshipsPayload.profilesPayload.dataPayload?
-                    /// Creates a new `profilesPayload`.
+                    package var data: Components.Schemas.BundleId.RelationshipsPayload.ProfilesPayload.DataPayload?
+                    /// Creates a new `ProfilesPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -2562,7 +2562,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.BundleId.relationshipsPayload.profilesPayload.dataPayload? = nil
+                        data: Components.Schemas.BundleId.RelationshipsPayload.ProfilesPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -2575,30 +2575,30 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/BundleId/relationships/profiles`.
-                package var profiles: Components.Schemas.BundleId.relationshipsPayload.profilesPayload?
+                package var profiles: Components.Schemas.BundleId.RelationshipsPayload.ProfilesPayload?
                 /// - Remark: Generated from `#/components/schemas/BundleId/relationships/bundleIdCapabilities`.
-                package struct bundleIdCapabilitiesPayload: Codable, Hashable, Sendable {
+                package struct BundleIdCapabilitiesPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/BundleId/relationships/bundleIdCapabilities/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/BundleId/relationships/bundleIdCapabilities/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/BundleId/relationships/bundleIdCapabilities/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/BundleId/relationships/bundleIdCapabilities/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/BundleId/relationships/bundleIdCapabilities/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/BundleId/relationships/bundleIdCapabilities/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case bundleIdCapabilities = "bundleIdCapabilities"
                         }
-                        /// - Remark: Generated from `#/components/schemas/BundleId/relationships/bundleIdCapabilities/dataPayload/type`.
-                        package var _type: Components.Schemas.BundleId.relationshipsPayload.bundleIdCapabilitiesPayload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/BundleId/relationships/bundleIdCapabilities/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/BundleId/relationships/bundleIdCapabilities/DataPayload/type`.
+                        package var _type: Components.Schemas.BundleId.RelationshipsPayload.BundleIdCapabilitiesPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/BundleId/relationships/bundleIdCapabilities/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.BundleId.relationshipsPayload.bundleIdCapabilitiesPayload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.BundleId.RelationshipsPayload.BundleIdCapabilitiesPayload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -2610,10 +2610,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/BundleId/relationships/bundleIdCapabilities/data`.
-                    package typealias dataPayload = [Components.Schemas.BundleId.relationshipsPayload.bundleIdCapabilitiesPayload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.BundleId.RelationshipsPayload.BundleIdCapabilitiesPayload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/BundleId/relationships/bundleIdCapabilities/data`.
-                    package var data: Components.Schemas.BundleId.relationshipsPayload.bundleIdCapabilitiesPayload.dataPayload?
-                    /// Creates a new `bundleIdCapabilitiesPayload`.
+                    package var data: Components.Schemas.BundleId.RelationshipsPayload.BundleIdCapabilitiesPayload.DataPayload?
+                    /// Creates a new `BundleIdCapabilitiesPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -2622,7 +2622,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.BundleId.relationshipsPayload.bundleIdCapabilitiesPayload.dataPayload? = nil
+                        data: Components.Schemas.BundleId.RelationshipsPayload.BundleIdCapabilitiesPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -2635,28 +2635,28 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/BundleId/relationships/bundleIdCapabilities`.
-                package var bundleIdCapabilities: Components.Schemas.BundleId.relationshipsPayload.bundleIdCapabilitiesPayload?
+                package var bundleIdCapabilities: Components.Schemas.BundleId.RelationshipsPayload.BundleIdCapabilitiesPayload?
                 /// - Remark: Generated from `#/components/schemas/BundleId/relationships/app`.
-                package struct appPayload: Codable, Hashable, Sendable {
+                package struct AppPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/BundleId/relationships/app/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/BundleId/relationships/app/data`.
-                    package struct dataPayload: Codable, Hashable, Sendable {
+                    package struct DataPayload: Codable, Hashable, Sendable {
                         /// - Remark: Generated from `#/components/schemas/BundleId/relationships/app/data/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case apps = "apps"
                         }
                         /// - Remark: Generated from `#/components/schemas/BundleId/relationships/app/data/type`.
-                        package var _type: Components.Schemas.BundleId.relationshipsPayload.appPayload.dataPayload._typePayload
+                        package var _type: Components.Schemas.BundleId.RelationshipsPayload.AppPayload.DataPayload._TypePayload
                         /// - Remark: Generated from `#/components/schemas/BundleId/relationships/app/data/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayload`.
+                        /// Creates a new `DataPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.BundleId.relationshipsPayload.appPayload.dataPayload._typePayload,
+                            _type: Components.Schemas.BundleId.RelationshipsPayload.AppPayload.DataPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -2668,15 +2668,15 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/BundleId/relationships/app/data`.
-                    package var data: Components.Schemas.BundleId.relationshipsPayload.appPayload.dataPayload?
-                    /// Creates a new `appPayload`.
+                    package var data: Components.Schemas.BundleId.RelationshipsPayload.AppPayload.DataPayload?
+                    /// Creates a new `AppPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
                     ///   - data:
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
-                        data: Components.Schemas.BundleId.relationshipsPayload.appPayload.dataPayload? = nil
+                        data: Components.Schemas.BundleId.RelationshipsPayload.AppPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.data = data
@@ -2687,17 +2687,17 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/BundleId/relationships/app`.
-                package var app: Components.Schemas.BundleId.relationshipsPayload.appPayload?
-                /// Creates a new `relationshipsPayload`.
+                package var app: Components.Schemas.BundleId.RelationshipsPayload.AppPayload?
+                /// Creates a new `RelationshipsPayload`.
                 ///
                 /// - Parameters:
                 ///   - profiles:
                 ///   - bundleIdCapabilities:
                 ///   - app:
                 package init(
-                    profiles: Components.Schemas.BundleId.relationshipsPayload.profilesPayload? = nil,
-                    bundleIdCapabilities: Components.Schemas.BundleId.relationshipsPayload.bundleIdCapabilitiesPayload? = nil,
-                    app: Components.Schemas.BundleId.relationshipsPayload.appPayload? = nil
+                    profiles: Components.Schemas.BundleId.RelationshipsPayload.ProfilesPayload? = nil,
+                    bundleIdCapabilities: Components.Schemas.BundleId.RelationshipsPayload.BundleIdCapabilitiesPayload? = nil,
+                    app: Components.Schemas.BundleId.RelationshipsPayload.AppPayload? = nil
                 ) {
                     self.profiles = profiles
                     self.bundleIdCapabilities = bundleIdCapabilities
@@ -2710,7 +2710,7 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/BundleId/relationships`.
-            package var relationships: Components.Schemas.BundleId.relationshipsPayload?
+            package var relationships: Components.Schemas.BundleId.RelationshipsPayload?
             /// - Remark: Generated from `#/components/schemas/BundleId/links`.
             package var links: Components.Schemas.ResourceLinks?
             /// Creates a new `BundleId`.
@@ -2722,10 +2722,10 @@ package enum Components {
             ///   - relationships:
             ///   - links:
             package init(
-                _type: Components.Schemas.BundleId._typePayload,
+                _type: Components.Schemas.BundleId._TypePayload,
                 id: Swift.String,
-                attributes: Components.Schemas.BundleId.attributesPayload? = nil,
-                relationships: Components.Schemas.BundleId.relationshipsPayload? = nil,
+                attributes: Components.Schemas.BundleId.AttributesPayload? = nil,
+                relationships: Components.Schemas.BundleId.RelationshipsPayload? = nil,
                 links: Components.Schemas.ResourceLinks? = nil
             ) {
                 self._type = _type
@@ -2746,13 +2746,13 @@ package enum Components {
         package struct BundleIdsResponse: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/data`.
             package var data: [Components.Schemas.BundleId]
-            /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/includedPayload`.
-            @frozen package enum includedPayloadPayload: Codable, Hashable, Sendable {
-                /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/includedPayload/case1`.
+            /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/IncludedPayload`.
+            @frozen package enum IncludedPayloadPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/IncludedPayload/case1`.
                 case Profile(Components.Schemas.Profile)
-                /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/includedPayload/case2`.
+                /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/IncludedPayload/case2`.
                 case BundleIdCapability(Components.Schemas.BundleIdCapability)
-                /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/includedPayload/case3`.
+                /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/IncludedPayload/case3`.
                 case App(Components.Schemas.App)
                 package init(from decoder: any Decoder) throws {
                     var errors: [any Error] = []
@@ -2792,9 +2792,9 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/included`.
-            package typealias includedPayload = [Components.Schemas.BundleIdsResponse.includedPayloadPayload]
+            package typealias IncludedPayload = [Components.Schemas.BundleIdsResponse.IncludedPayloadPayload]
             /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/included`.
-            package var included: Components.Schemas.BundleIdsResponse.includedPayload?
+            package var included: Components.Schemas.BundleIdsResponse.IncludedPayload?
             /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/links`.
             package var links: Components.Schemas.PagedDocumentLinks
             /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/meta`.
@@ -2808,7 +2808,7 @@ package enum Components {
             ///   - meta:
             package init(
                 data: [Components.Schemas.BundleId],
-                included: Components.Schemas.BundleIdsResponse.includedPayload? = nil,
+                included: Components.Schemas.BundleIdsResponse.IncludedPayload? = nil,
                 links: Components.Schemas.PagedDocumentLinks,
                 meta: Components.Schemas.PagingInformation? = nil
             ) {
@@ -2828,13 +2828,13 @@ package enum Components {
         package struct BundleIdResponse: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/BundleIdResponse/data`.
             package var data: Components.Schemas.BundleId
-            /// - Remark: Generated from `#/components/schemas/BundleIdResponse/includedPayload`.
-            @frozen package enum includedPayloadPayload: Codable, Hashable, Sendable {
-                /// - Remark: Generated from `#/components/schemas/BundleIdResponse/includedPayload/case1`.
+            /// - Remark: Generated from `#/components/schemas/BundleIdResponse/IncludedPayload`.
+            @frozen package enum IncludedPayloadPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/BundleIdResponse/IncludedPayload/case1`.
                 case Profile(Components.Schemas.Profile)
-                /// - Remark: Generated from `#/components/schemas/BundleIdResponse/includedPayload/case2`.
+                /// - Remark: Generated from `#/components/schemas/BundleIdResponse/IncludedPayload/case2`.
                 case BundleIdCapability(Components.Schemas.BundleIdCapability)
-                /// - Remark: Generated from `#/components/schemas/BundleIdResponse/includedPayload/case3`.
+                /// - Remark: Generated from `#/components/schemas/BundleIdResponse/IncludedPayload/case3`.
                 case App(Components.Schemas.App)
                 package init(from decoder: any Decoder) throws {
                     var errors: [any Error] = []
@@ -2874,9 +2874,9 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/BundleIdResponse/included`.
-            package typealias includedPayload = [Components.Schemas.BundleIdResponse.includedPayloadPayload]
+            package typealias IncludedPayload = [Components.Schemas.BundleIdResponse.IncludedPayloadPayload]
             /// - Remark: Generated from `#/components/schemas/BundleIdResponse/included`.
-            package var included: Components.Schemas.BundleIdResponse.includedPayload?
+            package var included: Components.Schemas.BundleIdResponse.IncludedPayload?
             /// - Remark: Generated from `#/components/schemas/BundleIdResponse/links`.
             package var links: Components.Schemas.DocumentLinks
             /// Creates a new `BundleIdResponse`.
@@ -2887,7 +2887,7 @@ package enum Components {
             ///   - links:
             package init(
                 data: Components.Schemas.BundleId,
-                included: Components.Schemas.BundleIdResponse.includedPayload? = nil,
+                included: Components.Schemas.BundleIdResponse.IncludedPayload? = nil,
                 links: Components.Schemas.DocumentLinks
             ) {
                 self.data = data
@@ -2903,15 +2903,15 @@ package enum Components {
         /// - Remark: Generated from `#/components/schemas/BundleIdCreateRequest`.
         package struct BundleIdCreateRequest: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/BundleIdCreateRequest/data`.
-            package struct dataPayload: Codable, Hashable, Sendable {
+            package struct DataPayload: Codable, Hashable, Sendable {
                 /// - Remark: Generated from `#/components/schemas/BundleIdCreateRequest/data/type`.
-                @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case bundleIds = "bundleIds"
                 }
                 /// - Remark: Generated from `#/components/schemas/BundleIdCreateRequest/data/type`.
-                package var _type: Components.Schemas.BundleIdCreateRequest.dataPayload._typePayload
+                package var _type: Components.Schemas.BundleIdCreateRequest.DataPayload._TypePayload
                 /// - Remark: Generated from `#/components/schemas/BundleIdCreateRequest/data/attributes`.
-                package struct attributesPayload: Codable, Hashable, Sendable {
+                package struct AttributesPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/BundleIdCreateRequest/data/attributes/name`.
                     package var name: Swift.String
                     /// - Remark: Generated from `#/components/schemas/BundleIdCreateRequest/data/attributes/platform`.
@@ -2920,7 +2920,7 @@ package enum Components {
                     package var identifier: Swift.String
                     /// - Remark: Generated from `#/components/schemas/BundleIdCreateRequest/data/attributes/seedId`.
                     package var seedId: Swift.String?
-                    /// Creates a new `attributesPayload`.
+                    /// Creates a new `AttributesPayload`.
                     ///
                     /// - Parameters:
                     ///   - name:
@@ -2946,15 +2946,15 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/BundleIdCreateRequest/data/attributes`.
-                package var attributes: Components.Schemas.BundleIdCreateRequest.dataPayload.attributesPayload
-                /// Creates a new `dataPayload`.
+                package var attributes: Components.Schemas.BundleIdCreateRequest.DataPayload.AttributesPayload
+                /// Creates a new `DataPayload`.
                 ///
                 /// - Parameters:
                 ///   - _type:
                 ///   - attributes:
                 package init(
-                    _type: Components.Schemas.BundleIdCreateRequest.dataPayload._typePayload,
-                    attributes: Components.Schemas.BundleIdCreateRequest.dataPayload.attributesPayload
+                    _type: Components.Schemas.BundleIdCreateRequest.DataPayload._TypePayload,
+                    attributes: Components.Schemas.BundleIdCreateRequest.DataPayload.AttributesPayload
                 ) {
                     self._type = _type
                     self.attributes = attributes
@@ -2965,12 +2965,12 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/BundleIdCreateRequest/data`.
-            package var data: Components.Schemas.BundleIdCreateRequest.dataPayload
+            package var data: Components.Schemas.BundleIdCreateRequest.DataPayload
             /// Creates a new `BundleIdCreateRequest`.
             ///
             /// - Parameters:
             ///   - data:
-            package init(data: Components.Schemas.BundleIdCreateRequest.dataPayload) {
+            package init(data: Components.Schemas.BundleIdCreateRequest.DataPayload) {
                 self.data = data
             }
             package enum CodingKeys: String, CodingKey {
@@ -2980,20 +2980,20 @@ package enum Components {
         /// - Remark: Generated from `#/components/schemas/BundleIdUpdateRequest`.
         package struct BundleIdUpdateRequest: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/BundleIdUpdateRequest/data`.
-            package struct dataPayload: Codable, Hashable, Sendable {
+            package struct DataPayload: Codable, Hashable, Sendable {
                 /// - Remark: Generated from `#/components/schemas/BundleIdUpdateRequest/data/type`.
-                @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case bundleIds = "bundleIds"
                 }
                 /// - Remark: Generated from `#/components/schemas/BundleIdUpdateRequest/data/type`.
-                package var _type: Components.Schemas.BundleIdUpdateRequest.dataPayload._typePayload
+                package var _type: Components.Schemas.BundleIdUpdateRequest.DataPayload._TypePayload
                 /// - Remark: Generated from `#/components/schemas/BundleIdUpdateRequest/data/id`.
                 package var id: Swift.String
                 /// - Remark: Generated from `#/components/schemas/BundleIdUpdateRequest/data/attributes`.
-                package struct attributesPayload: Codable, Hashable, Sendable {
+                package struct AttributesPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/BundleIdUpdateRequest/data/attributes/name`.
                     package var name: Swift.String?
-                    /// Creates a new `attributesPayload`.
+                    /// Creates a new `AttributesPayload`.
                     ///
                     /// - Parameters:
                     ///   - name:
@@ -3005,17 +3005,17 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/BundleIdUpdateRequest/data/attributes`.
-                package var attributes: Components.Schemas.BundleIdUpdateRequest.dataPayload.attributesPayload?
-                /// Creates a new `dataPayload`.
+                package var attributes: Components.Schemas.BundleIdUpdateRequest.DataPayload.AttributesPayload?
+                /// Creates a new `DataPayload`.
                 ///
                 /// - Parameters:
                 ///   - _type:
                 ///   - id:
                 ///   - attributes:
                 package init(
-                    _type: Components.Schemas.BundleIdUpdateRequest.dataPayload._typePayload,
+                    _type: Components.Schemas.BundleIdUpdateRequest.DataPayload._TypePayload,
                     id: Swift.String,
-                    attributes: Components.Schemas.BundleIdUpdateRequest.dataPayload.attributesPayload? = nil
+                    attributes: Components.Schemas.BundleIdUpdateRequest.DataPayload.AttributesPayload? = nil
                 ) {
                     self._type = _type
                     self.id = id
@@ -3028,12 +3028,12 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/BundleIdUpdateRequest/data`.
-            package var data: Components.Schemas.BundleIdUpdateRequest.dataPayload
+            package var data: Components.Schemas.BundleIdUpdateRequest.DataPayload
             /// Creates a new `BundleIdUpdateRequest`.
             ///
             /// - Parameters:
             ///   - data:
-            package init(data: Components.Schemas.BundleIdUpdateRequest.dataPayload) {
+            package init(data: Components.Schemas.BundleIdUpdateRequest.DataPayload) {
                 self.data = data
             }
             package enum CodingKeys: String, CodingKey {
@@ -3043,15 +3043,15 @@ package enum Components {
         /// - Remark: Generated from `#/components/schemas/Certificate`.
         package struct Certificate: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/Certificate/type`.
-            @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+            @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                 case certificates = "certificates"
             }
             /// - Remark: Generated from `#/components/schemas/Certificate/type`.
-            package var _type: Components.Schemas.Certificate._typePayload
+            package var _type: Components.Schemas.Certificate._TypePayload
             /// - Remark: Generated from `#/components/schemas/Certificate/id`.
             package var id: Swift.String
             /// - Remark: Generated from `#/components/schemas/Certificate/attributes`.
-            package struct attributesPayload: Codable, Hashable, Sendable {
+            package struct AttributesPayload: Codable, Hashable, Sendable {
                 /// - Remark: Generated from `#/components/schemas/Certificate/attributes/name`.
                 package var name: Swift.String?
                 /// - Remark: Generated from `#/components/schemas/Certificate/attributes/certificateType`.
@@ -3066,7 +3066,7 @@ package enum Components {
                 package var expirationDate: Foundation.Date?
                 /// - Remark: Generated from `#/components/schemas/Certificate/attributes/certificateContent`.
                 package var certificateContent: Swift.String?
-                /// Creates a new `attributesPayload`.
+                /// Creates a new `AttributesPayload`.
                 ///
                 /// - Parameters:
                 ///   - name:
@@ -3104,7 +3104,7 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/Certificate/attributes`.
-            package var attributes: Components.Schemas.Certificate.attributesPayload?
+            package var attributes: Components.Schemas.Certificate.AttributesPayload?
             /// - Remark: Generated from `#/components/schemas/Certificate/links`.
             package var links: Components.Schemas.ResourceLinks?
             /// Creates a new `Certificate`.
@@ -3115,9 +3115,9 @@ package enum Components {
             ///   - attributes:
             ///   - links:
             package init(
-                _type: Components.Schemas.Certificate._typePayload,
+                _type: Components.Schemas.Certificate._TypePayload,
                 id: Swift.String,
-                attributes: Components.Schemas.Certificate.attributesPayload? = nil,
+                attributes: Components.Schemas.Certificate.AttributesPayload? = nil,
                 links: Components.Schemas.ResourceLinks? = nil
             ) {
                 self._type = _type
@@ -3187,20 +3187,20 @@ package enum Components {
         /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest`.
         package struct CertificateCreateRequest: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data`.
-            package struct dataPayload: Codable, Hashable, Sendable {
+            package struct DataPayload: Codable, Hashable, Sendable {
                 /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/type`.
-                @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case certificates = "certificates"
                 }
                 /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/type`.
-                package var _type: Components.Schemas.CertificateCreateRequest.dataPayload._typePayload
+                package var _type: Components.Schemas.CertificateCreateRequest.DataPayload._TypePayload
                 /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/attributes`.
-                package struct attributesPayload: Codable, Hashable, Sendable {
+                package struct AttributesPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/attributes/csrContent`.
                     package var csrContent: Swift.String
                     /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/attributes/certificateType`.
                     package var certificateType: Components.Schemas.CertificateType
-                    /// Creates a new `attributesPayload`.
+                    /// Creates a new `AttributesPayload`.
                     ///
                     /// - Parameters:
                     ///   - csrContent:
@@ -3218,15 +3218,15 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/attributes`.
-                package var attributes: Components.Schemas.CertificateCreateRequest.dataPayload.attributesPayload
-                /// Creates a new `dataPayload`.
+                package var attributes: Components.Schemas.CertificateCreateRequest.DataPayload.AttributesPayload
+                /// Creates a new `DataPayload`.
                 ///
                 /// - Parameters:
                 ///   - _type:
                 ///   - attributes:
                 package init(
-                    _type: Components.Schemas.CertificateCreateRequest.dataPayload._typePayload,
-                    attributes: Components.Schemas.CertificateCreateRequest.dataPayload.attributesPayload
+                    _type: Components.Schemas.CertificateCreateRequest.DataPayload._TypePayload,
+                    attributes: Components.Schemas.CertificateCreateRequest.DataPayload.AttributesPayload
                 ) {
                     self._type = _type
                     self.attributes = attributes
@@ -3237,12 +3237,12 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data`.
-            package var data: Components.Schemas.CertificateCreateRequest.dataPayload
+            package var data: Components.Schemas.CertificateCreateRequest.DataPayload
             /// Creates a new `CertificateCreateRequest`.
             ///
             /// - Parameters:
             ///   - data:
-            package init(data: Components.Schemas.CertificateCreateRequest.dataPayload) {
+            package init(data: Components.Schemas.CertificateCreateRequest.DataPayload) {
                 self.data = data
             }
             package enum CodingKeys: String, CodingKey {
@@ -3252,15 +3252,15 @@ package enum Components {
         /// - Remark: Generated from `#/components/schemas/Device`.
         package struct Device: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/Device/type`.
-            @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+            @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                 case devices = "devices"
             }
             /// - Remark: Generated from `#/components/schemas/Device/type`.
-            package var _type: Components.Schemas.Device._typePayload
+            package var _type: Components.Schemas.Device._TypePayload
             /// - Remark: Generated from `#/components/schemas/Device/id`.
             package var id: Swift.String
             /// - Remark: Generated from `#/components/schemas/Device/attributes`.
-            package struct attributesPayload: Codable, Hashable, Sendable {
+            package struct AttributesPayload: Codable, Hashable, Sendable {
                 /// - Remark: Generated from `#/components/schemas/Device/attributes/name`.
                 package var name: Swift.String?
                 /// - Remark: Generated from `#/components/schemas/Device/attributes/platform`.
@@ -3268,28 +3268,28 @@ package enum Components {
                 /// - Remark: Generated from `#/components/schemas/Device/attributes/udid`.
                 package var udid: Swift.String?
                 /// - Remark: Generated from `#/components/schemas/Device/attributes/deviceClass`.
-                @frozen package enum deviceClassPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                    case APPLE_WATCH = "APPLE_WATCH"
-                    case IPAD = "IPAD"
-                    case IPHONE = "IPHONE"
-                    case IPOD = "IPOD"
-                    case APPLE_TV = "APPLE_TV"
-                    case MAC = "MAC"
+                @frozen package enum DeviceClassPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case appleWatch = "APPLE_WATCH"
+                    case ipad = "IPAD"
+                    case iphone = "IPHONE"
+                    case ipod = "IPOD"
+                    case appleTv = "APPLE_TV"
+                    case mac = "MAC"
                 }
                 /// - Remark: Generated from `#/components/schemas/Device/attributes/deviceClass`.
-                package var deviceClass: Components.Schemas.Device.attributesPayload.deviceClassPayload?
+                package var deviceClass: Components.Schemas.Device.AttributesPayload.DeviceClassPayload?
                 /// - Remark: Generated from `#/components/schemas/Device/attributes/status`.
-                @frozen package enum statusPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                    case ENABLED = "ENABLED"
-                    case DISABLED = "DISABLED"
+                @frozen package enum StatusPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case enabled = "ENABLED"
+                    case disabled = "DISABLED"
                 }
                 /// - Remark: Generated from `#/components/schemas/Device/attributes/status`.
-                package var status: Components.Schemas.Device.attributesPayload.statusPayload?
+                package var status: Components.Schemas.Device.AttributesPayload.StatusPayload?
                 /// - Remark: Generated from `#/components/schemas/Device/attributes/model`.
                 package var model: Swift.String?
                 /// - Remark: Generated from `#/components/schemas/Device/attributes/addedDate`.
                 package var addedDate: Foundation.Date?
-                /// Creates a new `attributesPayload`.
+                /// Creates a new `AttributesPayload`.
                 ///
                 /// - Parameters:
                 ///   - name:
@@ -3303,8 +3303,8 @@ package enum Components {
                     name: Swift.String? = nil,
                     platform: Components.Schemas.BundleIdPlatform? = nil,
                     udid: Swift.String? = nil,
-                    deviceClass: Components.Schemas.Device.attributesPayload.deviceClassPayload? = nil,
-                    status: Components.Schemas.Device.attributesPayload.statusPayload? = nil,
+                    deviceClass: Components.Schemas.Device.AttributesPayload.DeviceClassPayload? = nil,
+                    status: Components.Schemas.Device.AttributesPayload.StatusPayload? = nil,
                     model: Swift.String? = nil,
                     addedDate: Foundation.Date? = nil
                 ) {
@@ -3327,7 +3327,7 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/Device/attributes`.
-            package var attributes: Components.Schemas.Device.attributesPayload?
+            package var attributes: Components.Schemas.Device.AttributesPayload?
             /// - Remark: Generated from `#/components/schemas/Device/links`.
             package var links: Components.Schemas.ResourceLinks?
             /// Creates a new `Device`.
@@ -3338,9 +3338,9 @@ package enum Components {
             ///   - attributes:
             ///   - links:
             package init(
-                _type: Components.Schemas.Device._typePayload,
+                _type: Components.Schemas.Device._TypePayload,
                 id: Swift.String,
-                attributes: Components.Schemas.Device.attributesPayload? = nil,
+                attributes: Components.Schemas.Device.AttributesPayload? = nil,
                 links: Components.Schemas.ResourceLinks? = nil
             ) {
                 self._type = _type
@@ -3410,22 +3410,22 @@ package enum Components {
         /// - Remark: Generated from `#/components/schemas/DeviceCreateRequest`.
         package struct DeviceCreateRequest: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/DeviceCreateRequest/data`.
-            package struct dataPayload: Codable, Hashable, Sendable {
+            package struct DataPayload: Codable, Hashable, Sendable {
                 /// - Remark: Generated from `#/components/schemas/DeviceCreateRequest/data/type`.
-                @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case devices = "devices"
                 }
                 /// - Remark: Generated from `#/components/schemas/DeviceCreateRequest/data/type`.
-                package var _type: Components.Schemas.DeviceCreateRequest.dataPayload._typePayload
+                package var _type: Components.Schemas.DeviceCreateRequest.DataPayload._TypePayload
                 /// - Remark: Generated from `#/components/schemas/DeviceCreateRequest/data/attributes`.
-                package struct attributesPayload: Codable, Hashable, Sendable {
+                package struct AttributesPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/DeviceCreateRequest/data/attributes/name`.
                     package var name: Swift.String
                     /// - Remark: Generated from `#/components/schemas/DeviceCreateRequest/data/attributes/platform`.
                     package var platform: Components.Schemas.BundleIdPlatform
                     /// - Remark: Generated from `#/components/schemas/DeviceCreateRequest/data/attributes/udid`.
                     package var udid: Swift.String
-                    /// Creates a new `attributesPayload`.
+                    /// Creates a new `AttributesPayload`.
                     ///
                     /// - Parameters:
                     ///   - name:
@@ -3447,15 +3447,15 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/DeviceCreateRequest/data/attributes`.
-                package var attributes: Components.Schemas.DeviceCreateRequest.dataPayload.attributesPayload
-                /// Creates a new `dataPayload`.
+                package var attributes: Components.Schemas.DeviceCreateRequest.DataPayload.AttributesPayload
+                /// Creates a new `DataPayload`.
                 ///
                 /// - Parameters:
                 ///   - _type:
                 ///   - attributes:
                 package init(
-                    _type: Components.Schemas.DeviceCreateRequest.dataPayload._typePayload,
-                    attributes: Components.Schemas.DeviceCreateRequest.dataPayload.attributesPayload
+                    _type: Components.Schemas.DeviceCreateRequest.DataPayload._TypePayload,
+                    attributes: Components.Schemas.DeviceCreateRequest.DataPayload.AttributesPayload
                 ) {
                     self._type = _type
                     self.attributes = attributes
@@ -3466,12 +3466,12 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/DeviceCreateRequest/data`.
-            package var data: Components.Schemas.DeviceCreateRequest.dataPayload
+            package var data: Components.Schemas.DeviceCreateRequest.DataPayload
             /// Creates a new `DeviceCreateRequest`.
             ///
             /// - Parameters:
             ///   - data:
-            package init(data: Components.Schemas.DeviceCreateRequest.dataPayload) {
+            package init(data: Components.Schemas.DeviceCreateRequest.DataPayload) {
                 self.data = data
             }
             package enum CodingKeys: String, CodingKey {
@@ -3481,34 +3481,34 @@ package enum Components {
         /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest`.
         package struct DeviceUpdateRequest: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data`.
-            package struct dataPayload: Codable, Hashable, Sendable {
+            package struct DataPayload: Codable, Hashable, Sendable {
                 /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/type`.
-                @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case devices = "devices"
                 }
                 /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/type`.
-                package var _type: Components.Schemas.DeviceUpdateRequest.dataPayload._typePayload
+                package var _type: Components.Schemas.DeviceUpdateRequest.DataPayload._TypePayload
                 /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/id`.
                 package var id: Swift.String
                 /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/attributes`.
-                package struct attributesPayload: Codable, Hashable, Sendable {
+                package struct AttributesPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/attributes/name`.
                     package var name: Swift.String?
                     /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/attributes/status`.
-                    @frozen package enum statusPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                        case ENABLED = "ENABLED"
-                        case DISABLED = "DISABLED"
+                    @frozen package enum StatusPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                        case enabled = "ENABLED"
+                        case disabled = "DISABLED"
                     }
                     /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/attributes/status`.
-                    package var status: Components.Schemas.DeviceUpdateRequest.dataPayload.attributesPayload.statusPayload?
-                    /// Creates a new `attributesPayload`.
+                    package var status: Components.Schemas.DeviceUpdateRequest.DataPayload.AttributesPayload.StatusPayload?
+                    /// Creates a new `AttributesPayload`.
                     ///
                     /// - Parameters:
                     ///   - name:
                     ///   - status:
                     package init(
                         name: Swift.String? = nil,
-                        status: Components.Schemas.DeviceUpdateRequest.dataPayload.attributesPayload.statusPayload? = nil
+                        status: Components.Schemas.DeviceUpdateRequest.DataPayload.AttributesPayload.StatusPayload? = nil
                     ) {
                         self.name = name
                         self.status = status
@@ -3519,17 +3519,17 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/attributes`.
-                package var attributes: Components.Schemas.DeviceUpdateRequest.dataPayload.attributesPayload?
-                /// Creates a new `dataPayload`.
+                package var attributes: Components.Schemas.DeviceUpdateRequest.DataPayload.AttributesPayload?
+                /// Creates a new `DataPayload`.
                 ///
                 /// - Parameters:
                 ///   - _type:
                 ///   - id:
                 ///   - attributes:
                 package init(
-                    _type: Components.Schemas.DeviceUpdateRequest.dataPayload._typePayload,
+                    _type: Components.Schemas.DeviceUpdateRequest.DataPayload._TypePayload,
                     id: Swift.String,
-                    attributes: Components.Schemas.DeviceUpdateRequest.dataPayload.attributesPayload? = nil
+                    attributes: Components.Schemas.DeviceUpdateRequest.DataPayload.AttributesPayload? = nil
                 ) {
                     self._type = _type
                     self.id = id
@@ -3542,12 +3542,12 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data`.
-            package var data: Components.Schemas.DeviceUpdateRequest.dataPayload
+            package var data: Components.Schemas.DeviceUpdateRequest.DataPayload
             /// Creates a new `DeviceUpdateRequest`.
             ///
             /// - Parameters:
             ///   - data:
-            package init(data: Components.Schemas.DeviceUpdateRequest.dataPayload) {
+            package init(data: Components.Schemas.DeviceUpdateRequest.DataPayload) {
                 self.data = data
             }
             package enum CodingKeys: String, CodingKey {
@@ -3557,45 +3557,45 @@ package enum Components {
         /// - Remark: Generated from `#/components/schemas/Profile`.
         package struct Profile: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/Profile/type`.
-            @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+            @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                 case profiles = "profiles"
             }
             /// - Remark: Generated from `#/components/schemas/Profile/type`.
-            package var _type: Components.Schemas.Profile._typePayload
+            package var _type: Components.Schemas.Profile._TypePayload
             /// - Remark: Generated from `#/components/schemas/Profile/id`.
             package var id: Swift.String
             /// - Remark: Generated from `#/components/schemas/Profile/attributes`.
-            package struct attributesPayload: Codable, Hashable, Sendable {
+            package struct AttributesPayload: Codable, Hashable, Sendable {
                 /// - Remark: Generated from `#/components/schemas/Profile/attributes/name`.
                 package var name: Swift.String?
                 /// - Remark: Generated from `#/components/schemas/Profile/attributes/platform`.
                 package var platform: Components.Schemas.BundleIdPlatform?
                 /// - Remark: Generated from `#/components/schemas/Profile/attributes/profileType`.
-                @frozen package enum profileTypePayload: String, Codable, Hashable, Sendable, CaseIterable {
-                    case IOS_APP_DEVELOPMENT = "IOS_APP_DEVELOPMENT"
-                    case IOS_APP_STORE = "IOS_APP_STORE"
-                    case IOS_APP_ADHOC = "IOS_APP_ADHOC"
-                    case IOS_APP_INHOUSE = "IOS_APP_INHOUSE"
-                    case MAC_APP_DEVELOPMENT = "MAC_APP_DEVELOPMENT"
-                    case MAC_APP_STORE = "MAC_APP_STORE"
-                    case MAC_APP_DIRECT = "MAC_APP_DIRECT"
-                    case TVOS_APP_DEVELOPMENT = "TVOS_APP_DEVELOPMENT"
-                    case TVOS_APP_STORE = "TVOS_APP_STORE"
-                    case TVOS_APP_ADHOC = "TVOS_APP_ADHOC"
-                    case TVOS_APP_INHOUSE = "TVOS_APP_INHOUSE"
-                    case MAC_CATALYST_APP_DEVELOPMENT = "MAC_CATALYST_APP_DEVELOPMENT"
-                    case MAC_CATALYST_APP_STORE = "MAC_CATALYST_APP_STORE"
-                    case MAC_CATALYST_APP_DIRECT = "MAC_CATALYST_APP_DIRECT"
+                @frozen package enum ProfileTypePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case iosAppDevelopment = "IOS_APP_DEVELOPMENT"
+                    case iosAppStore = "IOS_APP_STORE"
+                    case iosAppAdhoc = "IOS_APP_ADHOC"
+                    case iosAppInhouse = "IOS_APP_INHOUSE"
+                    case macAppDevelopment = "MAC_APP_DEVELOPMENT"
+                    case macAppStore = "MAC_APP_STORE"
+                    case macAppDirect = "MAC_APP_DIRECT"
+                    case tvosAppDevelopment = "TVOS_APP_DEVELOPMENT"
+                    case tvosAppStore = "TVOS_APP_STORE"
+                    case tvosAppAdhoc = "TVOS_APP_ADHOC"
+                    case tvosAppInhouse = "TVOS_APP_INHOUSE"
+                    case macCatalystAppDevelopment = "MAC_CATALYST_APP_DEVELOPMENT"
+                    case macCatalystAppStore = "MAC_CATALYST_APP_STORE"
+                    case macCatalystAppDirect = "MAC_CATALYST_APP_DIRECT"
                 }
                 /// - Remark: Generated from `#/components/schemas/Profile/attributes/profileType`.
-                package var profileType: Components.Schemas.Profile.attributesPayload.profileTypePayload?
+                package var profileType: Components.Schemas.Profile.AttributesPayload.ProfileTypePayload?
                 /// - Remark: Generated from `#/components/schemas/Profile/attributes/profileState`.
-                @frozen package enum profileStatePayload: String, Codable, Hashable, Sendable, CaseIterable {
-                    case ACTIVE = "ACTIVE"
-                    case INVALID = "INVALID"
+                @frozen package enum ProfileStatePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case active = "ACTIVE"
+                    case invalid = "INVALID"
                 }
                 /// - Remark: Generated from `#/components/schemas/Profile/attributes/profileState`.
-                package var profileState: Components.Schemas.Profile.attributesPayload.profileStatePayload?
+                package var profileState: Components.Schemas.Profile.AttributesPayload.ProfileStatePayload?
                 /// - Remark: Generated from `#/components/schemas/Profile/attributes/profileContent`.
                 package var profileContent: Swift.String?
                 /// - Remark: Generated from `#/components/schemas/Profile/attributes/uuid`.
@@ -3604,7 +3604,7 @@ package enum Components {
                 package var createdDate: Foundation.Date?
                 /// - Remark: Generated from `#/components/schemas/Profile/attributes/expirationDate`.
                 package var expirationDate: Foundation.Date?
-                /// Creates a new `attributesPayload`.
+                /// Creates a new `AttributesPayload`.
                 ///
                 /// - Parameters:
                 ///   - name:
@@ -3618,8 +3618,8 @@ package enum Components {
                 package init(
                     name: Swift.String? = nil,
                     platform: Components.Schemas.BundleIdPlatform? = nil,
-                    profileType: Components.Schemas.Profile.attributesPayload.profileTypePayload? = nil,
-                    profileState: Components.Schemas.Profile.attributesPayload.profileStatePayload? = nil,
+                    profileType: Components.Schemas.Profile.AttributesPayload.ProfileTypePayload? = nil,
+                    profileState: Components.Schemas.Profile.AttributesPayload.ProfileStatePayload? = nil,
                     profileContent: Swift.String? = nil,
                     uuid: Swift.String? = nil,
                     createdDate: Foundation.Date? = nil,
@@ -3646,30 +3646,30 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/Profile/attributes`.
-            package var attributes: Components.Schemas.Profile.attributesPayload?
+            package var attributes: Components.Schemas.Profile.AttributesPayload?
             /// - Remark: Generated from `#/components/schemas/Profile/relationships`.
-            package struct relationshipsPayload: Codable, Hashable, Sendable {
+            package struct RelationshipsPayload: Codable, Hashable, Sendable {
                 /// - Remark: Generated from `#/components/schemas/Profile/relationships/bundleId`.
-                package struct bundleIdPayload: Codable, Hashable, Sendable {
+                package struct BundleIdPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/Profile/relationships/bundleId/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/Profile/relationships/bundleId/data`.
-                    package struct dataPayload: Codable, Hashable, Sendable {
+                    package struct DataPayload: Codable, Hashable, Sendable {
                         /// - Remark: Generated from `#/components/schemas/Profile/relationships/bundleId/data/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case bundleIds = "bundleIds"
                         }
                         /// - Remark: Generated from `#/components/schemas/Profile/relationships/bundleId/data/type`.
-                        package var _type: Components.Schemas.Profile.relationshipsPayload.bundleIdPayload.dataPayload._typePayload
+                        package var _type: Components.Schemas.Profile.RelationshipsPayload.BundleIdPayload.DataPayload._TypePayload
                         /// - Remark: Generated from `#/components/schemas/Profile/relationships/bundleId/data/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayload`.
+                        /// Creates a new `DataPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.Profile.relationshipsPayload.bundleIdPayload.dataPayload._typePayload,
+                            _type: Components.Schemas.Profile.RelationshipsPayload.BundleIdPayload.DataPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -3681,15 +3681,15 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/Profile/relationships/bundleId/data`.
-                    package var data: Components.Schemas.Profile.relationshipsPayload.bundleIdPayload.dataPayload?
-                    /// Creates a new `bundleIdPayload`.
+                    package var data: Components.Schemas.Profile.RelationshipsPayload.BundleIdPayload.DataPayload?
+                    /// Creates a new `BundleIdPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
                     ///   - data:
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
-                        data: Components.Schemas.Profile.relationshipsPayload.bundleIdPayload.dataPayload? = nil
+                        data: Components.Schemas.Profile.RelationshipsPayload.BundleIdPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.data = data
@@ -3700,30 +3700,30 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/Profile/relationships/bundleId`.
-                package var bundleId: Components.Schemas.Profile.relationshipsPayload.bundleIdPayload?
+                package var bundleId: Components.Schemas.Profile.RelationshipsPayload.BundleIdPayload?
                 /// - Remark: Generated from `#/components/schemas/Profile/relationships/devices`.
-                package struct devicesPayload: Codable, Hashable, Sendable {
+                package struct DevicesPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/Profile/relationships/devices/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/Profile/relationships/devices/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/Profile/relationships/devices/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/Profile/relationships/devices/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/Profile/relationships/devices/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/Profile/relationships/devices/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case devices = "devices"
                         }
-                        /// - Remark: Generated from `#/components/schemas/Profile/relationships/devices/dataPayload/type`.
-                        package var _type: Components.Schemas.Profile.relationshipsPayload.devicesPayload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/Profile/relationships/devices/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/Profile/relationships/devices/DataPayload/type`.
+                        package var _type: Components.Schemas.Profile.RelationshipsPayload.DevicesPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/Profile/relationships/devices/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.Profile.relationshipsPayload.devicesPayload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.Profile.RelationshipsPayload.DevicesPayload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -3735,10 +3735,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/Profile/relationships/devices/data`.
-                    package typealias dataPayload = [Components.Schemas.Profile.relationshipsPayload.devicesPayload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.Profile.RelationshipsPayload.DevicesPayload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/Profile/relationships/devices/data`.
-                    package var data: Components.Schemas.Profile.relationshipsPayload.devicesPayload.dataPayload?
-                    /// Creates a new `devicesPayload`.
+                    package var data: Components.Schemas.Profile.RelationshipsPayload.DevicesPayload.DataPayload?
+                    /// Creates a new `DevicesPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -3747,7 +3747,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.Profile.relationshipsPayload.devicesPayload.dataPayload? = nil
+                        data: Components.Schemas.Profile.RelationshipsPayload.DevicesPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -3760,30 +3760,30 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/Profile/relationships/devices`.
-                package var devices: Components.Schemas.Profile.relationshipsPayload.devicesPayload?
+                package var devices: Components.Schemas.Profile.RelationshipsPayload.DevicesPayload?
                 /// - Remark: Generated from `#/components/schemas/Profile/relationships/certificates`.
-                package struct certificatesPayload: Codable, Hashable, Sendable {
+                package struct CertificatesPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/Profile/relationships/certificates/links`.
                     package var links: Components.Schemas.RelationshipLinks?
                     /// - Remark: Generated from `#/components/schemas/Profile/relationships/certificates/meta`.
                     package var meta: Components.Schemas.PagingInformation?
-                    /// - Remark: Generated from `#/components/schemas/Profile/relationships/certificates/dataPayload`.
-                    package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/Profile/relationships/certificates/dataPayload/type`.
-                        @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    /// - Remark: Generated from `#/components/schemas/Profile/relationships/certificates/DataPayload`.
+                    package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/Profile/relationships/certificates/DataPayload/type`.
+                        @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                             case certificates = "certificates"
                         }
-                        /// - Remark: Generated from `#/components/schemas/Profile/relationships/certificates/dataPayload/type`.
-                        package var _type: Components.Schemas.Profile.relationshipsPayload.certificatesPayload.dataPayloadPayload._typePayload
-                        /// - Remark: Generated from `#/components/schemas/Profile/relationships/certificates/dataPayload/id`.
+                        /// - Remark: Generated from `#/components/schemas/Profile/relationships/certificates/DataPayload/type`.
+                        package var _type: Components.Schemas.Profile.RelationshipsPayload.CertificatesPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/Profile/relationships/certificates/DataPayload/id`.
                         package var id: Swift.String
-                        /// Creates a new `dataPayloadPayload`.
+                        /// Creates a new `DataPayloadPayload`.
                         ///
                         /// - Parameters:
                         ///   - _type:
                         ///   - id:
                         package init(
-                            _type: Components.Schemas.Profile.relationshipsPayload.certificatesPayload.dataPayloadPayload._typePayload,
+                            _type: Components.Schemas.Profile.RelationshipsPayload.CertificatesPayload.DataPayloadPayload._TypePayload,
                             id: Swift.String
                         ) {
                             self._type = _type
@@ -3795,10 +3795,10 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/Profile/relationships/certificates/data`.
-                    package typealias dataPayload = [Components.Schemas.Profile.relationshipsPayload.certificatesPayload.dataPayloadPayload]
+                    package typealias DataPayload = [Components.Schemas.Profile.RelationshipsPayload.CertificatesPayload.DataPayloadPayload]
                     /// - Remark: Generated from `#/components/schemas/Profile/relationships/certificates/data`.
-                    package var data: Components.Schemas.Profile.relationshipsPayload.certificatesPayload.dataPayload?
-                    /// Creates a new `certificatesPayload`.
+                    package var data: Components.Schemas.Profile.RelationshipsPayload.CertificatesPayload.DataPayload?
+                    /// Creates a new `CertificatesPayload`.
                     ///
                     /// - Parameters:
                     ///   - links:
@@ -3807,7 +3807,7 @@ package enum Components {
                     package init(
                         links: Components.Schemas.RelationshipLinks? = nil,
                         meta: Components.Schemas.PagingInformation? = nil,
-                        data: Components.Schemas.Profile.relationshipsPayload.certificatesPayload.dataPayload? = nil
+                        data: Components.Schemas.Profile.RelationshipsPayload.CertificatesPayload.DataPayload? = nil
                     ) {
                         self.links = links
                         self.meta = meta
@@ -3820,17 +3820,17 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/Profile/relationships/certificates`.
-                package var certificates: Components.Schemas.Profile.relationshipsPayload.certificatesPayload?
-                /// Creates a new `relationshipsPayload`.
+                package var certificates: Components.Schemas.Profile.RelationshipsPayload.CertificatesPayload?
+                /// Creates a new `RelationshipsPayload`.
                 ///
                 /// - Parameters:
                 ///   - bundleId:
                 ///   - devices:
                 ///   - certificates:
                 package init(
-                    bundleId: Components.Schemas.Profile.relationshipsPayload.bundleIdPayload? = nil,
-                    devices: Components.Schemas.Profile.relationshipsPayload.devicesPayload? = nil,
-                    certificates: Components.Schemas.Profile.relationshipsPayload.certificatesPayload? = nil
+                    bundleId: Components.Schemas.Profile.RelationshipsPayload.BundleIdPayload? = nil,
+                    devices: Components.Schemas.Profile.RelationshipsPayload.DevicesPayload? = nil,
+                    certificates: Components.Schemas.Profile.RelationshipsPayload.CertificatesPayload? = nil
                 ) {
                     self.bundleId = bundleId
                     self.devices = devices
@@ -3843,7 +3843,7 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/Profile/relationships`.
-            package var relationships: Components.Schemas.Profile.relationshipsPayload?
+            package var relationships: Components.Schemas.Profile.RelationshipsPayload?
             /// - Remark: Generated from `#/components/schemas/Profile/links`.
             package var links: Components.Schemas.ResourceLinks?
             /// Creates a new `Profile`.
@@ -3855,10 +3855,10 @@ package enum Components {
             ///   - relationships:
             ///   - links:
             package init(
-                _type: Components.Schemas.Profile._typePayload,
+                _type: Components.Schemas.Profile._TypePayload,
                 id: Swift.String,
-                attributes: Components.Schemas.Profile.attributesPayload? = nil,
-                relationships: Components.Schemas.Profile.relationshipsPayload? = nil,
+                attributes: Components.Schemas.Profile.AttributesPayload? = nil,
+                relationships: Components.Schemas.Profile.RelationshipsPayload? = nil,
                 links: Components.Schemas.ResourceLinks? = nil
             ) {
                 self._type = _type
@@ -3879,13 +3879,13 @@ package enum Components {
         package struct ProfilesResponse: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/ProfilesResponse/data`.
             package var data: [Components.Schemas.Profile]
-            /// - Remark: Generated from `#/components/schemas/ProfilesResponse/includedPayload`.
-            @frozen package enum includedPayloadPayload: Codable, Hashable, Sendable {
-                /// - Remark: Generated from `#/components/schemas/ProfilesResponse/includedPayload/case1`.
+            /// - Remark: Generated from `#/components/schemas/ProfilesResponse/IncludedPayload`.
+            @frozen package enum IncludedPayloadPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/ProfilesResponse/IncludedPayload/case1`.
                 case BundleId(Components.Schemas.BundleId)
-                /// - Remark: Generated from `#/components/schemas/ProfilesResponse/includedPayload/case2`.
+                /// - Remark: Generated from `#/components/schemas/ProfilesResponse/IncludedPayload/case2`.
                 case Device(Components.Schemas.Device)
-                /// - Remark: Generated from `#/components/schemas/ProfilesResponse/includedPayload/case3`.
+                /// - Remark: Generated from `#/components/schemas/ProfilesResponse/IncludedPayload/case3`.
                 case Certificate(Components.Schemas.Certificate)
                 package init(from decoder: any Decoder) throws {
                     var errors: [any Error] = []
@@ -3925,9 +3925,9 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/ProfilesResponse/included`.
-            package typealias includedPayload = [Components.Schemas.ProfilesResponse.includedPayloadPayload]
+            package typealias IncludedPayload = [Components.Schemas.ProfilesResponse.IncludedPayloadPayload]
             /// - Remark: Generated from `#/components/schemas/ProfilesResponse/included`.
-            package var included: Components.Schemas.ProfilesResponse.includedPayload?
+            package var included: Components.Schemas.ProfilesResponse.IncludedPayload?
             /// - Remark: Generated from `#/components/schemas/ProfilesResponse/links`.
             package var links: Components.Schemas.PagedDocumentLinks
             /// - Remark: Generated from `#/components/schemas/ProfilesResponse/meta`.
@@ -3941,7 +3941,7 @@ package enum Components {
             ///   - meta:
             package init(
                 data: [Components.Schemas.Profile],
-                included: Components.Schemas.ProfilesResponse.includedPayload? = nil,
+                included: Components.Schemas.ProfilesResponse.IncludedPayload? = nil,
                 links: Components.Schemas.PagedDocumentLinks,
                 meta: Components.Schemas.PagingInformation? = nil
             ) {
@@ -3961,13 +3961,13 @@ package enum Components {
         package struct ProfileResponse: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/ProfileResponse/data`.
             package var data: Components.Schemas.Profile
-            /// - Remark: Generated from `#/components/schemas/ProfileResponse/includedPayload`.
-            @frozen package enum includedPayloadPayload: Codable, Hashable, Sendable {
-                /// - Remark: Generated from `#/components/schemas/ProfileResponse/includedPayload/case1`.
+            /// - Remark: Generated from `#/components/schemas/ProfileResponse/IncludedPayload`.
+            @frozen package enum IncludedPayloadPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/ProfileResponse/IncludedPayload/case1`.
                 case BundleId(Components.Schemas.BundleId)
-                /// - Remark: Generated from `#/components/schemas/ProfileResponse/includedPayload/case2`.
+                /// - Remark: Generated from `#/components/schemas/ProfileResponse/IncludedPayload/case2`.
                 case Device(Components.Schemas.Device)
-                /// - Remark: Generated from `#/components/schemas/ProfileResponse/includedPayload/case3`.
+                /// - Remark: Generated from `#/components/schemas/ProfileResponse/IncludedPayload/case3`.
                 case Certificate(Components.Schemas.Certificate)
                 package init(from decoder: any Decoder) throws {
                     var errors: [any Error] = []
@@ -4007,9 +4007,9 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/ProfileResponse/included`.
-            package typealias includedPayload = [Components.Schemas.ProfileResponse.includedPayloadPayload]
+            package typealias IncludedPayload = [Components.Schemas.ProfileResponse.IncludedPayloadPayload]
             /// - Remark: Generated from `#/components/schemas/ProfileResponse/included`.
-            package var included: Components.Schemas.ProfileResponse.includedPayload?
+            package var included: Components.Schemas.ProfileResponse.IncludedPayload?
             /// - Remark: Generated from `#/components/schemas/ProfileResponse/links`.
             package var links: Components.Schemas.DocumentLinks
             /// Creates a new `ProfileResponse`.
@@ -4020,7 +4020,7 @@ package enum Components {
             ///   - links:
             package init(
                 data: Components.Schemas.Profile,
-                included: Components.Schemas.ProfileResponse.includedPayload? = nil,
+                included: Components.Schemas.ProfileResponse.IncludedPayload? = nil,
                 links: Components.Schemas.DocumentLinks
             ) {
                 self.data = data
@@ -4036,44 +4036,44 @@ package enum Components {
         /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest`.
         package struct ProfileCreateRequest: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data`.
-            package struct dataPayload: Codable, Hashable, Sendable {
+            package struct DataPayload: Codable, Hashable, Sendable {
                 /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/type`.
-                @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case profiles = "profiles"
                 }
                 /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/type`.
-                package var _type: Components.Schemas.ProfileCreateRequest.dataPayload._typePayload
+                package var _type: Components.Schemas.ProfileCreateRequest.DataPayload._TypePayload
                 /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/attributes`.
-                package struct attributesPayload: Codable, Hashable, Sendable {
+                package struct AttributesPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/attributes/name`.
                     package var name: Swift.String
                     /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/attributes/profileType`.
-                    @frozen package enum profileTypePayload: String, Codable, Hashable, Sendable, CaseIterable {
-                        case IOS_APP_DEVELOPMENT = "IOS_APP_DEVELOPMENT"
-                        case IOS_APP_STORE = "IOS_APP_STORE"
-                        case IOS_APP_ADHOC = "IOS_APP_ADHOC"
-                        case IOS_APP_INHOUSE = "IOS_APP_INHOUSE"
-                        case MAC_APP_DEVELOPMENT = "MAC_APP_DEVELOPMENT"
-                        case MAC_APP_STORE = "MAC_APP_STORE"
-                        case MAC_APP_DIRECT = "MAC_APP_DIRECT"
-                        case TVOS_APP_DEVELOPMENT = "TVOS_APP_DEVELOPMENT"
-                        case TVOS_APP_STORE = "TVOS_APP_STORE"
-                        case TVOS_APP_ADHOC = "TVOS_APP_ADHOC"
-                        case TVOS_APP_INHOUSE = "TVOS_APP_INHOUSE"
-                        case MAC_CATALYST_APP_DEVELOPMENT = "MAC_CATALYST_APP_DEVELOPMENT"
-                        case MAC_CATALYST_APP_STORE = "MAC_CATALYST_APP_STORE"
-                        case MAC_CATALYST_APP_DIRECT = "MAC_CATALYST_APP_DIRECT"
+                    @frozen package enum ProfileTypePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                        case iosAppDevelopment = "IOS_APP_DEVELOPMENT"
+                        case iosAppStore = "IOS_APP_STORE"
+                        case iosAppAdhoc = "IOS_APP_ADHOC"
+                        case iosAppInhouse = "IOS_APP_INHOUSE"
+                        case macAppDevelopment = "MAC_APP_DEVELOPMENT"
+                        case macAppStore = "MAC_APP_STORE"
+                        case macAppDirect = "MAC_APP_DIRECT"
+                        case tvosAppDevelopment = "TVOS_APP_DEVELOPMENT"
+                        case tvosAppStore = "TVOS_APP_STORE"
+                        case tvosAppAdhoc = "TVOS_APP_ADHOC"
+                        case tvosAppInhouse = "TVOS_APP_INHOUSE"
+                        case macCatalystAppDevelopment = "MAC_CATALYST_APP_DEVELOPMENT"
+                        case macCatalystAppStore = "MAC_CATALYST_APP_STORE"
+                        case macCatalystAppDirect = "MAC_CATALYST_APP_DIRECT"
                     }
                     /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/attributes/profileType`.
-                    package var profileType: Components.Schemas.ProfileCreateRequest.dataPayload.attributesPayload.profileTypePayload
-                    /// Creates a new `attributesPayload`.
+                    package var profileType: Components.Schemas.ProfileCreateRequest.DataPayload.AttributesPayload.ProfileTypePayload
+                    /// Creates a new `AttributesPayload`.
                     ///
                     /// - Parameters:
                     ///   - name:
                     ///   - profileType:
                     package init(
                         name: Swift.String,
-                        profileType: Components.Schemas.ProfileCreateRequest.dataPayload.attributesPayload.profileTypePayload
+                        profileType: Components.Schemas.ProfileCreateRequest.DataPayload.AttributesPayload.ProfileTypePayload
                     ) {
                         self.name = name
                         self.profileType = profileType
@@ -4084,28 +4084,28 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/attributes`.
-                package var attributes: Components.Schemas.ProfileCreateRequest.dataPayload.attributesPayload
+                package var attributes: Components.Schemas.ProfileCreateRequest.DataPayload.AttributesPayload
                 /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships`.
-                package struct relationshipsPayload: Codable, Hashable, Sendable {
+                package struct RelationshipsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/bundleId`.
-                    package struct bundleIdPayload: Codable, Hashable, Sendable {
+                    package struct BundleIdPayload: Codable, Hashable, Sendable {
                         /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/bundleId/data`.
-                        package struct dataPayload: Codable, Hashable, Sendable {
+                        package struct DataPayload: Codable, Hashable, Sendable {
                             /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/bundleId/data/type`.
-                            @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                            @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                                 case bundleIds = "bundleIds"
                             }
                             /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/bundleId/data/type`.
-                            package var _type: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.bundleIdPayload.dataPayload._typePayload
+                            package var _type: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.BundleIdPayload.DataPayload._TypePayload
                             /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/bundleId/data/id`.
                             package var id: Swift.String
-                            /// Creates a new `dataPayload`.
+                            /// Creates a new `DataPayload`.
                             ///
                             /// - Parameters:
                             ///   - _type:
                             ///   - id:
                             package init(
-                                _type: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.bundleIdPayload.dataPayload._typePayload,
+                                _type: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.BundleIdPayload.DataPayload._TypePayload,
                                 id: Swift.String
                             ) {
                                 self._type = _type
@@ -4117,12 +4117,12 @@ package enum Components {
                             }
                         }
                         /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/bundleId/data`.
-                        package var data: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.bundleIdPayload.dataPayload
-                        /// Creates a new `bundleIdPayload`.
+                        package var data: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.BundleIdPayload.DataPayload
+                        /// Creates a new `BundleIdPayload`.
                         ///
                         /// - Parameters:
                         ///   - data:
-                        package init(data: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.bundleIdPayload.dataPayload) {
+                        package init(data: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.BundleIdPayload.DataPayload) {
                             self.data = data
                         }
                         package enum CodingKeys: String, CodingKey {
@@ -4130,26 +4130,26 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/bundleId`.
-                    package var bundleId: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.bundleIdPayload
+                    package var bundleId: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.BundleIdPayload
                     /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/devices`.
-                    package struct devicesPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/devices/dataPayload`.
-                        package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                            /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/devices/dataPayload/type`.
-                            @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    package struct DevicesPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/devices/DataPayload`.
+                        package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                            /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/devices/DataPayload/type`.
+                            @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                                 case devices = "devices"
                             }
-                            /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/devices/dataPayload/type`.
-                            package var _type: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.devicesPayload.dataPayloadPayload._typePayload
-                            /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/devices/dataPayload/id`.
+                            /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/devices/DataPayload/type`.
+                            package var _type: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.DevicesPayload.DataPayloadPayload._TypePayload
+                            /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/devices/DataPayload/id`.
                             package var id: Swift.String
-                            /// Creates a new `dataPayloadPayload`.
+                            /// Creates a new `DataPayloadPayload`.
                             ///
                             /// - Parameters:
                             ///   - _type:
                             ///   - id:
                             package init(
-                                _type: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.devicesPayload.dataPayloadPayload._typePayload,
+                                _type: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.DevicesPayload.DataPayloadPayload._TypePayload,
                                 id: Swift.String
                             ) {
                                 self._type = _type
@@ -4161,14 +4161,14 @@ package enum Components {
                             }
                         }
                         /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/devices/data`.
-                        package typealias dataPayload = [Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.devicesPayload.dataPayloadPayload]
+                        package typealias DataPayload = [Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.DevicesPayload.DataPayloadPayload]
                         /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/devices/data`.
-                        package var data: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.devicesPayload.dataPayload?
-                        /// Creates a new `devicesPayload`.
+                        package var data: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.DevicesPayload.DataPayload?
+                        /// Creates a new `DevicesPayload`.
                         ///
                         /// - Parameters:
                         ///   - data:
-                        package init(data: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.devicesPayload.dataPayload? = nil) {
+                        package init(data: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.DevicesPayload.DataPayload? = nil) {
                             self.data = data
                         }
                         package enum CodingKeys: String, CodingKey {
@@ -4176,26 +4176,26 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/devices`.
-                    package var devices: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.devicesPayload?
+                    package var devices: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.DevicesPayload?
                     /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/certificates`.
-                    package struct certificatesPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/certificates/dataPayload`.
-                        package struct dataPayloadPayload: Codable, Hashable, Sendable {
-                            /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/certificates/dataPayload/type`.
-                            @frozen package enum _typePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    package struct CertificatesPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/certificates/DataPayload`.
+                        package struct DataPayloadPayload: Codable, Hashable, Sendable {
+                            /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/certificates/DataPayload/type`.
+                            @frozen package enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
                                 case certificates = "certificates"
                             }
-                            /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/certificates/dataPayload/type`.
-                            package var _type: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.certificatesPayload.dataPayloadPayload._typePayload
-                            /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/certificates/dataPayload/id`.
+                            /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/certificates/DataPayload/type`.
+                            package var _type: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.CertificatesPayload.DataPayloadPayload._TypePayload
+                            /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/certificates/DataPayload/id`.
                             package var id: Swift.String
-                            /// Creates a new `dataPayloadPayload`.
+                            /// Creates a new `DataPayloadPayload`.
                             ///
                             /// - Parameters:
                             ///   - _type:
                             ///   - id:
                             package init(
-                                _type: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.certificatesPayload.dataPayloadPayload._typePayload,
+                                _type: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.CertificatesPayload.DataPayloadPayload._TypePayload,
                                 id: Swift.String
                             ) {
                                 self._type = _type
@@ -4207,14 +4207,14 @@ package enum Components {
                             }
                         }
                         /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/certificates/data`.
-                        package typealias dataPayload = [Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.certificatesPayload.dataPayloadPayload]
+                        package typealias DataPayload = [Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.CertificatesPayload.DataPayloadPayload]
                         /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/certificates/data`.
-                        package var data: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.certificatesPayload.dataPayload
-                        /// Creates a new `certificatesPayload`.
+                        package var data: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.CertificatesPayload.DataPayload
+                        /// Creates a new `CertificatesPayload`.
                         ///
                         /// - Parameters:
                         ///   - data:
-                        package init(data: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.certificatesPayload.dataPayload) {
+                        package init(data: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.CertificatesPayload.DataPayload) {
                             self.data = data
                         }
                         package enum CodingKeys: String, CodingKey {
@@ -4222,17 +4222,17 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships/certificates`.
-                    package var certificates: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.certificatesPayload
-                    /// Creates a new `relationshipsPayload`.
+                    package var certificates: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.CertificatesPayload
+                    /// Creates a new `RelationshipsPayload`.
                     ///
                     /// - Parameters:
                     ///   - bundleId:
                     ///   - devices:
                     ///   - certificates:
                     package init(
-                        bundleId: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.bundleIdPayload,
-                        devices: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.devicesPayload? = nil,
-                        certificates: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload.certificatesPayload
+                        bundleId: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.BundleIdPayload,
+                        devices: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.DevicesPayload? = nil,
+                        certificates: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload.CertificatesPayload
                     ) {
                         self.bundleId = bundleId
                         self.devices = devices
@@ -4245,17 +4245,17 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/relationships`.
-                package var relationships: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload
-                /// Creates a new `dataPayload`.
+                package var relationships: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload
+                /// Creates a new `DataPayload`.
                 ///
                 /// - Parameters:
                 ///   - _type:
                 ///   - attributes:
                 ///   - relationships:
                 package init(
-                    _type: Components.Schemas.ProfileCreateRequest.dataPayload._typePayload,
-                    attributes: Components.Schemas.ProfileCreateRequest.dataPayload.attributesPayload,
-                    relationships: Components.Schemas.ProfileCreateRequest.dataPayload.relationshipsPayload
+                    _type: Components.Schemas.ProfileCreateRequest.DataPayload._TypePayload,
+                    attributes: Components.Schemas.ProfileCreateRequest.DataPayload.AttributesPayload,
+                    relationships: Components.Schemas.ProfileCreateRequest.DataPayload.RelationshipsPayload
                 ) {
                     self._type = _type
                     self.attributes = attributes
@@ -4268,12 +4268,12 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data`.
-            package var data: Components.Schemas.ProfileCreateRequest.dataPayload
+            package var data: Components.Schemas.ProfileCreateRequest.DataPayload
             /// Creates a new `ProfileCreateRequest`.
             ///
             /// - Parameters:
             ///   - data:
-            package init(data: Components.Schemas.ProfileCreateRequest.dataPayload) {
+            package init(data: Components.Schemas.ProfileCreateRequest.DataPayload) {
                 self.data = data
             }
             package enum CodingKeys: String, CodingKey {
@@ -4444,23 +4444,23 @@ package enum Components {
         }
         /// - Remark: Generated from `#/components/schemas/ErrorResponse`.
         package struct ErrorResponse: Codable, Hashable, Sendable {
-            /// - Remark: Generated from `#/components/schemas/ErrorResponse/errorsPayload`.
-            package struct errorsPayloadPayload: Codable, Hashable, Sendable {
-                /// - Remark: Generated from `#/components/schemas/ErrorResponse/errorsPayload/id`.
+            /// - Remark: Generated from `#/components/schemas/ErrorResponse/ErrorsPayload`.
+            package struct ErrorsPayloadPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/ErrorResponse/ErrorsPayload/id`.
                 package var id: Swift.String?
-                /// - Remark: Generated from `#/components/schemas/ErrorResponse/errorsPayload/status`.
+                /// - Remark: Generated from `#/components/schemas/ErrorResponse/ErrorsPayload/status`.
                 package var status: Swift.String
-                /// - Remark: Generated from `#/components/schemas/ErrorResponse/errorsPayload/code`.
+                /// - Remark: Generated from `#/components/schemas/ErrorResponse/ErrorsPayload/code`.
                 package var code: Swift.String
-                /// - Remark: Generated from `#/components/schemas/ErrorResponse/errorsPayload/title`.
+                /// - Remark: Generated from `#/components/schemas/ErrorResponse/ErrorsPayload/title`.
                 package var title: Swift.String
-                /// - Remark: Generated from `#/components/schemas/ErrorResponse/errorsPayload/detail`.
+                /// - Remark: Generated from `#/components/schemas/ErrorResponse/ErrorsPayload/detail`.
                 package var detail: Swift.String
-                /// - Remark: Generated from `#/components/schemas/ErrorResponse/errorsPayload/source`.
-                @frozen package enum sourcePayload: Codable, Hashable, Sendable {
-                    /// - Remark: Generated from `#/components/schemas/ErrorResponse/errorsPayload/source/case1`.
+                /// - Remark: Generated from `#/components/schemas/ErrorResponse/ErrorsPayload/source`.
+                @frozen package enum SourcePayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/ErrorResponse/ErrorsPayload/source/case1`.
                     case ErrorSourcePointer(Components.Schemas.ErrorSourcePointer)
-                    /// - Remark: Generated from `#/components/schemas/ErrorResponse/errorsPayload/source/case2`.
+                    /// - Remark: Generated from `#/components/schemas/ErrorResponse/ErrorsPayload/source/case2`.
                     case ErrorSourceParameter(Components.Schemas.ErrorSourceParameter)
                     package init(from decoder: any Decoder) throws {
                         var errors: [any Error] = []
@@ -4491,15 +4491,15 @@ package enum Components {
                         }
                     }
                 }
-                /// - Remark: Generated from `#/components/schemas/ErrorResponse/errorsPayload/source`.
-                package var source: Components.Schemas.ErrorResponse.errorsPayloadPayload.sourcePayload?
-                /// - Remark: Generated from `#/components/schemas/ErrorResponse/errorsPayload/links`.
+                /// - Remark: Generated from `#/components/schemas/ErrorResponse/ErrorsPayload/source`.
+                package var source: Components.Schemas.ErrorResponse.ErrorsPayloadPayload.SourcePayload?
+                /// - Remark: Generated from `#/components/schemas/ErrorResponse/ErrorsPayload/links`.
                 package var links: Components.Schemas.ErrorLinks?
-                /// - Remark: Generated from `#/components/schemas/ErrorResponse/errorsPayload/meta`.
-                package struct metaPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/ErrorResponse/ErrorsPayload/meta`.
+                package struct MetaPayload: Codable, Hashable, Sendable {
                     /// A container of undocumented properties.
                     package var additionalProperties: [String: OpenAPIRuntime.OpenAPIValueContainer]
-                    /// Creates a new `metaPayload`.
+                    /// Creates a new `MetaPayload`.
                     ///
                     /// - Parameters:
                     ///   - additionalProperties: A container of undocumented properties.
@@ -4513,9 +4513,9 @@ package enum Components {
                         try encoder.encodeAdditionalProperties(additionalProperties)
                     }
                 }
-                /// - Remark: Generated from `#/components/schemas/ErrorResponse/errorsPayload/meta`.
-                package var meta: Components.Schemas.ErrorResponse.errorsPayloadPayload.metaPayload?
-                /// Creates a new `errorsPayloadPayload`.
+                /// - Remark: Generated from `#/components/schemas/ErrorResponse/ErrorsPayload/meta`.
+                package var meta: Components.Schemas.ErrorResponse.ErrorsPayloadPayload.MetaPayload?
+                /// Creates a new `ErrorsPayloadPayload`.
                 ///
                 /// - Parameters:
                 ///   - id:
@@ -4532,9 +4532,9 @@ package enum Components {
                     code: Swift.String,
                     title: Swift.String,
                     detail: Swift.String,
-                    source: Components.Schemas.ErrorResponse.errorsPayloadPayload.sourcePayload? = nil,
+                    source: Components.Schemas.ErrorResponse.ErrorsPayloadPayload.SourcePayload? = nil,
                     links: Components.Schemas.ErrorLinks? = nil,
-                    meta: Components.Schemas.ErrorResponse.errorsPayloadPayload.metaPayload? = nil
+                    meta: Components.Schemas.ErrorResponse.ErrorsPayloadPayload.MetaPayload? = nil
                 ) {
                     self.id = id
                     self.status = status
@@ -4557,14 +4557,14 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/ErrorResponse/errors`.
-            package typealias errorsPayload = [Components.Schemas.ErrorResponse.errorsPayloadPayload]
+            package typealias ErrorsPayload = [Components.Schemas.ErrorResponse.ErrorsPayloadPayload]
             /// - Remark: Generated from `#/components/schemas/ErrorResponse/errors`.
-            package var errors: Components.Schemas.ErrorResponse.errorsPayload?
+            package var errors: Components.Schemas.ErrorResponse.ErrorsPayload?
             /// Creates a new `ErrorResponse`.
             ///
             /// - Parameters:
             ///   - errors:
-            package init(errors: Components.Schemas.ErrorResponse.errorsPayload? = nil) {
+            package init(errors: Components.Schemas.ErrorResponse.ErrorsPayload? = nil) {
                 self.errors = errors
             }
             package enum CodingKeys: String, CodingKey {
@@ -4606,7 +4606,7 @@ package enum Components {
             /// - Remark: Generated from `#/components/schemas/ErrorLinks/about`.
             package var about: Swift.String?
             /// - Remark: Generated from `#/components/schemas/ErrorLinks/associated`.
-            @frozen package enum associatedPayload: Codable, Hashable, Sendable {
+            @frozen package enum AssociatedPayload: Codable, Hashable, Sendable {
                 /// - Remark: Generated from `#/components/schemas/ErrorLinks/associated/case1`.
                 case case1(Swift.String)
                 /// - Remark: Generated from `#/components/schemas/ErrorLinks/associated/case2`.
@@ -4614,10 +4614,10 @@ package enum Components {
                     /// - Remark: Generated from `#/components/schemas/ErrorLinks/associated/case2/href`.
                     package var href: Swift.String?
                     /// - Remark: Generated from `#/components/schemas/ErrorLinks/associated/case2/meta`.
-                    package struct metaPayload: Codable, Hashable, Sendable {
+                    package struct MetaPayload: Codable, Hashable, Sendable {
                         /// - Remark: Generated from `#/components/schemas/ErrorLinks/associated/case2/meta/source`.
                         package var source: Swift.String?
-                        /// Creates a new `metaPayload`.
+                        /// Creates a new `MetaPayload`.
                         ///
                         /// - Parameters:
                         ///   - source:
@@ -4629,7 +4629,7 @@ package enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/ErrorLinks/associated/case2/meta`.
-                    package var meta: Components.Schemas.ErrorLinks.associatedPayload.Case2Payload.metaPayload?
+                    package var meta: Components.Schemas.ErrorLinks.AssociatedPayload.Case2Payload.MetaPayload?
                     /// Creates a new `Case2Payload`.
                     ///
                     /// - Parameters:
@@ -4637,7 +4637,7 @@ package enum Components {
                     ///   - meta:
                     package init(
                         href: Swift.String? = nil,
-                        meta: Components.Schemas.ErrorLinks.associatedPayload.Case2Payload.metaPayload? = nil
+                        meta: Components.Schemas.ErrorLinks.AssociatedPayload.Case2Payload.MetaPayload? = nil
                     ) {
                         self.href = href
                         self.meta = meta
@@ -4648,7 +4648,7 @@ package enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/ErrorLinks/associated/case2`.
-                case case2(Components.Schemas.ErrorLinks.associatedPayload.Case2Payload)
+                case case2(Components.Schemas.ErrorLinks.AssociatedPayload.Case2Payload)
                 package init(from decoder: any Decoder) throws {
                     var errors: [any Error] = []
                     do {
@@ -4679,7 +4679,7 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/ErrorLinks/associated`.
-            package var associated: Components.Schemas.ErrorLinks.associatedPayload?
+            package var associated: Components.Schemas.ErrorLinks.AssociatedPayload?
             /// Creates a new `ErrorLinks`.
             ///
             /// - Parameters:
@@ -4687,7 +4687,7 @@ package enum Components {
             ///   - associated:
             package init(
                 about: Swift.String? = nil,
-                associated: Components.Schemas.ErrorLinks.associatedPayload? = nil
+                associated: Components.Schemas.ErrorLinks.AssociatedPayload? = nil
             ) {
                 self.about = about
                 self.associated = associated
@@ -4729,12 +4729,12 @@ package enum Components {
         /// - Remark: Generated from `#/components/schemas/PagingInformation`.
         package struct PagingInformation: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/PagingInformation/paging`.
-            package struct pagingPayload: Codable, Hashable, Sendable {
+            package struct PagingPayload: Codable, Hashable, Sendable {
                 /// - Remark: Generated from `#/components/schemas/PagingInformation/paging/total`.
                 package var total: Swift.Int?
                 /// - Remark: Generated from `#/components/schemas/PagingInformation/paging/limit`.
                 package var limit: Swift.Int
-                /// Creates a new `pagingPayload`.
+                /// Creates a new `PagingPayload`.
                 ///
                 /// - Parameters:
                 ///   - total:
@@ -4752,12 +4752,12 @@ package enum Components {
                 }
             }
             /// - Remark: Generated from `#/components/schemas/PagingInformation/paging`.
-            package var paging: Components.Schemas.PagingInformation.pagingPayload
+            package var paging: Components.Schemas.PagingInformation.PagingPayload
             /// Creates a new `PagingInformation`.
             ///
             /// - Parameters:
             ///   - paging:
-            package init(paging: Components.Schemas.PagingInformation.pagingPayload) {
+            package init(paging: Components.Schemas.PagingInformation.PagingPayload) {
                 self.paging = paging
             }
             package enum CodingKeys: String, CodingKey {
@@ -4819,23 +4819,23 @@ package enum Components {
         }
         /// - Remark: Generated from `#/components/schemas/BundleIdPlatform`.
         @frozen package enum BundleIdPlatform: String, Codable, Hashable, Sendable, CaseIterable {
-            case IOS = "IOS"
-            case MAC_OS = "MAC_OS"
-            case UNIVERSAL = "UNIVERSAL"
+            case ios = "IOS"
+            case macOs = "MAC_OS"
+            case universal = "UNIVERSAL"
         }
         /// - Remark: Generated from `#/components/schemas/CapabilityOption`.
         package struct CapabilityOption: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/CapabilityOption/key`.
-            @frozen package enum keyPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                case XCODE_5 = "XCODE_5"
-                case XCODE_6 = "XCODE_6"
-                case COMPLETE_PROTECTION = "COMPLETE_PROTECTION"
-                case PROTECTED_UNLESS_OPEN = "PROTECTED_UNLESS_OPEN"
-                case PROTECTED_UNTIL_FIRST_USER_AUTH = "PROTECTED_UNTIL_FIRST_USER_AUTH"
-                case PRIMARY_APP_CONSENT = "PRIMARY_APP_CONSENT"
+            @frozen package enum KeyPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case xcode5 = "XCODE_5"
+                case xcode6 = "XCODE_6"
+                case completeProtection = "COMPLETE_PROTECTION"
+                case protectedUnlessOpen = "PROTECTED_UNLESS_OPEN"
+                case protectedUntilFirstUserAuth = "PROTECTED_UNTIL_FIRST_USER_AUTH"
+                case primaryAppConsent = "PRIMARY_APP_CONSENT"
             }
             /// - Remark: Generated from `#/components/schemas/CapabilityOption/key`.
-            package var key: Components.Schemas.CapabilityOption.keyPayload?
+            package var key: Components.Schemas.CapabilityOption.KeyPayload?
             /// - Remark: Generated from `#/components/schemas/CapabilityOption/name`.
             package var name: Swift.String?
             /// - Remark: Generated from `#/components/schemas/CapabilityOption/description`.
@@ -4856,7 +4856,7 @@ package enum Components {
             ///   - enabled:
             ///   - supportsWildcard:
             package init(
-                key: Components.Schemas.CapabilityOption.keyPayload? = nil,
+                key: Components.Schemas.CapabilityOption.KeyPayload? = nil,
                 name: Swift.String? = nil,
                 description: Swift.String? = nil,
                 enabledByDefault: Swift.Bool? = nil,
@@ -4882,13 +4882,13 @@ package enum Components {
         /// - Remark: Generated from `#/components/schemas/CapabilitySetting`.
         package struct CapabilitySetting: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/CapabilitySetting/key`.
-            @frozen package enum keyPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                case ICLOUD_VERSION = "ICLOUD_VERSION"
-                case DATA_PROTECTION_PERMISSION_LEVEL = "DATA_PROTECTION_PERMISSION_LEVEL"
-                case APPLE_ID_AUTH_APP_CONSENT = "APPLE_ID_AUTH_APP_CONSENT"
+            @frozen package enum KeyPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case icloudVersion = "ICLOUD_VERSION"
+                case dataProtectionPermissionLevel = "DATA_PROTECTION_PERMISSION_LEVEL"
+                case appleIdAuthAppConsent = "APPLE_ID_AUTH_APP_CONSENT"
             }
             /// - Remark: Generated from `#/components/schemas/CapabilitySetting/key`.
-            package var key: Components.Schemas.CapabilitySetting.keyPayload?
+            package var key: Components.Schemas.CapabilitySetting.KeyPayload?
             /// - Remark: Generated from `#/components/schemas/CapabilitySetting/name`.
             package var name: Swift.String?
             /// - Remark: Generated from `#/components/schemas/CapabilitySetting/description`.
@@ -4898,13 +4898,13 @@ package enum Components {
             /// - Remark: Generated from `#/components/schemas/CapabilitySetting/visible`.
             package var visible: Swift.Bool?
             /// - Remark: Generated from `#/components/schemas/CapabilitySetting/allowedInstances`.
-            @frozen package enum allowedInstancesPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                case ENTRY = "ENTRY"
-                case SINGLE = "SINGLE"
-                case MULTIPLE = "MULTIPLE"
+            @frozen package enum AllowedInstancesPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case entry = "ENTRY"
+                case single = "SINGLE"
+                case multiple = "MULTIPLE"
             }
             /// - Remark: Generated from `#/components/schemas/CapabilitySetting/allowedInstances`.
-            package var allowedInstances: Components.Schemas.CapabilitySetting.allowedInstancesPayload?
+            package var allowedInstances: Components.Schemas.CapabilitySetting.AllowedInstancesPayload?
             /// - Remark: Generated from `#/components/schemas/CapabilitySetting/minInstances`.
             package var minInstances: Swift.Int?
             /// - Remark: Generated from `#/components/schemas/CapabilitySetting/options`.
@@ -4921,12 +4921,12 @@ package enum Components {
             ///   - minInstances:
             ///   - options:
             package init(
-                key: Components.Schemas.CapabilitySetting.keyPayload? = nil,
+                key: Components.Schemas.CapabilitySetting.KeyPayload? = nil,
                 name: Swift.String? = nil,
                 description: Swift.String? = nil,
                 enabledByDefault: Swift.Bool? = nil,
                 visible: Swift.Bool? = nil,
-                allowedInstances: Components.Schemas.CapabilitySetting.allowedInstancesPayload? = nil,
+                allowedInstances: Components.Schemas.CapabilitySetting.AllowedInstancesPayload? = nil,
                 minInstances: Swift.Int? = nil,
                 options: [Components.Schemas.CapabilityOption]? = nil
             ) {
@@ -4952,55 +4952,55 @@ package enum Components {
         }
         /// - Remark: Generated from `#/components/schemas/CapabilityType`.
         @frozen package enum CapabilityType: String, Codable, Hashable, Sendable, CaseIterable {
-            case ICLOUD = "ICLOUD"
-            case IN_APP_PURCHASE = "IN_APP_PURCHASE"
-            case GAME_CENTER = "GAME_CENTER"
-            case PUSH_NOTIFICATIONS = "PUSH_NOTIFICATIONS"
-            case WALLET = "WALLET"
-            case INTER_APP_AUDIO = "INTER_APP_AUDIO"
-            case MAPS = "MAPS"
-            case ASSOCIATED_DOMAINS = "ASSOCIATED_DOMAINS"
-            case PERSONAL_VPN = "PERSONAL_VPN"
-            case APP_GROUPS = "APP_GROUPS"
-            case HEALTHKIT = "HEALTHKIT"
-            case HOMEKIT = "HOMEKIT"
-            case WIRELESS_ACCESSORY_CONFIGURATION = "WIRELESS_ACCESSORY_CONFIGURATION"
-            case APPLE_PAY = "APPLE_PAY"
-            case DATA_PROTECTION = "DATA_PROTECTION"
-            case SIRIKIT = "SIRIKIT"
-            case NETWORK_EXTENSIONS = "NETWORK_EXTENSIONS"
-            case MULTIPATH = "MULTIPATH"
-            case HOT_SPOT = "HOT_SPOT"
-            case NFC_TAG_READING = "NFC_TAG_READING"
-            case CLASSKIT = "CLASSKIT"
-            case AUTOFILL_CREDENTIAL_PROVIDER = "AUTOFILL_CREDENTIAL_PROVIDER"
-            case ACCESS_WIFI_INFORMATION = "ACCESS_WIFI_INFORMATION"
-            case NETWORK_CUSTOM_PROTOCOL = "NETWORK_CUSTOM_PROTOCOL"
-            case COREMEDIA_HLS_LOW_LATENCY = "COREMEDIA_HLS_LOW_LATENCY"
-            case SYSTEM_EXTENSION_INSTALL = "SYSTEM_EXTENSION_INSTALL"
-            case USER_MANAGEMENT = "USER_MANAGEMENT"
-            case APPLE_ID_AUTH = "APPLE_ID_AUTH"
+            case icloud = "ICLOUD"
+            case inAppPurchase = "IN_APP_PURCHASE"
+            case gameCenter = "GAME_CENTER"
+            case pushNotifications = "PUSH_NOTIFICATIONS"
+            case wallet = "WALLET"
+            case interAppAudio = "INTER_APP_AUDIO"
+            case maps = "MAPS"
+            case associatedDomains = "ASSOCIATED_DOMAINS"
+            case personalVpn = "PERSONAL_VPN"
+            case appGroups = "APP_GROUPS"
+            case healthkit = "HEALTHKIT"
+            case homekit = "HOMEKIT"
+            case wirelessAccessoryConfiguration = "WIRELESS_ACCESSORY_CONFIGURATION"
+            case applePay = "APPLE_PAY"
+            case dataProtection = "DATA_PROTECTION"
+            case sirikit = "SIRIKIT"
+            case networkExtensions = "NETWORK_EXTENSIONS"
+            case multipath = "MULTIPATH"
+            case hotSpot = "HOT_SPOT"
+            case nfcTagReading = "NFC_TAG_READING"
+            case classkit = "CLASSKIT"
+            case autofillCredentialProvider = "AUTOFILL_CREDENTIAL_PROVIDER"
+            case accessWifiInformation = "ACCESS_WIFI_INFORMATION"
+            case networkCustomProtocol = "NETWORK_CUSTOM_PROTOCOL"
+            case coremediaHlsLowLatency = "COREMEDIA_HLS_LOW_LATENCY"
+            case systemExtensionInstall = "SYSTEM_EXTENSION_INSTALL"
+            case userManagement = "USER_MANAGEMENT"
+            case appleIdAuth = "APPLE_ID_AUTH"
         }
         /// - Remark: Generated from `#/components/schemas/CertificateType`.
         @frozen package enum CertificateType: String, Codable, Hashable, Sendable, CaseIterable {
-            case IOS_DEVELOPMENT = "IOS_DEVELOPMENT"
-            case IOS_DISTRIBUTION = "IOS_DISTRIBUTION"
-            case MAC_APP_DISTRIBUTION = "MAC_APP_DISTRIBUTION"
-            case MAC_INSTALLER_DISTRIBUTION = "MAC_INSTALLER_DISTRIBUTION"
-            case MAC_APP_DEVELOPMENT = "MAC_APP_DEVELOPMENT"
-            case DEVELOPER_ID_KEXT = "DEVELOPER_ID_KEXT"
-            case DEVELOPER_ID_KEXT_G2 = "DEVELOPER_ID_KEXT_G2"
-            case DEVELOPER_ID_APPLICATION = "DEVELOPER_ID_APPLICATION"
-            case DEVELOPER_ID_APPLICATION_G2 = "DEVELOPER_ID_APPLICATION_G2"
-            case DEVELOPMENT = "DEVELOPMENT"
-            case DISTRIBUTION = "DISTRIBUTION"
-            case PASS_TYPE_ID = "PASS_TYPE_ID"
-            case PASS_TYPE_ID_WITH_NFC = "PASS_TYPE_ID_WITH_NFC"
+            case iosDevelopment = "IOS_DEVELOPMENT"
+            case iosDistribution = "IOS_DISTRIBUTION"
+            case macAppDistribution = "MAC_APP_DISTRIBUTION"
+            case macInstallerDistribution = "MAC_INSTALLER_DISTRIBUTION"
+            case macAppDevelopment = "MAC_APP_DEVELOPMENT"
+            case developerIdKext = "DEVELOPER_ID_KEXT"
+            case developerIdKextG2 = "DEVELOPER_ID_KEXT_G2"
+            case developerIdApplication = "DEVELOPER_ID_APPLICATION"
+            case developerIdApplicationG2 = "DEVELOPER_ID_APPLICATION_G2"
+            case development = "DEVELOPMENT"
+            case distribution = "DISTRIBUTION"
+            case passTypeId = "PASS_TYPE_ID"
+            case passTypeIdWithNfc = "PASS_TYPE_ID_WITH_NFC"
         }
         /// - Remark: Generated from `#/components/schemas/SubscriptionStatusUrlVersion`.
         @frozen package enum SubscriptionStatusUrlVersion: String, Codable, Hashable, Sendable, CaseIterable {
-            case V1 = "V1"
-            case V2 = "V2"
+            case v1 = "V1"
+            case v2 = "V2"
         }
     }
     /// Types generated from the `#/components/parameters` section of the OpenAPI document.
@@ -5017,35 +5017,35 @@ package enum Components {
 package enum Operations {
     /// - Remark: HTTP `POST /v1/bundleIdCapabilities`.
     /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/post(bundleIdCapabilities_createInstance)`.
-    package enum bundleIdCapabilities_createInstance {
+    package enum BundleIdCapabilitiesCreateInstance {
         package static let id: Swift.String = "bundleIdCapabilities_createInstance"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/bundleIdCapabilities/POST/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIdCapabilities_createInstance.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdCapabilitiesCreateInstance.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIdCapabilities_createInstance.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdCapabilitiesCreateInstance.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.bundleIdCapabilities_createInstance.Input.Headers
+            package var headers: Operations.BundleIdCapabilitiesCreateInstance.Input.Headers
             /// - Remark: Generated from `#/paths/v1/bundleIdCapabilities/POST/requestBody`.
             @frozen package enum Body: Sendable, Hashable {
                 /// - Remark: Generated from `#/paths/v1/bundleIdCapabilities/POST/requestBody/content/application\/json`.
                 case json(Components.Schemas.BundleIdCapabilityCreateRequest)
             }
-            package var body: Operations.bundleIdCapabilities_createInstance.Input.Body
+            package var body: Operations.BundleIdCapabilitiesCreateInstance.Input.Body
             /// Creates a new `Input`.
             ///
             /// - Parameters:
             ///   - headers:
             ///   - body:
             package init(
-                headers: Operations.bundleIdCapabilities_createInstance.Input.Headers = .init(),
-                body: Operations.bundleIdCapabilities_createInstance.Input.Body
+                headers: Operations.BundleIdCapabilitiesCreateInstance.Input.Headers = .init(),
+                body: Operations.BundleIdCapabilitiesCreateInstance.Input.Body
             ) {
                 self.headers = headers
                 self.body = body
@@ -5071,12 +5071,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIdCapabilities_createInstance.Output.BadRequest.Body
+                package var body: Operations.BundleIdCapabilitiesCreateInstance.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIdCapabilities_createInstance.Output.BadRequest.Body) {
+                package init(body: Operations.BundleIdCapabilitiesCreateInstance.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -5085,12 +5085,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/post(bundleIdCapabilities_createInstance)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.bundleIdCapabilities_createInstance.Output.BadRequest)
+            case badRequest(Operations.BundleIdCapabilitiesCreateInstance.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.bundleIdCapabilities_createInstance.Output.BadRequest {
+            package var badRequest: Operations.BundleIdCapabilitiesCreateInstance.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -5122,12 +5122,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIdCapabilities_createInstance.Output.Unauthorized.Body
+                package var body: Operations.BundleIdCapabilitiesCreateInstance.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIdCapabilities_createInstance.Output.Unauthorized.Body) {
+                package init(body: Operations.BundleIdCapabilitiesCreateInstance.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -5136,12 +5136,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/post(bundleIdCapabilities_createInstance)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.bundleIdCapabilities_createInstance.Output.Unauthorized)
+            case unauthorized(Operations.BundleIdCapabilitiesCreateInstance.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.bundleIdCapabilities_createInstance.Output.Unauthorized {
+            package var unauthorized: Operations.BundleIdCapabilitiesCreateInstance.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -5173,12 +5173,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIdCapabilities_createInstance.Output.Forbidden.Body
+                package var body: Operations.BundleIdCapabilitiesCreateInstance.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIdCapabilities_createInstance.Output.Forbidden.Body) {
+                package init(body: Operations.BundleIdCapabilitiesCreateInstance.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -5187,12 +5187,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/post(bundleIdCapabilities_createInstance)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.bundleIdCapabilities_createInstance.Output.Forbidden)
+            case forbidden(Operations.BundleIdCapabilitiesCreateInstance.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.bundleIdCapabilities_createInstance.Output.Forbidden {
+            package var forbidden: Operations.BundleIdCapabilitiesCreateInstance.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -5224,12 +5224,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIdCapabilities_createInstance.Output.UnprocessableContent.Body
+                package var body: Operations.BundleIdCapabilitiesCreateInstance.Output.UnprocessableContent.Body
                 /// Creates a new `UnprocessableContent`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIdCapabilities_createInstance.Output.UnprocessableContent.Body) {
+                package init(body: Operations.BundleIdCapabilitiesCreateInstance.Output.UnprocessableContent.Body) {
                     self.body = body
                 }
             }
@@ -5238,12 +5238,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/post(bundleIdCapabilities_createInstance)/responses/422`.
             ///
             /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.bundleIdCapabilities_createInstance.Output.UnprocessableContent)
+            case unprocessableContent(Operations.BundleIdCapabilitiesCreateInstance.Output.UnprocessableContent)
             /// The associated value of the enum case if `self` is `.unprocessableContent`.
             ///
             /// - Throws: An error if `self` is not `.unprocessableContent`.
             /// - SeeAlso: `.unprocessableContent`.
-            package var unprocessableContent: Operations.bundleIdCapabilities_createInstance.Output.UnprocessableContent {
+            package var unprocessableContent: Operations.BundleIdCapabilitiesCreateInstance.Output.UnprocessableContent {
                 get throws {
                     switch self {
                     case let .unprocessableContent(response):
@@ -5275,12 +5275,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIdCapabilities_createInstance.Output.Created.Body
+                package var body: Operations.BundleIdCapabilitiesCreateInstance.Output.Created.Body
                 /// Creates a new `Created`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIdCapabilities_createInstance.Output.Created.Body) {
+                package init(body: Operations.BundleIdCapabilitiesCreateInstance.Output.Created.Body) {
                     self.body = body
                 }
             }
@@ -5289,12 +5289,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/post(bundleIdCapabilities_createInstance)/responses/201`.
             ///
             /// HTTP response code: `201 created`.
-            case created(Operations.bundleIdCapabilities_createInstance.Output.Created)
+            case created(Operations.BundleIdCapabilitiesCreateInstance.Output.Created)
             /// The associated value of the enum case if `self` is `.created`.
             ///
             /// - Throws: An error if `self` is not `.created`.
             /// - SeeAlso: `.created`.
-            package var created: Operations.bundleIdCapabilities_createInstance.Output.Created {
+            package var created: Operations.BundleIdCapabilitiesCreateInstance.Output.Created {
                 get throws {
                     switch self {
                     case let .created(response):
@@ -5326,12 +5326,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIdCapabilities_createInstance.Output.Conflict.Body
+                package var body: Operations.BundleIdCapabilitiesCreateInstance.Output.Conflict.Body
                 /// Creates a new `Conflict`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIdCapabilities_createInstance.Output.Conflict.Body) {
+                package init(body: Operations.BundleIdCapabilitiesCreateInstance.Output.Conflict.Body) {
                     self.body = body
                 }
             }
@@ -5340,12 +5340,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/post(bundleIdCapabilities_createInstance)/responses/409`.
             ///
             /// HTTP response code: `409 conflict`.
-            case conflict(Operations.bundleIdCapabilities_createInstance.Output.Conflict)
+            case conflict(Operations.BundleIdCapabilitiesCreateInstance.Output.Conflict)
             /// The associated value of the enum case if `self` is `.conflict`.
             ///
             /// - Throws: An error if `self` is not `.conflict`.
             /// - SeeAlso: `.conflict`.
-            package var conflict: Operations.bundleIdCapabilities_createInstance.Output.Conflict {
+            package var conflict: Operations.BundleIdCapabilitiesCreateInstance.Output.Conflict {
                 get throws {
                     switch self {
                     case let .conflict(response):
@@ -5391,7 +5391,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `PATCH /v1/bundleIdCapabilities/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/patch(bundleIdCapabilities_updateInstance)`.
-    package enum bundleIdCapabilities_updateInstance {
+    package enum BundleIdCapabilitiesUpdateInstance {
         package static let id: Swift.String = "bundleIdCapabilities_updateInstance"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/bundleIdCapabilities/{id}/PATCH/path`.
@@ -5408,25 +5408,25 @@ package enum Operations {
                     self.id = id
                 }
             }
-            package var path: Operations.bundleIdCapabilities_updateInstance.Input.Path
+            package var path: Operations.BundleIdCapabilitiesUpdateInstance.Input.Path
             /// - Remark: Generated from `#/paths/v1/bundleIdCapabilities/{id}/PATCH/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIdCapabilities_updateInstance.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdCapabilitiesUpdateInstance.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIdCapabilities_updateInstance.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdCapabilitiesUpdateInstance.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.bundleIdCapabilities_updateInstance.Input.Headers
+            package var headers: Operations.BundleIdCapabilitiesUpdateInstance.Input.Headers
             /// - Remark: Generated from `#/paths/v1/bundleIdCapabilities/{id}/PATCH/requestBody`.
             @frozen package enum Body: Sendable, Hashable {
                 /// - Remark: Generated from `#/paths/v1/bundleIdCapabilities/{id}/PATCH/requestBody/content/application\/json`.
                 case json(Components.Schemas.BundleIdCapabilityUpdateRequest)
             }
-            package var body: Operations.bundleIdCapabilities_updateInstance.Input.Body
+            package var body: Operations.BundleIdCapabilitiesUpdateInstance.Input.Body
             /// Creates a new `Input`.
             ///
             /// - Parameters:
@@ -5434,9 +5434,9 @@ package enum Operations {
             ///   - headers:
             ///   - body:
             package init(
-                path: Operations.bundleIdCapabilities_updateInstance.Input.Path,
-                headers: Operations.bundleIdCapabilities_updateInstance.Input.Headers = .init(),
-                body: Operations.bundleIdCapabilities_updateInstance.Input.Body
+                path: Operations.BundleIdCapabilitiesUpdateInstance.Input.Path,
+                headers: Operations.BundleIdCapabilitiesUpdateInstance.Input.Headers = .init(),
+                body: Operations.BundleIdCapabilitiesUpdateInstance.Input.Body
             ) {
                 self.path = path
                 self.headers = headers
@@ -5463,12 +5463,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIdCapabilities_updateInstance.Output.BadRequest.Body
+                package var body: Operations.BundleIdCapabilitiesUpdateInstance.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIdCapabilities_updateInstance.Output.BadRequest.Body) {
+                package init(body: Operations.BundleIdCapabilitiesUpdateInstance.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -5477,12 +5477,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/patch(bundleIdCapabilities_updateInstance)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.bundleIdCapabilities_updateInstance.Output.BadRequest)
+            case badRequest(Operations.BundleIdCapabilitiesUpdateInstance.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.bundleIdCapabilities_updateInstance.Output.BadRequest {
+            package var badRequest: Operations.BundleIdCapabilitiesUpdateInstance.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -5514,12 +5514,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIdCapabilities_updateInstance.Output.Unauthorized.Body
+                package var body: Operations.BundleIdCapabilitiesUpdateInstance.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIdCapabilities_updateInstance.Output.Unauthorized.Body) {
+                package init(body: Operations.BundleIdCapabilitiesUpdateInstance.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -5528,12 +5528,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/patch(bundleIdCapabilities_updateInstance)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.bundleIdCapabilities_updateInstance.Output.Unauthorized)
+            case unauthorized(Operations.BundleIdCapabilitiesUpdateInstance.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.bundleIdCapabilities_updateInstance.Output.Unauthorized {
+            package var unauthorized: Operations.BundleIdCapabilitiesUpdateInstance.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -5565,12 +5565,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIdCapabilities_updateInstance.Output.Forbidden.Body
+                package var body: Operations.BundleIdCapabilitiesUpdateInstance.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIdCapabilities_updateInstance.Output.Forbidden.Body) {
+                package init(body: Operations.BundleIdCapabilitiesUpdateInstance.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -5579,12 +5579,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/patch(bundleIdCapabilities_updateInstance)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.bundleIdCapabilities_updateInstance.Output.Forbidden)
+            case forbidden(Operations.BundleIdCapabilitiesUpdateInstance.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.bundleIdCapabilities_updateInstance.Output.Forbidden {
+            package var forbidden: Operations.BundleIdCapabilitiesUpdateInstance.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -5616,12 +5616,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIdCapabilities_updateInstance.Output.NotFound.Body
+                package var body: Operations.BundleIdCapabilitiesUpdateInstance.Output.NotFound.Body
                 /// Creates a new `NotFound`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIdCapabilities_updateInstance.Output.NotFound.Body) {
+                package init(body: Operations.BundleIdCapabilitiesUpdateInstance.Output.NotFound.Body) {
                     self.body = body
                 }
             }
@@ -5630,12 +5630,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/patch(bundleIdCapabilities_updateInstance)/responses/404`.
             ///
             /// HTTP response code: `404 notFound`.
-            case notFound(Operations.bundleIdCapabilities_updateInstance.Output.NotFound)
+            case notFound(Operations.BundleIdCapabilitiesUpdateInstance.Output.NotFound)
             /// The associated value of the enum case if `self` is `.notFound`.
             ///
             /// - Throws: An error if `self` is not `.notFound`.
             /// - SeeAlso: `.notFound`.
-            package var notFound: Operations.bundleIdCapabilities_updateInstance.Output.NotFound {
+            package var notFound: Operations.BundleIdCapabilitiesUpdateInstance.Output.NotFound {
                 get throws {
                     switch self {
                     case let .notFound(response):
@@ -5667,12 +5667,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIdCapabilities_updateInstance.Output.UnprocessableContent.Body
+                package var body: Operations.BundleIdCapabilitiesUpdateInstance.Output.UnprocessableContent.Body
                 /// Creates a new `UnprocessableContent`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIdCapabilities_updateInstance.Output.UnprocessableContent.Body) {
+                package init(body: Operations.BundleIdCapabilitiesUpdateInstance.Output.UnprocessableContent.Body) {
                     self.body = body
                 }
             }
@@ -5681,12 +5681,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/patch(bundleIdCapabilities_updateInstance)/responses/422`.
             ///
             /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.bundleIdCapabilities_updateInstance.Output.UnprocessableContent)
+            case unprocessableContent(Operations.BundleIdCapabilitiesUpdateInstance.Output.UnprocessableContent)
             /// The associated value of the enum case if `self` is `.unprocessableContent`.
             ///
             /// - Throws: An error if `self` is not `.unprocessableContent`.
             /// - SeeAlso: `.unprocessableContent`.
-            package var unprocessableContent: Operations.bundleIdCapabilities_updateInstance.Output.UnprocessableContent {
+            package var unprocessableContent: Operations.BundleIdCapabilitiesUpdateInstance.Output.UnprocessableContent {
                 get throws {
                     switch self {
                     case let .unprocessableContent(response):
@@ -5718,12 +5718,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIdCapabilities_updateInstance.Output.Ok.Body
+                package var body: Operations.BundleIdCapabilitiesUpdateInstance.Output.Ok.Body
                 /// Creates a new `Ok`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIdCapabilities_updateInstance.Output.Ok.Body) {
+                package init(body: Operations.BundleIdCapabilitiesUpdateInstance.Output.Ok.Body) {
                     self.body = body
                 }
             }
@@ -5732,12 +5732,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/patch(bundleIdCapabilities_updateInstance)/responses/200`.
             ///
             /// HTTP response code: `200 ok`.
-            case ok(Operations.bundleIdCapabilities_updateInstance.Output.Ok)
+            case ok(Operations.BundleIdCapabilitiesUpdateInstance.Output.Ok)
             /// The associated value of the enum case if `self` is `.ok`.
             ///
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
-            package var ok: Operations.bundleIdCapabilities_updateInstance.Output.Ok {
+            package var ok: Operations.BundleIdCapabilitiesUpdateInstance.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):
@@ -5769,12 +5769,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIdCapabilities_updateInstance.Output.Conflict.Body
+                package var body: Operations.BundleIdCapabilitiesUpdateInstance.Output.Conflict.Body
                 /// Creates a new `Conflict`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIdCapabilities_updateInstance.Output.Conflict.Body) {
+                package init(body: Operations.BundleIdCapabilitiesUpdateInstance.Output.Conflict.Body) {
                     self.body = body
                 }
             }
@@ -5783,12 +5783,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/patch(bundleIdCapabilities_updateInstance)/responses/409`.
             ///
             /// HTTP response code: `409 conflict`.
-            case conflict(Operations.bundleIdCapabilities_updateInstance.Output.Conflict)
+            case conflict(Operations.BundleIdCapabilitiesUpdateInstance.Output.Conflict)
             /// The associated value of the enum case if `self` is `.conflict`.
             ///
             /// - Throws: An error if `self` is not `.conflict`.
             /// - SeeAlso: `.conflict`.
-            package var conflict: Operations.bundleIdCapabilities_updateInstance.Output.Conflict {
+            package var conflict: Operations.BundleIdCapabilitiesUpdateInstance.Output.Conflict {
                 get throws {
                     switch self {
                     case let .conflict(response):
@@ -5834,7 +5834,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `DELETE /v1/bundleIdCapabilities/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/delete(bundleIdCapabilities_deleteInstance)`.
-    package enum bundleIdCapabilities_deleteInstance {
+    package enum BundleIdCapabilitiesDeleteInstance {
         package static let id: Swift.String = "bundleIdCapabilities_deleteInstance"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/bundleIdCapabilities/{id}/DELETE/path`.
@@ -5851,27 +5851,27 @@ package enum Operations {
                     self.id = id
                 }
             }
-            package var path: Operations.bundleIdCapabilities_deleteInstance.Input.Path
+            package var path: Operations.BundleIdCapabilitiesDeleteInstance.Input.Path
             /// - Remark: Generated from `#/paths/v1/bundleIdCapabilities/{id}/DELETE/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIdCapabilities_deleteInstance.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdCapabilitiesDeleteInstance.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIdCapabilities_deleteInstance.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdCapabilitiesDeleteInstance.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.bundleIdCapabilities_deleteInstance.Input.Headers
+            package var headers: Operations.BundleIdCapabilitiesDeleteInstance.Input.Headers
             /// Creates a new `Input`.
             ///
             /// - Parameters:
             ///   - path:
             ///   - headers:
             package init(
-                path: Operations.bundleIdCapabilities_deleteInstance.Input.Path,
-                headers: Operations.bundleIdCapabilities_deleteInstance.Input.Headers = .init()
+                path: Operations.BundleIdCapabilitiesDeleteInstance.Input.Path,
+                headers: Operations.BundleIdCapabilitiesDeleteInstance.Input.Headers = .init()
             ) {
                 self.path = path
                 self.headers = headers
@@ -5897,12 +5897,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIdCapabilities_deleteInstance.Output.BadRequest.Body
+                package var body: Operations.BundleIdCapabilitiesDeleteInstance.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIdCapabilities_deleteInstance.Output.BadRequest.Body) {
+                package init(body: Operations.BundleIdCapabilitiesDeleteInstance.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -5911,12 +5911,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/delete(bundleIdCapabilities_deleteInstance)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.bundleIdCapabilities_deleteInstance.Output.BadRequest)
+            case badRequest(Operations.BundleIdCapabilitiesDeleteInstance.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.bundleIdCapabilities_deleteInstance.Output.BadRequest {
+            package var badRequest: Operations.BundleIdCapabilitiesDeleteInstance.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -5948,12 +5948,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIdCapabilities_deleteInstance.Output.Unauthorized.Body
+                package var body: Operations.BundleIdCapabilitiesDeleteInstance.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIdCapabilities_deleteInstance.Output.Unauthorized.Body) {
+                package init(body: Operations.BundleIdCapabilitiesDeleteInstance.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -5962,12 +5962,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/delete(bundleIdCapabilities_deleteInstance)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.bundleIdCapabilities_deleteInstance.Output.Unauthorized)
+            case unauthorized(Operations.BundleIdCapabilitiesDeleteInstance.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.bundleIdCapabilities_deleteInstance.Output.Unauthorized {
+            package var unauthorized: Operations.BundleIdCapabilitiesDeleteInstance.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -5999,12 +5999,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIdCapabilities_deleteInstance.Output.Forbidden.Body
+                package var body: Operations.BundleIdCapabilitiesDeleteInstance.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIdCapabilities_deleteInstance.Output.Forbidden.Body) {
+                package init(body: Operations.BundleIdCapabilitiesDeleteInstance.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -6013,12 +6013,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/delete(bundleIdCapabilities_deleteInstance)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.bundleIdCapabilities_deleteInstance.Output.Forbidden)
+            case forbidden(Operations.BundleIdCapabilitiesDeleteInstance.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.bundleIdCapabilities_deleteInstance.Output.Forbidden {
+            package var forbidden: Operations.BundleIdCapabilitiesDeleteInstance.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -6050,12 +6050,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIdCapabilities_deleteInstance.Output.NotFound.Body
+                package var body: Operations.BundleIdCapabilitiesDeleteInstance.Output.NotFound.Body
                 /// Creates a new `NotFound`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIdCapabilities_deleteInstance.Output.NotFound.Body) {
+                package init(body: Operations.BundleIdCapabilitiesDeleteInstance.Output.NotFound.Body) {
                     self.body = body
                 }
             }
@@ -6064,12 +6064,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/delete(bundleIdCapabilities_deleteInstance)/responses/404`.
             ///
             /// HTTP response code: `404 notFound`.
-            case notFound(Operations.bundleIdCapabilities_deleteInstance.Output.NotFound)
+            case notFound(Operations.BundleIdCapabilitiesDeleteInstance.Output.NotFound)
             /// The associated value of the enum case if `self` is `.notFound`.
             ///
             /// - Throws: An error if `self` is not `.notFound`.
             /// - SeeAlso: `.notFound`.
-            package var notFound: Operations.bundleIdCapabilities_deleteInstance.Output.NotFound {
+            package var notFound: Operations.BundleIdCapabilitiesDeleteInstance.Output.NotFound {
                 get throws {
                     switch self {
                     case let .notFound(response):
@@ -6101,12 +6101,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIdCapabilities_deleteInstance.Output.Conflict.Body
+                package var body: Operations.BundleIdCapabilitiesDeleteInstance.Output.Conflict.Body
                 /// Creates a new `Conflict`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIdCapabilities_deleteInstance.Output.Conflict.Body) {
+                package init(body: Operations.BundleIdCapabilitiesDeleteInstance.Output.Conflict.Body) {
                     self.body = body
                 }
             }
@@ -6115,12 +6115,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/delete(bundleIdCapabilities_deleteInstance)/responses/409`.
             ///
             /// HTTP response code: `409 conflict`.
-            case conflict(Operations.bundleIdCapabilities_deleteInstance.Output.Conflict)
+            case conflict(Operations.BundleIdCapabilitiesDeleteInstance.Output.Conflict)
             /// The associated value of the enum case if `self` is `.conflict`.
             ///
             /// - Throws: An error if `self` is not `.conflict`.
             /// - SeeAlso: `.conflict`.
-            package var conflict: Operations.bundleIdCapabilities_deleteInstance.Output.Conflict {
+            package var conflict: Operations.BundleIdCapabilitiesDeleteInstance.Output.Conflict {
                 get throws {
                     switch self {
                     case let .conflict(response):
@@ -6142,7 +6142,7 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/delete(bundleIdCapabilities_deleteInstance)/responses/204`.
             ///
             /// HTTP response code: `204 noContent`.
-            case noContent(Operations.bundleIdCapabilities_deleteInstance.Output.NoContent)
+            case noContent(Operations.BundleIdCapabilitiesDeleteInstance.Output.NoContent)
             /// Success (no content)
             ///
             /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/delete(bundleIdCapabilities_deleteInstance)/responses/204`.
@@ -6155,7 +6155,7 @@ package enum Operations {
             ///
             /// - Throws: An error if `self` is not `.noContent`.
             /// - SeeAlso: `.noContent`.
-            package var noContent: Operations.bundleIdCapabilities_deleteInstance.Output.NoContent {
+            package var noContent: Operations.BundleIdCapabilitiesDeleteInstance.Output.NoContent {
                 get throws {
                     switch self {
                     case let .noContent(response):
@@ -6201,7 +6201,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `GET /v1/bundleIds`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/get(bundleIds_getCollection)`.
-    package enum bundleIds_getCollection {
+    package enum BundleIdsGetCollection {
         package static let id: Swift.String = "bundleIds_getCollection"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query`.
@@ -6210,18 +6210,18 @@ package enum Operations {
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/filter[name]`.
                 package var filter_lbrack_name_rbrack_: [Swift.String]?
-                /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/filter_lbrack_platform_rbrack_Payload`.
-                @frozen package enum filter_lbrack_platform_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                    case IOS = "IOS"
-                    case MAC_OS = "MAC_OS"
-                    case UNIVERSAL = "UNIVERSAL"
+                /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/Filter_lbrack_platform_rbrack_Payload`.
+                @frozen package enum FilterLbrackPlatformRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case ios = "IOS"
+                    case macOs = "MAC_OS"
+                    case universal = "UNIVERSAL"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/filter[platform]`.
-                package typealias filter_lbrack_platform_rbrack_Payload = [Operations.bundleIds_getCollection.Input.Query.filter_lbrack_platform_rbrack_PayloadPayload]
+                package typealias Filter_lbrack_platform_rbrack_Payload = [Operations.BundleIdsGetCollection.Input.Query.FilterLbrackPlatformRbrackPayloadPayload]
                 /// filter by attribute 'platform'
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/filter[platform]`.
-                package var filter_lbrack_platform_rbrack_: Operations.bundleIds_getCollection.Input.Query.filter_lbrack_platform_rbrack_Payload?
+                package var filter_lbrack_platform_rbrack_: Operations.BundleIdsGetCollection.Input.Query.Filter_lbrack_platform_rbrack_Payload?
                 /// filter by attribute 'identifier'
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/filter[identifier]`.
@@ -6234,8 +6234,8 @@ package enum Operations {
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/filter[id]`.
                 package var filter_lbrack_id_rbrack_: [Swift.String]?
-                /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/sortPayload`.
-                @frozen package enum sortPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/SortPayload`.
+                @frozen package enum SortPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case _hyphen_name = "-name"
                     case platform = "platform"
@@ -6248,13 +6248,13 @@ package enum Operations {
                     case _hyphen_id = "-id"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/sort`.
-                package typealias sortPayload = [Operations.bundleIds_getCollection.Input.Query.sortPayloadPayload]
+                package typealias SortPayload = [Operations.BundleIdsGetCollection.Input.Query.SortPayloadPayload]
                 /// comma-separated list of sort expressions; resources will be sorted as specified
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/sort`.
-                package var sort: Operations.bundleIds_getCollection.Input.Query.sortPayload?
-                /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/fields_lbrack_bundleIds_rbrack_Payload`.
-                @frozen package enum fields_lbrack_bundleIds_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                package var sort: Operations.BundleIdsGetCollection.Input.Query.SortPayload?
+                /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/Fields_lbrack_bundleIds_rbrack_Payload`.
+                @frozen package enum FieldsLbrackBundleIdsRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case platform = "platform"
                     case identifier = "identifier"
@@ -6264,13 +6264,13 @@ package enum Operations {
                     case app = "app"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/fields[bundleIds]`.
-                package typealias fields_lbrack_bundleIds_rbrack_Payload = [Operations.bundleIds_getCollection.Input.Query.fields_lbrack_bundleIds_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_bundleIds_rbrack_Payload = [Operations.BundleIdsGetCollection.Input.Query.FieldsLbrackBundleIdsRbrackPayloadPayload]
                 /// the fields to include for returned resources of type bundleIds
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/fields[bundleIds]`.
-                package var fields_lbrack_bundleIds_rbrack_: Operations.bundleIds_getCollection.Input.Query.fields_lbrack_bundleIds_rbrack_Payload?
-                /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/fields_lbrack_profiles_rbrack_Payload`.
-                @frozen package enum fields_lbrack_profiles_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                package var fields_lbrack_bundleIds_rbrack_: Operations.BundleIdsGetCollection.Input.Query.Fields_lbrack_bundleIds_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/Fields_lbrack_profiles_rbrack_Payload`.
+                @frozen package enum FieldsLbrackProfilesRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case platform = "platform"
                     case profileType = "profileType"
@@ -6284,24 +6284,24 @@ package enum Operations {
                     case certificates = "certificates"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/fields[profiles]`.
-                package typealias fields_lbrack_profiles_rbrack_Payload = [Operations.bundleIds_getCollection.Input.Query.fields_lbrack_profiles_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_profiles_rbrack_Payload = [Operations.BundleIdsGetCollection.Input.Query.FieldsLbrackProfilesRbrackPayloadPayload]
                 /// the fields to include for returned resources of type profiles
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/fields[profiles]`.
-                package var fields_lbrack_profiles_rbrack_: Operations.bundleIds_getCollection.Input.Query.fields_lbrack_profiles_rbrack_Payload?
-                /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/fields_lbrack_bundleIdCapabilities_rbrack_Payload`.
-                @frozen package enum fields_lbrack_bundleIdCapabilities_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                package var fields_lbrack_profiles_rbrack_: Operations.BundleIdsGetCollection.Input.Query.Fields_lbrack_profiles_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/Fields_lbrack_bundleIdCapabilities_rbrack_Payload`.
+                @frozen package enum FieldsLbrackBundleIdCapabilitiesRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case capabilityType = "capabilityType"
                     case settings = "settings"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/fields[bundleIdCapabilities]`.
-                package typealias fields_lbrack_bundleIdCapabilities_rbrack_Payload = [Operations.bundleIds_getCollection.Input.Query.fields_lbrack_bundleIdCapabilities_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_bundleIdCapabilities_rbrack_Payload = [Operations.BundleIdsGetCollection.Input.Query.FieldsLbrackBundleIdCapabilitiesRbrackPayloadPayload]
                 /// the fields to include for returned resources of type bundleIdCapabilities
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/fields[bundleIdCapabilities]`.
-                package var fields_lbrack_bundleIdCapabilities_rbrack_: Operations.bundleIds_getCollection.Input.Query.fields_lbrack_bundleIdCapabilities_rbrack_Payload?
-                /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/fields_lbrack_apps_rbrack_Payload`.
-                @frozen package enum fields_lbrack_apps_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                package var fields_lbrack_bundleIdCapabilities_rbrack_: Operations.BundleIdsGetCollection.Input.Query.Fields_lbrack_bundleIdCapabilities_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/Fields_lbrack_apps_rbrack_Payload`.
+                @frozen package enum FieldsLbrackAppsRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case bundleId = "bundleId"
                     case sku = "sku"
@@ -6347,27 +6347,27 @@ package enum Operations {
                     case marketplaceSearchDetail = "marketplaceSearchDetail"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/fields[apps]`.
-                package typealias fields_lbrack_apps_rbrack_Payload = [Operations.bundleIds_getCollection.Input.Query.fields_lbrack_apps_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_apps_rbrack_Payload = [Operations.BundleIdsGetCollection.Input.Query.FieldsLbrackAppsRbrackPayloadPayload]
                 /// the fields to include for returned resources of type apps
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/fields[apps]`.
-                package var fields_lbrack_apps_rbrack_: Operations.bundleIds_getCollection.Input.Query.fields_lbrack_apps_rbrack_Payload?
+                package var fields_lbrack_apps_rbrack_: Operations.BundleIdsGetCollection.Input.Query.Fields_lbrack_apps_rbrack_Payload?
                 /// maximum resources per page
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/limit`.
                 package var limit: Swift.Int?
-                /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/includePayload`.
-                @frozen package enum includePayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/IncludePayload`.
+                @frozen package enum IncludePayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case profiles = "profiles"
                     case bundleIdCapabilities = "bundleIdCapabilities"
                     case app = "app"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/include`.
-                package typealias includePayload = [Operations.bundleIds_getCollection.Input.Query.includePayloadPayload]
+                package typealias IncludePayload = [Operations.BundleIdsGetCollection.Input.Query.IncludePayloadPayload]
                 /// comma-separated list of relationships to include
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/include`.
-                package var include: Operations.bundleIds_getCollection.Input.Query.includePayload?
+                package var include: Operations.BundleIdsGetCollection.Input.Query.IncludePayload?
                 /// maximum number of related bundleIdCapabilities returned (when they are included)
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/limit[bundleIdCapabilities]`.
@@ -6395,17 +6395,17 @@ package enum Operations {
                 ///   - limit_lbrack_profiles_rbrack_: maximum number of related profiles returned (when they are included)
                 package init(
                     filter_lbrack_name_rbrack_: [Swift.String]? = nil,
-                    filter_lbrack_platform_rbrack_: Operations.bundleIds_getCollection.Input.Query.filter_lbrack_platform_rbrack_Payload? = nil,
+                    filter_lbrack_platform_rbrack_: Operations.BundleIdsGetCollection.Input.Query.Filter_lbrack_platform_rbrack_Payload? = nil,
                     filter_lbrack_identifier_rbrack_: [Swift.String]? = nil,
                     filter_lbrack_seedId_rbrack_: [Swift.String]? = nil,
                     filter_lbrack_id_rbrack_: [Swift.String]? = nil,
-                    sort: Operations.bundleIds_getCollection.Input.Query.sortPayload? = nil,
-                    fields_lbrack_bundleIds_rbrack_: Operations.bundleIds_getCollection.Input.Query.fields_lbrack_bundleIds_rbrack_Payload? = nil,
-                    fields_lbrack_profiles_rbrack_: Operations.bundleIds_getCollection.Input.Query.fields_lbrack_profiles_rbrack_Payload? = nil,
-                    fields_lbrack_bundleIdCapabilities_rbrack_: Operations.bundleIds_getCollection.Input.Query.fields_lbrack_bundleIdCapabilities_rbrack_Payload? = nil,
-                    fields_lbrack_apps_rbrack_: Operations.bundleIds_getCollection.Input.Query.fields_lbrack_apps_rbrack_Payload? = nil,
+                    sort: Operations.BundleIdsGetCollection.Input.Query.SortPayload? = nil,
+                    fields_lbrack_bundleIds_rbrack_: Operations.BundleIdsGetCollection.Input.Query.Fields_lbrack_bundleIds_rbrack_Payload? = nil,
+                    fields_lbrack_profiles_rbrack_: Operations.BundleIdsGetCollection.Input.Query.Fields_lbrack_profiles_rbrack_Payload? = nil,
+                    fields_lbrack_bundleIdCapabilities_rbrack_: Operations.BundleIdsGetCollection.Input.Query.Fields_lbrack_bundleIdCapabilities_rbrack_Payload? = nil,
+                    fields_lbrack_apps_rbrack_: Operations.BundleIdsGetCollection.Input.Query.Fields_lbrack_apps_rbrack_Payload? = nil,
                     limit: Swift.Int? = nil,
-                    include: Operations.bundleIds_getCollection.Input.Query.includePayload? = nil,
+                    include: Operations.BundleIdsGetCollection.Input.Query.IncludePayload? = nil,
                     limit_lbrack_bundleIdCapabilities_rbrack_: Swift.Int? = nil,
                     limit_lbrack_profiles_rbrack_: Swift.Int? = nil
                 ) {
@@ -6425,27 +6425,27 @@ package enum Operations {
                     self.limit_lbrack_profiles_rbrack_ = limit_lbrack_profiles_rbrack_
                 }
             }
-            package var query: Operations.bundleIds_getCollection.Input.Query
+            package var query: Operations.BundleIdsGetCollection.Input.Query
             /// - Remark: Generated from `#/paths/v1/bundleIds/GET/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIds_getCollection.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsGetCollection.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIds_getCollection.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsGetCollection.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.bundleIds_getCollection.Input.Headers
+            package var headers: Operations.BundleIdsGetCollection.Input.Headers
             /// Creates a new `Input`.
             ///
             /// - Parameters:
             ///   - query:
             ///   - headers:
             package init(
-                query: Operations.bundleIds_getCollection.Input.Query = .init(),
-                headers: Operations.bundleIds_getCollection.Input.Headers = .init()
+                query: Operations.BundleIdsGetCollection.Input.Query = .init(),
+                headers: Operations.BundleIdsGetCollection.Input.Headers = .init()
             ) {
                 self.query = query
                 self.headers = headers
@@ -6471,12 +6471,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_getCollection.Output.BadRequest.Body
+                package var body: Operations.BundleIdsGetCollection.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_getCollection.Output.BadRequest.Body) {
+                package init(body: Operations.BundleIdsGetCollection.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -6485,12 +6485,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/get(bundleIds_getCollection)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.bundleIds_getCollection.Output.BadRequest)
+            case badRequest(Operations.BundleIdsGetCollection.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.bundleIds_getCollection.Output.BadRequest {
+            package var badRequest: Operations.BundleIdsGetCollection.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -6522,12 +6522,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_getCollection.Output.Unauthorized.Body
+                package var body: Operations.BundleIdsGetCollection.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_getCollection.Output.Unauthorized.Body) {
+                package init(body: Operations.BundleIdsGetCollection.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -6536,12 +6536,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/get(bundleIds_getCollection)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.bundleIds_getCollection.Output.Unauthorized)
+            case unauthorized(Operations.BundleIdsGetCollection.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.bundleIds_getCollection.Output.Unauthorized {
+            package var unauthorized: Operations.BundleIdsGetCollection.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -6573,12 +6573,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_getCollection.Output.Forbidden.Body
+                package var body: Operations.BundleIdsGetCollection.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_getCollection.Output.Forbidden.Body) {
+                package init(body: Operations.BundleIdsGetCollection.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -6587,12 +6587,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/get(bundleIds_getCollection)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.bundleIds_getCollection.Output.Forbidden)
+            case forbidden(Operations.BundleIdsGetCollection.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.bundleIds_getCollection.Output.Forbidden {
+            package var forbidden: Operations.BundleIdsGetCollection.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -6624,12 +6624,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_getCollection.Output.Ok.Body
+                package var body: Operations.BundleIdsGetCollection.Output.Ok.Body
                 /// Creates a new `Ok`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_getCollection.Output.Ok.Body) {
+                package init(body: Operations.BundleIdsGetCollection.Output.Ok.Body) {
                     self.body = body
                 }
             }
@@ -6638,12 +6638,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/get(bundleIds_getCollection)/responses/200`.
             ///
             /// HTTP response code: `200 ok`.
-            case ok(Operations.bundleIds_getCollection.Output.Ok)
+            case ok(Operations.BundleIdsGetCollection.Output.Ok)
             /// The associated value of the enum case if `self` is `.ok`.
             ///
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
-            package var ok: Operations.bundleIds_getCollection.Output.Ok {
+            package var ok: Operations.BundleIdsGetCollection.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):
@@ -6689,35 +6689,35 @@ package enum Operations {
     }
     /// - Remark: HTTP `POST /v1/bundleIds`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/post(bundleIds_createInstance)`.
-    package enum bundleIds_createInstance {
+    package enum BundleIdsCreateInstance {
         package static let id: Swift.String = "bundleIds_createInstance"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/bundleIds/POST/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIds_createInstance.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsCreateInstance.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIds_createInstance.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsCreateInstance.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.bundleIds_createInstance.Input.Headers
+            package var headers: Operations.BundleIdsCreateInstance.Input.Headers
             /// - Remark: Generated from `#/paths/v1/bundleIds/POST/requestBody`.
             @frozen package enum Body: Sendable, Hashable {
                 /// - Remark: Generated from `#/paths/v1/bundleIds/POST/requestBody/content/application\/json`.
                 case json(Components.Schemas.BundleIdCreateRequest)
             }
-            package var body: Operations.bundleIds_createInstance.Input.Body
+            package var body: Operations.BundleIdsCreateInstance.Input.Body
             /// Creates a new `Input`.
             ///
             /// - Parameters:
             ///   - headers:
             ///   - body:
             package init(
-                headers: Operations.bundleIds_createInstance.Input.Headers = .init(),
-                body: Operations.bundleIds_createInstance.Input.Body
+                headers: Operations.BundleIdsCreateInstance.Input.Headers = .init(),
+                body: Operations.BundleIdsCreateInstance.Input.Body
             ) {
                 self.headers = headers
                 self.body = body
@@ -6743,12 +6743,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_createInstance.Output.BadRequest.Body
+                package var body: Operations.BundleIdsCreateInstance.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_createInstance.Output.BadRequest.Body) {
+                package init(body: Operations.BundleIdsCreateInstance.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -6757,12 +6757,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/post(bundleIds_createInstance)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.bundleIds_createInstance.Output.BadRequest)
+            case badRequest(Operations.BundleIdsCreateInstance.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.bundleIds_createInstance.Output.BadRequest {
+            package var badRequest: Operations.BundleIdsCreateInstance.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -6794,12 +6794,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_createInstance.Output.Unauthorized.Body
+                package var body: Operations.BundleIdsCreateInstance.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_createInstance.Output.Unauthorized.Body) {
+                package init(body: Operations.BundleIdsCreateInstance.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -6808,12 +6808,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/post(bundleIds_createInstance)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.bundleIds_createInstance.Output.Unauthorized)
+            case unauthorized(Operations.BundleIdsCreateInstance.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.bundleIds_createInstance.Output.Unauthorized {
+            package var unauthorized: Operations.BundleIdsCreateInstance.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -6845,12 +6845,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_createInstance.Output.Forbidden.Body
+                package var body: Operations.BundleIdsCreateInstance.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_createInstance.Output.Forbidden.Body) {
+                package init(body: Operations.BundleIdsCreateInstance.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -6859,12 +6859,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/post(bundleIds_createInstance)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.bundleIds_createInstance.Output.Forbidden)
+            case forbidden(Operations.BundleIdsCreateInstance.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.bundleIds_createInstance.Output.Forbidden {
+            package var forbidden: Operations.BundleIdsCreateInstance.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -6896,12 +6896,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_createInstance.Output.UnprocessableContent.Body
+                package var body: Operations.BundleIdsCreateInstance.Output.UnprocessableContent.Body
                 /// Creates a new `UnprocessableContent`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_createInstance.Output.UnprocessableContent.Body) {
+                package init(body: Operations.BundleIdsCreateInstance.Output.UnprocessableContent.Body) {
                     self.body = body
                 }
             }
@@ -6910,12 +6910,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/post(bundleIds_createInstance)/responses/422`.
             ///
             /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.bundleIds_createInstance.Output.UnprocessableContent)
+            case unprocessableContent(Operations.BundleIdsCreateInstance.Output.UnprocessableContent)
             /// The associated value of the enum case if `self` is `.unprocessableContent`.
             ///
             /// - Throws: An error if `self` is not `.unprocessableContent`.
             /// - SeeAlso: `.unprocessableContent`.
-            package var unprocessableContent: Operations.bundleIds_createInstance.Output.UnprocessableContent {
+            package var unprocessableContent: Operations.BundleIdsCreateInstance.Output.UnprocessableContent {
                 get throws {
                     switch self {
                     case let .unprocessableContent(response):
@@ -6947,12 +6947,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_createInstance.Output.Created.Body
+                package var body: Operations.BundleIdsCreateInstance.Output.Created.Body
                 /// Creates a new `Created`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_createInstance.Output.Created.Body) {
+                package init(body: Operations.BundleIdsCreateInstance.Output.Created.Body) {
                     self.body = body
                 }
             }
@@ -6961,12 +6961,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/post(bundleIds_createInstance)/responses/201`.
             ///
             /// HTTP response code: `201 created`.
-            case created(Operations.bundleIds_createInstance.Output.Created)
+            case created(Operations.BundleIdsCreateInstance.Output.Created)
             /// The associated value of the enum case if `self` is `.created`.
             ///
             /// - Throws: An error if `self` is not `.created`.
             /// - SeeAlso: `.created`.
-            package var created: Operations.bundleIds_createInstance.Output.Created {
+            package var created: Operations.BundleIdsCreateInstance.Output.Created {
                 get throws {
                     switch self {
                     case let .created(response):
@@ -6998,12 +6998,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_createInstance.Output.Conflict.Body
+                package var body: Operations.BundleIdsCreateInstance.Output.Conflict.Body
                 /// Creates a new `Conflict`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_createInstance.Output.Conflict.Body) {
+                package init(body: Operations.BundleIdsCreateInstance.Output.Conflict.Body) {
                     self.body = body
                 }
             }
@@ -7012,12 +7012,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/post(bundleIds_createInstance)/responses/409`.
             ///
             /// HTTP response code: `409 conflict`.
-            case conflict(Operations.bundleIds_createInstance.Output.Conflict)
+            case conflict(Operations.BundleIdsCreateInstance.Output.Conflict)
             /// The associated value of the enum case if `self` is `.conflict`.
             ///
             /// - Throws: An error if `self` is not `.conflict`.
             /// - SeeAlso: `.conflict`.
-            package var conflict: Operations.bundleIds_createInstance.Output.Conflict {
+            package var conflict: Operations.BundleIdsCreateInstance.Output.Conflict {
                 get throws {
                     switch self {
                     case let .conflict(response):
@@ -7063,7 +7063,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `GET /v1/bundleIds/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/get(bundleIds_getInstance)`.
-    package enum bundleIds_getInstance {
+    package enum BundleIdsGetInstance {
         package static let id: Swift.String = "bundleIds_getInstance"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/path`.
@@ -7080,11 +7080,11 @@ package enum Operations {
                     self.id = id
                 }
             }
-            package var path: Operations.bundleIds_getInstance.Input.Path
+            package var path: Operations.BundleIdsGetInstance.Input.Path
             /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query`.
             package struct Query: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/fields_lbrack_bundleIds_rbrack_Payload`.
-                @frozen package enum fields_lbrack_bundleIds_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/Fields_lbrack_bundleIds_rbrack_Payload`.
+                @frozen package enum FieldsLbrackBundleIdsRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case platform = "platform"
                     case identifier = "identifier"
@@ -7094,13 +7094,13 @@ package enum Operations {
                     case app = "app"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/fields[bundleIds]`.
-                package typealias fields_lbrack_bundleIds_rbrack_Payload = [Operations.bundleIds_getInstance.Input.Query.fields_lbrack_bundleIds_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_bundleIds_rbrack_Payload = [Operations.BundleIdsGetInstance.Input.Query.FieldsLbrackBundleIdsRbrackPayloadPayload]
                 /// the fields to include for returned resources of type bundleIds
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/fields[bundleIds]`.
-                package var fields_lbrack_bundleIds_rbrack_: Operations.bundleIds_getInstance.Input.Query.fields_lbrack_bundleIds_rbrack_Payload?
-                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/fields_lbrack_profiles_rbrack_Payload`.
-                @frozen package enum fields_lbrack_profiles_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                package var fields_lbrack_bundleIds_rbrack_: Operations.BundleIdsGetInstance.Input.Query.Fields_lbrack_bundleIds_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/Fields_lbrack_profiles_rbrack_Payload`.
+                @frozen package enum FieldsLbrackProfilesRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case platform = "platform"
                     case profileType = "profileType"
@@ -7114,24 +7114,24 @@ package enum Operations {
                     case certificates = "certificates"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/fields[profiles]`.
-                package typealias fields_lbrack_profiles_rbrack_Payload = [Operations.bundleIds_getInstance.Input.Query.fields_lbrack_profiles_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_profiles_rbrack_Payload = [Operations.BundleIdsGetInstance.Input.Query.FieldsLbrackProfilesRbrackPayloadPayload]
                 /// the fields to include for returned resources of type profiles
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/fields[profiles]`.
-                package var fields_lbrack_profiles_rbrack_: Operations.bundleIds_getInstance.Input.Query.fields_lbrack_profiles_rbrack_Payload?
-                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/fields_lbrack_bundleIdCapabilities_rbrack_Payload`.
-                @frozen package enum fields_lbrack_bundleIdCapabilities_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                package var fields_lbrack_profiles_rbrack_: Operations.BundleIdsGetInstance.Input.Query.Fields_lbrack_profiles_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/Fields_lbrack_bundleIdCapabilities_rbrack_Payload`.
+                @frozen package enum FieldsLbrackBundleIdCapabilitiesRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case capabilityType = "capabilityType"
                     case settings = "settings"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/fields[bundleIdCapabilities]`.
-                package typealias fields_lbrack_bundleIdCapabilities_rbrack_Payload = [Operations.bundleIds_getInstance.Input.Query.fields_lbrack_bundleIdCapabilities_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_bundleIdCapabilities_rbrack_Payload = [Operations.BundleIdsGetInstance.Input.Query.FieldsLbrackBundleIdCapabilitiesRbrackPayloadPayload]
                 /// the fields to include for returned resources of type bundleIdCapabilities
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/fields[bundleIdCapabilities]`.
-                package var fields_lbrack_bundleIdCapabilities_rbrack_: Operations.bundleIds_getInstance.Input.Query.fields_lbrack_bundleIdCapabilities_rbrack_Payload?
-                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/fields_lbrack_apps_rbrack_Payload`.
-                @frozen package enum fields_lbrack_apps_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                package var fields_lbrack_bundleIdCapabilities_rbrack_: Operations.BundleIdsGetInstance.Input.Query.Fields_lbrack_bundleIdCapabilities_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/Fields_lbrack_apps_rbrack_Payload`.
+                @frozen package enum FieldsLbrackAppsRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case bundleId = "bundleId"
                     case sku = "sku"
@@ -7177,23 +7177,23 @@ package enum Operations {
                     case marketplaceSearchDetail = "marketplaceSearchDetail"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/fields[apps]`.
-                package typealias fields_lbrack_apps_rbrack_Payload = [Operations.bundleIds_getInstance.Input.Query.fields_lbrack_apps_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_apps_rbrack_Payload = [Operations.BundleIdsGetInstance.Input.Query.FieldsLbrackAppsRbrackPayloadPayload]
                 /// the fields to include for returned resources of type apps
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/fields[apps]`.
-                package var fields_lbrack_apps_rbrack_: Operations.bundleIds_getInstance.Input.Query.fields_lbrack_apps_rbrack_Payload?
-                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/includePayload`.
-                @frozen package enum includePayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                package var fields_lbrack_apps_rbrack_: Operations.BundleIdsGetInstance.Input.Query.Fields_lbrack_apps_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/IncludePayload`.
+                @frozen package enum IncludePayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case profiles = "profiles"
                     case bundleIdCapabilities = "bundleIdCapabilities"
                     case app = "app"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/include`.
-                package typealias includePayload = [Operations.bundleIds_getInstance.Input.Query.includePayloadPayload]
+                package typealias IncludePayload = [Operations.BundleIdsGetInstance.Input.Query.IncludePayloadPayload]
                 /// comma-separated list of relationships to include
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/include`.
-                package var include: Operations.bundleIds_getInstance.Input.Query.includePayload?
+                package var include: Operations.BundleIdsGetInstance.Input.Query.IncludePayload?
                 /// maximum number of related bundleIdCapabilities returned (when they are included)
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/limit[bundleIdCapabilities]`.
@@ -7213,11 +7213,11 @@ package enum Operations {
                 ///   - limit_lbrack_bundleIdCapabilities_rbrack_: maximum number of related bundleIdCapabilities returned (when they are included)
                 ///   - limit_lbrack_profiles_rbrack_: maximum number of related profiles returned (when they are included)
                 package init(
-                    fields_lbrack_bundleIds_rbrack_: Operations.bundleIds_getInstance.Input.Query.fields_lbrack_bundleIds_rbrack_Payload? = nil,
-                    fields_lbrack_profiles_rbrack_: Operations.bundleIds_getInstance.Input.Query.fields_lbrack_profiles_rbrack_Payload? = nil,
-                    fields_lbrack_bundleIdCapabilities_rbrack_: Operations.bundleIds_getInstance.Input.Query.fields_lbrack_bundleIdCapabilities_rbrack_Payload? = nil,
-                    fields_lbrack_apps_rbrack_: Operations.bundleIds_getInstance.Input.Query.fields_lbrack_apps_rbrack_Payload? = nil,
-                    include: Operations.bundleIds_getInstance.Input.Query.includePayload? = nil,
+                    fields_lbrack_bundleIds_rbrack_: Operations.BundleIdsGetInstance.Input.Query.Fields_lbrack_bundleIds_rbrack_Payload? = nil,
+                    fields_lbrack_profiles_rbrack_: Operations.BundleIdsGetInstance.Input.Query.Fields_lbrack_profiles_rbrack_Payload? = nil,
+                    fields_lbrack_bundleIdCapabilities_rbrack_: Operations.BundleIdsGetInstance.Input.Query.Fields_lbrack_bundleIdCapabilities_rbrack_Payload? = nil,
+                    fields_lbrack_apps_rbrack_: Operations.BundleIdsGetInstance.Input.Query.Fields_lbrack_apps_rbrack_Payload? = nil,
+                    include: Operations.BundleIdsGetInstance.Input.Query.IncludePayload? = nil,
                     limit_lbrack_bundleIdCapabilities_rbrack_: Swift.Int? = nil,
                     limit_lbrack_profiles_rbrack_: Swift.Int? = nil
                 ) {
@@ -7230,19 +7230,19 @@ package enum Operations {
                     self.limit_lbrack_profiles_rbrack_ = limit_lbrack_profiles_rbrack_
                 }
             }
-            package var query: Operations.bundleIds_getInstance.Input.Query
+            package var query: Operations.BundleIdsGetInstance.Input.Query
             /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIds_getInstance.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsGetInstance.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIds_getInstance.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsGetInstance.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.bundleIds_getInstance.Input.Headers
+            package var headers: Operations.BundleIdsGetInstance.Input.Headers
             /// Creates a new `Input`.
             ///
             /// - Parameters:
@@ -7250,9 +7250,9 @@ package enum Operations {
             ///   - query:
             ///   - headers:
             package init(
-                path: Operations.bundleIds_getInstance.Input.Path,
-                query: Operations.bundleIds_getInstance.Input.Query = .init(),
-                headers: Operations.bundleIds_getInstance.Input.Headers = .init()
+                path: Operations.BundleIdsGetInstance.Input.Path,
+                query: Operations.BundleIdsGetInstance.Input.Query = .init(),
+                headers: Operations.BundleIdsGetInstance.Input.Headers = .init()
             ) {
                 self.path = path
                 self.query = query
@@ -7279,12 +7279,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_getInstance.Output.BadRequest.Body
+                package var body: Operations.BundleIdsGetInstance.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_getInstance.Output.BadRequest.Body) {
+                package init(body: Operations.BundleIdsGetInstance.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -7293,12 +7293,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/get(bundleIds_getInstance)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.bundleIds_getInstance.Output.BadRequest)
+            case badRequest(Operations.BundleIdsGetInstance.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.bundleIds_getInstance.Output.BadRequest {
+            package var badRequest: Operations.BundleIdsGetInstance.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -7330,12 +7330,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_getInstance.Output.Unauthorized.Body
+                package var body: Operations.BundleIdsGetInstance.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_getInstance.Output.Unauthorized.Body) {
+                package init(body: Operations.BundleIdsGetInstance.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -7344,12 +7344,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/get(bundleIds_getInstance)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.bundleIds_getInstance.Output.Unauthorized)
+            case unauthorized(Operations.BundleIdsGetInstance.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.bundleIds_getInstance.Output.Unauthorized {
+            package var unauthorized: Operations.BundleIdsGetInstance.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -7381,12 +7381,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_getInstance.Output.Forbidden.Body
+                package var body: Operations.BundleIdsGetInstance.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_getInstance.Output.Forbidden.Body) {
+                package init(body: Operations.BundleIdsGetInstance.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -7395,12 +7395,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/get(bundleIds_getInstance)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.bundleIds_getInstance.Output.Forbidden)
+            case forbidden(Operations.BundleIdsGetInstance.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.bundleIds_getInstance.Output.Forbidden {
+            package var forbidden: Operations.BundleIdsGetInstance.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -7432,12 +7432,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_getInstance.Output.NotFound.Body
+                package var body: Operations.BundleIdsGetInstance.Output.NotFound.Body
                 /// Creates a new `NotFound`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_getInstance.Output.NotFound.Body) {
+                package init(body: Operations.BundleIdsGetInstance.Output.NotFound.Body) {
                     self.body = body
                 }
             }
@@ -7446,12 +7446,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/get(bundleIds_getInstance)/responses/404`.
             ///
             /// HTTP response code: `404 notFound`.
-            case notFound(Operations.bundleIds_getInstance.Output.NotFound)
+            case notFound(Operations.BundleIdsGetInstance.Output.NotFound)
             /// The associated value of the enum case if `self` is `.notFound`.
             ///
             /// - Throws: An error if `self` is not `.notFound`.
             /// - SeeAlso: `.notFound`.
-            package var notFound: Operations.bundleIds_getInstance.Output.NotFound {
+            package var notFound: Operations.BundleIdsGetInstance.Output.NotFound {
                 get throws {
                     switch self {
                     case let .notFound(response):
@@ -7483,12 +7483,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_getInstance.Output.Ok.Body
+                package var body: Operations.BundleIdsGetInstance.Output.Ok.Body
                 /// Creates a new `Ok`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_getInstance.Output.Ok.Body) {
+                package init(body: Operations.BundleIdsGetInstance.Output.Ok.Body) {
                     self.body = body
                 }
             }
@@ -7497,12 +7497,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/get(bundleIds_getInstance)/responses/200`.
             ///
             /// HTTP response code: `200 ok`.
-            case ok(Operations.bundleIds_getInstance.Output.Ok)
+            case ok(Operations.BundleIdsGetInstance.Output.Ok)
             /// The associated value of the enum case if `self` is `.ok`.
             ///
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
-            package var ok: Operations.bundleIds_getInstance.Output.Ok {
+            package var ok: Operations.BundleIdsGetInstance.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):
@@ -7548,7 +7548,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `PATCH /v1/bundleIds/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/patch(bundleIds_updateInstance)`.
-    package enum bundleIds_updateInstance {
+    package enum BundleIdsUpdateInstance {
         package static let id: Swift.String = "bundleIds_updateInstance"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/PATCH/path`.
@@ -7565,25 +7565,25 @@ package enum Operations {
                     self.id = id
                 }
             }
-            package var path: Operations.bundleIds_updateInstance.Input.Path
+            package var path: Operations.BundleIdsUpdateInstance.Input.Path
             /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/PATCH/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIds_updateInstance.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsUpdateInstance.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIds_updateInstance.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsUpdateInstance.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.bundleIds_updateInstance.Input.Headers
+            package var headers: Operations.BundleIdsUpdateInstance.Input.Headers
             /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/PATCH/requestBody`.
             @frozen package enum Body: Sendable, Hashable {
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/PATCH/requestBody/content/application\/json`.
                 case json(Components.Schemas.BundleIdUpdateRequest)
             }
-            package var body: Operations.bundleIds_updateInstance.Input.Body
+            package var body: Operations.BundleIdsUpdateInstance.Input.Body
             /// Creates a new `Input`.
             ///
             /// - Parameters:
@@ -7591,9 +7591,9 @@ package enum Operations {
             ///   - headers:
             ///   - body:
             package init(
-                path: Operations.bundleIds_updateInstance.Input.Path,
-                headers: Operations.bundleIds_updateInstance.Input.Headers = .init(),
-                body: Operations.bundleIds_updateInstance.Input.Body
+                path: Operations.BundleIdsUpdateInstance.Input.Path,
+                headers: Operations.BundleIdsUpdateInstance.Input.Headers = .init(),
+                body: Operations.BundleIdsUpdateInstance.Input.Body
             ) {
                 self.path = path
                 self.headers = headers
@@ -7620,12 +7620,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_updateInstance.Output.BadRequest.Body
+                package var body: Operations.BundleIdsUpdateInstance.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_updateInstance.Output.BadRequest.Body) {
+                package init(body: Operations.BundleIdsUpdateInstance.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -7634,12 +7634,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/patch(bundleIds_updateInstance)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.bundleIds_updateInstance.Output.BadRequest)
+            case badRequest(Operations.BundleIdsUpdateInstance.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.bundleIds_updateInstance.Output.BadRequest {
+            package var badRequest: Operations.BundleIdsUpdateInstance.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -7671,12 +7671,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_updateInstance.Output.Unauthorized.Body
+                package var body: Operations.BundleIdsUpdateInstance.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_updateInstance.Output.Unauthorized.Body) {
+                package init(body: Operations.BundleIdsUpdateInstance.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -7685,12 +7685,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/patch(bundleIds_updateInstance)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.bundleIds_updateInstance.Output.Unauthorized)
+            case unauthorized(Operations.BundleIdsUpdateInstance.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.bundleIds_updateInstance.Output.Unauthorized {
+            package var unauthorized: Operations.BundleIdsUpdateInstance.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -7722,12 +7722,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_updateInstance.Output.Forbidden.Body
+                package var body: Operations.BundleIdsUpdateInstance.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_updateInstance.Output.Forbidden.Body) {
+                package init(body: Operations.BundleIdsUpdateInstance.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -7736,12 +7736,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/patch(bundleIds_updateInstance)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.bundleIds_updateInstance.Output.Forbidden)
+            case forbidden(Operations.BundleIdsUpdateInstance.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.bundleIds_updateInstance.Output.Forbidden {
+            package var forbidden: Operations.BundleIdsUpdateInstance.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -7773,12 +7773,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_updateInstance.Output.NotFound.Body
+                package var body: Operations.BundleIdsUpdateInstance.Output.NotFound.Body
                 /// Creates a new `NotFound`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_updateInstance.Output.NotFound.Body) {
+                package init(body: Operations.BundleIdsUpdateInstance.Output.NotFound.Body) {
                     self.body = body
                 }
             }
@@ -7787,12 +7787,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/patch(bundleIds_updateInstance)/responses/404`.
             ///
             /// HTTP response code: `404 notFound`.
-            case notFound(Operations.bundleIds_updateInstance.Output.NotFound)
+            case notFound(Operations.BundleIdsUpdateInstance.Output.NotFound)
             /// The associated value of the enum case if `self` is `.notFound`.
             ///
             /// - Throws: An error if `self` is not `.notFound`.
             /// - SeeAlso: `.notFound`.
-            package var notFound: Operations.bundleIds_updateInstance.Output.NotFound {
+            package var notFound: Operations.BundleIdsUpdateInstance.Output.NotFound {
                 get throws {
                     switch self {
                     case let .notFound(response):
@@ -7824,12 +7824,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_updateInstance.Output.UnprocessableContent.Body
+                package var body: Operations.BundleIdsUpdateInstance.Output.UnprocessableContent.Body
                 /// Creates a new `UnprocessableContent`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_updateInstance.Output.UnprocessableContent.Body) {
+                package init(body: Operations.BundleIdsUpdateInstance.Output.UnprocessableContent.Body) {
                     self.body = body
                 }
             }
@@ -7838,12 +7838,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/patch(bundleIds_updateInstance)/responses/422`.
             ///
             /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.bundleIds_updateInstance.Output.UnprocessableContent)
+            case unprocessableContent(Operations.BundleIdsUpdateInstance.Output.UnprocessableContent)
             /// The associated value of the enum case if `self` is `.unprocessableContent`.
             ///
             /// - Throws: An error if `self` is not `.unprocessableContent`.
             /// - SeeAlso: `.unprocessableContent`.
-            package var unprocessableContent: Operations.bundleIds_updateInstance.Output.UnprocessableContent {
+            package var unprocessableContent: Operations.BundleIdsUpdateInstance.Output.UnprocessableContent {
                 get throws {
                     switch self {
                     case let .unprocessableContent(response):
@@ -7875,12 +7875,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_updateInstance.Output.Ok.Body
+                package var body: Operations.BundleIdsUpdateInstance.Output.Ok.Body
                 /// Creates a new `Ok`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_updateInstance.Output.Ok.Body) {
+                package init(body: Operations.BundleIdsUpdateInstance.Output.Ok.Body) {
                     self.body = body
                 }
             }
@@ -7889,12 +7889,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/patch(bundleIds_updateInstance)/responses/200`.
             ///
             /// HTTP response code: `200 ok`.
-            case ok(Operations.bundleIds_updateInstance.Output.Ok)
+            case ok(Operations.BundleIdsUpdateInstance.Output.Ok)
             /// The associated value of the enum case if `self` is `.ok`.
             ///
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
-            package var ok: Operations.bundleIds_updateInstance.Output.Ok {
+            package var ok: Operations.BundleIdsUpdateInstance.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):
@@ -7926,12 +7926,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_updateInstance.Output.Conflict.Body
+                package var body: Operations.BundleIdsUpdateInstance.Output.Conflict.Body
                 /// Creates a new `Conflict`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_updateInstance.Output.Conflict.Body) {
+                package init(body: Operations.BundleIdsUpdateInstance.Output.Conflict.Body) {
                     self.body = body
                 }
             }
@@ -7940,12 +7940,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/patch(bundleIds_updateInstance)/responses/409`.
             ///
             /// HTTP response code: `409 conflict`.
-            case conflict(Operations.bundleIds_updateInstance.Output.Conflict)
+            case conflict(Operations.BundleIdsUpdateInstance.Output.Conflict)
             /// The associated value of the enum case if `self` is `.conflict`.
             ///
             /// - Throws: An error if `self` is not `.conflict`.
             /// - SeeAlso: `.conflict`.
-            package var conflict: Operations.bundleIds_updateInstance.Output.Conflict {
+            package var conflict: Operations.BundleIdsUpdateInstance.Output.Conflict {
                 get throws {
                     switch self {
                     case let .conflict(response):
@@ -7991,7 +7991,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `DELETE /v1/bundleIds/{id}`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/delete(bundleIds_deleteInstance)`.
-    package enum bundleIds_deleteInstance {
+    package enum BundleIdsDeleteInstance {
         package static let id: Swift.String = "bundleIds_deleteInstance"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/DELETE/path`.
@@ -8008,27 +8008,27 @@ package enum Operations {
                     self.id = id
                 }
             }
-            package var path: Operations.bundleIds_deleteInstance.Input.Path
+            package var path: Operations.BundleIdsDeleteInstance.Input.Path
             /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/DELETE/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIds_deleteInstance.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsDeleteInstance.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIds_deleteInstance.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsDeleteInstance.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.bundleIds_deleteInstance.Input.Headers
+            package var headers: Operations.BundleIdsDeleteInstance.Input.Headers
             /// Creates a new `Input`.
             ///
             /// - Parameters:
             ///   - path:
             ///   - headers:
             package init(
-                path: Operations.bundleIds_deleteInstance.Input.Path,
-                headers: Operations.bundleIds_deleteInstance.Input.Headers = .init()
+                path: Operations.BundleIdsDeleteInstance.Input.Path,
+                headers: Operations.BundleIdsDeleteInstance.Input.Headers = .init()
             ) {
                 self.path = path
                 self.headers = headers
@@ -8054,12 +8054,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_deleteInstance.Output.BadRequest.Body
+                package var body: Operations.BundleIdsDeleteInstance.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_deleteInstance.Output.BadRequest.Body) {
+                package init(body: Operations.BundleIdsDeleteInstance.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -8068,12 +8068,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/delete(bundleIds_deleteInstance)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.bundleIds_deleteInstance.Output.BadRequest)
+            case badRequest(Operations.BundleIdsDeleteInstance.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.bundleIds_deleteInstance.Output.BadRequest {
+            package var badRequest: Operations.BundleIdsDeleteInstance.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -8105,12 +8105,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_deleteInstance.Output.Unauthorized.Body
+                package var body: Operations.BundleIdsDeleteInstance.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_deleteInstance.Output.Unauthorized.Body) {
+                package init(body: Operations.BundleIdsDeleteInstance.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -8119,12 +8119,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/delete(bundleIds_deleteInstance)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.bundleIds_deleteInstance.Output.Unauthorized)
+            case unauthorized(Operations.BundleIdsDeleteInstance.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.bundleIds_deleteInstance.Output.Unauthorized {
+            package var unauthorized: Operations.BundleIdsDeleteInstance.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -8156,12 +8156,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_deleteInstance.Output.Forbidden.Body
+                package var body: Operations.BundleIdsDeleteInstance.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_deleteInstance.Output.Forbidden.Body) {
+                package init(body: Operations.BundleIdsDeleteInstance.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -8170,12 +8170,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/delete(bundleIds_deleteInstance)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.bundleIds_deleteInstance.Output.Forbidden)
+            case forbidden(Operations.BundleIdsDeleteInstance.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.bundleIds_deleteInstance.Output.Forbidden {
+            package var forbidden: Operations.BundleIdsDeleteInstance.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -8207,12 +8207,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_deleteInstance.Output.NotFound.Body
+                package var body: Operations.BundleIdsDeleteInstance.Output.NotFound.Body
                 /// Creates a new `NotFound`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_deleteInstance.Output.NotFound.Body) {
+                package init(body: Operations.BundleIdsDeleteInstance.Output.NotFound.Body) {
                     self.body = body
                 }
             }
@@ -8221,12 +8221,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/delete(bundleIds_deleteInstance)/responses/404`.
             ///
             /// HTTP response code: `404 notFound`.
-            case notFound(Operations.bundleIds_deleteInstance.Output.NotFound)
+            case notFound(Operations.BundleIdsDeleteInstance.Output.NotFound)
             /// The associated value of the enum case if `self` is `.notFound`.
             ///
             /// - Throws: An error if `self` is not `.notFound`.
             /// - SeeAlso: `.notFound`.
-            package var notFound: Operations.bundleIds_deleteInstance.Output.NotFound {
+            package var notFound: Operations.BundleIdsDeleteInstance.Output.NotFound {
                 get throws {
                     switch self {
                     case let .notFound(response):
@@ -8258,12 +8258,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_deleteInstance.Output.Conflict.Body
+                package var body: Operations.BundleIdsDeleteInstance.Output.Conflict.Body
                 /// Creates a new `Conflict`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_deleteInstance.Output.Conflict.Body) {
+                package init(body: Operations.BundleIdsDeleteInstance.Output.Conflict.Body) {
                     self.body = body
                 }
             }
@@ -8272,12 +8272,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/delete(bundleIds_deleteInstance)/responses/409`.
             ///
             /// HTTP response code: `409 conflict`.
-            case conflict(Operations.bundleIds_deleteInstance.Output.Conflict)
+            case conflict(Operations.BundleIdsDeleteInstance.Output.Conflict)
             /// The associated value of the enum case if `self` is `.conflict`.
             ///
             /// - Throws: An error if `self` is not `.conflict`.
             /// - SeeAlso: `.conflict`.
-            package var conflict: Operations.bundleIds_deleteInstance.Output.Conflict {
+            package var conflict: Operations.BundleIdsDeleteInstance.Output.Conflict {
                 get throws {
                     switch self {
                     case let .conflict(response):
@@ -8299,7 +8299,7 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/delete(bundleIds_deleteInstance)/responses/204`.
             ///
             /// HTTP response code: `204 noContent`.
-            case noContent(Operations.bundleIds_deleteInstance.Output.NoContent)
+            case noContent(Operations.BundleIdsDeleteInstance.Output.NoContent)
             /// Success (no content)
             ///
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/delete(bundleIds_deleteInstance)/responses/204`.
@@ -8312,7 +8312,7 @@ package enum Operations {
             ///
             /// - Throws: An error if `self` is not `.noContent`.
             /// - SeeAlso: `.noContent`.
-            package var noContent: Operations.bundleIds_deleteInstance.Output.NoContent {
+            package var noContent: Operations.BundleIdsDeleteInstance.Output.NoContent {
                 get throws {
                     switch self {
                     case let .noContent(response):
@@ -8358,7 +8358,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `GET /v1/certificates`.
     /// - Remark: Generated from `#/paths//v1/certificates/get(certificates_getCollection)`.
-    package enum certificates_getCollection {
+    package enum CertificatesGetCollection {
         package static let id: Swift.String = "certificates_getCollection"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/certificates/GET/query`.
@@ -8367,28 +8367,28 @@ package enum Operations {
                 ///
                 /// - Remark: Generated from `#/paths/v1/certificates/GET/query/filter[displayName]`.
                 package var filter_lbrack_displayName_rbrack_: [Swift.String]?
-                /// - Remark: Generated from `#/paths/v1/certificates/GET/query/filter_lbrack_certificateType_rbrack_Payload`.
-                @frozen package enum filter_lbrack_certificateType_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                    case IOS_DEVELOPMENT = "IOS_DEVELOPMENT"
-                    case IOS_DISTRIBUTION = "IOS_DISTRIBUTION"
-                    case MAC_APP_DISTRIBUTION = "MAC_APP_DISTRIBUTION"
-                    case MAC_INSTALLER_DISTRIBUTION = "MAC_INSTALLER_DISTRIBUTION"
-                    case MAC_APP_DEVELOPMENT = "MAC_APP_DEVELOPMENT"
-                    case DEVELOPER_ID_KEXT = "DEVELOPER_ID_KEXT"
-                    case DEVELOPER_ID_KEXT_G2 = "DEVELOPER_ID_KEXT_G2"
-                    case DEVELOPER_ID_APPLICATION = "DEVELOPER_ID_APPLICATION"
-                    case DEVELOPER_ID_APPLICATION_G2 = "DEVELOPER_ID_APPLICATION_G2"
-                    case DEVELOPMENT = "DEVELOPMENT"
-                    case DISTRIBUTION = "DISTRIBUTION"
-                    case PASS_TYPE_ID = "PASS_TYPE_ID"
-                    case PASS_TYPE_ID_WITH_NFC = "PASS_TYPE_ID_WITH_NFC"
+                /// - Remark: Generated from `#/paths/v1/certificates/GET/query/Filter_lbrack_certificateType_rbrack_Payload`.
+                @frozen package enum FilterLbrackCertificateTypeRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case iosDevelopment = "IOS_DEVELOPMENT"
+                    case iosDistribution = "IOS_DISTRIBUTION"
+                    case macAppDistribution = "MAC_APP_DISTRIBUTION"
+                    case macInstallerDistribution = "MAC_INSTALLER_DISTRIBUTION"
+                    case macAppDevelopment = "MAC_APP_DEVELOPMENT"
+                    case developerIdKext = "DEVELOPER_ID_KEXT"
+                    case developerIdKextG2 = "DEVELOPER_ID_KEXT_G2"
+                    case developerIdApplication = "DEVELOPER_ID_APPLICATION"
+                    case developerIdApplicationG2 = "DEVELOPER_ID_APPLICATION_G2"
+                    case development = "DEVELOPMENT"
+                    case distribution = "DISTRIBUTION"
+                    case passTypeId = "PASS_TYPE_ID"
+                    case passTypeIdWithNfc = "PASS_TYPE_ID_WITH_NFC"
                 }
                 /// - Remark: Generated from `#/paths/v1/certificates/GET/query/filter[certificateType]`.
-                package typealias filter_lbrack_certificateType_rbrack_Payload = [Operations.certificates_getCollection.Input.Query.filter_lbrack_certificateType_rbrack_PayloadPayload]
+                package typealias Filter_lbrack_certificateType_rbrack_Payload = [Operations.CertificatesGetCollection.Input.Query.FilterLbrackCertificateTypeRbrackPayloadPayload]
                 /// filter by attribute 'certificateType'
                 ///
                 /// - Remark: Generated from `#/paths/v1/certificates/GET/query/filter[certificateType]`.
-                package var filter_lbrack_certificateType_rbrack_: Operations.certificates_getCollection.Input.Query.filter_lbrack_certificateType_rbrack_Payload?
+                package var filter_lbrack_certificateType_rbrack_: Operations.CertificatesGetCollection.Input.Query.Filter_lbrack_certificateType_rbrack_Payload?
                 /// filter by attribute 'serialNumber'
                 ///
                 /// - Remark: Generated from `#/paths/v1/certificates/GET/query/filter[serialNumber]`.
@@ -8397,8 +8397,8 @@ package enum Operations {
                 ///
                 /// - Remark: Generated from `#/paths/v1/certificates/GET/query/filter[id]`.
                 package var filter_lbrack_id_rbrack_: [Swift.String]?
-                /// - Remark: Generated from `#/paths/v1/certificates/GET/query/sortPayload`.
-                @frozen package enum sortPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                /// - Remark: Generated from `#/paths/v1/certificates/GET/query/SortPayload`.
+                @frozen package enum SortPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case displayName = "displayName"
                     case _hyphen_displayName = "-displayName"
                     case certificateType = "certificateType"
@@ -8409,13 +8409,13 @@ package enum Operations {
                     case _hyphen_id = "-id"
                 }
                 /// - Remark: Generated from `#/paths/v1/certificates/GET/query/sort`.
-                package typealias sortPayload = [Operations.certificates_getCollection.Input.Query.sortPayloadPayload]
+                package typealias SortPayload = [Operations.CertificatesGetCollection.Input.Query.SortPayloadPayload]
                 /// comma-separated list of sort expressions; resources will be sorted as specified
                 ///
                 /// - Remark: Generated from `#/paths/v1/certificates/GET/query/sort`.
-                package var sort: Operations.certificates_getCollection.Input.Query.sortPayload?
-                /// - Remark: Generated from `#/paths/v1/certificates/GET/query/fields_lbrack_certificates_rbrack_Payload`.
-                @frozen package enum fields_lbrack_certificates_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                package var sort: Operations.CertificatesGetCollection.Input.Query.SortPayload?
+                /// - Remark: Generated from `#/paths/v1/certificates/GET/query/Fields_lbrack_certificates_rbrack_Payload`.
+                @frozen package enum FieldsLbrackCertificatesRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case certificateType = "certificateType"
                     case displayName = "displayName"
@@ -8425,11 +8425,11 @@ package enum Operations {
                     case certificateContent = "certificateContent"
                 }
                 /// - Remark: Generated from `#/paths/v1/certificates/GET/query/fields[certificates]`.
-                package typealias fields_lbrack_certificates_rbrack_Payload = [Operations.certificates_getCollection.Input.Query.fields_lbrack_certificates_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_certificates_rbrack_Payload = [Operations.CertificatesGetCollection.Input.Query.FieldsLbrackCertificatesRbrackPayloadPayload]
                 /// the fields to include for returned resources of type certificates
                 ///
                 /// - Remark: Generated from `#/paths/v1/certificates/GET/query/fields[certificates]`.
-                package var fields_lbrack_certificates_rbrack_: Operations.certificates_getCollection.Input.Query.fields_lbrack_certificates_rbrack_Payload?
+                package var fields_lbrack_certificates_rbrack_: Operations.CertificatesGetCollection.Input.Query.Fields_lbrack_certificates_rbrack_Payload?
                 /// maximum resources per page
                 ///
                 /// - Remark: Generated from `#/paths/v1/certificates/GET/query/limit`.
@@ -8446,11 +8446,11 @@ package enum Operations {
                 ///   - limit: maximum resources per page
                 package init(
                     filter_lbrack_displayName_rbrack_: [Swift.String]? = nil,
-                    filter_lbrack_certificateType_rbrack_: Operations.certificates_getCollection.Input.Query.filter_lbrack_certificateType_rbrack_Payload? = nil,
+                    filter_lbrack_certificateType_rbrack_: Operations.CertificatesGetCollection.Input.Query.Filter_lbrack_certificateType_rbrack_Payload? = nil,
                     filter_lbrack_serialNumber_rbrack_: [Swift.String]? = nil,
                     filter_lbrack_id_rbrack_: [Swift.String]? = nil,
-                    sort: Operations.certificates_getCollection.Input.Query.sortPayload? = nil,
-                    fields_lbrack_certificates_rbrack_: Operations.certificates_getCollection.Input.Query.fields_lbrack_certificates_rbrack_Payload? = nil,
+                    sort: Operations.CertificatesGetCollection.Input.Query.SortPayload? = nil,
+                    fields_lbrack_certificates_rbrack_: Operations.CertificatesGetCollection.Input.Query.Fields_lbrack_certificates_rbrack_Payload? = nil,
                     limit: Swift.Int? = nil
                 ) {
                     self.filter_lbrack_displayName_rbrack_ = filter_lbrack_displayName_rbrack_
@@ -8462,27 +8462,27 @@ package enum Operations {
                     self.limit = limit
                 }
             }
-            package var query: Operations.certificates_getCollection.Input.Query
+            package var query: Operations.CertificatesGetCollection.Input.Query
             /// - Remark: Generated from `#/paths/v1/certificates/GET/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.certificates_getCollection.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.CertificatesGetCollection.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.certificates_getCollection.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.CertificatesGetCollection.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.certificates_getCollection.Input.Headers
+            package var headers: Operations.CertificatesGetCollection.Input.Headers
             /// Creates a new `Input`.
             ///
             /// - Parameters:
             ///   - query:
             ///   - headers:
             package init(
-                query: Operations.certificates_getCollection.Input.Query = .init(),
-                headers: Operations.certificates_getCollection.Input.Headers = .init()
+                query: Operations.CertificatesGetCollection.Input.Query = .init(),
+                headers: Operations.CertificatesGetCollection.Input.Headers = .init()
             ) {
                 self.query = query
                 self.headers = headers
@@ -8508,12 +8508,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_getCollection.Output.BadRequest.Body
+                package var body: Operations.CertificatesGetCollection.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_getCollection.Output.BadRequest.Body) {
+                package init(body: Operations.CertificatesGetCollection.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -8522,12 +8522,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/get(certificates_getCollection)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.certificates_getCollection.Output.BadRequest)
+            case badRequest(Operations.CertificatesGetCollection.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.certificates_getCollection.Output.BadRequest {
+            package var badRequest: Operations.CertificatesGetCollection.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -8559,12 +8559,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_getCollection.Output.Unauthorized.Body
+                package var body: Operations.CertificatesGetCollection.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_getCollection.Output.Unauthorized.Body) {
+                package init(body: Operations.CertificatesGetCollection.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -8573,12 +8573,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/get(certificates_getCollection)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.certificates_getCollection.Output.Unauthorized)
+            case unauthorized(Operations.CertificatesGetCollection.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.certificates_getCollection.Output.Unauthorized {
+            package var unauthorized: Operations.CertificatesGetCollection.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -8610,12 +8610,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_getCollection.Output.Forbidden.Body
+                package var body: Operations.CertificatesGetCollection.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_getCollection.Output.Forbidden.Body) {
+                package init(body: Operations.CertificatesGetCollection.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -8624,12 +8624,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/get(certificates_getCollection)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.certificates_getCollection.Output.Forbidden)
+            case forbidden(Operations.CertificatesGetCollection.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.certificates_getCollection.Output.Forbidden {
+            package var forbidden: Operations.CertificatesGetCollection.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -8661,12 +8661,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_getCollection.Output.Ok.Body
+                package var body: Operations.CertificatesGetCollection.Output.Ok.Body
                 /// Creates a new `Ok`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_getCollection.Output.Ok.Body) {
+                package init(body: Operations.CertificatesGetCollection.Output.Ok.Body) {
                     self.body = body
                 }
             }
@@ -8675,12 +8675,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/get(certificates_getCollection)/responses/200`.
             ///
             /// HTTP response code: `200 ok`.
-            case ok(Operations.certificates_getCollection.Output.Ok)
+            case ok(Operations.CertificatesGetCollection.Output.Ok)
             /// The associated value of the enum case if `self` is `.ok`.
             ///
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
-            package var ok: Operations.certificates_getCollection.Output.Ok {
+            package var ok: Operations.CertificatesGetCollection.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):
@@ -8726,35 +8726,35 @@ package enum Operations {
     }
     /// - Remark: HTTP `POST /v1/certificates`.
     /// - Remark: Generated from `#/paths//v1/certificates/post(certificates_createInstance)`.
-    package enum certificates_createInstance {
+    package enum CertificatesCreateInstance {
         package static let id: Swift.String = "certificates_createInstance"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/certificates/POST/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.certificates_createInstance.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.CertificatesCreateInstance.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.certificates_createInstance.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.CertificatesCreateInstance.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.certificates_createInstance.Input.Headers
+            package var headers: Operations.CertificatesCreateInstance.Input.Headers
             /// - Remark: Generated from `#/paths/v1/certificates/POST/requestBody`.
             @frozen package enum Body: Sendable, Hashable {
                 /// - Remark: Generated from `#/paths/v1/certificates/POST/requestBody/content/application\/json`.
                 case json(Components.Schemas.CertificateCreateRequest)
             }
-            package var body: Operations.certificates_createInstance.Input.Body
+            package var body: Operations.CertificatesCreateInstance.Input.Body
             /// Creates a new `Input`.
             ///
             /// - Parameters:
             ///   - headers:
             ///   - body:
             package init(
-                headers: Operations.certificates_createInstance.Input.Headers = .init(),
-                body: Operations.certificates_createInstance.Input.Body
+                headers: Operations.CertificatesCreateInstance.Input.Headers = .init(),
+                body: Operations.CertificatesCreateInstance.Input.Body
             ) {
                 self.headers = headers
                 self.body = body
@@ -8780,12 +8780,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_createInstance.Output.BadRequest.Body
+                package var body: Operations.CertificatesCreateInstance.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_createInstance.Output.BadRequest.Body) {
+                package init(body: Operations.CertificatesCreateInstance.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -8794,12 +8794,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/post(certificates_createInstance)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.certificates_createInstance.Output.BadRequest)
+            case badRequest(Operations.CertificatesCreateInstance.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.certificates_createInstance.Output.BadRequest {
+            package var badRequest: Operations.CertificatesCreateInstance.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -8831,12 +8831,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_createInstance.Output.Unauthorized.Body
+                package var body: Operations.CertificatesCreateInstance.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_createInstance.Output.Unauthorized.Body) {
+                package init(body: Operations.CertificatesCreateInstance.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -8845,12 +8845,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/post(certificates_createInstance)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.certificates_createInstance.Output.Unauthorized)
+            case unauthorized(Operations.CertificatesCreateInstance.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.certificates_createInstance.Output.Unauthorized {
+            package var unauthorized: Operations.CertificatesCreateInstance.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -8882,12 +8882,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_createInstance.Output.Forbidden.Body
+                package var body: Operations.CertificatesCreateInstance.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_createInstance.Output.Forbidden.Body) {
+                package init(body: Operations.CertificatesCreateInstance.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -8896,12 +8896,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/post(certificates_createInstance)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.certificates_createInstance.Output.Forbidden)
+            case forbidden(Operations.CertificatesCreateInstance.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.certificates_createInstance.Output.Forbidden {
+            package var forbidden: Operations.CertificatesCreateInstance.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -8933,12 +8933,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_createInstance.Output.UnprocessableContent.Body
+                package var body: Operations.CertificatesCreateInstance.Output.UnprocessableContent.Body
                 /// Creates a new `UnprocessableContent`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_createInstance.Output.UnprocessableContent.Body) {
+                package init(body: Operations.CertificatesCreateInstance.Output.UnprocessableContent.Body) {
                     self.body = body
                 }
             }
@@ -8947,12 +8947,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/post(certificates_createInstance)/responses/422`.
             ///
             /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.certificates_createInstance.Output.UnprocessableContent)
+            case unprocessableContent(Operations.CertificatesCreateInstance.Output.UnprocessableContent)
             /// The associated value of the enum case if `self` is `.unprocessableContent`.
             ///
             /// - Throws: An error if `self` is not `.unprocessableContent`.
             /// - SeeAlso: `.unprocessableContent`.
-            package var unprocessableContent: Operations.certificates_createInstance.Output.UnprocessableContent {
+            package var unprocessableContent: Operations.CertificatesCreateInstance.Output.UnprocessableContent {
                 get throws {
                     switch self {
                     case let .unprocessableContent(response):
@@ -8984,12 +8984,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_createInstance.Output.Created.Body
+                package var body: Operations.CertificatesCreateInstance.Output.Created.Body
                 /// Creates a new `Created`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_createInstance.Output.Created.Body) {
+                package init(body: Operations.CertificatesCreateInstance.Output.Created.Body) {
                     self.body = body
                 }
             }
@@ -8998,12 +8998,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/post(certificates_createInstance)/responses/201`.
             ///
             /// HTTP response code: `201 created`.
-            case created(Operations.certificates_createInstance.Output.Created)
+            case created(Operations.CertificatesCreateInstance.Output.Created)
             /// The associated value of the enum case if `self` is `.created`.
             ///
             /// - Throws: An error if `self` is not `.created`.
             /// - SeeAlso: `.created`.
-            package var created: Operations.certificates_createInstance.Output.Created {
+            package var created: Operations.CertificatesCreateInstance.Output.Created {
                 get throws {
                     switch self {
                     case let .created(response):
@@ -9035,12 +9035,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_createInstance.Output.Conflict.Body
+                package var body: Operations.CertificatesCreateInstance.Output.Conflict.Body
                 /// Creates a new `Conflict`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_createInstance.Output.Conflict.Body) {
+                package init(body: Operations.CertificatesCreateInstance.Output.Conflict.Body) {
                     self.body = body
                 }
             }
@@ -9049,12 +9049,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/post(certificates_createInstance)/responses/409`.
             ///
             /// HTTP response code: `409 conflict`.
-            case conflict(Operations.certificates_createInstance.Output.Conflict)
+            case conflict(Operations.CertificatesCreateInstance.Output.Conflict)
             /// The associated value of the enum case if `self` is `.conflict`.
             ///
             /// - Throws: An error if `self` is not `.conflict`.
             /// - SeeAlso: `.conflict`.
-            package var conflict: Operations.certificates_createInstance.Output.Conflict {
+            package var conflict: Operations.CertificatesCreateInstance.Output.Conflict {
                 get throws {
                     switch self {
                     case let .conflict(response):
@@ -9100,7 +9100,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `GET /v1/certificates/{id}`.
     /// - Remark: Generated from `#/paths//v1/certificates/{id}/get(certificates_getInstance)`.
-    package enum certificates_getInstance {
+    package enum CertificatesGetInstance {
         package static let id: Swift.String = "certificates_getInstance"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/certificates/{id}/GET/path`.
@@ -9117,11 +9117,11 @@ package enum Operations {
                     self.id = id
                 }
             }
-            package var path: Operations.certificates_getInstance.Input.Path
+            package var path: Operations.CertificatesGetInstance.Input.Path
             /// - Remark: Generated from `#/paths/v1/certificates/{id}/GET/query`.
             package struct Query: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/v1/certificates/{id}/GET/query/fields_lbrack_certificates_rbrack_Payload`.
-                @frozen package enum fields_lbrack_certificates_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/GET/query/Fields_lbrack_certificates_rbrack_Payload`.
+                @frozen package enum FieldsLbrackCertificatesRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case certificateType = "certificateType"
                     case displayName = "displayName"
@@ -9131,32 +9131,32 @@ package enum Operations {
                     case certificateContent = "certificateContent"
                 }
                 /// - Remark: Generated from `#/paths/v1/certificates/{id}/GET/query/fields[certificates]`.
-                package typealias fields_lbrack_certificates_rbrack_Payload = [Operations.certificates_getInstance.Input.Query.fields_lbrack_certificates_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_certificates_rbrack_Payload = [Operations.CertificatesGetInstance.Input.Query.FieldsLbrackCertificatesRbrackPayloadPayload]
                 /// the fields to include for returned resources of type certificates
                 ///
                 /// - Remark: Generated from `#/paths/v1/certificates/{id}/GET/query/fields[certificates]`.
-                package var fields_lbrack_certificates_rbrack_: Operations.certificates_getInstance.Input.Query.fields_lbrack_certificates_rbrack_Payload?
+                package var fields_lbrack_certificates_rbrack_: Operations.CertificatesGetInstance.Input.Query.Fields_lbrack_certificates_rbrack_Payload?
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
                 ///   - fields_lbrack_certificates_rbrack_: the fields to include for returned resources of type certificates
-                package init(fields_lbrack_certificates_rbrack_: Operations.certificates_getInstance.Input.Query.fields_lbrack_certificates_rbrack_Payload? = nil) {
+                package init(fields_lbrack_certificates_rbrack_: Operations.CertificatesGetInstance.Input.Query.Fields_lbrack_certificates_rbrack_Payload? = nil) {
                     self.fields_lbrack_certificates_rbrack_ = fields_lbrack_certificates_rbrack_
                 }
             }
-            package var query: Operations.certificates_getInstance.Input.Query
+            package var query: Operations.CertificatesGetInstance.Input.Query
             /// - Remark: Generated from `#/paths/v1/certificates/{id}/GET/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.certificates_getInstance.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.CertificatesGetInstance.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.certificates_getInstance.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.CertificatesGetInstance.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.certificates_getInstance.Input.Headers
+            package var headers: Operations.CertificatesGetInstance.Input.Headers
             /// Creates a new `Input`.
             ///
             /// - Parameters:
@@ -9164,9 +9164,9 @@ package enum Operations {
             ///   - query:
             ///   - headers:
             package init(
-                path: Operations.certificates_getInstance.Input.Path,
-                query: Operations.certificates_getInstance.Input.Query = .init(),
-                headers: Operations.certificates_getInstance.Input.Headers = .init()
+                path: Operations.CertificatesGetInstance.Input.Path,
+                query: Operations.CertificatesGetInstance.Input.Query = .init(),
+                headers: Operations.CertificatesGetInstance.Input.Headers = .init()
             ) {
                 self.path = path
                 self.query = query
@@ -9193,12 +9193,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_getInstance.Output.BadRequest.Body
+                package var body: Operations.CertificatesGetInstance.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_getInstance.Output.BadRequest.Body) {
+                package init(body: Operations.CertificatesGetInstance.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -9207,12 +9207,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/{id}/get(certificates_getInstance)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.certificates_getInstance.Output.BadRequest)
+            case badRequest(Operations.CertificatesGetInstance.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.certificates_getInstance.Output.BadRequest {
+            package var badRequest: Operations.CertificatesGetInstance.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -9244,12 +9244,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_getInstance.Output.Unauthorized.Body
+                package var body: Operations.CertificatesGetInstance.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_getInstance.Output.Unauthorized.Body) {
+                package init(body: Operations.CertificatesGetInstance.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -9258,12 +9258,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/{id}/get(certificates_getInstance)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.certificates_getInstance.Output.Unauthorized)
+            case unauthorized(Operations.CertificatesGetInstance.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.certificates_getInstance.Output.Unauthorized {
+            package var unauthorized: Operations.CertificatesGetInstance.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -9295,12 +9295,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_getInstance.Output.Forbidden.Body
+                package var body: Operations.CertificatesGetInstance.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_getInstance.Output.Forbidden.Body) {
+                package init(body: Operations.CertificatesGetInstance.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -9309,12 +9309,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/{id}/get(certificates_getInstance)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.certificates_getInstance.Output.Forbidden)
+            case forbidden(Operations.CertificatesGetInstance.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.certificates_getInstance.Output.Forbidden {
+            package var forbidden: Operations.CertificatesGetInstance.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -9346,12 +9346,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_getInstance.Output.NotFound.Body
+                package var body: Operations.CertificatesGetInstance.Output.NotFound.Body
                 /// Creates a new `NotFound`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_getInstance.Output.NotFound.Body) {
+                package init(body: Operations.CertificatesGetInstance.Output.NotFound.Body) {
                     self.body = body
                 }
             }
@@ -9360,12 +9360,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/{id}/get(certificates_getInstance)/responses/404`.
             ///
             /// HTTP response code: `404 notFound`.
-            case notFound(Operations.certificates_getInstance.Output.NotFound)
+            case notFound(Operations.CertificatesGetInstance.Output.NotFound)
             /// The associated value of the enum case if `self` is `.notFound`.
             ///
             /// - Throws: An error if `self` is not `.notFound`.
             /// - SeeAlso: `.notFound`.
-            package var notFound: Operations.certificates_getInstance.Output.NotFound {
+            package var notFound: Operations.CertificatesGetInstance.Output.NotFound {
                 get throws {
                     switch self {
                     case let .notFound(response):
@@ -9397,12 +9397,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_getInstance.Output.Ok.Body
+                package var body: Operations.CertificatesGetInstance.Output.Ok.Body
                 /// Creates a new `Ok`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_getInstance.Output.Ok.Body) {
+                package init(body: Operations.CertificatesGetInstance.Output.Ok.Body) {
                     self.body = body
                 }
             }
@@ -9411,12 +9411,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/{id}/get(certificates_getInstance)/responses/200`.
             ///
             /// HTTP response code: `200 ok`.
-            case ok(Operations.certificates_getInstance.Output.Ok)
+            case ok(Operations.CertificatesGetInstance.Output.Ok)
             /// The associated value of the enum case if `self` is `.ok`.
             ///
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
-            package var ok: Operations.certificates_getInstance.Output.Ok {
+            package var ok: Operations.CertificatesGetInstance.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):
@@ -9462,7 +9462,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `DELETE /v1/certificates/{id}`.
     /// - Remark: Generated from `#/paths//v1/certificates/{id}/delete(certificates_deleteInstance)`.
-    package enum certificates_deleteInstance {
+    package enum CertificatesDeleteInstance {
         package static let id: Swift.String = "certificates_deleteInstance"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/certificates/{id}/DELETE/path`.
@@ -9479,27 +9479,27 @@ package enum Operations {
                     self.id = id
                 }
             }
-            package var path: Operations.certificates_deleteInstance.Input.Path
+            package var path: Operations.CertificatesDeleteInstance.Input.Path
             /// - Remark: Generated from `#/paths/v1/certificates/{id}/DELETE/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.certificates_deleteInstance.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.CertificatesDeleteInstance.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.certificates_deleteInstance.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.CertificatesDeleteInstance.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.certificates_deleteInstance.Input.Headers
+            package var headers: Operations.CertificatesDeleteInstance.Input.Headers
             /// Creates a new `Input`.
             ///
             /// - Parameters:
             ///   - path:
             ///   - headers:
             package init(
-                path: Operations.certificates_deleteInstance.Input.Path,
-                headers: Operations.certificates_deleteInstance.Input.Headers = .init()
+                path: Operations.CertificatesDeleteInstance.Input.Path,
+                headers: Operations.CertificatesDeleteInstance.Input.Headers = .init()
             ) {
                 self.path = path
                 self.headers = headers
@@ -9525,12 +9525,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_deleteInstance.Output.BadRequest.Body
+                package var body: Operations.CertificatesDeleteInstance.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_deleteInstance.Output.BadRequest.Body) {
+                package init(body: Operations.CertificatesDeleteInstance.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -9539,12 +9539,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/{id}/delete(certificates_deleteInstance)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.certificates_deleteInstance.Output.BadRequest)
+            case badRequest(Operations.CertificatesDeleteInstance.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.certificates_deleteInstance.Output.BadRequest {
+            package var badRequest: Operations.CertificatesDeleteInstance.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -9576,12 +9576,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_deleteInstance.Output.Unauthorized.Body
+                package var body: Operations.CertificatesDeleteInstance.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_deleteInstance.Output.Unauthorized.Body) {
+                package init(body: Operations.CertificatesDeleteInstance.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -9590,12 +9590,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/{id}/delete(certificates_deleteInstance)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.certificates_deleteInstance.Output.Unauthorized)
+            case unauthorized(Operations.CertificatesDeleteInstance.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.certificates_deleteInstance.Output.Unauthorized {
+            package var unauthorized: Operations.CertificatesDeleteInstance.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -9627,12 +9627,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_deleteInstance.Output.Forbidden.Body
+                package var body: Operations.CertificatesDeleteInstance.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_deleteInstance.Output.Forbidden.Body) {
+                package init(body: Operations.CertificatesDeleteInstance.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -9641,12 +9641,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/{id}/delete(certificates_deleteInstance)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.certificates_deleteInstance.Output.Forbidden)
+            case forbidden(Operations.CertificatesDeleteInstance.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.certificates_deleteInstance.Output.Forbidden {
+            package var forbidden: Operations.CertificatesDeleteInstance.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -9678,12 +9678,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_deleteInstance.Output.NotFound.Body
+                package var body: Operations.CertificatesDeleteInstance.Output.NotFound.Body
                 /// Creates a new `NotFound`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_deleteInstance.Output.NotFound.Body) {
+                package init(body: Operations.CertificatesDeleteInstance.Output.NotFound.Body) {
                     self.body = body
                 }
             }
@@ -9692,12 +9692,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/{id}/delete(certificates_deleteInstance)/responses/404`.
             ///
             /// HTTP response code: `404 notFound`.
-            case notFound(Operations.certificates_deleteInstance.Output.NotFound)
+            case notFound(Operations.CertificatesDeleteInstance.Output.NotFound)
             /// The associated value of the enum case if `self` is `.notFound`.
             ///
             /// - Throws: An error if `self` is not `.notFound`.
             /// - SeeAlso: `.notFound`.
-            package var notFound: Operations.certificates_deleteInstance.Output.NotFound {
+            package var notFound: Operations.CertificatesDeleteInstance.Output.NotFound {
                 get throws {
                     switch self {
                     case let .notFound(response):
@@ -9729,12 +9729,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.certificates_deleteInstance.Output.Conflict.Body
+                package var body: Operations.CertificatesDeleteInstance.Output.Conflict.Body
                 /// Creates a new `Conflict`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.certificates_deleteInstance.Output.Conflict.Body) {
+                package init(body: Operations.CertificatesDeleteInstance.Output.Conflict.Body) {
                     self.body = body
                 }
             }
@@ -9743,12 +9743,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/{id}/delete(certificates_deleteInstance)/responses/409`.
             ///
             /// HTTP response code: `409 conflict`.
-            case conflict(Operations.certificates_deleteInstance.Output.Conflict)
+            case conflict(Operations.CertificatesDeleteInstance.Output.Conflict)
             /// The associated value of the enum case if `self` is `.conflict`.
             ///
             /// - Throws: An error if `self` is not `.conflict`.
             /// - SeeAlso: `.conflict`.
-            package var conflict: Operations.certificates_deleteInstance.Output.Conflict {
+            package var conflict: Operations.CertificatesDeleteInstance.Output.Conflict {
                 get throws {
                     switch self {
                     case let .conflict(response):
@@ -9770,7 +9770,7 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/certificates/{id}/delete(certificates_deleteInstance)/responses/204`.
             ///
             /// HTTP response code: `204 noContent`.
-            case noContent(Operations.certificates_deleteInstance.Output.NoContent)
+            case noContent(Operations.CertificatesDeleteInstance.Output.NoContent)
             /// Success (no content)
             ///
             /// - Remark: Generated from `#/paths//v1/certificates/{id}/delete(certificates_deleteInstance)/responses/204`.
@@ -9783,7 +9783,7 @@ package enum Operations {
             ///
             /// - Throws: An error if `self` is not `.noContent`.
             /// - SeeAlso: `.noContent`.
-            package var noContent: Operations.certificates_deleteInstance.Output.NoContent {
+            package var noContent: Operations.CertificatesDeleteInstance.Output.NoContent {
                 get throws {
                     switch self {
                     case let .noContent(response):
@@ -9829,7 +9829,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `GET /v1/devices`.
     /// - Remark: Generated from `#/paths//v1/devices/get(devices_getCollection)`.
-    package enum devices_getCollection {
+    package enum DevicesGetCollection {
         package static let id: Swift.String = "devices_getCollection"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/devices/GET/query`.
@@ -9838,39 +9838,39 @@ package enum Operations {
                 ///
                 /// - Remark: Generated from `#/paths/v1/devices/GET/query/filter[name]`.
                 package var filter_lbrack_name_rbrack_: [Swift.String]?
-                /// - Remark: Generated from `#/paths/v1/devices/GET/query/filter_lbrack_platform_rbrack_Payload`.
-                @frozen package enum filter_lbrack_platform_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                    case IOS = "IOS"
-                    case MAC_OS = "MAC_OS"
-                    case UNIVERSAL = "UNIVERSAL"
+                /// - Remark: Generated from `#/paths/v1/devices/GET/query/Filter_lbrack_platform_rbrack_Payload`.
+                @frozen package enum FilterLbrackPlatformRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case ios = "IOS"
+                    case macOs = "MAC_OS"
+                    case universal = "UNIVERSAL"
                 }
                 /// - Remark: Generated from `#/paths/v1/devices/GET/query/filter[platform]`.
-                package typealias filter_lbrack_platform_rbrack_Payload = [Operations.devices_getCollection.Input.Query.filter_lbrack_platform_rbrack_PayloadPayload]
+                package typealias Filter_lbrack_platform_rbrack_Payload = [Operations.DevicesGetCollection.Input.Query.FilterLbrackPlatformRbrackPayloadPayload]
                 /// filter by attribute 'platform'
                 ///
                 /// - Remark: Generated from `#/paths/v1/devices/GET/query/filter[platform]`.
-                package var filter_lbrack_platform_rbrack_: Operations.devices_getCollection.Input.Query.filter_lbrack_platform_rbrack_Payload?
+                package var filter_lbrack_platform_rbrack_: Operations.DevicesGetCollection.Input.Query.Filter_lbrack_platform_rbrack_Payload?
                 /// filter by attribute 'udid'
                 ///
                 /// - Remark: Generated from `#/paths/v1/devices/GET/query/filter[udid]`.
                 package var filter_lbrack_udid_rbrack_: [Swift.String]?
-                /// - Remark: Generated from `#/paths/v1/devices/GET/query/filter_lbrack_status_rbrack_Payload`.
-                @frozen package enum filter_lbrack_status_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                    case ENABLED = "ENABLED"
-                    case DISABLED = "DISABLED"
+                /// - Remark: Generated from `#/paths/v1/devices/GET/query/Filter_lbrack_status_rbrack_Payload`.
+                @frozen package enum FilterLbrackStatusRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case enabled = "ENABLED"
+                    case disabled = "DISABLED"
                 }
                 /// - Remark: Generated from `#/paths/v1/devices/GET/query/filter[status]`.
-                package typealias filter_lbrack_status_rbrack_Payload = [Operations.devices_getCollection.Input.Query.filter_lbrack_status_rbrack_PayloadPayload]
+                package typealias Filter_lbrack_status_rbrack_Payload = [Operations.DevicesGetCollection.Input.Query.FilterLbrackStatusRbrackPayloadPayload]
                 /// filter by attribute 'status'
                 ///
                 /// - Remark: Generated from `#/paths/v1/devices/GET/query/filter[status]`.
-                package var filter_lbrack_status_rbrack_: Operations.devices_getCollection.Input.Query.filter_lbrack_status_rbrack_Payload?
+                package var filter_lbrack_status_rbrack_: Operations.DevicesGetCollection.Input.Query.Filter_lbrack_status_rbrack_Payload?
                 /// filter by id(s)
                 ///
                 /// - Remark: Generated from `#/paths/v1/devices/GET/query/filter[id]`.
                 package var filter_lbrack_id_rbrack_: [Swift.String]?
-                /// - Remark: Generated from `#/paths/v1/devices/GET/query/sortPayload`.
-                @frozen package enum sortPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                /// - Remark: Generated from `#/paths/v1/devices/GET/query/SortPayload`.
+                @frozen package enum SortPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case _hyphen_name = "-name"
                     case platform = "platform"
@@ -9883,13 +9883,13 @@ package enum Operations {
                     case _hyphen_id = "-id"
                 }
                 /// - Remark: Generated from `#/paths/v1/devices/GET/query/sort`.
-                package typealias sortPayload = [Operations.devices_getCollection.Input.Query.sortPayloadPayload]
+                package typealias SortPayload = [Operations.DevicesGetCollection.Input.Query.SortPayloadPayload]
                 /// comma-separated list of sort expressions; resources will be sorted as specified
                 ///
                 /// - Remark: Generated from `#/paths/v1/devices/GET/query/sort`.
-                package var sort: Operations.devices_getCollection.Input.Query.sortPayload?
-                /// - Remark: Generated from `#/paths/v1/devices/GET/query/fields_lbrack_devices_rbrack_Payload`.
-                @frozen package enum fields_lbrack_devices_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                package var sort: Operations.DevicesGetCollection.Input.Query.SortPayload?
+                /// - Remark: Generated from `#/paths/v1/devices/GET/query/Fields_lbrack_devices_rbrack_Payload`.
+                @frozen package enum FieldsLbrackDevicesRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case platform = "platform"
                     case udid = "udid"
@@ -9899,11 +9899,11 @@ package enum Operations {
                     case addedDate = "addedDate"
                 }
                 /// - Remark: Generated from `#/paths/v1/devices/GET/query/fields[devices]`.
-                package typealias fields_lbrack_devices_rbrack_Payload = [Operations.devices_getCollection.Input.Query.fields_lbrack_devices_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_devices_rbrack_Payload = [Operations.DevicesGetCollection.Input.Query.FieldsLbrackDevicesRbrackPayloadPayload]
                 /// the fields to include for returned resources of type devices
                 ///
                 /// - Remark: Generated from `#/paths/v1/devices/GET/query/fields[devices]`.
-                package var fields_lbrack_devices_rbrack_: Operations.devices_getCollection.Input.Query.fields_lbrack_devices_rbrack_Payload?
+                package var fields_lbrack_devices_rbrack_: Operations.DevicesGetCollection.Input.Query.Fields_lbrack_devices_rbrack_Payload?
                 /// maximum resources per page
                 ///
                 /// - Remark: Generated from `#/paths/v1/devices/GET/query/limit`.
@@ -9921,12 +9921,12 @@ package enum Operations {
                 ///   - limit: maximum resources per page
                 package init(
                     filter_lbrack_name_rbrack_: [Swift.String]? = nil,
-                    filter_lbrack_platform_rbrack_: Operations.devices_getCollection.Input.Query.filter_lbrack_platform_rbrack_Payload? = nil,
+                    filter_lbrack_platform_rbrack_: Operations.DevicesGetCollection.Input.Query.Filter_lbrack_platform_rbrack_Payload? = nil,
                     filter_lbrack_udid_rbrack_: [Swift.String]? = nil,
-                    filter_lbrack_status_rbrack_: Operations.devices_getCollection.Input.Query.filter_lbrack_status_rbrack_Payload? = nil,
+                    filter_lbrack_status_rbrack_: Operations.DevicesGetCollection.Input.Query.Filter_lbrack_status_rbrack_Payload? = nil,
                     filter_lbrack_id_rbrack_: [Swift.String]? = nil,
-                    sort: Operations.devices_getCollection.Input.Query.sortPayload? = nil,
-                    fields_lbrack_devices_rbrack_: Operations.devices_getCollection.Input.Query.fields_lbrack_devices_rbrack_Payload? = nil,
+                    sort: Operations.DevicesGetCollection.Input.Query.SortPayload? = nil,
+                    fields_lbrack_devices_rbrack_: Operations.DevicesGetCollection.Input.Query.Fields_lbrack_devices_rbrack_Payload? = nil,
                     limit: Swift.Int? = nil
                 ) {
                     self.filter_lbrack_name_rbrack_ = filter_lbrack_name_rbrack_
@@ -9939,27 +9939,27 @@ package enum Operations {
                     self.limit = limit
                 }
             }
-            package var query: Operations.devices_getCollection.Input.Query
+            package var query: Operations.DevicesGetCollection.Input.Query
             /// - Remark: Generated from `#/paths/v1/devices/GET/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.devices_getCollection.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.DevicesGetCollection.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.devices_getCollection.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.DevicesGetCollection.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.devices_getCollection.Input.Headers
+            package var headers: Operations.DevicesGetCollection.Input.Headers
             /// Creates a new `Input`.
             ///
             /// - Parameters:
             ///   - query:
             ///   - headers:
             package init(
-                query: Operations.devices_getCollection.Input.Query = .init(),
-                headers: Operations.devices_getCollection.Input.Headers = .init()
+                query: Operations.DevicesGetCollection.Input.Query = .init(),
+                headers: Operations.DevicesGetCollection.Input.Headers = .init()
             ) {
                 self.query = query
                 self.headers = headers
@@ -9985,12 +9985,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_getCollection.Output.BadRequest.Body
+                package var body: Operations.DevicesGetCollection.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_getCollection.Output.BadRequest.Body) {
+                package init(body: Operations.DevicesGetCollection.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -9999,12 +9999,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/get(devices_getCollection)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.devices_getCollection.Output.BadRequest)
+            case badRequest(Operations.DevicesGetCollection.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.devices_getCollection.Output.BadRequest {
+            package var badRequest: Operations.DevicesGetCollection.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -10036,12 +10036,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_getCollection.Output.Unauthorized.Body
+                package var body: Operations.DevicesGetCollection.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_getCollection.Output.Unauthorized.Body) {
+                package init(body: Operations.DevicesGetCollection.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -10050,12 +10050,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/get(devices_getCollection)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.devices_getCollection.Output.Unauthorized)
+            case unauthorized(Operations.DevicesGetCollection.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.devices_getCollection.Output.Unauthorized {
+            package var unauthorized: Operations.DevicesGetCollection.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -10087,12 +10087,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_getCollection.Output.Forbidden.Body
+                package var body: Operations.DevicesGetCollection.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_getCollection.Output.Forbidden.Body) {
+                package init(body: Operations.DevicesGetCollection.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -10101,12 +10101,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/get(devices_getCollection)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.devices_getCollection.Output.Forbidden)
+            case forbidden(Operations.DevicesGetCollection.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.devices_getCollection.Output.Forbidden {
+            package var forbidden: Operations.DevicesGetCollection.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -10138,12 +10138,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_getCollection.Output.Ok.Body
+                package var body: Operations.DevicesGetCollection.Output.Ok.Body
                 /// Creates a new `Ok`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_getCollection.Output.Ok.Body) {
+                package init(body: Operations.DevicesGetCollection.Output.Ok.Body) {
                     self.body = body
                 }
             }
@@ -10152,12 +10152,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/get(devices_getCollection)/responses/200`.
             ///
             /// HTTP response code: `200 ok`.
-            case ok(Operations.devices_getCollection.Output.Ok)
+            case ok(Operations.DevicesGetCollection.Output.Ok)
             /// The associated value of the enum case if `self` is `.ok`.
             ///
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
-            package var ok: Operations.devices_getCollection.Output.Ok {
+            package var ok: Operations.DevicesGetCollection.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):
@@ -10203,35 +10203,35 @@ package enum Operations {
     }
     /// - Remark: HTTP `POST /v1/devices`.
     /// - Remark: Generated from `#/paths//v1/devices/post(devices_createInstance)`.
-    package enum devices_createInstance {
+    package enum DevicesCreateInstance {
         package static let id: Swift.String = "devices_createInstance"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/devices/POST/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.devices_createInstance.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.DevicesCreateInstance.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.devices_createInstance.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.DevicesCreateInstance.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.devices_createInstance.Input.Headers
+            package var headers: Operations.DevicesCreateInstance.Input.Headers
             /// - Remark: Generated from `#/paths/v1/devices/POST/requestBody`.
             @frozen package enum Body: Sendable, Hashable {
                 /// - Remark: Generated from `#/paths/v1/devices/POST/requestBody/content/application\/json`.
                 case json(Components.Schemas.DeviceCreateRequest)
             }
-            package var body: Operations.devices_createInstance.Input.Body
+            package var body: Operations.DevicesCreateInstance.Input.Body
             /// Creates a new `Input`.
             ///
             /// - Parameters:
             ///   - headers:
             ///   - body:
             package init(
-                headers: Operations.devices_createInstance.Input.Headers = .init(),
-                body: Operations.devices_createInstance.Input.Body
+                headers: Operations.DevicesCreateInstance.Input.Headers = .init(),
+                body: Operations.DevicesCreateInstance.Input.Body
             ) {
                 self.headers = headers
                 self.body = body
@@ -10257,12 +10257,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_createInstance.Output.BadRequest.Body
+                package var body: Operations.DevicesCreateInstance.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_createInstance.Output.BadRequest.Body) {
+                package init(body: Operations.DevicesCreateInstance.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -10271,12 +10271,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/post(devices_createInstance)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.devices_createInstance.Output.BadRequest)
+            case badRequest(Operations.DevicesCreateInstance.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.devices_createInstance.Output.BadRequest {
+            package var badRequest: Operations.DevicesCreateInstance.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -10308,12 +10308,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_createInstance.Output.Unauthorized.Body
+                package var body: Operations.DevicesCreateInstance.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_createInstance.Output.Unauthorized.Body) {
+                package init(body: Operations.DevicesCreateInstance.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -10322,12 +10322,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/post(devices_createInstance)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.devices_createInstance.Output.Unauthorized)
+            case unauthorized(Operations.DevicesCreateInstance.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.devices_createInstance.Output.Unauthorized {
+            package var unauthorized: Operations.DevicesCreateInstance.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -10359,12 +10359,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_createInstance.Output.Forbidden.Body
+                package var body: Operations.DevicesCreateInstance.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_createInstance.Output.Forbidden.Body) {
+                package init(body: Operations.DevicesCreateInstance.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -10373,12 +10373,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/post(devices_createInstance)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.devices_createInstance.Output.Forbidden)
+            case forbidden(Operations.DevicesCreateInstance.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.devices_createInstance.Output.Forbidden {
+            package var forbidden: Operations.DevicesCreateInstance.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -10410,12 +10410,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_createInstance.Output.UnprocessableContent.Body
+                package var body: Operations.DevicesCreateInstance.Output.UnprocessableContent.Body
                 /// Creates a new `UnprocessableContent`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_createInstance.Output.UnprocessableContent.Body) {
+                package init(body: Operations.DevicesCreateInstance.Output.UnprocessableContent.Body) {
                     self.body = body
                 }
             }
@@ -10424,12 +10424,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/post(devices_createInstance)/responses/422`.
             ///
             /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.devices_createInstance.Output.UnprocessableContent)
+            case unprocessableContent(Operations.DevicesCreateInstance.Output.UnprocessableContent)
             /// The associated value of the enum case if `self` is `.unprocessableContent`.
             ///
             /// - Throws: An error if `self` is not `.unprocessableContent`.
             /// - SeeAlso: `.unprocessableContent`.
-            package var unprocessableContent: Operations.devices_createInstance.Output.UnprocessableContent {
+            package var unprocessableContent: Operations.DevicesCreateInstance.Output.UnprocessableContent {
                 get throws {
                     switch self {
                     case let .unprocessableContent(response):
@@ -10461,12 +10461,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_createInstance.Output.Created.Body
+                package var body: Operations.DevicesCreateInstance.Output.Created.Body
                 /// Creates a new `Created`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_createInstance.Output.Created.Body) {
+                package init(body: Operations.DevicesCreateInstance.Output.Created.Body) {
                     self.body = body
                 }
             }
@@ -10475,12 +10475,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/post(devices_createInstance)/responses/201`.
             ///
             /// HTTP response code: `201 created`.
-            case created(Operations.devices_createInstance.Output.Created)
+            case created(Operations.DevicesCreateInstance.Output.Created)
             /// The associated value of the enum case if `self` is `.created`.
             ///
             /// - Throws: An error if `self` is not `.created`.
             /// - SeeAlso: `.created`.
-            package var created: Operations.devices_createInstance.Output.Created {
+            package var created: Operations.DevicesCreateInstance.Output.Created {
                 get throws {
                     switch self {
                     case let .created(response):
@@ -10512,12 +10512,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_createInstance.Output.Conflict.Body
+                package var body: Operations.DevicesCreateInstance.Output.Conflict.Body
                 /// Creates a new `Conflict`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_createInstance.Output.Conflict.Body) {
+                package init(body: Operations.DevicesCreateInstance.Output.Conflict.Body) {
                     self.body = body
                 }
             }
@@ -10526,12 +10526,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/post(devices_createInstance)/responses/409`.
             ///
             /// HTTP response code: `409 conflict`.
-            case conflict(Operations.devices_createInstance.Output.Conflict)
+            case conflict(Operations.DevicesCreateInstance.Output.Conflict)
             /// The associated value of the enum case if `self` is `.conflict`.
             ///
             /// - Throws: An error if `self` is not `.conflict`.
             /// - SeeAlso: `.conflict`.
-            package var conflict: Operations.devices_createInstance.Output.Conflict {
+            package var conflict: Operations.DevicesCreateInstance.Output.Conflict {
                 get throws {
                     switch self {
                     case let .conflict(response):
@@ -10577,7 +10577,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `GET /v1/devices/{id}`.
     /// - Remark: Generated from `#/paths//v1/devices/{id}/get(devices_getInstance)`.
-    package enum devices_getInstance {
+    package enum DevicesGetInstance {
         package static let id: Swift.String = "devices_getInstance"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/devices/{id}/GET/path`.
@@ -10594,11 +10594,11 @@ package enum Operations {
                     self.id = id
                 }
             }
-            package var path: Operations.devices_getInstance.Input.Path
+            package var path: Operations.DevicesGetInstance.Input.Path
             /// - Remark: Generated from `#/paths/v1/devices/{id}/GET/query`.
             package struct Query: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/v1/devices/{id}/GET/query/fields_lbrack_devices_rbrack_Payload`.
-                @frozen package enum fields_lbrack_devices_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                /// - Remark: Generated from `#/paths/v1/devices/{id}/GET/query/Fields_lbrack_devices_rbrack_Payload`.
+                @frozen package enum FieldsLbrackDevicesRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case platform = "platform"
                     case udid = "udid"
@@ -10608,32 +10608,32 @@ package enum Operations {
                     case addedDate = "addedDate"
                 }
                 /// - Remark: Generated from `#/paths/v1/devices/{id}/GET/query/fields[devices]`.
-                package typealias fields_lbrack_devices_rbrack_Payload = [Operations.devices_getInstance.Input.Query.fields_lbrack_devices_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_devices_rbrack_Payload = [Operations.DevicesGetInstance.Input.Query.FieldsLbrackDevicesRbrackPayloadPayload]
                 /// the fields to include for returned resources of type devices
                 ///
                 /// - Remark: Generated from `#/paths/v1/devices/{id}/GET/query/fields[devices]`.
-                package var fields_lbrack_devices_rbrack_: Operations.devices_getInstance.Input.Query.fields_lbrack_devices_rbrack_Payload?
+                package var fields_lbrack_devices_rbrack_: Operations.DevicesGetInstance.Input.Query.Fields_lbrack_devices_rbrack_Payload?
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
                 ///   - fields_lbrack_devices_rbrack_: the fields to include for returned resources of type devices
-                package init(fields_lbrack_devices_rbrack_: Operations.devices_getInstance.Input.Query.fields_lbrack_devices_rbrack_Payload? = nil) {
+                package init(fields_lbrack_devices_rbrack_: Operations.DevicesGetInstance.Input.Query.Fields_lbrack_devices_rbrack_Payload? = nil) {
                     self.fields_lbrack_devices_rbrack_ = fields_lbrack_devices_rbrack_
                 }
             }
-            package var query: Operations.devices_getInstance.Input.Query
+            package var query: Operations.DevicesGetInstance.Input.Query
             /// - Remark: Generated from `#/paths/v1/devices/{id}/GET/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.devices_getInstance.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.DevicesGetInstance.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.devices_getInstance.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.DevicesGetInstance.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.devices_getInstance.Input.Headers
+            package var headers: Operations.DevicesGetInstance.Input.Headers
             /// Creates a new `Input`.
             ///
             /// - Parameters:
@@ -10641,9 +10641,9 @@ package enum Operations {
             ///   - query:
             ///   - headers:
             package init(
-                path: Operations.devices_getInstance.Input.Path,
-                query: Operations.devices_getInstance.Input.Query = .init(),
-                headers: Operations.devices_getInstance.Input.Headers = .init()
+                path: Operations.DevicesGetInstance.Input.Path,
+                query: Operations.DevicesGetInstance.Input.Query = .init(),
+                headers: Operations.DevicesGetInstance.Input.Headers = .init()
             ) {
                 self.path = path
                 self.query = query
@@ -10670,12 +10670,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_getInstance.Output.BadRequest.Body
+                package var body: Operations.DevicesGetInstance.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_getInstance.Output.BadRequest.Body) {
+                package init(body: Operations.DevicesGetInstance.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -10684,12 +10684,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/{id}/get(devices_getInstance)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.devices_getInstance.Output.BadRequest)
+            case badRequest(Operations.DevicesGetInstance.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.devices_getInstance.Output.BadRequest {
+            package var badRequest: Operations.DevicesGetInstance.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -10721,12 +10721,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_getInstance.Output.Unauthorized.Body
+                package var body: Operations.DevicesGetInstance.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_getInstance.Output.Unauthorized.Body) {
+                package init(body: Operations.DevicesGetInstance.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -10735,12 +10735,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/{id}/get(devices_getInstance)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.devices_getInstance.Output.Unauthorized)
+            case unauthorized(Operations.DevicesGetInstance.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.devices_getInstance.Output.Unauthorized {
+            package var unauthorized: Operations.DevicesGetInstance.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -10772,12 +10772,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_getInstance.Output.Forbidden.Body
+                package var body: Operations.DevicesGetInstance.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_getInstance.Output.Forbidden.Body) {
+                package init(body: Operations.DevicesGetInstance.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -10786,12 +10786,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/{id}/get(devices_getInstance)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.devices_getInstance.Output.Forbidden)
+            case forbidden(Operations.DevicesGetInstance.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.devices_getInstance.Output.Forbidden {
+            package var forbidden: Operations.DevicesGetInstance.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -10823,12 +10823,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_getInstance.Output.NotFound.Body
+                package var body: Operations.DevicesGetInstance.Output.NotFound.Body
                 /// Creates a new `NotFound`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_getInstance.Output.NotFound.Body) {
+                package init(body: Operations.DevicesGetInstance.Output.NotFound.Body) {
                     self.body = body
                 }
             }
@@ -10837,12 +10837,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/{id}/get(devices_getInstance)/responses/404`.
             ///
             /// HTTP response code: `404 notFound`.
-            case notFound(Operations.devices_getInstance.Output.NotFound)
+            case notFound(Operations.DevicesGetInstance.Output.NotFound)
             /// The associated value of the enum case if `self` is `.notFound`.
             ///
             /// - Throws: An error if `self` is not `.notFound`.
             /// - SeeAlso: `.notFound`.
-            package var notFound: Operations.devices_getInstance.Output.NotFound {
+            package var notFound: Operations.DevicesGetInstance.Output.NotFound {
                 get throws {
                     switch self {
                     case let .notFound(response):
@@ -10874,12 +10874,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_getInstance.Output.Ok.Body
+                package var body: Operations.DevicesGetInstance.Output.Ok.Body
                 /// Creates a new `Ok`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_getInstance.Output.Ok.Body) {
+                package init(body: Operations.DevicesGetInstance.Output.Ok.Body) {
                     self.body = body
                 }
             }
@@ -10888,12 +10888,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/{id}/get(devices_getInstance)/responses/200`.
             ///
             /// HTTP response code: `200 ok`.
-            case ok(Operations.devices_getInstance.Output.Ok)
+            case ok(Operations.DevicesGetInstance.Output.Ok)
             /// The associated value of the enum case if `self` is `.ok`.
             ///
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
-            package var ok: Operations.devices_getInstance.Output.Ok {
+            package var ok: Operations.DevicesGetInstance.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):
@@ -10939,7 +10939,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `PATCH /v1/devices/{id}`.
     /// - Remark: Generated from `#/paths//v1/devices/{id}/patch(devices_updateInstance)`.
-    package enum devices_updateInstance {
+    package enum DevicesUpdateInstance {
         package static let id: Swift.String = "devices_updateInstance"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/devices/{id}/PATCH/path`.
@@ -10956,25 +10956,25 @@ package enum Operations {
                     self.id = id
                 }
             }
-            package var path: Operations.devices_updateInstance.Input.Path
+            package var path: Operations.DevicesUpdateInstance.Input.Path
             /// - Remark: Generated from `#/paths/v1/devices/{id}/PATCH/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.devices_updateInstance.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.DevicesUpdateInstance.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.devices_updateInstance.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.DevicesUpdateInstance.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.devices_updateInstance.Input.Headers
+            package var headers: Operations.DevicesUpdateInstance.Input.Headers
             /// - Remark: Generated from `#/paths/v1/devices/{id}/PATCH/requestBody`.
             @frozen package enum Body: Sendable, Hashable {
                 /// - Remark: Generated from `#/paths/v1/devices/{id}/PATCH/requestBody/content/application\/json`.
                 case json(Components.Schemas.DeviceUpdateRequest)
             }
-            package var body: Operations.devices_updateInstance.Input.Body
+            package var body: Operations.DevicesUpdateInstance.Input.Body
             /// Creates a new `Input`.
             ///
             /// - Parameters:
@@ -10982,9 +10982,9 @@ package enum Operations {
             ///   - headers:
             ///   - body:
             package init(
-                path: Operations.devices_updateInstance.Input.Path,
-                headers: Operations.devices_updateInstance.Input.Headers = .init(),
-                body: Operations.devices_updateInstance.Input.Body
+                path: Operations.DevicesUpdateInstance.Input.Path,
+                headers: Operations.DevicesUpdateInstance.Input.Headers = .init(),
+                body: Operations.DevicesUpdateInstance.Input.Body
             ) {
                 self.path = path
                 self.headers = headers
@@ -11011,12 +11011,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_updateInstance.Output.BadRequest.Body
+                package var body: Operations.DevicesUpdateInstance.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_updateInstance.Output.BadRequest.Body) {
+                package init(body: Operations.DevicesUpdateInstance.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -11025,12 +11025,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/{id}/patch(devices_updateInstance)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.devices_updateInstance.Output.BadRequest)
+            case badRequest(Operations.DevicesUpdateInstance.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.devices_updateInstance.Output.BadRequest {
+            package var badRequest: Operations.DevicesUpdateInstance.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -11062,12 +11062,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_updateInstance.Output.Unauthorized.Body
+                package var body: Operations.DevicesUpdateInstance.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_updateInstance.Output.Unauthorized.Body) {
+                package init(body: Operations.DevicesUpdateInstance.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -11076,12 +11076,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/{id}/patch(devices_updateInstance)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.devices_updateInstance.Output.Unauthorized)
+            case unauthorized(Operations.DevicesUpdateInstance.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.devices_updateInstance.Output.Unauthorized {
+            package var unauthorized: Operations.DevicesUpdateInstance.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -11113,12 +11113,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_updateInstance.Output.Forbidden.Body
+                package var body: Operations.DevicesUpdateInstance.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_updateInstance.Output.Forbidden.Body) {
+                package init(body: Operations.DevicesUpdateInstance.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -11127,12 +11127,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/{id}/patch(devices_updateInstance)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.devices_updateInstance.Output.Forbidden)
+            case forbidden(Operations.DevicesUpdateInstance.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.devices_updateInstance.Output.Forbidden {
+            package var forbidden: Operations.DevicesUpdateInstance.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -11164,12 +11164,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_updateInstance.Output.NotFound.Body
+                package var body: Operations.DevicesUpdateInstance.Output.NotFound.Body
                 /// Creates a new `NotFound`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_updateInstance.Output.NotFound.Body) {
+                package init(body: Operations.DevicesUpdateInstance.Output.NotFound.Body) {
                     self.body = body
                 }
             }
@@ -11178,12 +11178,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/{id}/patch(devices_updateInstance)/responses/404`.
             ///
             /// HTTP response code: `404 notFound`.
-            case notFound(Operations.devices_updateInstance.Output.NotFound)
+            case notFound(Operations.DevicesUpdateInstance.Output.NotFound)
             /// The associated value of the enum case if `self` is `.notFound`.
             ///
             /// - Throws: An error if `self` is not `.notFound`.
             /// - SeeAlso: `.notFound`.
-            package var notFound: Operations.devices_updateInstance.Output.NotFound {
+            package var notFound: Operations.DevicesUpdateInstance.Output.NotFound {
                 get throws {
                     switch self {
                     case let .notFound(response):
@@ -11215,12 +11215,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_updateInstance.Output.UnprocessableContent.Body
+                package var body: Operations.DevicesUpdateInstance.Output.UnprocessableContent.Body
                 /// Creates a new `UnprocessableContent`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_updateInstance.Output.UnprocessableContent.Body) {
+                package init(body: Operations.DevicesUpdateInstance.Output.UnprocessableContent.Body) {
                     self.body = body
                 }
             }
@@ -11229,12 +11229,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/{id}/patch(devices_updateInstance)/responses/422`.
             ///
             /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.devices_updateInstance.Output.UnprocessableContent)
+            case unprocessableContent(Operations.DevicesUpdateInstance.Output.UnprocessableContent)
             /// The associated value of the enum case if `self` is `.unprocessableContent`.
             ///
             /// - Throws: An error if `self` is not `.unprocessableContent`.
             /// - SeeAlso: `.unprocessableContent`.
-            package var unprocessableContent: Operations.devices_updateInstance.Output.UnprocessableContent {
+            package var unprocessableContent: Operations.DevicesUpdateInstance.Output.UnprocessableContent {
                 get throws {
                     switch self {
                     case let .unprocessableContent(response):
@@ -11266,12 +11266,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_updateInstance.Output.Ok.Body
+                package var body: Operations.DevicesUpdateInstance.Output.Ok.Body
                 /// Creates a new `Ok`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_updateInstance.Output.Ok.Body) {
+                package init(body: Operations.DevicesUpdateInstance.Output.Ok.Body) {
                     self.body = body
                 }
             }
@@ -11280,12 +11280,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/{id}/patch(devices_updateInstance)/responses/200`.
             ///
             /// HTTP response code: `200 ok`.
-            case ok(Operations.devices_updateInstance.Output.Ok)
+            case ok(Operations.DevicesUpdateInstance.Output.Ok)
             /// The associated value of the enum case if `self` is `.ok`.
             ///
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
-            package var ok: Operations.devices_updateInstance.Output.Ok {
+            package var ok: Operations.DevicesUpdateInstance.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):
@@ -11317,12 +11317,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.devices_updateInstance.Output.Conflict.Body
+                package var body: Operations.DevicesUpdateInstance.Output.Conflict.Body
                 /// Creates a new `Conflict`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.devices_updateInstance.Output.Conflict.Body) {
+                package init(body: Operations.DevicesUpdateInstance.Output.Conflict.Body) {
                     self.body = body
                 }
             }
@@ -11331,12 +11331,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/devices/{id}/patch(devices_updateInstance)/responses/409`.
             ///
             /// HTTP response code: `409 conflict`.
-            case conflict(Operations.devices_updateInstance.Output.Conflict)
+            case conflict(Operations.DevicesUpdateInstance.Output.Conflict)
             /// The associated value of the enum case if `self` is `.conflict`.
             ///
             /// - Throws: An error if `self` is not `.conflict`.
             /// - SeeAlso: `.conflict`.
-            package var conflict: Operations.devices_updateInstance.Output.Conflict {
+            package var conflict: Operations.DevicesUpdateInstance.Output.Conflict {
                 get throws {
                     switch self {
                     case let .conflict(response):
@@ -11382,7 +11382,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `GET /v1/profiles`.
     /// - Remark: Generated from `#/paths//v1/profiles/get(profiles_getCollection)`.
-    package enum profiles_getCollection {
+    package enum ProfilesGetCollection {
         package static let id: Swift.String = "profiles_getCollection"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/profiles/GET/query`.
@@ -11391,46 +11391,46 @@ package enum Operations {
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/filter[name]`.
                 package var filter_lbrack_name_rbrack_: [Swift.String]?
-                /// - Remark: Generated from `#/paths/v1/profiles/GET/query/filter_lbrack_profileType_rbrack_Payload`.
-                @frozen package enum filter_lbrack_profileType_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                    case IOS_APP_DEVELOPMENT = "IOS_APP_DEVELOPMENT"
-                    case IOS_APP_STORE = "IOS_APP_STORE"
-                    case IOS_APP_ADHOC = "IOS_APP_ADHOC"
-                    case IOS_APP_INHOUSE = "IOS_APP_INHOUSE"
-                    case MAC_APP_DEVELOPMENT = "MAC_APP_DEVELOPMENT"
-                    case MAC_APP_STORE = "MAC_APP_STORE"
-                    case MAC_APP_DIRECT = "MAC_APP_DIRECT"
-                    case TVOS_APP_DEVELOPMENT = "TVOS_APP_DEVELOPMENT"
-                    case TVOS_APP_STORE = "TVOS_APP_STORE"
-                    case TVOS_APP_ADHOC = "TVOS_APP_ADHOC"
-                    case TVOS_APP_INHOUSE = "TVOS_APP_INHOUSE"
-                    case MAC_CATALYST_APP_DEVELOPMENT = "MAC_CATALYST_APP_DEVELOPMENT"
-                    case MAC_CATALYST_APP_STORE = "MAC_CATALYST_APP_STORE"
-                    case MAC_CATALYST_APP_DIRECT = "MAC_CATALYST_APP_DIRECT"
+                /// - Remark: Generated from `#/paths/v1/profiles/GET/query/Filter_lbrack_profileType_rbrack_Payload`.
+                @frozen package enum FilterLbrackProfileTypeRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case iosAppDevelopment = "IOS_APP_DEVELOPMENT"
+                    case iosAppStore = "IOS_APP_STORE"
+                    case iosAppAdhoc = "IOS_APP_ADHOC"
+                    case iosAppInhouse = "IOS_APP_INHOUSE"
+                    case macAppDevelopment = "MAC_APP_DEVELOPMENT"
+                    case macAppStore = "MAC_APP_STORE"
+                    case macAppDirect = "MAC_APP_DIRECT"
+                    case tvosAppDevelopment = "TVOS_APP_DEVELOPMENT"
+                    case tvosAppStore = "TVOS_APP_STORE"
+                    case tvosAppAdhoc = "TVOS_APP_ADHOC"
+                    case tvosAppInhouse = "TVOS_APP_INHOUSE"
+                    case macCatalystAppDevelopment = "MAC_CATALYST_APP_DEVELOPMENT"
+                    case macCatalystAppStore = "MAC_CATALYST_APP_STORE"
+                    case macCatalystAppDirect = "MAC_CATALYST_APP_DIRECT"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/filter[profileType]`.
-                package typealias filter_lbrack_profileType_rbrack_Payload = [Operations.profiles_getCollection.Input.Query.filter_lbrack_profileType_rbrack_PayloadPayload]
+                package typealias Filter_lbrack_profileType_rbrack_Payload = [Operations.ProfilesGetCollection.Input.Query.FilterLbrackProfileTypeRbrackPayloadPayload]
                 /// filter by attribute 'profileType'
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/filter[profileType]`.
-                package var filter_lbrack_profileType_rbrack_: Operations.profiles_getCollection.Input.Query.filter_lbrack_profileType_rbrack_Payload?
-                /// - Remark: Generated from `#/paths/v1/profiles/GET/query/filter_lbrack_profileState_rbrack_Payload`.
-                @frozen package enum filter_lbrack_profileState_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                    case ACTIVE = "ACTIVE"
-                    case INVALID = "INVALID"
+                package var filter_lbrack_profileType_rbrack_: Operations.ProfilesGetCollection.Input.Query.Filter_lbrack_profileType_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/profiles/GET/query/Filter_lbrack_profileState_rbrack_Payload`.
+                @frozen package enum FilterLbrackProfileStateRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case active = "ACTIVE"
+                    case invalid = "INVALID"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/filter[profileState]`.
-                package typealias filter_lbrack_profileState_rbrack_Payload = [Operations.profiles_getCollection.Input.Query.filter_lbrack_profileState_rbrack_PayloadPayload]
+                package typealias Filter_lbrack_profileState_rbrack_Payload = [Operations.ProfilesGetCollection.Input.Query.FilterLbrackProfileStateRbrackPayloadPayload]
                 /// filter by attribute 'profileState'
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/filter[profileState]`.
-                package var filter_lbrack_profileState_rbrack_: Operations.profiles_getCollection.Input.Query.filter_lbrack_profileState_rbrack_Payload?
+                package var filter_lbrack_profileState_rbrack_: Operations.ProfilesGetCollection.Input.Query.Filter_lbrack_profileState_rbrack_Payload?
                 /// filter by id(s)
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/filter[id]`.
                 package var filter_lbrack_id_rbrack_: [Swift.String]?
-                /// - Remark: Generated from `#/paths/v1/profiles/GET/query/sortPayload`.
-                @frozen package enum sortPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                /// - Remark: Generated from `#/paths/v1/profiles/GET/query/SortPayload`.
+                @frozen package enum SortPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case _hyphen_name = "-name"
                     case profileType = "profileType"
@@ -11441,13 +11441,13 @@ package enum Operations {
                     case _hyphen_id = "-id"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/sort`.
-                package typealias sortPayload = [Operations.profiles_getCollection.Input.Query.sortPayloadPayload]
+                package typealias SortPayload = [Operations.ProfilesGetCollection.Input.Query.SortPayloadPayload]
                 /// comma-separated list of sort expressions; resources will be sorted as specified
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/sort`.
-                package var sort: Operations.profiles_getCollection.Input.Query.sortPayload?
-                /// - Remark: Generated from `#/paths/v1/profiles/GET/query/fields_lbrack_profiles_rbrack_Payload`.
-                @frozen package enum fields_lbrack_profiles_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                package var sort: Operations.ProfilesGetCollection.Input.Query.SortPayload?
+                /// - Remark: Generated from `#/paths/v1/profiles/GET/query/Fields_lbrack_profiles_rbrack_Payload`.
+                @frozen package enum FieldsLbrackProfilesRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case platform = "platform"
                     case profileType = "profileType"
@@ -11461,13 +11461,13 @@ package enum Operations {
                     case certificates = "certificates"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/fields[profiles]`.
-                package typealias fields_lbrack_profiles_rbrack_Payload = [Operations.profiles_getCollection.Input.Query.fields_lbrack_profiles_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_profiles_rbrack_Payload = [Operations.ProfilesGetCollection.Input.Query.FieldsLbrackProfilesRbrackPayloadPayload]
                 /// the fields to include for returned resources of type profiles
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/fields[profiles]`.
-                package var fields_lbrack_profiles_rbrack_: Operations.profiles_getCollection.Input.Query.fields_lbrack_profiles_rbrack_Payload?
-                /// - Remark: Generated from `#/paths/v1/profiles/GET/query/fields_lbrack_bundleIds_rbrack_Payload`.
-                @frozen package enum fields_lbrack_bundleIds_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                package var fields_lbrack_profiles_rbrack_: Operations.ProfilesGetCollection.Input.Query.Fields_lbrack_profiles_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/profiles/GET/query/Fields_lbrack_bundleIds_rbrack_Payload`.
+                @frozen package enum FieldsLbrackBundleIdsRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case platform = "platform"
                     case identifier = "identifier"
@@ -11477,13 +11477,13 @@ package enum Operations {
                     case app = "app"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/fields[bundleIds]`.
-                package typealias fields_lbrack_bundleIds_rbrack_Payload = [Operations.profiles_getCollection.Input.Query.fields_lbrack_bundleIds_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_bundleIds_rbrack_Payload = [Operations.ProfilesGetCollection.Input.Query.FieldsLbrackBundleIdsRbrackPayloadPayload]
                 /// the fields to include for returned resources of type bundleIds
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/fields[bundleIds]`.
-                package var fields_lbrack_bundleIds_rbrack_: Operations.profiles_getCollection.Input.Query.fields_lbrack_bundleIds_rbrack_Payload?
-                /// - Remark: Generated from `#/paths/v1/profiles/GET/query/fields_lbrack_devices_rbrack_Payload`.
-                @frozen package enum fields_lbrack_devices_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                package var fields_lbrack_bundleIds_rbrack_: Operations.ProfilesGetCollection.Input.Query.Fields_lbrack_bundleIds_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/profiles/GET/query/Fields_lbrack_devices_rbrack_Payload`.
+                @frozen package enum FieldsLbrackDevicesRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case platform = "platform"
                     case udid = "udid"
@@ -11493,13 +11493,13 @@ package enum Operations {
                     case addedDate = "addedDate"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/fields[devices]`.
-                package typealias fields_lbrack_devices_rbrack_Payload = [Operations.profiles_getCollection.Input.Query.fields_lbrack_devices_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_devices_rbrack_Payload = [Operations.ProfilesGetCollection.Input.Query.FieldsLbrackDevicesRbrackPayloadPayload]
                 /// the fields to include for returned resources of type devices
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/fields[devices]`.
-                package var fields_lbrack_devices_rbrack_: Operations.profiles_getCollection.Input.Query.fields_lbrack_devices_rbrack_Payload?
-                /// - Remark: Generated from `#/paths/v1/profiles/GET/query/fields_lbrack_certificates_rbrack_Payload`.
-                @frozen package enum fields_lbrack_certificates_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                package var fields_lbrack_devices_rbrack_: Operations.ProfilesGetCollection.Input.Query.Fields_lbrack_devices_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/profiles/GET/query/Fields_lbrack_certificates_rbrack_Payload`.
+                @frozen package enum FieldsLbrackCertificatesRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case certificateType = "certificateType"
                     case displayName = "displayName"
@@ -11509,27 +11509,27 @@ package enum Operations {
                     case certificateContent = "certificateContent"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/fields[certificates]`.
-                package typealias fields_lbrack_certificates_rbrack_Payload = [Operations.profiles_getCollection.Input.Query.fields_lbrack_certificates_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_certificates_rbrack_Payload = [Operations.ProfilesGetCollection.Input.Query.FieldsLbrackCertificatesRbrackPayloadPayload]
                 /// the fields to include for returned resources of type certificates
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/fields[certificates]`.
-                package var fields_lbrack_certificates_rbrack_: Operations.profiles_getCollection.Input.Query.fields_lbrack_certificates_rbrack_Payload?
+                package var fields_lbrack_certificates_rbrack_: Operations.ProfilesGetCollection.Input.Query.Fields_lbrack_certificates_rbrack_Payload?
                 /// maximum resources per page
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/limit`.
                 package var limit: Swift.Int?
-                /// - Remark: Generated from `#/paths/v1/profiles/GET/query/includePayload`.
-                @frozen package enum includePayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                /// - Remark: Generated from `#/paths/v1/profiles/GET/query/IncludePayload`.
+                @frozen package enum IncludePayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case bundleId = "bundleId"
                     case devices = "devices"
                     case certificates = "certificates"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/include`.
-                package typealias includePayload = [Operations.profiles_getCollection.Input.Query.includePayloadPayload]
+                package typealias IncludePayload = [Operations.ProfilesGetCollection.Input.Query.IncludePayloadPayload]
                 /// comma-separated list of relationships to include
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/include`.
-                package var include: Operations.profiles_getCollection.Input.Query.includePayload?
+                package var include: Operations.ProfilesGetCollection.Input.Query.IncludePayload?
                 /// maximum number of related certificates returned (when they are included)
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/limit[certificates]`.
@@ -11556,16 +11556,16 @@ package enum Operations {
                 ///   - limit_lbrack_devices_rbrack_: maximum number of related devices returned (when they are included)
                 package init(
                     filter_lbrack_name_rbrack_: [Swift.String]? = nil,
-                    filter_lbrack_profileType_rbrack_: Operations.profiles_getCollection.Input.Query.filter_lbrack_profileType_rbrack_Payload? = nil,
-                    filter_lbrack_profileState_rbrack_: Operations.profiles_getCollection.Input.Query.filter_lbrack_profileState_rbrack_Payload? = nil,
+                    filter_lbrack_profileType_rbrack_: Operations.ProfilesGetCollection.Input.Query.Filter_lbrack_profileType_rbrack_Payload? = nil,
+                    filter_lbrack_profileState_rbrack_: Operations.ProfilesGetCollection.Input.Query.Filter_lbrack_profileState_rbrack_Payload? = nil,
                     filter_lbrack_id_rbrack_: [Swift.String]? = nil,
-                    sort: Operations.profiles_getCollection.Input.Query.sortPayload? = nil,
-                    fields_lbrack_profiles_rbrack_: Operations.profiles_getCollection.Input.Query.fields_lbrack_profiles_rbrack_Payload? = nil,
-                    fields_lbrack_bundleIds_rbrack_: Operations.profiles_getCollection.Input.Query.fields_lbrack_bundleIds_rbrack_Payload? = nil,
-                    fields_lbrack_devices_rbrack_: Operations.profiles_getCollection.Input.Query.fields_lbrack_devices_rbrack_Payload? = nil,
-                    fields_lbrack_certificates_rbrack_: Operations.profiles_getCollection.Input.Query.fields_lbrack_certificates_rbrack_Payload? = nil,
+                    sort: Operations.ProfilesGetCollection.Input.Query.SortPayload? = nil,
+                    fields_lbrack_profiles_rbrack_: Operations.ProfilesGetCollection.Input.Query.Fields_lbrack_profiles_rbrack_Payload? = nil,
+                    fields_lbrack_bundleIds_rbrack_: Operations.ProfilesGetCollection.Input.Query.Fields_lbrack_bundleIds_rbrack_Payload? = nil,
+                    fields_lbrack_devices_rbrack_: Operations.ProfilesGetCollection.Input.Query.Fields_lbrack_devices_rbrack_Payload? = nil,
+                    fields_lbrack_certificates_rbrack_: Operations.ProfilesGetCollection.Input.Query.Fields_lbrack_certificates_rbrack_Payload? = nil,
                     limit: Swift.Int? = nil,
-                    include: Operations.profiles_getCollection.Input.Query.includePayload? = nil,
+                    include: Operations.ProfilesGetCollection.Input.Query.IncludePayload? = nil,
                     limit_lbrack_certificates_rbrack_: Swift.Int? = nil,
                     limit_lbrack_devices_rbrack_: Swift.Int? = nil
                 ) {
@@ -11584,27 +11584,27 @@ package enum Operations {
                     self.limit_lbrack_devices_rbrack_ = limit_lbrack_devices_rbrack_
                 }
             }
-            package var query: Operations.profiles_getCollection.Input.Query
+            package var query: Operations.ProfilesGetCollection.Input.Query
             /// - Remark: Generated from `#/paths/v1/profiles/GET/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.profiles_getCollection.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesGetCollection.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.profiles_getCollection.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesGetCollection.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.profiles_getCollection.Input.Headers
+            package var headers: Operations.ProfilesGetCollection.Input.Headers
             /// Creates a new `Input`.
             ///
             /// - Parameters:
             ///   - query:
             ///   - headers:
             package init(
-                query: Operations.profiles_getCollection.Input.Query = .init(),
-                headers: Operations.profiles_getCollection.Input.Headers = .init()
+                query: Operations.ProfilesGetCollection.Input.Query = .init(),
+                headers: Operations.ProfilesGetCollection.Input.Headers = .init()
             ) {
                 self.query = query
                 self.headers = headers
@@ -11630,12 +11630,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_getCollection.Output.BadRequest.Body
+                package var body: Operations.ProfilesGetCollection.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_getCollection.Output.BadRequest.Body) {
+                package init(body: Operations.ProfilesGetCollection.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -11644,12 +11644,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/get(profiles_getCollection)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.profiles_getCollection.Output.BadRequest)
+            case badRequest(Operations.ProfilesGetCollection.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.profiles_getCollection.Output.BadRequest {
+            package var badRequest: Operations.ProfilesGetCollection.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -11681,12 +11681,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_getCollection.Output.Unauthorized.Body
+                package var body: Operations.ProfilesGetCollection.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_getCollection.Output.Unauthorized.Body) {
+                package init(body: Operations.ProfilesGetCollection.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -11695,12 +11695,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/get(profiles_getCollection)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.profiles_getCollection.Output.Unauthorized)
+            case unauthorized(Operations.ProfilesGetCollection.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.profiles_getCollection.Output.Unauthorized {
+            package var unauthorized: Operations.ProfilesGetCollection.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -11732,12 +11732,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_getCollection.Output.Forbidden.Body
+                package var body: Operations.ProfilesGetCollection.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_getCollection.Output.Forbidden.Body) {
+                package init(body: Operations.ProfilesGetCollection.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -11746,12 +11746,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/get(profiles_getCollection)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.profiles_getCollection.Output.Forbidden)
+            case forbidden(Operations.ProfilesGetCollection.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.profiles_getCollection.Output.Forbidden {
+            package var forbidden: Operations.ProfilesGetCollection.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -11783,12 +11783,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_getCollection.Output.Ok.Body
+                package var body: Operations.ProfilesGetCollection.Output.Ok.Body
                 /// Creates a new `Ok`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_getCollection.Output.Ok.Body) {
+                package init(body: Operations.ProfilesGetCollection.Output.Ok.Body) {
                     self.body = body
                 }
             }
@@ -11797,12 +11797,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/get(profiles_getCollection)/responses/200`.
             ///
             /// HTTP response code: `200 ok`.
-            case ok(Operations.profiles_getCollection.Output.Ok)
+            case ok(Operations.ProfilesGetCollection.Output.Ok)
             /// The associated value of the enum case if `self` is `.ok`.
             ///
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
-            package var ok: Operations.profiles_getCollection.Output.Ok {
+            package var ok: Operations.ProfilesGetCollection.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):
@@ -11848,35 +11848,35 @@ package enum Operations {
     }
     /// - Remark: HTTP `POST /v1/profiles`.
     /// - Remark: Generated from `#/paths//v1/profiles/post(profiles_createInstance)`.
-    package enum profiles_createInstance {
+    package enum ProfilesCreateInstance {
         package static let id: Swift.String = "profiles_createInstance"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/profiles/POST/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.profiles_createInstance.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesCreateInstance.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.profiles_createInstance.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesCreateInstance.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.profiles_createInstance.Input.Headers
+            package var headers: Operations.ProfilesCreateInstance.Input.Headers
             /// - Remark: Generated from `#/paths/v1/profiles/POST/requestBody`.
             @frozen package enum Body: Sendable, Hashable {
                 /// - Remark: Generated from `#/paths/v1/profiles/POST/requestBody/content/application\/json`.
                 case json(Components.Schemas.ProfileCreateRequest)
             }
-            package var body: Operations.profiles_createInstance.Input.Body
+            package var body: Operations.ProfilesCreateInstance.Input.Body
             /// Creates a new `Input`.
             ///
             /// - Parameters:
             ///   - headers:
             ///   - body:
             package init(
-                headers: Operations.profiles_createInstance.Input.Headers = .init(),
-                body: Operations.profiles_createInstance.Input.Body
+                headers: Operations.ProfilesCreateInstance.Input.Headers = .init(),
+                body: Operations.ProfilesCreateInstance.Input.Body
             ) {
                 self.headers = headers
                 self.body = body
@@ -11902,12 +11902,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_createInstance.Output.BadRequest.Body
+                package var body: Operations.ProfilesCreateInstance.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_createInstance.Output.BadRequest.Body) {
+                package init(body: Operations.ProfilesCreateInstance.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -11916,12 +11916,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/post(profiles_createInstance)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.profiles_createInstance.Output.BadRequest)
+            case badRequest(Operations.ProfilesCreateInstance.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.profiles_createInstance.Output.BadRequest {
+            package var badRequest: Operations.ProfilesCreateInstance.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -11953,12 +11953,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_createInstance.Output.Unauthorized.Body
+                package var body: Operations.ProfilesCreateInstance.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_createInstance.Output.Unauthorized.Body) {
+                package init(body: Operations.ProfilesCreateInstance.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -11967,12 +11967,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/post(profiles_createInstance)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.profiles_createInstance.Output.Unauthorized)
+            case unauthorized(Operations.ProfilesCreateInstance.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.profiles_createInstance.Output.Unauthorized {
+            package var unauthorized: Operations.ProfilesCreateInstance.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -12004,12 +12004,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_createInstance.Output.Forbidden.Body
+                package var body: Operations.ProfilesCreateInstance.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_createInstance.Output.Forbidden.Body) {
+                package init(body: Operations.ProfilesCreateInstance.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -12018,12 +12018,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/post(profiles_createInstance)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.profiles_createInstance.Output.Forbidden)
+            case forbidden(Operations.ProfilesCreateInstance.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.profiles_createInstance.Output.Forbidden {
+            package var forbidden: Operations.ProfilesCreateInstance.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -12055,12 +12055,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_createInstance.Output.UnprocessableContent.Body
+                package var body: Operations.ProfilesCreateInstance.Output.UnprocessableContent.Body
                 /// Creates a new `UnprocessableContent`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_createInstance.Output.UnprocessableContent.Body) {
+                package init(body: Operations.ProfilesCreateInstance.Output.UnprocessableContent.Body) {
                     self.body = body
                 }
             }
@@ -12069,12 +12069,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/post(profiles_createInstance)/responses/422`.
             ///
             /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.profiles_createInstance.Output.UnprocessableContent)
+            case unprocessableContent(Operations.ProfilesCreateInstance.Output.UnprocessableContent)
             /// The associated value of the enum case if `self` is `.unprocessableContent`.
             ///
             /// - Throws: An error if `self` is not `.unprocessableContent`.
             /// - SeeAlso: `.unprocessableContent`.
-            package var unprocessableContent: Operations.profiles_createInstance.Output.UnprocessableContent {
+            package var unprocessableContent: Operations.ProfilesCreateInstance.Output.UnprocessableContent {
                 get throws {
                     switch self {
                     case let .unprocessableContent(response):
@@ -12106,12 +12106,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_createInstance.Output.Created.Body
+                package var body: Operations.ProfilesCreateInstance.Output.Created.Body
                 /// Creates a new `Created`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_createInstance.Output.Created.Body) {
+                package init(body: Operations.ProfilesCreateInstance.Output.Created.Body) {
                     self.body = body
                 }
             }
@@ -12120,12 +12120,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/post(profiles_createInstance)/responses/201`.
             ///
             /// HTTP response code: `201 created`.
-            case created(Operations.profiles_createInstance.Output.Created)
+            case created(Operations.ProfilesCreateInstance.Output.Created)
             /// The associated value of the enum case if `self` is `.created`.
             ///
             /// - Throws: An error if `self` is not `.created`.
             /// - SeeAlso: `.created`.
-            package var created: Operations.profiles_createInstance.Output.Created {
+            package var created: Operations.ProfilesCreateInstance.Output.Created {
                 get throws {
                     switch self {
                     case let .created(response):
@@ -12157,12 +12157,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_createInstance.Output.Conflict.Body
+                package var body: Operations.ProfilesCreateInstance.Output.Conflict.Body
                 /// Creates a new `Conflict`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_createInstance.Output.Conflict.Body) {
+                package init(body: Operations.ProfilesCreateInstance.Output.Conflict.Body) {
                     self.body = body
                 }
             }
@@ -12171,12 +12171,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/post(profiles_createInstance)/responses/409`.
             ///
             /// HTTP response code: `409 conflict`.
-            case conflict(Operations.profiles_createInstance.Output.Conflict)
+            case conflict(Operations.ProfilesCreateInstance.Output.Conflict)
             /// The associated value of the enum case if `self` is `.conflict`.
             ///
             /// - Throws: An error if `self` is not `.conflict`.
             /// - SeeAlso: `.conflict`.
-            package var conflict: Operations.profiles_createInstance.Output.Conflict {
+            package var conflict: Operations.ProfilesCreateInstance.Output.Conflict {
                 get throws {
                     switch self {
                     case let .conflict(response):
@@ -12222,7 +12222,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `GET /v1/profiles/{id}`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/get(profiles_getInstance)`.
-    package enum profiles_getInstance {
+    package enum ProfilesGetInstance {
         package static let id: Swift.String = "profiles_getInstance"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/path`.
@@ -12239,11 +12239,11 @@ package enum Operations {
                     self.id = id
                 }
             }
-            package var path: Operations.profiles_getInstance.Input.Path
+            package var path: Operations.ProfilesGetInstance.Input.Path
             /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query`.
             package struct Query: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/fields_lbrack_profiles_rbrack_Payload`.
-                @frozen package enum fields_lbrack_profiles_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/Fields_lbrack_profiles_rbrack_Payload`.
+                @frozen package enum FieldsLbrackProfilesRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case platform = "platform"
                     case profileType = "profileType"
@@ -12257,13 +12257,13 @@ package enum Operations {
                     case certificates = "certificates"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/fields[profiles]`.
-                package typealias fields_lbrack_profiles_rbrack_Payload = [Operations.profiles_getInstance.Input.Query.fields_lbrack_profiles_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_profiles_rbrack_Payload = [Operations.ProfilesGetInstance.Input.Query.FieldsLbrackProfilesRbrackPayloadPayload]
                 /// the fields to include for returned resources of type profiles
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/fields[profiles]`.
-                package var fields_lbrack_profiles_rbrack_: Operations.profiles_getInstance.Input.Query.fields_lbrack_profiles_rbrack_Payload?
-                /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/fields_lbrack_bundleIds_rbrack_Payload`.
-                @frozen package enum fields_lbrack_bundleIds_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                package var fields_lbrack_profiles_rbrack_: Operations.ProfilesGetInstance.Input.Query.Fields_lbrack_profiles_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/Fields_lbrack_bundleIds_rbrack_Payload`.
+                @frozen package enum FieldsLbrackBundleIdsRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case platform = "platform"
                     case identifier = "identifier"
@@ -12273,13 +12273,13 @@ package enum Operations {
                     case app = "app"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/fields[bundleIds]`.
-                package typealias fields_lbrack_bundleIds_rbrack_Payload = [Operations.profiles_getInstance.Input.Query.fields_lbrack_bundleIds_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_bundleIds_rbrack_Payload = [Operations.ProfilesGetInstance.Input.Query.FieldsLbrackBundleIdsRbrackPayloadPayload]
                 /// the fields to include for returned resources of type bundleIds
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/fields[bundleIds]`.
-                package var fields_lbrack_bundleIds_rbrack_: Operations.profiles_getInstance.Input.Query.fields_lbrack_bundleIds_rbrack_Payload?
-                /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/fields_lbrack_devices_rbrack_Payload`.
-                @frozen package enum fields_lbrack_devices_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                package var fields_lbrack_bundleIds_rbrack_: Operations.ProfilesGetInstance.Input.Query.Fields_lbrack_bundleIds_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/Fields_lbrack_devices_rbrack_Payload`.
+                @frozen package enum FieldsLbrackDevicesRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case platform = "platform"
                     case udid = "udid"
@@ -12289,13 +12289,13 @@ package enum Operations {
                     case addedDate = "addedDate"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/fields[devices]`.
-                package typealias fields_lbrack_devices_rbrack_Payload = [Operations.profiles_getInstance.Input.Query.fields_lbrack_devices_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_devices_rbrack_Payload = [Operations.ProfilesGetInstance.Input.Query.FieldsLbrackDevicesRbrackPayloadPayload]
                 /// the fields to include for returned resources of type devices
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/fields[devices]`.
-                package var fields_lbrack_devices_rbrack_: Operations.profiles_getInstance.Input.Query.fields_lbrack_devices_rbrack_Payload?
-                /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/fields_lbrack_certificates_rbrack_Payload`.
-                @frozen package enum fields_lbrack_certificates_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                package var fields_lbrack_devices_rbrack_: Operations.ProfilesGetInstance.Input.Query.Fields_lbrack_devices_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/Fields_lbrack_certificates_rbrack_Payload`.
+                @frozen package enum FieldsLbrackCertificatesRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case certificateType = "certificateType"
                     case displayName = "displayName"
@@ -12305,23 +12305,23 @@ package enum Operations {
                     case certificateContent = "certificateContent"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/fields[certificates]`.
-                package typealias fields_lbrack_certificates_rbrack_Payload = [Operations.profiles_getInstance.Input.Query.fields_lbrack_certificates_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_certificates_rbrack_Payload = [Operations.ProfilesGetInstance.Input.Query.FieldsLbrackCertificatesRbrackPayloadPayload]
                 /// the fields to include for returned resources of type certificates
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/fields[certificates]`.
-                package var fields_lbrack_certificates_rbrack_: Operations.profiles_getInstance.Input.Query.fields_lbrack_certificates_rbrack_Payload?
-                /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/includePayload`.
-                @frozen package enum includePayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                package var fields_lbrack_certificates_rbrack_: Operations.ProfilesGetInstance.Input.Query.Fields_lbrack_certificates_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/IncludePayload`.
+                @frozen package enum IncludePayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case bundleId = "bundleId"
                     case devices = "devices"
                     case certificates = "certificates"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/include`.
-                package typealias includePayload = [Operations.profiles_getInstance.Input.Query.includePayloadPayload]
+                package typealias IncludePayload = [Operations.ProfilesGetInstance.Input.Query.IncludePayloadPayload]
                 /// comma-separated list of relationships to include
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/include`.
-                package var include: Operations.profiles_getInstance.Input.Query.includePayload?
+                package var include: Operations.ProfilesGetInstance.Input.Query.IncludePayload?
                 /// maximum number of related certificates returned (when they are included)
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/limit[certificates]`.
@@ -12341,11 +12341,11 @@ package enum Operations {
                 ///   - limit_lbrack_certificates_rbrack_: maximum number of related certificates returned (when they are included)
                 ///   - limit_lbrack_devices_rbrack_: maximum number of related devices returned (when they are included)
                 package init(
-                    fields_lbrack_profiles_rbrack_: Operations.profiles_getInstance.Input.Query.fields_lbrack_profiles_rbrack_Payload? = nil,
-                    fields_lbrack_bundleIds_rbrack_: Operations.profiles_getInstance.Input.Query.fields_lbrack_bundleIds_rbrack_Payload? = nil,
-                    fields_lbrack_devices_rbrack_: Operations.profiles_getInstance.Input.Query.fields_lbrack_devices_rbrack_Payload? = nil,
-                    fields_lbrack_certificates_rbrack_: Operations.profiles_getInstance.Input.Query.fields_lbrack_certificates_rbrack_Payload? = nil,
-                    include: Operations.profiles_getInstance.Input.Query.includePayload? = nil,
+                    fields_lbrack_profiles_rbrack_: Operations.ProfilesGetInstance.Input.Query.Fields_lbrack_profiles_rbrack_Payload? = nil,
+                    fields_lbrack_bundleIds_rbrack_: Operations.ProfilesGetInstance.Input.Query.Fields_lbrack_bundleIds_rbrack_Payload? = nil,
+                    fields_lbrack_devices_rbrack_: Operations.ProfilesGetInstance.Input.Query.Fields_lbrack_devices_rbrack_Payload? = nil,
+                    fields_lbrack_certificates_rbrack_: Operations.ProfilesGetInstance.Input.Query.Fields_lbrack_certificates_rbrack_Payload? = nil,
+                    include: Operations.ProfilesGetInstance.Input.Query.IncludePayload? = nil,
                     limit_lbrack_certificates_rbrack_: Swift.Int? = nil,
                     limit_lbrack_devices_rbrack_: Swift.Int? = nil
                 ) {
@@ -12358,19 +12358,19 @@ package enum Operations {
                     self.limit_lbrack_devices_rbrack_ = limit_lbrack_devices_rbrack_
                 }
             }
-            package var query: Operations.profiles_getInstance.Input.Query
+            package var query: Operations.ProfilesGetInstance.Input.Query
             /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.profiles_getInstance.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesGetInstance.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.profiles_getInstance.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesGetInstance.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.profiles_getInstance.Input.Headers
+            package var headers: Operations.ProfilesGetInstance.Input.Headers
             /// Creates a new `Input`.
             ///
             /// - Parameters:
@@ -12378,9 +12378,9 @@ package enum Operations {
             ///   - query:
             ///   - headers:
             package init(
-                path: Operations.profiles_getInstance.Input.Path,
-                query: Operations.profiles_getInstance.Input.Query = .init(),
-                headers: Operations.profiles_getInstance.Input.Headers = .init()
+                path: Operations.ProfilesGetInstance.Input.Path,
+                query: Operations.ProfilesGetInstance.Input.Query = .init(),
+                headers: Operations.ProfilesGetInstance.Input.Headers = .init()
             ) {
                 self.path = path
                 self.query = query
@@ -12407,12 +12407,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_getInstance.Output.BadRequest.Body
+                package var body: Operations.ProfilesGetInstance.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_getInstance.Output.BadRequest.Body) {
+                package init(body: Operations.ProfilesGetInstance.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -12421,12 +12421,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/get(profiles_getInstance)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.profiles_getInstance.Output.BadRequest)
+            case badRequest(Operations.ProfilesGetInstance.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.profiles_getInstance.Output.BadRequest {
+            package var badRequest: Operations.ProfilesGetInstance.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -12458,12 +12458,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_getInstance.Output.Unauthorized.Body
+                package var body: Operations.ProfilesGetInstance.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_getInstance.Output.Unauthorized.Body) {
+                package init(body: Operations.ProfilesGetInstance.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -12472,12 +12472,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/get(profiles_getInstance)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.profiles_getInstance.Output.Unauthorized)
+            case unauthorized(Operations.ProfilesGetInstance.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.profiles_getInstance.Output.Unauthorized {
+            package var unauthorized: Operations.ProfilesGetInstance.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -12509,12 +12509,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_getInstance.Output.Forbidden.Body
+                package var body: Operations.ProfilesGetInstance.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_getInstance.Output.Forbidden.Body) {
+                package init(body: Operations.ProfilesGetInstance.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -12523,12 +12523,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/get(profiles_getInstance)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.profiles_getInstance.Output.Forbidden)
+            case forbidden(Operations.ProfilesGetInstance.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.profiles_getInstance.Output.Forbidden {
+            package var forbidden: Operations.ProfilesGetInstance.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -12560,12 +12560,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_getInstance.Output.NotFound.Body
+                package var body: Operations.ProfilesGetInstance.Output.NotFound.Body
                 /// Creates a new `NotFound`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_getInstance.Output.NotFound.Body) {
+                package init(body: Operations.ProfilesGetInstance.Output.NotFound.Body) {
                     self.body = body
                 }
             }
@@ -12574,12 +12574,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/get(profiles_getInstance)/responses/404`.
             ///
             /// HTTP response code: `404 notFound`.
-            case notFound(Operations.profiles_getInstance.Output.NotFound)
+            case notFound(Operations.ProfilesGetInstance.Output.NotFound)
             /// The associated value of the enum case if `self` is `.notFound`.
             ///
             /// - Throws: An error if `self` is not `.notFound`.
             /// - SeeAlso: `.notFound`.
-            package var notFound: Operations.profiles_getInstance.Output.NotFound {
+            package var notFound: Operations.ProfilesGetInstance.Output.NotFound {
                 get throws {
                     switch self {
                     case let .notFound(response):
@@ -12611,12 +12611,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_getInstance.Output.Ok.Body
+                package var body: Operations.ProfilesGetInstance.Output.Ok.Body
                 /// Creates a new `Ok`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_getInstance.Output.Ok.Body) {
+                package init(body: Operations.ProfilesGetInstance.Output.Ok.Body) {
                     self.body = body
                 }
             }
@@ -12625,12 +12625,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/get(profiles_getInstance)/responses/200`.
             ///
             /// HTTP response code: `200 ok`.
-            case ok(Operations.profiles_getInstance.Output.Ok)
+            case ok(Operations.ProfilesGetInstance.Output.Ok)
             /// The associated value of the enum case if `self` is `.ok`.
             ///
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
-            package var ok: Operations.profiles_getInstance.Output.Ok {
+            package var ok: Operations.ProfilesGetInstance.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):
@@ -12676,7 +12676,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `DELETE /v1/profiles/{id}`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/delete(profiles_deleteInstance)`.
-    package enum profiles_deleteInstance {
+    package enum ProfilesDeleteInstance {
         package static let id: Swift.String = "profiles_deleteInstance"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/profiles/{id}/DELETE/path`.
@@ -12693,27 +12693,27 @@ package enum Operations {
                     self.id = id
                 }
             }
-            package var path: Operations.profiles_deleteInstance.Input.Path
+            package var path: Operations.ProfilesDeleteInstance.Input.Path
             /// - Remark: Generated from `#/paths/v1/profiles/{id}/DELETE/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.profiles_deleteInstance.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesDeleteInstance.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.profiles_deleteInstance.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesDeleteInstance.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.profiles_deleteInstance.Input.Headers
+            package var headers: Operations.ProfilesDeleteInstance.Input.Headers
             /// Creates a new `Input`.
             ///
             /// - Parameters:
             ///   - path:
             ///   - headers:
             package init(
-                path: Operations.profiles_deleteInstance.Input.Path,
-                headers: Operations.profiles_deleteInstance.Input.Headers = .init()
+                path: Operations.ProfilesDeleteInstance.Input.Path,
+                headers: Operations.ProfilesDeleteInstance.Input.Headers = .init()
             ) {
                 self.path = path
                 self.headers = headers
@@ -12739,12 +12739,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_deleteInstance.Output.BadRequest.Body
+                package var body: Operations.ProfilesDeleteInstance.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_deleteInstance.Output.BadRequest.Body) {
+                package init(body: Operations.ProfilesDeleteInstance.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -12753,12 +12753,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/delete(profiles_deleteInstance)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.profiles_deleteInstance.Output.BadRequest)
+            case badRequest(Operations.ProfilesDeleteInstance.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.profiles_deleteInstance.Output.BadRequest {
+            package var badRequest: Operations.ProfilesDeleteInstance.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -12790,12 +12790,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_deleteInstance.Output.Unauthorized.Body
+                package var body: Operations.ProfilesDeleteInstance.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_deleteInstance.Output.Unauthorized.Body) {
+                package init(body: Operations.ProfilesDeleteInstance.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -12804,12 +12804,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/delete(profiles_deleteInstance)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.profiles_deleteInstance.Output.Unauthorized)
+            case unauthorized(Operations.ProfilesDeleteInstance.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.profiles_deleteInstance.Output.Unauthorized {
+            package var unauthorized: Operations.ProfilesDeleteInstance.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -12841,12 +12841,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_deleteInstance.Output.Forbidden.Body
+                package var body: Operations.ProfilesDeleteInstance.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_deleteInstance.Output.Forbidden.Body) {
+                package init(body: Operations.ProfilesDeleteInstance.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -12855,12 +12855,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/delete(profiles_deleteInstance)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.profiles_deleteInstance.Output.Forbidden)
+            case forbidden(Operations.ProfilesDeleteInstance.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.profiles_deleteInstance.Output.Forbidden {
+            package var forbidden: Operations.ProfilesDeleteInstance.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -12892,12 +12892,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_deleteInstance.Output.NotFound.Body
+                package var body: Operations.ProfilesDeleteInstance.Output.NotFound.Body
                 /// Creates a new `NotFound`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_deleteInstance.Output.NotFound.Body) {
+                package init(body: Operations.ProfilesDeleteInstance.Output.NotFound.Body) {
                     self.body = body
                 }
             }
@@ -12906,12 +12906,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/delete(profiles_deleteInstance)/responses/404`.
             ///
             /// HTTP response code: `404 notFound`.
-            case notFound(Operations.profiles_deleteInstance.Output.NotFound)
+            case notFound(Operations.ProfilesDeleteInstance.Output.NotFound)
             /// The associated value of the enum case if `self` is `.notFound`.
             ///
             /// - Throws: An error if `self` is not `.notFound`.
             /// - SeeAlso: `.notFound`.
-            package var notFound: Operations.profiles_deleteInstance.Output.NotFound {
+            package var notFound: Operations.ProfilesDeleteInstance.Output.NotFound {
                 get throws {
                     switch self {
                     case let .notFound(response):
@@ -12943,12 +12943,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_deleteInstance.Output.Conflict.Body
+                package var body: Operations.ProfilesDeleteInstance.Output.Conflict.Body
                 /// Creates a new `Conflict`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_deleteInstance.Output.Conflict.Body) {
+                package init(body: Operations.ProfilesDeleteInstance.Output.Conflict.Body) {
                     self.body = body
                 }
             }
@@ -12957,12 +12957,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/delete(profiles_deleteInstance)/responses/409`.
             ///
             /// HTTP response code: `409 conflict`.
-            case conflict(Operations.profiles_deleteInstance.Output.Conflict)
+            case conflict(Operations.ProfilesDeleteInstance.Output.Conflict)
             /// The associated value of the enum case if `self` is `.conflict`.
             ///
             /// - Throws: An error if `self` is not `.conflict`.
             /// - SeeAlso: `.conflict`.
-            package var conflict: Operations.profiles_deleteInstance.Output.Conflict {
+            package var conflict: Operations.ProfilesDeleteInstance.Output.Conflict {
                 get throws {
                     switch self {
                     case let .conflict(response):
@@ -12984,7 +12984,7 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/delete(profiles_deleteInstance)/responses/204`.
             ///
             /// HTTP response code: `204 noContent`.
-            case noContent(Operations.profiles_deleteInstance.Output.NoContent)
+            case noContent(Operations.ProfilesDeleteInstance.Output.NoContent)
             /// Success (no content)
             ///
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/delete(profiles_deleteInstance)/responses/204`.
@@ -12997,7 +12997,7 @@ package enum Operations {
             ///
             /// - Throws: An error if `self` is not `.noContent`.
             /// - SeeAlso: `.noContent`.
-            package var noContent: Operations.profiles_deleteInstance.Output.NoContent {
+            package var noContent: Operations.ProfilesDeleteInstance.Output.NoContent {
                 get throws {
                     switch self {
                     case let .noContent(response):
@@ -13043,7 +13043,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/app`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/app/get(bundleIds_app_getToOneRelated)`.
-    package enum bundleIds_app_getToOneRelated {
+    package enum BundleIdsAppGetToOneRelated {
         package static let id: Swift.String = "bundleIds_app_getToOneRelated"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/app/GET/path`.
@@ -13060,11 +13060,11 @@ package enum Operations {
                     self.id = id
                 }
             }
-            package var path: Operations.bundleIds_app_getToOneRelated.Input.Path
+            package var path: Operations.BundleIdsAppGetToOneRelated.Input.Path
             /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/app/GET/query`.
             package struct Query: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/app/GET/query/fields_lbrack_apps_rbrack_Payload`.
-                @frozen package enum fields_lbrack_apps_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/app/GET/query/Fields_lbrack_apps_rbrack_Payload`.
+                @frozen package enum FieldsLbrackAppsRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case bundleId = "bundleId"
                     case sku = "sku"
@@ -13110,32 +13110,32 @@ package enum Operations {
                     case marketplaceSearchDetail = "marketplaceSearchDetail"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/app/GET/query/fields[apps]`.
-                package typealias fields_lbrack_apps_rbrack_Payload = [Operations.bundleIds_app_getToOneRelated.Input.Query.fields_lbrack_apps_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_apps_rbrack_Payload = [Operations.BundleIdsAppGetToOneRelated.Input.Query.FieldsLbrackAppsRbrackPayloadPayload]
                 /// the fields to include for returned resources of type apps
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/app/GET/query/fields[apps]`.
-                package var fields_lbrack_apps_rbrack_: Operations.bundleIds_app_getToOneRelated.Input.Query.fields_lbrack_apps_rbrack_Payload?
+                package var fields_lbrack_apps_rbrack_: Operations.BundleIdsAppGetToOneRelated.Input.Query.Fields_lbrack_apps_rbrack_Payload?
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
                 ///   - fields_lbrack_apps_rbrack_: the fields to include for returned resources of type apps
-                package init(fields_lbrack_apps_rbrack_: Operations.bundleIds_app_getToOneRelated.Input.Query.fields_lbrack_apps_rbrack_Payload? = nil) {
+                package init(fields_lbrack_apps_rbrack_: Operations.BundleIdsAppGetToOneRelated.Input.Query.Fields_lbrack_apps_rbrack_Payload? = nil) {
                     self.fields_lbrack_apps_rbrack_ = fields_lbrack_apps_rbrack_
                 }
             }
-            package var query: Operations.bundleIds_app_getToOneRelated.Input.Query
+            package var query: Operations.BundleIdsAppGetToOneRelated.Input.Query
             /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/app/GET/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIds_app_getToOneRelated.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsAppGetToOneRelated.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIds_app_getToOneRelated.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsAppGetToOneRelated.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.bundleIds_app_getToOneRelated.Input.Headers
+            package var headers: Operations.BundleIdsAppGetToOneRelated.Input.Headers
             /// Creates a new `Input`.
             ///
             /// - Parameters:
@@ -13143,9 +13143,9 @@ package enum Operations {
             ///   - query:
             ///   - headers:
             package init(
-                path: Operations.bundleIds_app_getToOneRelated.Input.Path,
-                query: Operations.bundleIds_app_getToOneRelated.Input.Query = .init(),
-                headers: Operations.bundleIds_app_getToOneRelated.Input.Headers = .init()
+                path: Operations.BundleIdsAppGetToOneRelated.Input.Path,
+                query: Operations.BundleIdsAppGetToOneRelated.Input.Query = .init(),
+                headers: Operations.BundleIdsAppGetToOneRelated.Input.Headers = .init()
             ) {
                 self.path = path
                 self.query = query
@@ -13172,12 +13172,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_app_getToOneRelated.Output.BadRequest.Body
+                package var body: Operations.BundleIdsAppGetToOneRelated.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_app_getToOneRelated.Output.BadRequest.Body) {
+                package init(body: Operations.BundleIdsAppGetToOneRelated.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -13186,12 +13186,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/app/get(bundleIds_app_getToOneRelated)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.bundleIds_app_getToOneRelated.Output.BadRequest)
+            case badRequest(Operations.BundleIdsAppGetToOneRelated.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.bundleIds_app_getToOneRelated.Output.BadRequest {
+            package var badRequest: Operations.BundleIdsAppGetToOneRelated.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -13223,12 +13223,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_app_getToOneRelated.Output.Unauthorized.Body
+                package var body: Operations.BundleIdsAppGetToOneRelated.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_app_getToOneRelated.Output.Unauthorized.Body) {
+                package init(body: Operations.BundleIdsAppGetToOneRelated.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -13237,12 +13237,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/app/get(bundleIds_app_getToOneRelated)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.bundleIds_app_getToOneRelated.Output.Unauthorized)
+            case unauthorized(Operations.BundleIdsAppGetToOneRelated.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.bundleIds_app_getToOneRelated.Output.Unauthorized {
+            package var unauthorized: Operations.BundleIdsAppGetToOneRelated.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -13274,12 +13274,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_app_getToOneRelated.Output.Forbidden.Body
+                package var body: Operations.BundleIdsAppGetToOneRelated.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_app_getToOneRelated.Output.Forbidden.Body) {
+                package init(body: Operations.BundleIdsAppGetToOneRelated.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -13288,12 +13288,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/app/get(bundleIds_app_getToOneRelated)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.bundleIds_app_getToOneRelated.Output.Forbidden)
+            case forbidden(Operations.BundleIdsAppGetToOneRelated.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.bundleIds_app_getToOneRelated.Output.Forbidden {
+            package var forbidden: Operations.BundleIdsAppGetToOneRelated.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -13325,12 +13325,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_app_getToOneRelated.Output.NotFound.Body
+                package var body: Operations.BundleIdsAppGetToOneRelated.Output.NotFound.Body
                 /// Creates a new `NotFound`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_app_getToOneRelated.Output.NotFound.Body) {
+                package init(body: Operations.BundleIdsAppGetToOneRelated.Output.NotFound.Body) {
                     self.body = body
                 }
             }
@@ -13339,12 +13339,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/app/get(bundleIds_app_getToOneRelated)/responses/404`.
             ///
             /// HTTP response code: `404 notFound`.
-            case notFound(Operations.bundleIds_app_getToOneRelated.Output.NotFound)
+            case notFound(Operations.BundleIdsAppGetToOneRelated.Output.NotFound)
             /// The associated value of the enum case if `self` is `.notFound`.
             ///
             /// - Throws: An error if `self` is not `.notFound`.
             /// - SeeAlso: `.notFound`.
-            package var notFound: Operations.bundleIds_app_getToOneRelated.Output.NotFound {
+            package var notFound: Operations.BundleIdsAppGetToOneRelated.Output.NotFound {
                 get throws {
                     switch self {
                     case let .notFound(response):
@@ -13376,12 +13376,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_app_getToOneRelated.Output.Ok.Body
+                package var body: Operations.BundleIdsAppGetToOneRelated.Output.Ok.Body
                 /// Creates a new `Ok`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_app_getToOneRelated.Output.Ok.Body) {
+                package init(body: Operations.BundleIdsAppGetToOneRelated.Output.Ok.Body) {
                     self.body = body
                 }
             }
@@ -13390,12 +13390,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/app/get(bundleIds_app_getToOneRelated)/responses/200`.
             ///
             /// HTTP response code: `200 ok`.
-            case ok(Operations.bundleIds_app_getToOneRelated.Output.Ok)
+            case ok(Operations.BundleIdsAppGetToOneRelated.Output.Ok)
             /// The associated value of the enum case if `self` is `.ok`.
             ///
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
-            package var ok: Operations.bundleIds_app_getToOneRelated.Output.Ok {
+            package var ok: Operations.BundleIdsAppGetToOneRelated.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):
@@ -13441,7 +13441,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/bundleIdCapabilities`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelated)`.
-    package enum bundleIds_bundleIdCapabilities_getToManyRelated {
+    package enum BundleIdsBundleIdCapabilitiesGetToManyRelated {
         package static let id: Swift.String = "bundleIds_bundleIdCapabilities_getToManyRelated"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/bundleIdCapabilities/GET/path`.
@@ -13458,20 +13458,20 @@ package enum Operations {
                     self.id = id
                 }
             }
-            package var path: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Input.Path
+            package var path: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Input.Path
             /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/bundleIdCapabilities/GET/query`.
             package struct Query: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/bundleIdCapabilities/GET/query/fields_lbrack_bundleIdCapabilities_rbrack_Payload`.
-                @frozen package enum fields_lbrack_bundleIdCapabilities_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/bundleIdCapabilities/GET/query/Fields_lbrack_bundleIdCapabilities_rbrack_Payload`.
+                @frozen package enum FieldsLbrackBundleIdCapabilitiesRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case capabilityType = "capabilityType"
                     case settings = "settings"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/bundleIdCapabilities/GET/query/fields[bundleIdCapabilities]`.
-                package typealias fields_lbrack_bundleIdCapabilities_rbrack_Payload = [Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Input.Query.fields_lbrack_bundleIdCapabilities_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_bundleIdCapabilities_rbrack_Payload = [Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Input.Query.FieldsLbrackBundleIdCapabilitiesRbrackPayloadPayload]
                 /// the fields to include for returned resources of type bundleIdCapabilities
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/bundleIdCapabilities/GET/query/fields[bundleIdCapabilities]`.
-                package var fields_lbrack_bundleIdCapabilities_rbrack_: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Input.Query.fields_lbrack_bundleIdCapabilities_rbrack_Payload?
+                package var fields_lbrack_bundleIdCapabilities_rbrack_: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Input.Query.Fields_lbrack_bundleIdCapabilities_rbrack_Payload?
                 /// maximum resources per page
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/bundleIdCapabilities/GET/query/limit`.
@@ -13482,26 +13482,26 @@ package enum Operations {
                 ///   - fields_lbrack_bundleIdCapabilities_rbrack_: the fields to include for returned resources of type bundleIdCapabilities
                 ///   - limit: maximum resources per page
                 package init(
-                    fields_lbrack_bundleIdCapabilities_rbrack_: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Input.Query.fields_lbrack_bundleIdCapabilities_rbrack_Payload? = nil,
+                    fields_lbrack_bundleIdCapabilities_rbrack_: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Input.Query.Fields_lbrack_bundleIdCapabilities_rbrack_Payload? = nil,
                     limit: Swift.Int? = nil
                 ) {
                     self.fields_lbrack_bundleIdCapabilities_rbrack_ = fields_lbrack_bundleIdCapabilities_rbrack_
                     self.limit = limit
                 }
             }
-            package var query: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Input.Query
+            package var query: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Input.Query
             /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/bundleIdCapabilities/GET/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIds_bundleIdCapabilities_getToManyRelated.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIds_bundleIdCapabilities_getToManyRelated.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Input.Headers
+            package var headers: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Input.Headers
             /// Creates a new `Input`.
             ///
             /// - Parameters:
@@ -13509,9 +13509,9 @@ package enum Operations {
             ///   - query:
             ///   - headers:
             package init(
-                path: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Input.Path,
-                query: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Input.Query = .init(),
-                headers: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Input.Headers = .init()
+                path: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Input.Path,
+                query: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Input.Query = .init(),
+                headers: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Input.Headers = .init()
             ) {
                 self.path = path
                 self.query = query
@@ -13538,12 +13538,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.BadRequest.Body
+                package var body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.BadRequest.Body) {
+                package init(body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -13552,12 +13552,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelated)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.BadRequest)
+            case badRequest(Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.BadRequest {
+            package var badRequest: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -13589,12 +13589,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.Unauthorized.Body
+                package var body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.Unauthorized.Body) {
+                package init(body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -13603,12 +13603,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelated)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.Unauthorized)
+            case unauthorized(Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.Unauthorized {
+            package var unauthorized: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -13640,12 +13640,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.Forbidden.Body
+                package var body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.Forbidden.Body) {
+                package init(body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -13654,12 +13654,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelated)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.Forbidden)
+            case forbidden(Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.Forbidden {
+            package var forbidden: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -13691,12 +13691,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.NotFound.Body
+                package var body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.NotFound.Body
                 /// Creates a new `NotFound`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.NotFound.Body) {
+                package init(body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.NotFound.Body) {
                     self.body = body
                 }
             }
@@ -13705,12 +13705,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelated)/responses/404`.
             ///
             /// HTTP response code: `404 notFound`.
-            case notFound(Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.NotFound)
+            case notFound(Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.NotFound)
             /// The associated value of the enum case if `self` is `.notFound`.
             ///
             /// - Throws: An error if `self` is not `.notFound`.
             /// - SeeAlso: `.notFound`.
-            package var notFound: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.NotFound {
+            package var notFound: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.NotFound {
                 get throws {
                     switch self {
                     case let .notFound(response):
@@ -13742,12 +13742,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.Ok.Body
+                package var body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.Ok.Body
                 /// Creates a new `Ok`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.Ok.Body) {
+                package init(body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.Ok.Body) {
                     self.body = body
                 }
             }
@@ -13756,12 +13756,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelated)/responses/200`.
             ///
             /// HTTP response code: `200 ok`.
-            case ok(Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.Ok)
+            case ok(Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.Ok)
             /// The associated value of the enum case if `self` is `.ok`.
             ///
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
-            package var ok: Operations.bundleIds_bundleIdCapabilities_getToManyRelated.Output.Ok {
+            package var ok: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):
@@ -13807,7 +13807,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/profiles`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/profiles/get(bundleIds_profiles_getToManyRelated)`.
-    package enum bundleIds_profiles_getToManyRelated {
+    package enum BundleIdsProfilesGetToManyRelated {
         package static let id: Swift.String = "bundleIds_profiles_getToManyRelated"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/profiles/GET/path`.
@@ -13824,11 +13824,11 @@ package enum Operations {
                     self.id = id
                 }
             }
-            package var path: Operations.bundleIds_profiles_getToManyRelated.Input.Path
+            package var path: Operations.BundleIdsProfilesGetToManyRelated.Input.Path
             /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/profiles/GET/query`.
             package struct Query: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/profiles/GET/query/fields_lbrack_profiles_rbrack_Payload`.
-                @frozen package enum fields_lbrack_profiles_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/profiles/GET/query/Fields_lbrack_profiles_rbrack_Payload`.
+                @frozen package enum FieldsLbrackProfilesRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case platform = "platform"
                     case profileType = "profileType"
@@ -13842,11 +13842,11 @@ package enum Operations {
                     case certificates = "certificates"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/profiles/GET/query/fields[profiles]`.
-                package typealias fields_lbrack_profiles_rbrack_Payload = [Operations.bundleIds_profiles_getToManyRelated.Input.Query.fields_lbrack_profiles_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_profiles_rbrack_Payload = [Operations.BundleIdsProfilesGetToManyRelated.Input.Query.FieldsLbrackProfilesRbrackPayloadPayload]
                 /// the fields to include for returned resources of type profiles
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/profiles/GET/query/fields[profiles]`.
-                package var fields_lbrack_profiles_rbrack_: Operations.bundleIds_profiles_getToManyRelated.Input.Query.fields_lbrack_profiles_rbrack_Payload?
+                package var fields_lbrack_profiles_rbrack_: Operations.BundleIdsProfilesGetToManyRelated.Input.Query.Fields_lbrack_profiles_rbrack_Payload?
                 /// maximum resources per page
                 ///
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/profiles/GET/query/limit`.
@@ -13857,26 +13857,26 @@ package enum Operations {
                 ///   - fields_lbrack_profiles_rbrack_: the fields to include for returned resources of type profiles
                 ///   - limit: maximum resources per page
                 package init(
-                    fields_lbrack_profiles_rbrack_: Operations.bundleIds_profiles_getToManyRelated.Input.Query.fields_lbrack_profiles_rbrack_Payload? = nil,
+                    fields_lbrack_profiles_rbrack_: Operations.BundleIdsProfilesGetToManyRelated.Input.Query.Fields_lbrack_profiles_rbrack_Payload? = nil,
                     limit: Swift.Int? = nil
                 ) {
                     self.fields_lbrack_profiles_rbrack_ = fields_lbrack_profiles_rbrack_
                     self.limit = limit
                 }
             }
-            package var query: Operations.bundleIds_profiles_getToManyRelated.Input.Query
+            package var query: Operations.BundleIdsProfilesGetToManyRelated.Input.Query
             /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/profiles/GET/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIds_profiles_getToManyRelated.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsProfilesGetToManyRelated.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.bundleIds_profiles_getToManyRelated.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsProfilesGetToManyRelated.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.bundleIds_profiles_getToManyRelated.Input.Headers
+            package var headers: Operations.BundleIdsProfilesGetToManyRelated.Input.Headers
             /// Creates a new `Input`.
             ///
             /// - Parameters:
@@ -13884,9 +13884,9 @@ package enum Operations {
             ///   - query:
             ///   - headers:
             package init(
-                path: Operations.bundleIds_profiles_getToManyRelated.Input.Path,
-                query: Operations.bundleIds_profiles_getToManyRelated.Input.Query = .init(),
-                headers: Operations.bundleIds_profiles_getToManyRelated.Input.Headers = .init()
+                path: Operations.BundleIdsProfilesGetToManyRelated.Input.Path,
+                query: Operations.BundleIdsProfilesGetToManyRelated.Input.Query = .init(),
+                headers: Operations.BundleIdsProfilesGetToManyRelated.Input.Headers = .init()
             ) {
                 self.path = path
                 self.query = query
@@ -13913,12 +13913,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_profiles_getToManyRelated.Output.BadRequest.Body
+                package var body: Operations.BundleIdsProfilesGetToManyRelated.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_profiles_getToManyRelated.Output.BadRequest.Body) {
+                package init(body: Operations.BundleIdsProfilesGetToManyRelated.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -13927,12 +13927,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/profiles/get(bundleIds_profiles_getToManyRelated)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.bundleIds_profiles_getToManyRelated.Output.BadRequest)
+            case badRequest(Operations.BundleIdsProfilesGetToManyRelated.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.bundleIds_profiles_getToManyRelated.Output.BadRequest {
+            package var badRequest: Operations.BundleIdsProfilesGetToManyRelated.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -13964,12 +13964,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_profiles_getToManyRelated.Output.Unauthorized.Body
+                package var body: Operations.BundleIdsProfilesGetToManyRelated.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_profiles_getToManyRelated.Output.Unauthorized.Body) {
+                package init(body: Operations.BundleIdsProfilesGetToManyRelated.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -13978,12 +13978,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/profiles/get(bundleIds_profiles_getToManyRelated)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.bundleIds_profiles_getToManyRelated.Output.Unauthorized)
+            case unauthorized(Operations.BundleIdsProfilesGetToManyRelated.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.bundleIds_profiles_getToManyRelated.Output.Unauthorized {
+            package var unauthorized: Operations.BundleIdsProfilesGetToManyRelated.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -14015,12 +14015,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_profiles_getToManyRelated.Output.Forbidden.Body
+                package var body: Operations.BundleIdsProfilesGetToManyRelated.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_profiles_getToManyRelated.Output.Forbidden.Body) {
+                package init(body: Operations.BundleIdsProfilesGetToManyRelated.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -14029,12 +14029,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/profiles/get(bundleIds_profiles_getToManyRelated)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.bundleIds_profiles_getToManyRelated.Output.Forbidden)
+            case forbidden(Operations.BundleIdsProfilesGetToManyRelated.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.bundleIds_profiles_getToManyRelated.Output.Forbidden {
+            package var forbidden: Operations.BundleIdsProfilesGetToManyRelated.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -14066,12 +14066,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_profiles_getToManyRelated.Output.NotFound.Body
+                package var body: Operations.BundleIdsProfilesGetToManyRelated.Output.NotFound.Body
                 /// Creates a new `NotFound`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_profiles_getToManyRelated.Output.NotFound.Body) {
+                package init(body: Operations.BundleIdsProfilesGetToManyRelated.Output.NotFound.Body) {
                     self.body = body
                 }
             }
@@ -14080,12 +14080,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/profiles/get(bundleIds_profiles_getToManyRelated)/responses/404`.
             ///
             /// HTTP response code: `404 notFound`.
-            case notFound(Operations.bundleIds_profiles_getToManyRelated.Output.NotFound)
+            case notFound(Operations.BundleIdsProfilesGetToManyRelated.Output.NotFound)
             /// The associated value of the enum case if `self` is `.notFound`.
             ///
             /// - Throws: An error if `self` is not `.notFound`.
             /// - SeeAlso: `.notFound`.
-            package var notFound: Operations.bundleIds_profiles_getToManyRelated.Output.NotFound {
+            package var notFound: Operations.BundleIdsProfilesGetToManyRelated.Output.NotFound {
                 get throws {
                     switch self {
                     case let .notFound(response):
@@ -14117,12 +14117,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.bundleIds_profiles_getToManyRelated.Output.Ok.Body
+                package var body: Operations.BundleIdsProfilesGetToManyRelated.Output.Ok.Body
                 /// Creates a new `Ok`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.bundleIds_profiles_getToManyRelated.Output.Ok.Body) {
+                package init(body: Operations.BundleIdsProfilesGetToManyRelated.Output.Ok.Body) {
                     self.body = body
                 }
             }
@@ -14131,12 +14131,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/profiles/get(bundleIds_profiles_getToManyRelated)/responses/200`.
             ///
             /// HTTP response code: `200 ok`.
-            case ok(Operations.bundleIds_profiles_getToManyRelated.Output.Ok)
+            case ok(Operations.BundleIdsProfilesGetToManyRelated.Output.Ok)
             /// The associated value of the enum case if `self` is `.ok`.
             ///
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
-            package var ok: Operations.bundleIds_profiles_getToManyRelated.Output.Ok {
+            package var ok: Operations.BundleIdsProfilesGetToManyRelated.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):
@@ -14182,7 +14182,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `GET /v1/profiles/{id}/bundleId`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/bundleId/get(profiles_bundleId_getToOneRelated)`.
-    package enum profiles_bundleId_getToOneRelated {
+    package enum ProfilesBundleIdGetToOneRelated {
         package static let id: Swift.String = "profiles_bundleId_getToOneRelated"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/profiles/{id}/bundleId/GET/path`.
@@ -14199,11 +14199,11 @@ package enum Operations {
                     self.id = id
                 }
             }
-            package var path: Operations.profiles_bundleId_getToOneRelated.Input.Path
+            package var path: Operations.ProfilesBundleIdGetToOneRelated.Input.Path
             /// - Remark: Generated from `#/paths/v1/profiles/{id}/bundleId/GET/query`.
             package struct Query: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/v1/profiles/{id}/bundleId/GET/query/fields_lbrack_bundleIds_rbrack_Payload`.
-                @frozen package enum fields_lbrack_bundleIds_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/bundleId/GET/query/Fields_lbrack_bundleIds_rbrack_Payload`.
+                @frozen package enum FieldsLbrackBundleIdsRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case platform = "platform"
                     case identifier = "identifier"
@@ -14213,32 +14213,32 @@ package enum Operations {
                     case app = "app"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/bundleId/GET/query/fields[bundleIds]`.
-                package typealias fields_lbrack_bundleIds_rbrack_Payload = [Operations.profiles_bundleId_getToOneRelated.Input.Query.fields_lbrack_bundleIds_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_bundleIds_rbrack_Payload = [Operations.ProfilesBundleIdGetToOneRelated.Input.Query.FieldsLbrackBundleIdsRbrackPayloadPayload]
                 /// the fields to include for returned resources of type bundleIds
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/bundleId/GET/query/fields[bundleIds]`.
-                package var fields_lbrack_bundleIds_rbrack_: Operations.profiles_bundleId_getToOneRelated.Input.Query.fields_lbrack_bundleIds_rbrack_Payload?
+                package var fields_lbrack_bundleIds_rbrack_: Operations.ProfilesBundleIdGetToOneRelated.Input.Query.Fields_lbrack_bundleIds_rbrack_Payload?
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
                 ///   - fields_lbrack_bundleIds_rbrack_: the fields to include for returned resources of type bundleIds
-                package init(fields_lbrack_bundleIds_rbrack_: Operations.profiles_bundleId_getToOneRelated.Input.Query.fields_lbrack_bundleIds_rbrack_Payload? = nil) {
+                package init(fields_lbrack_bundleIds_rbrack_: Operations.ProfilesBundleIdGetToOneRelated.Input.Query.Fields_lbrack_bundleIds_rbrack_Payload? = nil) {
                     self.fields_lbrack_bundleIds_rbrack_ = fields_lbrack_bundleIds_rbrack_
                 }
             }
-            package var query: Operations.profiles_bundleId_getToOneRelated.Input.Query
+            package var query: Operations.ProfilesBundleIdGetToOneRelated.Input.Query
             /// - Remark: Generated from `#/paths/v1/profiles/{id}/bundleId/GET/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.profiles_bundleId_getToOneRelated.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesBundleIdGetToOneRelated.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.profiles_bundleId_getToOneRelated.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesBundleIdGetToOneRelated.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.profiles_bundleId_getToOneRelated.Input.Headers
+            package var headers: Operations.ProfilesBundleIdGetToOneRelated.Input.Headers
             /// Creates a new `Input`.
             ///
             /// - Parameters:
@@ -14246,9 +14246,9 @@ package enum Operations {
             ///   - query:
             ///   - headers:
             package init(
-                path: Operations.profiles_bundleId_getToOneRelated.Input.Path,
-                query: Operations.profiles_bundleId_getToOneRelated.Input.Query = .init(),
-                headers: Operations.profiles_bundleId_getToOneRelated.Input.Headers = .init()
+                path: Operations.ProfilesBundleIdGetToOneRelated.Input.Path,
+                query: Operations.ProfilesBundleIdGetToOneRelated.Input.Query = .init(),
+                headers: Operations.ProfilesBundleIdGetToOneRelated.Input.Headers = .init()
             ) {
                 self.path = path
                 self.query = query
@@ -14275,12 +14275,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_bundleId_getToOneRelated.Output.BadRequest.Body
+                package var body: Operations.ProfilesBundleIdGetToOneRelated.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_bundleId_getToOneRelated.Output.BadRequest.Body) {
+                package init(body: Operations.ProfilesBundleIdGetToOneRelated.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -14289,12 +14289,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/bundleId/get(profiles_bundleId_getToOneRelated)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.profiles_bundleId_getToOneRelated.Output.BadRequest)
+            case badRequest(Operations.ProfilesBundleIdGetToOneRelated.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.profiles_bundleId_getToOneRelated.Output.BadRequest {
+            package var badRequest: Operations.ProfilesBundleIdGetToOneRelated.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -14326,12 +14326,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_bundleId_getToOneRelated.Output.Unauthorized.Body
+                package var body: Operations.ProfilesBundleIdGetToOneRelated.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_bundleId_getToOneRelated.Output.Unauthorized.Body) {
+                package init(body: Operations.ProfilesBundleIdGetToOneRelated.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -14340,12 +14340,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/bundleId/get(profiles_bundleId_getToOneRelated)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.profiles_bundleId_getToOneRelated.Output.Unauthorized)
+            case unauthorized(Operations.ProfilesBundleIdGetToOneRelated.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.profiles_bundleId_getToOneRelated.Output.Unauthorized {
+            package var unauthorized: Operations.ProfilesBundleIdGetToOneRelated.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -14377,12 +14377,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_bundleId_getToOneRelated.Output.Forbidden.Body
+                package var body: Operations.ProfilesBundleIdGetToOneRelated.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_bundleId_getToOneRelated.Output.Forbidden.Body) {
+                package init(body: Operations.ProfilesBundleIdGetToOneRelated.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -14391,12 +14391,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/bundleId/get(profiles_bundleId_getToOneRelated)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.profiles_bundleId_getToOneRelated.Output.Forbidden)
+            case forbidden(Operations.ProfilesBundleIdGetToOneRelated.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.profiles_bundleId_getToOneRelated.Output.Forbidden {
+            package var forbidden: Operations.ProfilesBundleIdGetToOneRelated.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -14428,12 +14428,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_bundleId_getToOneRelated.Output.NotFound.Body
+                package var body: Operations.ProfilesBundleIdGetToOneRelated.Output.NotFound.Body
                 /// Creates a new `NotFound`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_bundleId_getToOneRelated.Output.NotFound.Body) {
+                package init(body: Operations.ProfilesBundleIdGetToOneRelated.Output.NotFound.Body) {
                     self.body = body
                 }
             }
@@ -14442,12 +14442,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/bundleId/get(profiles_bundleId_getToOneRelated)/responses/404`.
             ///
             /// HTTP response code: `404 notFound`.
-            case notFound(Operations.profiles_bundleId_getToOneRelated.Output.NotFound)
+            case notFound(Operations.ProfilesBundleIdGetToOneRelated.Output.NotFound)
             /// The associated value of the enum case if `self` is `.notFound`.
             ///
             /// - Throws: An error if `self` is not `.notFound`.
             /// - SeeAlso: `.notFound`.
-            package var notFound: Operations.profiles_bundleId_getToOneRelated.Output.NotFound {
+            package var notFound: Operations.ProfilesBundleIdGetToOneRelated.Output.NotFound {
                 get throws {
                     switch self {
                     case let .notFound(response):
@@ -14479,12 +14479,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_bundleId_getToOneRelated.Output.Ok.Body
+                package var body: Operations.ProfilesBundleIdGetToOneRelated.Output.Ok.Body
                 /// Creates a new `Ok`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_bundleId_getToOneRelated.Output.Ok.Body) {
+                package init(body: Operations.ProfilesBundleIdGetToOneRelated.Output.Ok.Body) {
                     self.body = body
                 }
             }
@@ -14493,12 +14493,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/bundleId/get(profiles_bundleId_getToOneRelated)/responses/200`.
             ///
             /// HTTP response code: `200 ok`.
-            case ok(Operations.profiles_bundleId_getToOneRelated.Output.Ok)
+            case ok(Operations.ProfilesBundleIdGetToOneRelated.Output.Ok)
             /// The associated value of the enum case if `self` is `.ok`.
             ///
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
-            package var ok: Operations.profiles_bundleId_getToOneRelated.Output.Ok {
+            package var ok: Operations.ProfilesBundleIdGetToOneRelated.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):
@@ -14544,7 +14544,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `GET /v1/profiles/{id}/certificates`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/certificates/get(profiles_certificates_getToManyRelated)`.
-    package enum profiles_certificates_getToManyRelated {
+    package enum ProfilesCertificatesGetToManyRelated {
         package static let id: Swift.String = "profiles_certificates_getToManyRelated"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/profiles/{id}/certificates/GET/path`.
@@ -14561,11 +14561,11 @@ package enum Operations {
                     self.id = id
                 }
             }
-            package var path: Operations.profiles_certificates_getToManyRelated.Input.Path
+            package var path: Operations.ProfilesCertificatesGetToManyRelated.Input.Path
             /// - Remark: Generated from `#/paths/v1/profiles/{id}/certificates/GET/query`.
             package struct Query: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/v1/profiles/{id}/certificates/GET/query/fields_lbrack_certificates_rbrack_Payload`.
-                @frozen package enum fields_lbrack_certificates_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/certificates/GET/query/Fields_lbrack_certificates_rbrack_Payload`.
+                @frozen package enum FieldsLbrackCertificatesRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case certificateType = "certificateType"
                     case displayName = "displayName"
@@ -14575,11 +14575,11 @@ package enum Operations {
                     case certificateContent = "certificateContent"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/certificates/GET/query/fields[certificates]`.
-                package typealias fields_lbrack_certificates_rbrack_Payload = [Operations.profiles_certificates_getToManyRelated.Input.Query.fields_lbrack_certificates_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_certificates_rbrack_Payload = [Operations.ProfilesCertificatesGetToManyRelated.Input.Query.FieldsLbrackCertificatesRbrackPayloadPayload]
                 /// the fields to include for returned resources of type certificates
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/certificates/GET/query/fields[certificates]`.
-                package var fields_lbrack_certificates_rbrack_: Operations.profiles_certificates_getToManyRelated.Input.Query.fields_lbrack_certificates_rbrack_Payload?
+                package var fields_lbrack_certificates_rbrack_: Operations.ProfilesCertificatesGetToManyRelated.Input.Query.Fields_lbrack_certificates_rbrack_Payload?
                 /// maximum resources per page
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/certificates/GET/query/limit`.
@@ -14590,26 +14590,26 @@ package enum Operations {
                 ///   - fields_lbrack_certificates_rbrack_: the fields to include for returned resources of type certificates
                 ///   - limit: maximum resources per page
                 package init(
-                    fields_lbrack_certificates_rbrack_: Operations.profiles_certificates_getToManyRelated.Input.Query.fields_lbrack_certificates_rbrack_Payload? = nil,
+                    fields_lbrack_certificates_rbrack_: Operations.ProfilesCertificatesGetToManyRelated.Input.Query.Fields_lbrack_certificates_rbrack_Payload? = nil,
                     limit: Swift.Int? = nil
                 ) {
                     self.fields_lbrack_certificates_rbrack_ = fields_lbrack_certificates_rbrack_
                     self.limit = limit
                 }
             }
-            package var query: Operations.profiles_certificates_getToManyRelated.Input.Query
+            package var query: Operations.ProfilesCertificatesGetToManyRelated.Input.Query
             /// - Remark: Generated from `#/paths/v1/profiles/{id}/certificates/GET/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.profiles_certificates_getToManyRelated.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesCertificatesGetToManyRelated.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.profiles_certificates_getToManyRelated.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesCertificatesGetToManyRelated.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.profiles_certificates_getToManyRelated.Input.Headers
+            package var headers: Operations.ProfilesCertificatesGetToManyRelated.Input.Headers
             /// Creates a new `Input`.
             ///
             /// - Parameters:
@@ -14617,9 +14617,9 @@ package enum Operations {
             ///   - query:
             ///   - headers:
             package init(
-                path: Operations.profiles_certificates_getToManyRelated.Input.Path,
-                query: Operations.profiles_certificates_getToManyRelated.Input.Query = .init(),
-                headers: Operations.profiles_certificates_getToManyRelated.Input.Headers = .init()
+                path: Operations.ProfilesCertificatesGetToManyRelated.Input.Path,
+                query: Operations.ProfilesCertificatesGetToManyRelated.Input.Query = .init(),
+                headers: Operations.ProfilesCertificatesGetToManyRelated.Input.Headers = .init()
             ) {
                 self.path = path
                 self.query = query
@@ -14646,12 +14646,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_certificates_getToManyRelated.Output.BadRequest.Body
+                package var body: Operations.ProfilesCertificatesGetToManyRelated.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_certificates_getToManyRelated.Output.BadRequest.Body) {
+                package init(body: Operations.ProfilesCertificatesGetToManyRelated.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -14660,12 +14660,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/certificates/get(profiles_certificates_getToManyRelated)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.profiles_certificates_getToManyRelated.Output.BadRequest)
+            case badRequest(Operations.ProfilesCertificatesGetToManyRelated.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.profiles_certificates_getToManyRelated.Output.BadRequest {
+            package var badRequest: Operations.ProfilesCertificatesGetToManyRelated.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -14697,12 +14697,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_certificates_getToManyRelated.Output.Unauthorized.Body
+                package var body: Operations.ProfilesCertificatesGetToManyRelated.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_certificates_getToManyRelated.Output.Unauthorized.Body) {
+                package init(body: Operations.ProfilesCertificatesGetToManyRelated.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -14711,12 +14711,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/certificates/get(profiles_certificates_getToManyRelated)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.profiles_certificates_getToManyRelated.Output.Unauthorized)
+            case unauthorized(Operations.ProfilesCertificatesGetToManyRelated.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.profiles_certificates_getToManyRelated.Output.Unauthorized {
+            package var unauthorized: Operations.ProfilesCertificatesGetToManyRelated.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -14748,12 +14748,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_certificates_getToManyRelated.Output.Forbidden.Body
+                package var body: Operations.ProfilesCertificatesGetToManyRelated.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_certificates_getToManyRelated.Output.Forbidden.Body) {
+                package init(body: Operations.ProfilesCertificatesGetToManyRelated.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -14762,12 +14762,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/certificates/get(profiles_certificates_getToManyRelated)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.profiles_certificates_getToManyRelated.Output.Forbidden)
+            case forbidden(Operations.ProfilesCertificatesGetToManyRelated.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.profiles_certificates_getToManyRelated.Output.Forbidden {
+            package var forbidden: Operations.ProfilesCertificatesGetToManyRelated.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -14799,12 +14799,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_certificates_getToManyRelated.Output.NotFound.Body
+                package var body: Operations.ProfilesCertificatesGetToManyRelated.Output.NotFound.Body
                 /// Creates a new `NotFound`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_certificates_getToManyRelated.Output.NotFound.Body) {
+                package init(body: Operations.ProfilesCertificatesGetToManyRelated.Output.NotFound.Body) {
                     self.body = body
                 }
             }
@@ -14813,12 +14813,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/certificates/get(profiles_certificates_getToManyRelated)/responses/404`.
             ///
             /// HTTP response code: `404 notFound`.
-            case notFound(Operations.profiles_certificates_getToManyRelated.Output.NotFound)
+            case notFound(Operations.ProfilesCertificatesGetToManyRelated.Output.NotFound)
             /// The associated value of the enum case if `self` is `.notFound`.
             ///
             /// - Throws: An error if `self` is not `.notFound`.
             /// - SeeAlso: `.notFound`.
-            package var notFound: Operations.profiles_certificates_getToManyRelated.Output.NotFound {
+            package var notFound: Operations.ProfilesCertificatesGetToManyRelated.Output.NotFound {
                 get throws {
                     switch self {
                     case let .notFound(response):
@@ -14850,12 +14850,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_certificates_getToManyRelated.Output.Ok.Body
+                package var body: Operations.ProfilesCertificatesGetToManyRelated.Output.Ok.Body
                 /// Creates a new `Ok`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_certificates_getToManyRelated.Output.Ok.Body) {
+                package init(body: Operations.ProfilesCertificatesGetToManyRelated.Output.Ok.Body) {
                     self.body = body
                 }
             }
@@ -14864,12 +14864,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/certificates/get(profiles_certificates_getToManyRelated)/responses/200`.
             ///
             /// HTTP response code: `200 ok`.
-            case ok(Operations.profiles_certificates_getToManyRelated.Output.Ok)
+            case ok(Operations.ProfilesCertificatesGetToManyRelated.Output.Ok)
             /// The associated value of the enum case if `self` is `.ok`.
             ///
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
-            package var ok: Operations.profiles_certificates_getToManyRelated.Output.Ok {
+            package var ok: Operations.ProfilesCertificatesGetToManyRelated.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):
@@ -14915,7 +14915,7 @@ package enum Operations {
     }
     /// - Remark: HTTP `GET /v1/profiles/{id}/devices`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/devices/get(profiles_devices_getToManyRelated)`.
-    package enum profiles_devices_getToManyRelated {
+    package enum ProfilesDevicesGetToManyRelated {
         package static let id: Swift.String = "profiles_devices_getToManyRelated"
         package struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/v1/profiles/{id}/devices/GET/path`.
@@ -14932,11 +14932,11 @@ package enum Operations {
                     self.id = id
                 }
             }
-            package var path: Operations.profiles_devices_getToManyRelated.Input.Path
+            package var path: Operations.ProfilesDevicesGetToManyRelated.Input.Path
             /// - Remark: Generated from `#/paths/v1/profiles/{id}/devices/GET/query`.
             package struct Query: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/v1/profiles/{id}/devices/GET/query/fields_lbrack_devices_rbrack_Payload`.
-                @frozen package enum fields_lbrack_devices_rbrack_PayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/devices/GET/query/Fields_lbrack_devices_rbrack_Payload`.
+                @frozen package enum FieldsLbrackDevicesRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
                     case name = "name"
                     case platform = "platform"
                     case udid = "udid"
@@ -14946,11 +14946,11 @@ package enum Operations {
                     case addedDate = "addedDate"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/devices/GET/query/fields[devices]`.
-                package typealias fields_lbrack_devices_rbrack_Payload = [Operations.profiles_devices_getToManyRelated.Input.Query.fields_lbrack_devices_rbrack_PayloadPayload]
+                package typealias Fields_lbrack_devices_rbrack_Payload = [Operations.ProfilesDevicesGetToManyRelated.Input.Query.FieldsLbrackDevicesRbrackPayloadPayload]
                 /// the fields to include for returned resources of type devices
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/devices/GET/query/fields[devices]`.
-                package var fields_lbrack_devices_rbrack_: Operations.profiles_devices_getToManyRelated.Input.Query.fields_lbrack_devices_rbrack_Payload?
+                package var fields_lbrack_devices_rbrack_: Operations.ProfilesDevicesGetToManyRelated.Input.Query.Fields_lbrack_devices_rbrack_Payload?
                 /// maximum resources per page
                 ///
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/devices/GET/query/limit`.
@@ -14961,26 +14961,26 @@ package enum Operations {
                 ///   - fields_lbrack_devices_rbrack_: the fields to include for returned resources of type devices
                 ///   - limit: maximum resources per page
                 package init(
-                    fields_lbrack_devices_rbrack_: Operations.profiles_devices_getToManyRelated.Input.Query.fields_lbrack_devices_rbrack_Payload? = nil,
+                    fields_lbrack_devices_rbrack_: Operations.ProfilesDevicesGetToManyRelated.Input.Query.Fields_lbrack_devices_rbrack_Payload? = nil,
                     limit: Swift.Int? = nil
                 ) {
                     self.fields_lbrack_devices_rbrack_ = fields_lbrack_devices_rbrack_
                     self.limit = limit
                 }
             }
-            package var query: Operations.profiles_devices_getToManyRelated.Input.Query
+            package var query: Operations.ProfilesDevicesGetToManyRelated.Input.Query
             /// - Remark: Generated from `#/paths/v1/profiles/{id}/devices/GET/header`.
             package struct Headers: Sendable, Hashable {
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.profiles_devices_getToManyRelated.AcceptableContentType>]
+                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesDevicesGetToManyRelated.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.profiles_devices_getToManyRelated.AcceptableContentType>] = .defaultValues()) {
+                package init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesDevicesGetToManyRelated.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            package var headers: Operations.profiles_devices_getToManyRelated.Input.Headers
+            package var headers: Operations.ProfilesDevicesGetToManyRelated.Input.Headers
             /// Creates a new `Input`.
             ///
             /// - Parameters:
@@ -14988,9 +14988,9 @@ package enum Operations {
             ///   - query:
             ///   - headers:
             package init(
-                path: Operations.profiles_devices_getToManyRelated.Input.Path,
-                query: Operations.profiles_devices_getToManyRelated.Input.Query = .init(),
-                headers: Operations.profiles_devices_getToManyRelated.Input.Headers = .init()
+                path: Operations.ProfilesDevicesGetToManyRelated.Input.Path,
+                query: Operations.ProfilesDevicesGetToManyRelated.Input.Query = .init(),
+                headers: Operations.ProfilesDevicesGetToManyRelated.Input.Headers = .init()
             ) {
                 self.path = path
                 self.query = query
@@ -15017,12 +15017,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_devices_getToManyRelated.Output.BadRequest.Body
+                package var body: Operations.ProfilesDevicesGetToManyRelated.Output.BadRequest.Body
                 /// Creates a new `BadRequest`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_devices_getToManyRelated.Output.BadRequest.Body) {
+                package init(body: Operations.ProfilesDevicesGetToManyRelated.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
@@ -15031,12 +15031,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/devices/get(profiles_devices_getToManyRelated)/responses/400`.
             ///
             /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.profiles_devices_getToManyRelated.Output.BadRequest)
+            case badRequest(Operations.ProfilesDevicesGetToManyRelated.Output.BadRequest)
             /// The associated value of the enum case if `self` is `.badRequest`.
             ///
             /// - Throws: An error if `self` is not `.badRequest`.
             /// - SeeAlso: `.badRequest`.
-            package var badRequest: Operations.profiles_devices_getToManyRelated.Output.BadRequest {
+            package var badRequest: Operations.ProfilesDevicesGetToManyRelated.Output.BadRequest {
                 get throws {
                     switch self {
                     case let .badRequest(response):
@@ -15068,12 +15068,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_devices_getToManyRelated.Output.Unauthorized.Body
+                package var body: Operations.ProfilesDevicesGetToManyRelated.Output.Unauthorized.Body
                 /// Creates a new `Unauthorized`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_devices_getToManyRelated.Output.Unauthorized.Body) {
+                package init(body: Operations.ProfilesDevicesGetToManyRelated.Output.Unauthorized.Body) {
                     self.body = body
                 }
             }
@@ -15082,12 +15082,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/devices/get(profiles_devices_getToManyRelated)/responses/401`.
             ///
             /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.profiles_devices_getToManyRelated.Output.Unauthorized)
+            case unauthorized(Operations.ProfilesDevicesGetToManyRelated.Output.Unauthorized)
             /// The associated value of the enum case if `self` is `.unauthorized`.
             ///
             /// - Throws: An error if `self` is not `.unauthorized`.
             /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.profiles_devices_getToManyRelated.Output.Unauthorized {
+            package var unauthorized: Operations.ProfilesDevicesGetToManyRelated.Output.Unauthorized {
                 get throws {
                     switch self {
                     case let .unauthorized(response):
@@ -15119,12 +15119,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_devices_getToManyRelated.Output.Forbidden.Body
+                package var body: Operations.ProfilesDevicesGetToManyRelated.Output.Forbidden.Body
                 /// Creates a new `Forbidden`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_devices_getToManyRelated.Output.Forbidden.Body) {
+                package init(body: Operations.ProfilesDevicesGetToManyRelated.Output.Forbidden.Body) {
                     self.body = body
                 }
             }
@@ -15133,12 +15133,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/devices/get(profiles_devices_getToManyRelated)/responses/403`.
             ///
             /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.profiles_devices_getToManyRelated.Output.Forbidden)
+            case forbidden(Operations.ProfilesDevicesGetToManyRelated.Output.Forbidden)
             /// The associated value of the enum case if `self` is `.forbidden`.
             ///
             /// - Throws: An error if `self` is not `.forbidden`.
             /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.profiles_devices_getToManyRelated.Output.Forbidden {
+            package var forbidden: Operations.ProfilesDevicesGetToManyRelated.Output.Forbidden {
                 get throws {
                     switch self {
                     case let .forbidden(response):
@@ -15170,12 +15170,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_devices_getToManyRelated.Output.NotFound.Body
+                package var body: Operations.ProfilesDevicesGetToManyRelated.Output.NotFound.Body
                 /// Creates a new `NotFound`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_devices_getToManyRelated.Output.NotFound.Body) {
+                package init(body: Operations.ProfilesDevicesGetToManyRelated.Output.NotFound.Body) {
                     self.body = body
                 }
             }
@@ -15184,12 +15184,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/devices/get(profiles_devices_getToManyRelated)/responses/404`.
             ///
             /// HTTP response code: `404 notFound`.
-            case notFound(Operations.profiles_devices_getToManyRelated.Output.NotFound)
+            case notFound(Operations.ProfilesDevicesGetToManyRelated.Output.NotFound)
             /// The associated value of the enum case if `self` is `.notFound`.
             ///
             /// - Throws: An error if `self` is not `.notFound`.
             /// - SeeAlso: `.notFound`.
-            package var notFound: Operations.profiles_devices_getToManyRelated.Output.NotFound {
+            package var notFound: Operations.ProfilesDevicesGetToManyRelated.Output.NotFound {
                 get throws {
                     switch self {
                     case let .notFound(response):
@@ -15221,12 +15221,12 @@ package enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                package var body: Operations.profiles_devices_getToManyRelated.Output.Ok.Body
+                package var body: Operations.ProfilesDevicesGetToManyRelated.Output.Ok.Body
                 /// Creates a new `Ok`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                package init(body: Operations.profiles_devices_getToManyRelated.Output.Ok.Body) {
+                package init(body: Operations.ProfilesDevicesGetToManyRelated.Output.Ok.Body) {
                     self.body = body
                 }
             }
@@ -15235,12 +15235,12 @@ package enum Operations {
             /// - Remark: Generated from `#/paths//v1/profiles/{id}/devices/get(profiles_devices_getToManyRelated)/responses/200`.
             ///
             /// HTTP response code: `200 ok`.
-            case ok(Operations.profiles_devices_getToManyRelated.Output.Ok)
+            case ok(Operations.ProfilesDevicesGetToManyRelated.Output.Ok)
             /// The associated value of the enum case if `self` is `.ok`.
             ///
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
-            package var ok: Operations.profiles_devices_getToManyRelated.Output.Ok {
+            package var ok: Operations.ProfilesDevicesGetToManyRelated.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):

@@ -1,5 +1,5 @@
 {
-  "originHash" : "1c6075b990c8caafbf97b43093960552a1cf8bcbf3b5013d4b5928a77bd35e1c",
+  "originHash" : "5b3298fb2e08290a3e47a886cedfefce16ee07f46d1f0ccdc86fcdd488f8c170",
   "pins" : [
     {
       "identity" : "aexml",
@@ -240,8 +240,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-openapi-generator",
       "state" : {
-        "revision" : "e971af5c5374e4ea83c20d0ad0a0df2cc84d39ad",
-        "version" : "1.5.0"
+        "revision" : "ad7f0e73246f5083733dbc025097fcdf0fbee2a1",
+        "version" : "1.6.0"
       }
     },
     {
