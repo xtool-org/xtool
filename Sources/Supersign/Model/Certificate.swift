@@ -51,7 +51,7 @@ public struct Certificate: Codable, Sendable {
     public func serialNumber() -> String {
         // big endian, hex-encoded
         let content = raw.serialNumber.bytes.lazy
-            .map { String($0, radix: 16, uppercase: true) }
+            .map { String(format: "%02hhX", $0) }
             .joined()
             .drop { $0 == "0" }
         return String(content)
