@@ -137,7 +137,12 @@ struct AuthStatusCommand: AsyncParsableCommand {
 
     func run() async throws {
         if let token = try? AuthToken.saved() {
-            print("Logged in: \(token.appleID)")
+            print("""
+            Logged in. 
+            - Apple ID: \(token.appleID)
+            - Team ID: \(token.teamID.rawValue)
+            - Token expiry: \(token.expiry.formatted(.dateTime))
+            """)
         } else {
             print("Logged out")
         }
