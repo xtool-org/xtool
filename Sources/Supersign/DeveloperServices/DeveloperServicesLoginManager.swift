@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Dependencies
 
 public struct DeveloperServicesLoginToken: Codable, Sendable {
     public let adsid: String
@@ -26,23 +27,9 @@ public struct DeveloperServicesLoginManager: Sendable {
         case missingLoginToken
     }
 
-    public let deviceInfo: DeviceInfo
-    public let anisetteProvider: AnisetteDataProvider
-    private let client: GrandSlamClient
+    private let client = GrandSlamClient()
 
-    public init(
-        deviceInfo: DeviceInfo,
-        anisetteProvider: AnisetteDataProvider,
-        httpFactory: HTTPClientFactory = defaultHTTPClientFactory
-    ) throws {
-        self.deviceInfo = deviceInfo
-        self.anisetteProvider = anisetteProvider
-        self.client = GrandSlamClient(
-            deviceInfo: deviceInfo,
-            anisetteProvider: anisetteProvider,
-            httpFactory: httpFactory
-        )
-    }
+    public init() {}
 
     private func logIn(
         withLoginData loginData: GrandSlamLoginData

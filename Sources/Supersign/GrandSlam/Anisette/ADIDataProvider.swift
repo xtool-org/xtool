@@ -1,6 +1,7 @@
 import Foundation
 import Crypto
 import ConcurrencyExtras
+import Dependencies
 
 public protocol RawADIProvider: Sendable {
     func clientInfo() async throws -> String
@@ -26,6 +27,43 @@ extension RawADIProvider {
     }
 }
 
+private struct UnimplementedRawADIProvider: RawADIProvider {
+    func startProvisioning(
+        spim: Data,
+        userID: UUID
+    ) async throws -> (any RawADIProvisioningSession, Data) {
+        let closure: (Data, UUID) async throws -> (any RawADIProvisioningSession, Data) = unimplemented()
+        return try await closure(spim, userID)
+    }
+
+    func requestOTP(
+        userID: UUID,
+        routingInfo: inout UInt64,
+        provisioningInfo: Data
+    ) async throws -> (machineID: Data, otp: Data) {
+        let closure: (UUID, inout UInt64, Data) async throws -> (Data, Data) = unimplemented()
+        return try await closure(userID, &routingInfo, provisioningInfo)
+    }
+}
+
+public enum RawADIProviderDependencyKey: DependencyKey {
+    public static let testValue: RawADIProvider = UnimplementedRawADIProvider()
+    public static let liveValue: RawADIProvider = {
+        #if os(Linux)
+        return SupersetteADIProvider()
+        #else
+        return OmnisetteADIProvider()
+        #endif
+    }()
+}
+
+extension DependencyValues {
+    public var rawADIProvider: RawADIProvider {
+        get { self[RawADIProviderDependencyKey.self] }
+        set { self[RawADIProviderDependencyKey.self] = newValue }
+    }
+}
+
 public protocol RawADIProvisioningSession: Sendable {
     func endProvisioning(
         routingInfo: UInt64,
@@ -35,7 +73,7 @@ public protocol RawADIProvisioningSession: Sendable {
 }
 
 // uses CoreADI APIs
-public final class ADIDataProvider: AnisetteDataProvider {
+public struct ADIDataProvider: AnisetteDataProvider {
 
     public enum ADIError: Error {
         case hashingFailed
@@ -44,41 +82,28 @@ public final class ADIDataProvider: AnisetteDataProvider {
         case badEndResponse
     }
 
-    public let rawProvider: RawADIProvider
-    public let deviceInfo: DeviceInfo
-    public let storage: KeyValueStorage
+    @Dependency(\.keyValueStorage) var storage
+    @Dependency(\.rawADIProvider) var rawProvider
+    @Dependency(\.httpClient) var httpClient
 
-    private let httpClient: HTTPClientProtocol
-    private let lookupManager: GrandSlamLookupManager
+    private let lookupManager = GrandSlamLookupManager()
     private let localUserUID: UUID
     private let localUserID: String
 
     private let _clientInfo = LockIsolated<String?>(nil)
 
-    public init(
-        rawProvider: RawADIProvider,
-        deviceInfo: DeviceInfo,
-        storage: KeyValueStorage, // ideally secure, eg keychain
-        provisioningData: ProvisioningData? = nil,
-        httpFactory: HTTPClientFactory = defaultHTTPClientFactory
-    ) throws {
-        self.rawProvider = rawProvider
-        self.deviceInfo = deviceInfo
-        self.storage = storage
-
-        self.httpClient = httpFactory.makeClient()
-        self.lookupManager = .init(deviceInfo: deviceInfo, httpFactory: httpFactory)
-
+    public init(provisioningData: ProvisioningData? = nil) {
+        @Dependency(\.keyValueStorage) var storage
         if let provisioningData {
             self.localUserUID = provisioningData.localUserUID
             try? storage.setData(provisioningData.adiPb, forKey: Self.provisioningKey)
             try? storage.setString("\(provisioningData.routingInfo)", forKey: Self.routingInfoKey)
-        } else if let localUserUIDString = try storage.string(forKey: Self.localUserUIDKey),
+        } else if let localUserUIDString = try? storage.string(forKey: Self.localUserUIDKey),
            let localUserUID = UUID(uuidString: localUserUIDString) {
             self.localUserUID = localUserUID
         } else {
             let localUserUID = UUID()
-            try storage.setString(localUserUID.uuidString, forKey: Self.localUserUIDKey)
+            try? storage.setString(localUserUID.uuidString, forKey: Self.localUserUIDKey)
             self.localUserUID = localUserUID
         }
         // localUserID = SHA256(local user UID)

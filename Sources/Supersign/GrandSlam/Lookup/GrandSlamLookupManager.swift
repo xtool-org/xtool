@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Dependencies
 
 actor GrandSlamLookupManager {
 
@@ -19,14 +20,14 @@ actor GrandSlamLookupManager {
     private let decoder = PropertyListDecoder()
     private var endpoints: GrandSlamEndpoints?
 
-    let httpClient: HTTPClientProtocol
-    let deviceInfo: DeviceInfo
-    init(deviceInfo: DeviceInfo, httpFactory: HTTPClientFactory = defaultHTTPClientFactory) {
-        self.deviceInfo = deviceInfo
-        self.httpClient = httpFactory.makeClient()
-    }
+    @Dependency(\.deviceInfoProvider) var deviceInfoProvider
+    @Dependency(\.httpClient) var httpClient
+
+    init() {}
 
     private func performLookup() async throws -> GrandSlamEndpoints {
+        let deviceInfo = try deviceInfoProvider.fetch()
+
         /* {
             "X-Apple-I-Locale" = "en_IN";
             "X-Apple-I-TimeZone" = "Asia/Kolkata";

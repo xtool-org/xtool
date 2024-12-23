@@ -8,6 +8,7 @@
 
 import Foundation
 import ConcurrencyExtras
+import Dependencies
 
 public struct SigningInfo: Codable, Sendable {
     public let privateKey: PrivateKey
@@ -19,6 +20,18 @@ public protocol SigningInfoManager: Sendable {
     func setInfo(_ info: SigningInfo?, forIdentityID identityID: String) throws
 }
 
+public enum SigningInfoManagerDependencyKey: DependencyKey {
+    public static let testValue: SigningInfoManager = UnimplementedSigningInfoManager()
+    public static let liveValue: SigningInfoManager = KeyValueSigningInfoManager()
+}
+
+extension DependencyValues {
+    public var signingInfoManager: SigningInfoManager {
+        get { self[SigningInfoManagerDependencyKey.self] }
+        set { self[SigningInfoManagerDependencyKey.self] = newValue }
+    }
+}
+
 extension SigningInfoManager {
     subscript(identityID: String) -> SigningInfo? {
         get {
@@ -27,6 +40,16 @@ extension SigningInfoManager {
         nonmutating set {
             try? setInfo(newValue, forIdentityID: identityID)
         }
+    }
+}
+
+private struct UnimplementedSigningInfoManager: SigningInfoManager {
+    func info(forIdentityID identityID: String) throws -> SigningInfo? {
+        unimplemented(placeholder: nil)
+    }
+    
+    func setInfo(_ info: SigningInfo?, forIdentityID identityID: String) throws {
+        unimplemented()
     }
 }
 
@@ -50,10 +73,7 @@ public struct KeyValueSigningInfoManager: SigningInfoManager {
     private let encoder = PropertyListEncoder()
     private let decoder = PropertyListDecoder()
 
-    public let storage: KeyValueStorage
-    public init(storage: KeyValueStorage) {
-        self.storage = storage
-    }
+    @Dependency(\.keyValueStorage) var storage
 
     public func info(forIdentityID identityID: String) throws -> SigningInfo? {
         guard let data = try storage.data(forKey: identityID)

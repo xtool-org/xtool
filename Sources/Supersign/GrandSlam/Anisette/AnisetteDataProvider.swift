@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Dependencies
 
 public protocol AnisetteDataProvider: Sendable {
     // This is a suggestion and not a requirement.
@@ -24,5 +25,24 @@ public struct ProvisioningData: Hashable, Codable, Sendable {
 
 extension AnisetteDataProvider {
     public func provisioningData() -> ProvisioningData? { nil }
-    public func setProvisioningData(_ data: ProvisioningData) {}
+    public func resetProvisioning() async {}
+}
+
+extension DependencyValues {
+    public var anisetteDataProvider: AnisetteDataProvider {
+        get { self[AnisetteDataProviderDependencyKey.self] }
+        set { self[AnisetteDataProviderDependencyKey.self] = newValue }
+    }
+}
+
+public struct AnisetteDataProviderDependencyKey: DependencyKey {
+    public static let testValue: AnisetteDataProvider = UnimplementedAnisetteDataProvider()
+    public static let liveValue: AnisetteDataProvider = ADIDataProvider()
+}
+
+private struct UnimplementedAnisetteDataProvider: AnisetteDataProvider {
+    func fetchAnisetteData() async throws -> AnisetteData {
+        let closure: () async throws -> AnisetteData = unimplemented()
+        return try await closure()
+    }
 }

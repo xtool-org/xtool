@@ -46,6 +46,7 @@ let package = Package(
         .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.15.0"),
 
         .package(url: "https://github.com/pointfreeco/swift-concurrency-extras", from: "1.3.0"),
+        .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.6.2"),
 
         .package(url: "https://github.com/attaswift/BigInt", from: "5.5.0"),
         .package(url: "https://github.com/mxcl/Version", from: "2.1.0"),
@@ -73,6 +74,7 @@ let package = Package(
                 "CSupersign",
                 .byName(name: "CSupersette", condition: .when(platforms: [.linux])),
                 .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
+                .product(name: "Dependencies", package: "swift-dependencies"),
                 .product(name: "SwiftyMobileDevice", package: "SwiftyMobileDevice"),
                 .product(name: "Zupersign", package: "zsign"),
                 .product(name: "SignerSupport", package: "SuperchargeCore"),

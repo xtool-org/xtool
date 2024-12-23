@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Dependencies
 
 public struct DeveloperServicesClient: Sendable {
 
@@ -53,28 +54,18 @@ public struct DeveloperServicesClient: Sendable {
         }
     }
 
-    public let loginToken: DeveloperServicesLoginToken
-    public let deviceInfo: DeviceInfo
-    public let anisetteDataProvider: AnisetteDataProvider
-    private let httpClient: HTTPClientProtocol
+    @Dependency(\.deviceInfoProvider) var deviceInfoProvider
+    @Dependency(\.anisetteDataProvider) var anisetteDataProvider
+    @Dependency(\.httpClient) var httpClient
 
-    public init(
-        loginToken: DeveloperServicesLoginToken,
-        deviceInfo: DeviceInfo,
-        anisetteProvider: AnisetteDataProvider,
-        httpFactory: HTTPClientFactory = defaultHTTPClientFactory
-    ) {
+    public let loginToken: DeveloperServicesLoginToken
+
+    public init(loginToken: DeveloperServicesLoginToken) {
         self.loginToken = loginToken
-        self.deviceInfo = deviceInfo
-        self.anisetteDataProvider = anisetteProvider
-        self.httpClient = httpFactory.makeClient()
     }
 
     public init(authData: XcodeAuthData) {
         self.loginToken = authData.loginToken
-        self.deviceInfo = authData.deviceInfo
-        self.anisetteDataProvider = authData.anisetteDataProvider
-        self.httpClient = defaultHTTPClientFactory.makeClient()
     }
 
     private func send<R: DeveloperServicesRequest>(
@@ -84,6 +75,8 @@ public struct DeveloperServicesClient: Sendable {
         guard let url = request.apiVersion.url(forAction: request.action) else {
             throw Error.malformedRequest
         }
+
+        let deviceInfo = try deviceInfoProvider.fetch()
 
         var httpRequest = HTTPRequest(url: url, method: "POST")
         let acceptedLanguages = Locale.preferredLanguages.joined(separator: ", ")

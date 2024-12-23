@@ -13,10 +13,7 @@ public struct SigningContext: Sendable {
 
     public let udid: String
     public let deviceName: String
-
     public let auth: DeveloperAPIAuthData
-
-    public let signingInfoManager: SigningInfoManager
     public let signerImpl: SignerImpl
 
     public var developerAPIClient: DeveloperAPIClient {
@@ -27,13 +24,11 @@ public struct SigningContext: Sendable {
         udid: String,
         deviceName: String,
         auth: DeveloperAPIAuthData,
-        signingInfoManager: SigningInfoManager,
         signerImpl: SignerImpl? = nil
     ) throws {
         self.udid = udid
         self.deviceName = deviceName
         self.auth = auth
-        self.signingInfoManager = signingInfoManager
         self.signerImpl = try signerImpl ?? .first()
     }
 

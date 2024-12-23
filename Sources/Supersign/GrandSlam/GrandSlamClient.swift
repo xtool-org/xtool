@@ -7,28 +7,23 @@
 //
 
 import Foundation
+import Dependencies
 
-final class GrandSlamClient: Sendable {
+struct GrandSlamClient: Sendable {
 
     private let encoder = PropertyListEncoder()
 
-    private let lookupManager: GrandSlamLookupManager
+    private let lookupManager = GrandSlamLookupManager()
 
-    let deviceInfo: DeviceInfo
-    let anisetteDataProvider: AnisetteDataProvider
-    private let httpClient: HTTPClientProtocol
-    init(
-        deviceInfo: DeviceInfo,
-        anisetteProvider: AnisetteDataProvider,
-        httpFactory: HTTPClientFactory = defaultHTTPClientFactory
-    ) {
-        self.deviceInfo = deviceInfo
-        self.anisetteDataProvider = anisetteProvider
-        self.lookupManager = .init(deviceInfo: deviceInfo, httpFactory: httpFactory)
-        self.httpClient = httpFactory.makeClient()
-    }
+    @Dependency(\.deviceInfoProvider) var deviceInfoProvider
+    @Dependency(\.anisetteDataProvider) var anisetteDataProvider
+    @Dependency(\.httpClient) var httpClient
+
+    init() {}
 
     func send<R: GrandSlamRequest>(_ request: R) async throws -> R.Decoder.Value {
+        let deviceInfo = try deviceInfoProvider.fetch()
+
         let anisetteData = try await anisetteDataProvider.fetchAnisetteData()
         let url = try await lookupManager.fetchURL(forEndpoint: R.endpoint)
 

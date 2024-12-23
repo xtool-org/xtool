@@ -7,6 +7,8 @@
 
 import Foundation
 import OpenAPIRuntime
+import Dependencies
+import HTTPTypes
 
 public struct HTTPRequest: Sendable {
     public enum Body: Sendable {
@@ -57,12 +59,51 @@ public protocol HTTPClientProtocol: Sendable {
         _ request: HTTPRequest,
         onProgress: sending @isolated(any) (Double?) -> Void
     ) async throws -> HTTPResponse
+
     func makeWebSocket(url: URL) async throws -> WebSocketSession
 }
 
 extension HTTPClientProtocol {
     public func makeRequest(_ request: HTTPRequest) async throws -> HTTPResponse {
         try await makeRequest(request) { _ in }
+    }
+}
+
+private struct UnimplementedHTTPClient: HTTPClientProtocol, ClientTransport {
+    public var asOpenAPITransport: ClientTransport { self }
+
+    func send(
+        _ request: HTTPTypes.HTTPRequest,
+        body: OpenAPIRuntime.HTTPBody?,
+        baseURL: URL,
+        operationID: String
+    ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
+        let closure: (HTTPTypes.HTTPRequest, OpenAPIRuntime.HTTPBody?, URL, String) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) = unimplemented()
+        return try await closure(request, body, baseURL, operationID)
+    }
+
+    func makeRequest(
+        _ request: HTTPRequest,
+        onProgress: sending @isolated(any) (Double?) -> Void
+    ) async throws -> HTTPResponse {
+        let closure: () throws -> HTTPResponse = unimplemented()
+        return try closure()
+    }
+
+    public func makeWebSocket(url: URL) async throws -> any WebSocketSession {
+        let closure: (URL) async throws -> any WebSocketSession = unimplemented()
+        return try await closure(url)
+    }
+}
+
+public enum HTTPClientDependencyKey: TestDependencyKey {
+    public static let testValue: HTTPClientProtocol = UnimplementedHTTPClient()
+}
+
+extension DependencyValues {
+    public var httpClient: HTTPClientProtocol {
+        get { self[HTTPClientDependencyKey.self] }
+        set { self[HTTPClientDependencyKey.self] = newValue }
     }
 }
 
@@ -76,15 +117,3 @@ public enum WebSocketMessage: Sendable {
     case text(String)
     case data(Data)
 }
-
-public protocol HTTPClientFactory: Sendable {
-    func makeClient() -> HTTPClientProtocol
-}
-
-public let defaultHTTPClientFactory: HTTPClientFactory = {
-    #if os(Linux)
-    return AsyncHTTPClientFactory.shared
-    #else
-    return URLHTTPClientFactory.shared
-    #endif
-}()

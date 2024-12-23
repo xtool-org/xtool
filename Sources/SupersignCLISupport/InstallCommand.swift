@@ -28,7 +28,6 @@ struct InstallCommand: AsyncParsableCommand {
             lookupMode: .only(client.connectionType),
             auth: try token.authData(),
             configureDevice: false,
-            storage: SupersignCLI.config.storage,
             delegate: installDelegate
         )
 

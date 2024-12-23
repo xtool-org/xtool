@@ -8,6 +8,7 @@
 
 import Foundation
 import DeveloperAPI
+import Dependencies
 
 public typealias DeveloperServicesCertificate = Components.Schemas.Certificate
 
@@ -30,6 +31,8 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
             }
         }
     }
+
+    @Dependency(\.signingInfoManager) var signingInfoManager
 
     public let context: SigningContext
     public let confirmRevocation: @Sendable ([DeveloperServicesCertificate]) async -> Bool
@@ -84,14 +87,14 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
             try await group.waitForAll()
         }
         let signingInfo = try await createCertificate()
-        self.context.signingInfoManager[self.context.auth.identityID] = signingInfo
+        signingInfoManager[self.context.auth.identityID] = signingInfo
         return signingInfo
     }
 
     public func perform() async throws -> SigningInfo {
         let certificates = try await context.developerAPIClient.certificatesGetCollection().ok.body.json.data
 
-        guard let signingInfo = self.context.signingInfoManager[self.context.auth.identityID] else {
+        guard let signingInfo = signingInfoManager[self.context.auth.identityID] else {
             return try await self.replaceCertificates(certificates, requireConfirmation: true)
         }
 

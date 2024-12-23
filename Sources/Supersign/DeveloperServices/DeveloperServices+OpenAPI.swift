@@ -3,18 +3,19 @@ import DeveloperAPI
 import HTTPTypes
 import OpenAPIRuntime
 import OpenAPIURLSession
+import Dependencies
 
 extension DeveloperAPIClient {
     public init(
-        auth: DeveloperAPIAuthData,
-        httpFactory: HTTPClientFactory = defaultHTTPClientFactory
+        auth: DeveloperAPIAuthData
     ) {
+        @Dependency(\.httpClient) var httpClient
         self.init(
             serverURL: try! Servers.Server1.url(),
             configuration: .init(
                 dateTranscoder: .iso8601WithFractionalSeconds
             ),
-            transport: httpFactory.makeClient().asOpenAPITransport,
+            transport: httpClient.asOpenAPITransport,
             middlewares: [
                 auth.middleware
             ]
@@ -48,24 +49,21 @@ public enum DeveloperAPIAuthData: Sendable {
 
 public struct XcodeAuthData: Sendable {
     public var loginToken: DeveloperServicesLoginToken
-    public var deviceInfo: DeviceInfo
     public var teamID: DeveloperServicesTeam.ID
-    public var anisetteDataProvider: AnisetteDataProvider
 
     public init(
         loginToken: DeveloperServicesLoginToken,
-        deviceInfo: DeviceInfo,
-        teamID: DeveloperServicesTeam.ID,
-        anisetteDataProvider: AnisetteDataProvider
+        teamID: DeveloperServicesTeam.ID
     ) {
         self.loginToken = loginToken
-        self.deviceInfo = deviceInfo
         self.teamID = teamID
-        self.anisetteDataProvider = anisetteDataProvider
     }
 }
 
 public struct DeveloperAPIXcodeAuthMiddleware: ClientMiddleware {
+    @Dependency(\.deviceInfoProvider) private var deviceInfoProvider
+    @Dependency(\.anisetteDataProvider) private var anisetteDataProvider
+
     public var authData: XcodeAuthData
 
     public init(authData: XcodeAuthData) {
@@ -88,6 +86,8 @@ public struct DeveloperAPIXcodeAuthMiddleware: ClientMiddleware {
     ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
         var request = request
 
+        let deviceInfo = try deviceInfoProvider.fetch()
+
         // General
         request.headerFields[.acceptLanguage] = Locale.preferredLanguages.joined(separator: ", ")
         request.headerFields[.accept] = "application/vnd.api+json"
@@ -102,7 +102,7 @@ public struct DeveloperAPIXcodeAuthMiddleware: ClientMiddleware {
         request.headerFields[.init(DeviceInfo.clientInfoKey)!] = """
         <VirtualMac2,1> <macOS;15.1.1;24B91> <com.apple.AuthKit/1 (com.apple.dt.Xcode/23505)>
         """ // deviceInfo.clientInfo.clientString
-        request.headerFields[.init(DeviceInfo.deviceIDKey)!] = authData.deviceInfo.deviceID
+        request.headerFields[.init(DeviceInfo.deviceIDKey)!] = deviceInfo.deviceID
 
         // GrandSlam authentication
         request.headerFields[.init("X-Apple-App-Info")!] = AppTokenKey.xcode.rawValue
@@ -110,7 +110,7 @@ public struct DeveloperAPIXcodeAuthMiddleware: ClientMiddleware {
         request.headerFields[.init("X-Apple-GS-Token")!] = authData.loginToken.token
 
         // Anisette
-        let anisetteData = try await authData.anisetteDataProvider.fetchAnisetteData()
+        let anisetteData = try await anisetteDataProvider.fetchAnisetteData()
         for (key, value) in anisetteData.dictionary {
             request.headerFields[.init(key)!] = value
         }

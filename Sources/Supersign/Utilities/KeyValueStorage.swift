@@ -8,6 +8,7 @@
 
 import Foundation
 import ConcurrencyExtras
+import Dependencies
 
 public enum KeyValueStorageError: Error {
     case stringConversionFailure
@@ -19,6 +20,17 @@ public protocol KeyValueStorage: Sendable {
     // default implementations provided
     func string(forKey key: String) throws -> String?
     func setString(_ string: String?, forKey key: String) throws
+}
+
+public enum KeyValueStorageDependencyKey: TestDependencyKey {
+    public static let testValue: KeyValueStorage = UnimplementedKeyValueStorage()
+}
+
+extension DependencyValues {
+    public var keyValueStorage: KeyValueStorage {
+        get { self[KeyValueStorageDependencyKey.self] }
+        set { self[KeyValueStorageDependencyKey.self] = newValue }
+    }
 }
 
 extension KeyValueStorage {
@@ -41,6 +53,16 @@ extension KeyValueStorage {
     public subscript(stringForKey key: String) -> String? {
         get { try? string(forKey: key) }
         nonmutating set { try? setString(newValue, forKey: key) }
+    }
+}
+
+private struct UnimplementedKeyValueStorage: KeyValueStorage {
+    func data(forKey key: String) throws -> Data? {
+        unimplemented(placeholder: nil)
+    }
+    
+    func setData(_ data: Data?, forKey key: String) throws {
+        unimplemented()
     }
 }
 

@@ -2,6 +2,8 @@ import Foundation
 import Supersign
 import ArgumentParser
 import DeveloperAPI
+import OpenAPIRuntime
+import Dependencies
 
 struct DSTeamsListCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -62,13 +64,12 @@ struct DSAnisetteCommand: AsyncParsableCommand {
     )
 
     func run() async throws {
-        // swiftlint:disable:next force_try
-        let res = try! await ADIDataProvider(
-            rawProvider: Provider(),
-            deviceInfo: .current()!,
-            storage: SupersignCLI.config.storage
-        ).fetchAnisetteData()
-
+        let provider = withDependencies {
+            $0.rawADIProvider = Provider()
+        } operation: {
+            ADIDataProvider()
+        }
+        let res = try await provider.fetchAnisetteData()
         print(res)
     }
 }

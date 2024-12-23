@@ -2,19 +2,15 @@
 
 import Foundation
 import CSupersette
+import Dependencies
 
 public actor SupersetteADIProvider: RawADIProvider {
     @MainActor private static var loadTask: Task<Void, Error>?
+    @Dependency(\.httpClient) private var httpClient
 
     public let directory: URL
-    public let httpClient: HTTPClientProtocol
-
-    public init(
-        configDirectory: URL,
-        httpClientFactory: HTTPClientFactory = defaultHTTPClientFactory
-    ) {
-        self.directory = configDirectory
-        self.httpClient = httpClientFactory.makeClient()
+    public init() {
+        self.directory = URL.homeDirectory.appending(path: ".config/Supercharge/Anisette")
     }
 
     private func _loadADI(id: UUID) async throws {

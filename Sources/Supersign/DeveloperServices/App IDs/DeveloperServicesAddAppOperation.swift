@@ -221,7 +221,8 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
 
         let mobileprovision = try await DeveloperServicesFetchProfileOperation(
             context: self.context,
-            bundleID: newBundleID
+            bundleID: newBundleID,
+            signingInfo: signingInfo
         ).perform()
 
         return ProvisioningInfo(

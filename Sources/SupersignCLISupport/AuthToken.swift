@@ -1,5 +1,6 @@
 import Foundation
 import Supersign
+import Dependencies
 
 enum AuthToken: Codable, CustomStringConvertible {
     struct Xcode: Codable {
@@ -38,23 +39,28 @@ enum AuthToken: Codable, CustomStringConvertible {
 
 extension AuthToken {
 
+    private static var storage: KeyValueStorage {
+        @Dependency(\.keyValueStorage) var storage
+        return storage
+    }
+
     private static let encoder = JSONEncoder()
     private static let decoder = JSONDecoder()
 
     static func saved() throws -> Self {
-        guard let data = try SupersignCLI.config.storage.data(forKey: "SUPAuthToken") else {
+        guard let data = try storage.data(forKey: "SUPAuthToken") else {
             throw Console.Error("Please log in with `supersign ds login` before running this command.")
         }
         return try decoder.decode(AuthToken.self, from: data)
     }
 
     static func clear() throws {
-        try SupersignCLI.config.storage.setData(nil, forKey: "SUPAuthToken")
+        try Self.storage.setData(nil, forKey: "SUPAuthToken")
     }
 
     func save() throws {
         let data = try Self.encoder.encode(self)
-        try SupersignCLI.config.storage.setData(data, forKey: "SUPAuthToken")
+        try Self.storage.setData(data, forKey: "SUPAuthToken")
     }
 
     func authData() throws -> DeveloperAPIAuthData {
@@ -62,19 +68,13 @@ extension AuthToken {
         case .appStoreConnect(let data):
             return .appStoreConnect(.init(id: data.id, issuerID: data.issuerID, pem: data.pem))
         case .xcode(let data):
-            let deviceInfo = try DeviceInfo.fetch()
             return .xcode(.init(
                 loginToken: DeveloperServicesLoginToken(
                     adsid: data.adsid,
                     token: data.token,
                     expiry: data.expiry
                 ),
-                deviceInfo: deviceInfo,
-                teamID: .init(rawValue: data.teamID),
-                anisetteDataProvider: try ADIDataProvider.adiProvider(
-                    deviceInfo: deviceInfo,
-                    storage: SupersignCLI.config.storage
-                )
+                teamID: .init(rawValue: data.teamID)
             ))
         }
     }

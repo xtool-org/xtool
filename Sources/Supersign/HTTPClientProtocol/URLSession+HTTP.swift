@@ -10,15 +10,12 @@ import Foundation
 import ConcurrencyExtras
 import OpenAPIRuntime
 import OpenAPIURLSession
+import Dependencies
 
 public struct UnknownHTTPError: Error {}
 
-final class URLHTTPClientFactory: HTTPClientFactory {
-    static let shared = URLHTTPClientFactory()
-
-    private let client = Client()
-
-    func makeClient() -> HTTPClientProtocol { client }
+extension HTTPClientDependencyKey: DependencyKey {
+    public static let liveValue: HTTPClientProtocol = Client()
 }
 
 private final class Client: HTTPClientProtocol {

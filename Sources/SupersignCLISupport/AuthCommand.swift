@@ -2,6 +2,7 @@ import Foundation
 import Supersign
 import ArgumentParser
 import Crypto
+import Dependencies
 
 enum AuthMode: String, CaseIterable, CustomStringConvertible, ExpressibleByArgument {
     case key
@@ -86,28 +87,15 @@ struct AuthOperation {
 
         print("Logging in...")
 
-        let deviceInfo = try DeviceInfo.fetch()
-
-        let provider = try ADIDataProvider.adiProvider(
-            deviceInfo: deviceInfo,
-            storage: SupersignCLI.config.storage
-        )
         let authDelegate = SupersignCLIAuthDelegate()
-        let manager = try DeveloperServicesLoginManager(
-            deviceInfo: deviceInfo,
-            anisetteProvider: provider
-        )
+        let manager = DeveloperServicesLoginManager()
         let token = try await manager.logIn(
             withUsername: username,
             password: password,
             twoFactorDelegate: authDelegate
         )
 
-        let client = DeveloperServicesClient(
-            loginToken: token,
-            deviceInfo: deviceInfo,
-            anisetteProvider: provider
-        )
+        let client = DeveloperServicesClient(loginToken: token)
         let teams = try await client.send(DeveloperServicesListTeamsRequest())
         let team = try await Console.choose(
             from: teams,
@@ -179,11 +167,8 @@ struct AuthLogoutCommand: AsyncParsableCommand {
         }
 
         if reset2FA {
-            try ADIDataProvider.adiProvider(
-                deviceInfo: .fetch(),
-                storage: SupersignCLI.config.storage
-            )
-            .resetProvisioning()
+            @Dependency(\.anisetteDataProvider) var anisetteProvider
+            await anisetteProvider.resetProvisioning()
             print("Forgot device")
         }
     }
@@ -224,4 +209,9 @@ extension DeviceInfo {
         }
         return deviceInfo
     }
+}
+
+extension DeviceInfoProvider: DependencyKey {
+    private static let current = Result { try DeviceInfo.fetch() }
+    public static let liveValue = DeviceInfoProvider { try current.get() }
 }
