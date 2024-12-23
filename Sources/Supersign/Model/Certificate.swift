@@ -42,10 +42,18 @@ public struct Certificate: Codable, Sendable {
         try container.encode(data())
     }
 
-    public func developerIdentity() throws -> String {
-        let commonName = raw.subject.lazy.flatMap { $0 }.first { $0.type == .NameAttributes.commonName }
+    private func subjectAttribute(_ attribute: ASN1ObjectIdentifier) throws -> String {
+        let commonName = raw.subject.lazy.flatMap { $0 }.first { $0.type == attribute }
         guard let commonName else { throw Error.invalidCertificate }
         return "\(commonName.value)"
+    }
+
+    public func developerIdentity() throws -> String {
+        try subjectAttribute(.NameAttributes.commonName)
+    }
+
+    public func teamID() throws -> String {
+        try subjectAttribute(.NameAttributes.organizationalUnitName)
     }
 
     public func serialNumber() -> String {

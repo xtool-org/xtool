@@ -189,7 +189,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
         let appID = try await upsertApp(bundleID: bundleID, entitlements: entitlements, isFreeTeam: isFreeTeam, appIDs: appIDs)
         let newBundleID = appID.attributes!.identifier!
 
-        let teamID = try signingInfo.certificate.developerIdentity()
+        let teamID = try signingInfo.certificate.teamID()
         try entitlements.update(
             teamID: .init(rawValue: teamID),
             bundleID: newBundleID
