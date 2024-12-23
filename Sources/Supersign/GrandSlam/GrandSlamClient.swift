@@ -28,23 +28,21 @@ struct GrandSlamClient: Sendable {
         let url = try await lookupManager.fetchURL(forEndpoint: R.endpoint)
 
         let method = request.method(deviceInfo: deviceInfo, anisetteData: anisetteData)
-        var httpRequest = HTTPRequest(url: url, method: method.name)
-        httpRequest.headers = [
-            "Content-Type": "text/x-xml-plist",
-            DeviceInfo.clientInfoKey: deviceInfo.clientInfo.clientString
-        ]
-        switch method {
+        var httpRequest = HTTPRequest(method: method.httpMethod, url: url)
+        httpRequest.headerFields[.contentType] = "text/x-xml-plist"
+        httpRequest.headerFields[.init(DeviceInfo.clientInfoKey)!] = deviceInfo.clientInfo.clientString
+        let body: Data? = switch method {
         case .get:
-            break
+            nil
         case .post(let body):
-            httpRequest.body = try .buffer(PropertyListSerialization.data(
+            try PropertyListSerialization.data(
                 fromPropertyList: body, format: .xml, options: 0
-            ))
+            )
         }
         request.configure(request: &httpRequest, deviceInfo: deviceInfo, anisetteData: anisetteData)
 
-        let resp = try await httpClient.makeRequest(httpRequest)
-        return try R.Decoder.decode(data: resp.body ?? .init())
+        let resp = try await httpClient.makeRequest(httpRequest, body: body)
+        return try R.Decoder.decode(data: resp.body)
     }
 
 }

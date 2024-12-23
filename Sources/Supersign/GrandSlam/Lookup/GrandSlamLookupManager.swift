@@ -8,6 +8,7 @@
 
 import Foundation
 import Dependencies
+import HTTPTypesFoundation
 
 actor GrandSlamLookupManager {
 
@@ -37,18 +38,18 @@ actor GrandSlamLookupManager {
             "X-Mme-Device-Id" = "[REDACTED]";
         } */
         var request = HTTPRequest(url: Self.lookupURL)
-        request.headers = [
-            DeviceInfo.clientInfoKey: deviceInfo.clientInfo.clientString,
-            DeviceInfo.deviceIDKey: deviceInfo.deviceID,
-            AnisetteData.iLocaleKey: Locale.current.identifier,
-            AnisetteData.timeZoneKey: TimeZone.current.identifier,
-            "X-Apple-I-TimeZone-Offset": "\(TimeZone.current.secondsFromGMT())"
+        request.headerFields = [
+            .init(DeviceInfo.clientInfoKey)!: deviceInfo.clientInfo.clientString,
+            .init(DeviceInfo.deviceIDKey)!: deviceInfo.deviceID,
+            .init(AnisetteData.iLocaleKey)!: Locale.current.identifier,
+            .init(AnisetteData.timeZoneKey)!: TimeZone.current.identifier,
+            .init("X-Apple-I-TimeZone-Offset")!: "\(TimeZone.current.secondsFromGMT())"
         ]
-        request.headers["X-MMe-Country"] = Locale.current.regionCode
+        request.headerFields[.init("X-MMe-Country")!] = Locale.current.regionCode
 
-        let resp = try await httpClient.makeRequest(request)
+        let (_, body) = try await httpClient.makeRequest(request)
 
-        return try self.decoder.decode(Response.self, from: resp.body ?? .init()).urls
+        return try self.decoder.decode(Response.self, from: body).urls
     }
 
     private func fetchEndpoints() async throws -> GrandSlamEndpoints {

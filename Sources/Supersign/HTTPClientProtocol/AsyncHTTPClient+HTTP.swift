@@ -33,38 +33,6 @@ extension HTTPClientDependencyKey: DependencyKey {
 }
 
 extension HTTPClient: HTTPClientProtocol {
-    @discardableResult
-    public func makeRequest(_ request: HTTPRequest, onProgress: sending @isolated(any) (Double?) -> Void) async throws -> HTTPResponse {
-//        print("Requesting \(request.url)")
-        var httpRequest = HTTPClientRequest(url: request.url.absoluteString)
-        httpRequest.method = request.method.map(HTTPMethod.init(rawValue:)) ?? .GET
-        httpRequest.headers = HTTPHeaders(request.headers.map { $0 })
-        httpRequest.body = switch request.body {
-        case .buffer(let data):
-            .bytes(data)
-        case nil:
-            nil
-        }
-        let response = try await execute(httpRequest, deadline: .distantFuture)
-        let expectedBytes = response.headers.first(name: "content-length").flatMap(Int.init).map(Double.init)
-        if expectedBytes == nil {
-            await onProgress(nil)
-        }
-        var body = Data()
-        for try await chunk in response.body {
-            body += chunk.readableBytesView
-            if let expectedBytes {
-                await onProgress(min(Double(body.count) / expectedBytes, 1))
-            }
-        }
-        return HTTPResponse(
-            url: request.url,
-            status: Int(response.status.code),
-            headers: [:],
-            body: body
-        )
-    }
-
     public func makeWebSocket(url: URL) async throws -> any WebSocketSession {
         let (stream, continuation) = AsyncStream.makeStream(of: WebSocketSessionWrapper.self)
         async let value = stream.first(where: { _ in true })

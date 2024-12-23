@@ -167,29 +167,25 @@ public struct ADIDataProvider: AnisetteDataProvider {
 
         let body = try Self.encoder.encode(GSARequest(request: request))
 
-        var request = HTTPRequest(
-            url: endpointURL,
-            method: "POST",
-            headers: [
-                "Content-Type": "text/x-xml-plist",
-                AnisetteData.localUserIDKey: self.localUserID,
-                "Accept-Language": "en_US"
-            ],
-            body: .buffer(body)
-        )
-        request.headers["X-MMe-Country"] = Locale.current.regionCode
+        var request = HTTPRequest(url: endpointURL)
+        request.method = .post
+        request.headerFields = [
+            .contentType: "text/x-xml-plist",
+            .acceptLanguage: "en_US",
+            .init(AnisetteData.localUserIDKey)!: self.localUserID,
+        ]
+        request.headerFields[.init("X-MMe-Country")!] = Locale.current.regionCode
 
-        request.headers[DeviceInfo.clientInfoKey] = try await clientInfo()
-        request.headers[DeviceInfo.deviceIDKey] = self.localUserUID.uuidString
+        request.headerFields[.init(DeviceInfo.clientInfoKey)!] = try await clientInfo()
+        request.headerFields[.init(DeviceInfo.deviceIDKey)!] = self.localUserUID.uuidString
 //        request.headers[DeviceInfo.clientInfoKey] = self.deviceInfo.clientInfo.clientString
 //        self.deviceInfo.dictionary.forEach { request.headers[$0] = $1 }
 
-        let resp = try await self.httpClient.makeRequest(request)
+        let (_, response) = try await self.httpClient.makeRequest(request, body: body)
 
-        guard let body = resp.body else { throw ADIError.noResponse }
-//        print(String(data: body, encoding: .utf8) ?? "<no utf8 data>")
+//        print(String(data: response, encoding: .utf8) ?? "<no utf8 data>")
 
-        return try GrandSlamOperationDecoder<Response>.decode(data: body)
+        return try GrandSlamOperationDecoder<Response>.decode(data: response)
     }
 
     private func endProvisioning(

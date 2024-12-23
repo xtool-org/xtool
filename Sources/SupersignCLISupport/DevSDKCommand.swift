@@ -77,7 +77,7 @@ struct DarwinSDKVersions: Decodable {
 
     static func all() async throws -> DarwinSDKVersions {
         @Dependency(\.httpClient) var httpClient
-        let data = try await httpClient.makeRequest(HTTPRequest(url: url)).body ?? Data()
+        let data = try await httpClient.makeRequest(HTTPRequest(url: url)).body
         return try decoder.decode(self, from: data)
     }
 }

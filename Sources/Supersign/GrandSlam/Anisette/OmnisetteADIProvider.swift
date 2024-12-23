@@ -34,7 +34,7 @@ struct OmnisetteADIProvider: RawADIProvider {
         }
         let body = try await client.makeRequest(
             HTTPRequest(url: url.appendingPathComponent("v3/client_info"))
-        ).body ?? Data()
+        ).body
         let clientInfo = try Self.decoder.decode(ClientInfo.self, from: body)
         return clientInfo.clientInfo
     }
@@ -74,13 +74,13 @@ struct OmnisetteADIProvider: RawADIProvider {
         }
 
         var request = HTTPRequest(url: url.appendingPathComponent("v3/get_headers"))
-        request.method = "POST"
-        request.body = .buffer(try Self.encoder.encode(Request(
+        request.method = .post
+        request.headerFields[.contentType] = "application/json"
+        let body = try Self.encoder.encode(Request(
             identifier: userID.rawBytes,
             adiPb: provisioningInfo
-        )))
-        request.headers["Content-Type"] = "application/json"
-        let response = try await client.makeRequest(request).body ?? Data()
+        ))
+        let response = try await client.makeRequest(request, body: body).body
         let decoded = try Self.decoder.decode(Response.self, from: response)
         if let rinfo = UInt64(decoded.rinfo) {
             routingInfo = rinfo

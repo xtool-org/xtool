@@ -78,34 +78,30 @@ public struct DeveloperServicesClient: Sendable {
 
         let deviceInfo = try deviceInfoProvider.fetch()
 
-        var httpRequest = HTTPRequest(url: url, method: "POST")
+        var httpRequest = HTTPRequest(method: .post, url: url)
         let acceptedLanguages = Locale.preferredLanguages.joined(separator: ", ")
 
-        httpRequest.headers["Accept-Language"] = acceptedLanguages
-        httpRequest.headers["Accept"] = request.apiVersion.accept
-        httpRequest.headers["Content-Type"] = request.apiVersion.contentType
-        httpRequest.headers["User-Agent"] = "Xcode"
-        request.methodOverride.map { httpRequest.headers["X-HTTP-Method-Override"] = $0 }
+        httpRequest.headerFields[.acceptLanguage] = acceptedLanguages
+        httpRequest.headerFields[.accept] = request.apiVersion.accept
+        httpRequest.headerFields[.contentType] = request.apiVersion.contentType
+        httpRequest.headerFields[.userAgent] = "Xcode"
+        request.methodOverride.map { httpRequest.headerFields[.init("X-HTTP-Method-Override")!] = $0 }
 
-        httpRequest.headers[DeviceInfo.xcodeVersionKey] = DeviceInfo.xcodeVersion
-        httpRequest.headers[DeviceInfo.clientInfoKey] = deviceInfo.clientInfo.clientString
-        httpRequest.headers[DeviceInfo.deviceIDKey] = deviceInfo.deviceID
+        httpRequest.headerFields[.init(DeviceInfo.xcodeVersionKey)!] = DeviceInfo.xcodeVersion
+        httpRequest.headerFields[.init(DeviceInfo.clientInfoKey)!] = deviceInfo.clientInfo.clientString
+        httpRequest.headerFields[.init(DeviceInfo.deviceIDKey)!] = deviceInfo.deviceID
 
-        httpRequest.headers["X-Apple-I-Identity-Id"] = loginToken.adsid
-        httpRequest.headers["X-Apple-App-Info"] = AppTokenKey.xcode.rawValue
-        httpRequest.headers["X-Apple-GS-Token"] = loginToken.token
+        httpRequest.headerFields[.init("X-Apple-I-Identity-Id")!] = loginToken.adsid
+        httpRequest.headerFields[.init("X-Apple-App-Info")!] = AppTokenKey.xcode.rawValue
+        httpRequest.headerFields[.init("X-Apple-GS-Token")!] = loginToken.token
 
-        anisetteData.dictionary.forEach { httpRequest.headers[$0] = $1 }
-
-        httpRequest.body = try .buffer(request.apiVersion.body(withParameters: request.parameters))
+        anisetteData.dictionary.forEach { httpRequest.headerFields[.init($0)!] = $1 }
 
         request.configure(urlRequest: &httpRequest)
 
-        let resp = try await httpClient.makeRequest(httpRequest)
+        let body = try request.apiVersion.body(withParameters: request.parameters)
 
-        // we don't throw if data is nil because sometimes no data is
-        // okay (eg in the case of EmptyResponse)
-        let data = resp.body ?? Data()
+        let (_, data) = try await httpClient.makeRequest(httpRequest, body: body)
 
 //        String(data: data, encoding: .utf8).map { print("\(url): \($0)") }
 

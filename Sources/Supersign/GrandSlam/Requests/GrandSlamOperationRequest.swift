@@ -70,8 +70,8 @@ extension GrandSlamOperationRequest {
     static var endpoint: GrandSlamEndpoint { .lookup(\.gsService) }
 
     func configure(request: inout HTTPRequest, deviceInfo: DeviceInfo, anisetteData: AnisetteData) {
-        request.headers["Accept"] = "*/*"
-        request.headers["User-Agent"] = deviceInfo.clientInfo.userAgent
+        request.headerFields[.accept] = "*/*"
+        request.headerFields[.userAgent] = deviceInfo.clientInfo.userAgent
     }
 
     func method(deviceInfo: DeviceInfo, anisetteData: AnisetteData) -> GrandSlamMethod {

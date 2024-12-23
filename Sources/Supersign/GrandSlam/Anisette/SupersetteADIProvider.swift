@@ -31,7 +31,7 @@ public actor SupersetteADIProvider: RawADIProvider {
                     let progString = "\(Int(progress * 100))%".padding(toLength: 4, leading: true)
                     print("\r[Downloading libraries] \(progString)", terminator: "")
                     fflush(stdoutSafe)
-                }.body!
+                }.body
                 try data.write(to: applemusic)
             }
 
