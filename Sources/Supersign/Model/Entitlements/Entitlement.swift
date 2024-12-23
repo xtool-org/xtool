@@ -11,11 +11,4 @@ import ProtoCodable
 
 public protocol Entitlement: ProtoCodable, Sendable {
     static var identifier: String { get }
-    static var isFree: Bool { get }
-    /// whether this entitlement should be included in developer services API requests
-    static var canList: Bool { get }
-}
-
-public extension Entitlement {
-    static var canList: Bool { return true }
 }

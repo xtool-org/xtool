@@ -15,17 +15,17 @@ public struct SigningInfo: Codable, Sendable {
 }
 
 public protocol SigningInfoManager: Sendable {
-    func info(forTeamID teamID: DeveloperServicesTeam.ID) throws -> SigningInfo?
-    func setInfo(_ info: SigningInfo?, forTeamID teamID: DeveloperServicesTeam.ID) throws
+    func info(forIdentityID identityID: String) throws -> SigningInfo?
+    func setInfo(_ info: SigningInfo?, forIdentityID identityID: String) throws
 }
 
 extension SigningInfoManager {
-    subscript(teamID: DeveloperServicesTeam.ID) -> SigningInfo? {
+    subscript(identityID: String) -> SigningInfo? {
         get {
-            try? info(forTeamID: teamID)
+            try? info(forIdentityID: identityID)
         }
         nonmutating set {
-            try? setInfo(newValue, forTeamID: teamID)
+            try? setInfo(newValue, forIdentityID: identityID)
         }
     }
 }
@@ -35,13 +35,13 @@ public final class MemoryBackedSigningInfoManager: SigningInfoManager {
 
     public init() {}
 
-    public func info(forTeamID teamID: DeveloperServicesTeam.ID) throws -> SigningInfo? {
-        infos[teamID.rawValue]
+    public func info(forIdentityID identityID: String) throws -> SigningInfo? {
+        infos[identityID]
     }
 
-    public func setInfo(_ info: SigningInfo?, forTeamID teamID: DeveloperServicesTeam.ID) throws {
+    public func setInfo(_ info: SigningInfo?, forIdentityID identityID: String) throws {
         infos.withValue {
-            $0[teamID.rawValue] = info
+            $0[identityID] = info
         }
     }
 }
@@ -55,14 +55,14 @@ public struct KeyValueSigningInfoManager: SigningInfoManager {
         self.storage = storage
     }
 
-    public func info(forTeamID teamID: DeveloperServicesTeam.ID) throws -> SigningInfo? {
-        guard let data = try storage.data(forKey: teamID.rawValue)
+    public func info(forIdentityID identityID: String) throws -> SigningInfo? {
+        guard let data = try storage.data(forKey: identityID)
             else { return nil }
         return try decoder.decode(SigningInfo.self, from: data)
     }
 
-    public func setInfo(_ info: SigningInfo?, forTeamID teamID: DeveloperServicesTeam.ID) throws {
+    public func setInfo(_ info: SigningInfo?, forIdentityID identityID: String) throws {
         let data = try encoder.encode(info)
-        try storage.setData(data, forKey: teamID.rawValue)
+        try storage.setData(data, forKey: identityID)
     }
 }

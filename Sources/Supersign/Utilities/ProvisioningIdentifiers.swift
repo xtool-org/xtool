@@ -22,9 +22,7 @@ extension ProvisioningIdentifiers {
     }
 
     static func identifier(fromSanitized sanitized: String, context: SigningContext? = nil) -> String {
-        // FIXME: Use something better than the team ID to generate the prefix. Maybe a random
-        // UUID works as long as we can remember what the random UUID for each app was.
-        let uuid = context?.teamID.rawValue ?? String(UUID().uuidString.split(separator: "-")[0])
+        let uuid = (context?.auth.identityID ?? UUID().uuidString).split(separator: "-")[0].uppercased()
         return "\(Self.idPrefix)\(uuid).\(sanitized)"
     }
 

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public final class DeveloperServicesClient: Sendable {
+public struct DeveloperServicesClient: Sendable {
 
     public enum Error: LocalizedError {
         case noData
@@ -68,6 +68,13 @@ public final class DeveloperServicesClient: Sendable {
         self.deviceInfo = deviceInfo
         self.anisetteDataProvider = anisetteProvider
         self.httpClient = httpFactory.makeClient()
+    }
+
+    public init(authData: XcodeAuthData) {
+        self.loginToken = authData.loginToken
+        self.deviceInfo = authData.deviceInfo
+        self.anisetteDataProvider = authData.anisetteDataProvider
+        self.httpClient = defaultHTTPClientFactory.makeClient()
     }
 
     private func send<R: DeveloperServicesRequest>(

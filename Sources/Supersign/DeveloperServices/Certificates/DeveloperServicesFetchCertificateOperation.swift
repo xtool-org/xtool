@@ -84,14 +84,14 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
             try await group.waitForAll()
         }
         let signingInfo = try await createCertificate()
-        self.context.signingInfoManager[self.context.teamID] = signingInfo
+        self.context.signingInfoManager[self.context.auth.identityID] = signingInfo
         return signingInfo
     }
 
     public func perform() async throws -> SigningInfo {
         let certificates = try await context.developerAPIClient.certificatesGetCollection().ok.body.json.data
 
-        guard let signingInfo = self.context.signingInfoManager[self.context.teamID] else {
+        guard let signingInfo = self.context.signingInfoManager[self.context.auth.identityID] else {
             return try await self.replaceCertificates(certificates, requireConfirmation: true)
         }
 

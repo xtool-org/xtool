@@ -40,9 +40,11 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
     }
 
     public let context: SigningContext
+    public let signingInfo: SigningInfo
     public let root: URL
-    public init(context: SigningContext, root: URL) {
+    public init(context: SigningContext, signingInfo: SigningInfo, root: URL) {
         self.context = context
+        self.signingInfo = signingInfo
         self.root = root
     }
 
@@ -76,15 +78,76 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
             appID = try createResponse.created.body.json.data
         }
 
-        let request = DeveloperServicesUpdateAppIDRequest(
-            platform: self.context.platform,
-            teamID: self.context.teamID,
-            appIDID: appID.id,
-            entitlements: entitlements,
-            additionalFeatures: [],
-            isFree: isFreeTeam
+        let existingCapabilitiesList = try await context.developerAPIClient
+            .bundleIdsBundleIdCapabilitiesGetToManyRelated(.init(path: .init(id: appID.id)))
+            .ok.body.json.data
+        let existingCapabilities = [Components.Schemas.CapabilityType: Components.Schemas.BundleIdCapability](
+            existingCapabilitiesList.compactMap { cap in
+                (cap.attributes?.capabilityType).map { ($0, cap) }
+            },
+            uniquingKeysWith: { $1 }
         )
-        _ = try await context.client.send(request)
+
+        let wantedCapabilitiesList = try entitlements.entitlements().compactMap(\.anyCapability)
+        let wantedCapabilities = [Components.Schemas.CapabilityType: [Components.Schemas.CapabilitySetting]](
+            wantedCapabilitiesList.map { ($0.capabilityType, $0.settings ?? []) },
+            uniquingKeysWith: { $1 }
+        )
+
+        for (typ, cap) in existingCapabilities {
+            if let wantedSettings = wantedCapabilities[typ] {
+                if wantedSettings != (cap.attributes?.settings ?? []) {
+                    _ = try await context.developerAPIClient.bundleIdCapabilitiesUpdateInstance(
+                        path: .init(id: cap.id),
+                        body: .json(
+                            .init(
+                                data: .init(
+                                    _type: .bundleIdCapabilities,
+                                    id: cap.id,
+                                    attributes: .init(
+                                        capabilityType: typ,
+                                        settings: wantedSettings
+                                    )
+                                )
+                            )
+                        )
+                    )
+                    .ok
+                }
+            } else {
+                _ = try await context.developerAPIClient
+                    .bundleIdCapabilitiesDeleteInstance(path: .init(id: cap.id))
+                    .noContent
+            }
+        }
+        for (typ, settings) in wantedCapabilities {
+            guard existingCapabilities[typ] == nil else { continue }
+            _ = try await context.developerAPIClient.bundleIdCapabilitiesCreateInstance(
+                body: .json(.init(data: .init(
+                    _type: .bundleIdCapabilities,
+                    attributes: .init(
+                        capabilityType: typ,
+                        settings: settings
+                    ),
+                    relationships: .init(
+                        bundleId: .init(
+                            data: .init(
+                                _type: .bundleIds,
+                                id: appID.id
+                            )
+                        ),
+                        // not public but required when using ds2 API
+                        capability: .init(
+                            data: .init(
+                                _type: .capabilities,
+                                id: typ
+                            )
+                        )
+                    )
+                )))
+            )
+            .created.body
+        }
 
         return appID
     }
@@ -116,7 +179,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
             if isFreeTeam {
                 // re-assign rather than using updateEntitlements since the latter will
                 // retain unrecognized entitlements
-                let filtered = try entitlements.entitlements().filter { type(of: $0).isFree }
+                let filtered = try entitlements.entitlements().filter { $0.anyCapability?.isFree != false }
                 entitlements = try Entitlements(entitlements: filtered)
             }
         } else {
@@ -126,8 +189,9 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
         let appID = try await upsertApp(bundleID: bundleID, entitlements: entitlements, isFreeTeam: isFreeTeam, appIDs: appIDs)
         let newBundleID = appID.attributes!.identifier!
 
+        let teamID = try signingInfo.certificate.developerIdentity()
         try entitlements.update(
-            teamID: self.context.teamID,
+            teamID: .init(rawValue: teamID),
             bundleID: newBundleID
         )
         // set get-task-allow to YES, required for dev certs
@@ -144,14 +208,15 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
             let groupsEntitlement = entitlementsArray[groupsIdx] as? AppGroupEntitlement {
             let groups = groupsEntitlement.rawValue
 
-            let newGroups = try await DeveloperServicesAssignAppGroupsOperation(
+            if let operation = DeveloperServicesAssignAppGroupsOperation(
                 context: self.context,
                 groupIDs: groups,
                 appID: appID
-            ).perform()
-
-            entitlementsArray[groupsIdx] = AppGroupEntitlement(rawValue: newGroups)
-            try entitlements.setEntitlements(entitlementsArray)
+            ) {
+                let newGroups = try await operation.perform()
+                entitlementsArray[groupsIdx] = AppGroupEntitlement(rawValue: newGroups)
+                try entitlements.setEntitlements(entitlementsArray)
+            }
         }
 
         let mobileprovision = try await DeveloperServicesFetchProfileOperation(
@@ -167,11 +232,17 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
     }
 
     private func getTeamIsFree() async throws -> Bool {
-        let request = DeveloperServicesListTeamsRequest()
-        let teams = try await context.client.send(request)
-        guard let team = teams.first(where: { $0.id == self.context.teamID })
-            else { throw Error.teamNotFound(self.context.teamID) }
-        return team.isFree
+        switch context.auth {
+        case .appStoreConnect:
+            return false
+        case .xcode(let authData):
+            let client = DeveloperServicesClient(authData: authData)
+            let request = DeveloperServicesListTeamsRequest()
+            let teams = try await client.send(request)
+            guard let team = teams.first(where: { $0.id == authData.teamID })
+                else { throw Error.teamNotFound(authData.teamID) }
+            return team.isFree
+        }
     }
 
     // keyed by sanitized bundle ID

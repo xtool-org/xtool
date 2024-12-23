@@ -1,22 +1,77 @@
 import Foundation
 import Supersign
 import ArgumentParser
+import Crypto
+
+enum AuthMode: String, CaseIterable, CustomStringConvertible, ExpressibleByArgument {
+    case key
+    case password
+
+    var description: String {
+        switch self {
+        case .key: "Key (requires Apple Developer Program membership)"
+        case .password: "Password (works with any Apple ID but uses private APIs)"
+        }
+    }
+}
 
 struct AuthOperation {
     var username: String?
     var password: String?
     var logoutFromExisting: Bool
 
+    var mode: AuthMode? = nil
+
     func run() async throws {
-        if let token = try? AuthToken.saved() {
-            if logoutFromExisting {
-                try AuthToken.clear()
-            } else {
-                print("Logged in as \(token.appleID)")
-                return
-            }
+        if let token = try? AuthToken.saved(), !logoutFromExisting {
+            print("Logged in.\n\(token)")
+            return
         }
 
+        let mode: AuthMode
+        if let existing = self.mode {
+            mode = existing
+        } else {
+            mode = try await Console.choose(
+                from: AuthMode.allCases,
+                onNoElement: { throw Console.Error("Mode selection is required") },
+                multiPrompt: "Select login mode",
+                formatter: \.description
+            )
+        }
+
+        let token = switch mode {
+        case .password:
+            try await logInWithPassword()
+        case .key:
+            try await logInWithKey()
+        }
+        try token.save()
+
+        print("Logged in")
+    }
+
+    private func logInWithKey() async throws -> AuthToken {
+        let id = try await Console.promptRequired("Key ID: ", existing: nil)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        let issuerID = try await Console.promptRequired("Issuer ID: ", existing: nil)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        let path = try await Console.promptRequired("Key path: ", existing: nil)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        let pem = try String(decoding: Data(contentsOf: URL(fileURLWithPath: path)), as: UTF8.self)
+        do {
+            _ = try P256.Signing.PrivateKey(pemRepresentation: pem)
+        } catch {
+            throw Console.Error("Key is invalid: \(error)")
+        }
+
+        return AuthToken.appStoreConnect(.init(id: id, issuerID: issuerID, pem: pem))
+    }
+
+    private func logInWithPassword() async throws -> AuthToken {
         let username = try await Console.promptRequired("Apple ID: ", existing: username)
 
         let password: String
@@ -65,10 +120,13 @@ struct AuthOperation {
             }
         )
 
-        let fullToken = AuthToken(appleID: username, teamID: team.id, dsToken: token)
-        try fullToken.save()
-
-        print("Logged in")
+        return AuthToken.xcode(.init(
+            appleID: username,
+            adsid: token.adsid,
+            token: token.token,
+            expiry: token.expiry,
+            teamID: team.id.rawValue
+        ))
     }
 }
 
@@ -80,12 +138,14 @@ struct AuthLoginCommand: AsyncParsableCommand {
 
     @Option(name: [.short, .long], help: "Apple ID") var username: String?
     @Option(name: [.short, .long]) var password: String?
+    @Option(name: [.short, .long]) var mode: AuthMode?
 
     func run() async throws {
         try await AuthOperation(
             username: username,
             password: password,
-            logoutFromExisting: true
+            logoutFromExisting: true,
+            mode: mode
         ).run()
     }
 }
@@ -102,7 +162,7 @@ struct AuthLogoutCommand: AsyncParsableCommand {
             "Reset 2-factor authentication data",
             discussion: """
             This resets the "pseudo-device" that Supersign presents itself as \
-            when authenticating with Apple.
+            when authenticating with Apple using the password login mode.
 
             Effectively, this means you will be prompted to complete 2-factor \
             authentication again the next time you log in.
@@ -137,12 +197,7 @@ struct AuthStatusCommand: AsyncParsableCommand {
 
     func run() async throws {
         if let token = try? AuthToken.saved() {
-            print("""
-            Logged in. 
-            - Apple ID: \(token.appleID)
-            - Team ID: \(token.teamID.rawValue)
-            - Token expiry: \(token.expiry.formatted(.dateTime))
-            """)
+            print("Logged in.\n\(token)")
         } else {
             print("Logged out")
         }

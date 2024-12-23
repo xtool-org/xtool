@@ -1,6 +1,7 @@
 import Foundation
 import Supersign
 import ArgumentParser
+import DeveloperAPI
 
 struct DSTeamsListCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -11,16 +12,10 @@ struct DSTeamsListCommand: AsyncParsableCommand {
     func run() async throws {
         let token = try AuthToken.saved()
 
-        let deviceInfo = try DeviceInfo.fetch()
-        let anisetteProvider = try ADIDataProvider.adiProvider(
-            deviceInfo: deviceInfo, storage: SupersignCLI.config.storage
-        )
-
-        let client = DeveloperServicesClient(
-            loginToken: token.dsToken,
-            deviceInfo: deviceInfo,
-            anisetteProvider: anisetteProvider
-        )
+        guard case let .xcode(authData) = try token.authData() else {
+            throw Console.Error("This command requires password-based authentication")
+        }
+        let client = DeveloperServicesClient(authData: authData)
         let teams: [DeveloperServicesTeam] = try await client.send(DeveloperServicesListTeamsRequest())
         print(
             teams.map {

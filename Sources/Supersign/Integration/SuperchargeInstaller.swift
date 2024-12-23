@@ -81,9 +81,7 @@ public actor IntegratedInstaller {
 
     let udid: String
     let lookupMode: LookupMode
-    let appleID: String
-    let token: DeveloperServicesLoginToken
-    let teamID: DeveloperServicesTeam.ID
+    let auth: DeveloperAPIAuthData
     let configureDevice: Bool
     let storage: KeyValueStorage
     public weak var delegate: IntegratedInstallerDelegate?
@@ -142,18 +140,14 @@ public actor IntegratedInstaller {
     public init(
         udid: String,
         lookupMode: LookupMode,
-        appleID: String,
-        token: DeveloperServicesLoginToken,
-        teamID: DeveloperServicesTeam.ID,
+        auth: DeveloperAPIAuthData,
         configureDevice: Bool,
         storage: KeyValueStorage,
         delegate: IntegratedInstallerDelegate
     ) {
         self.udid = udid
         self.lookupMode = lookupMode
-        self.appleID = appleID
-        self.token = token
-        self.teamID = teamID
+        self.auth = auth
         self.configureDevice = configureDevice
         self.storage = storage
         self.delegate = delegate
@@ -281,10 +275,6 @@ public actor IntegratedInstaller {
         guard let appDir = payload.implicitContents.first(where: { $0.pathExtension == "app" })
             else { throw Error.appExtractionFailed }
 
-        guard let deviceInfo = DeviceInfo.current() else {
-            throw Error.deviceInfoFetchFailed
-        }
-
         try await updateStage(to: "Logging in")
 
         try await self.updateStage(to: "Preparing device")
@@ -311,23 +301,20 @@ public actor IntegratedInstaller {
         } else {
             nil
         }
+        _ = pairingKeys
 
         try await updateProgress(to: 1)
 
-        let anisetteProvider = try ADIDataProvider.adiProvider(deviceInfo: deviceInfo, storage: storage)
-        let client = DeveloperServicesClient(
-            loginToken: token,
-            deviceInfo: deviceInfo,
-            anisetteProvider: anisetteProvider
-        )
+//        guard let deviceInfo = DeviceInfo.current() else {
+//            throw Error.deviceInfoFetchFailed
+//        }
+//        let anisetteProvider = try ADIDataProvider.adiProvider(deviceInfo: deviceInfo, storage: storage)
 
         let context = try SigningContext(
             udid: udid,
             deviceName: deviceName,
-            teamID: teamID,
-            client: client,
-            signingInfoManager: KeyValueSigningInfoManager(storage: storage),
-            platform: .iOS
+            auth: auth,
+            signingInfoManager: KeyValueSigningInfoManager(storage: storage)
         )
 
         let signer = Signer(context: context) { certs in
@@ -346,19 +333,21 @@ public actor IntegratedInstaller {
                 }
             },
             didProvision: { @Sendable [self] in
-                if let pairingKeys = pairingKeys {
-                    let info = try context.signingInfoManager.info(forTeamID: context.teamID)
-                    try Superconfig(
-                        udid: udid,
-                        pairingKeys: pairingKeys,
-                        deviceInfo: deviceInfo,
-                        preferredTeamID: teamID.rawValue,
-                        preferredSigningInfo: info,
-                        appleID: appleID,
-                        provisioningData: anisetteProvider.provisioningData(),
-                        token: token
-                    ).save(inAppDir: appDir)
-                }
+                // TODO: reintroduce Superconfig
+                _ = self
+//                if let pairingKeys = pairingKeys {
+//                    let info = try context.signingInfoManager.info(forTeamID: context.teamID)
+//                    try Superconfig(
+//                        udid: udid,
+//                        pairingKeys: pairingKeys,
+//                        deviceInfo: deviceInfo,
+//                        preferredTeamID: teamID.rawValue,
+//                        preferredSigningInfo: info,
+//                        appleID: appleID,
+//                        provisioningData: anisetteProvider.provisioningData(),
+//                        token: token
+//                    ).save(inAppDir: appDir)
+//                }
             }
         )
 
