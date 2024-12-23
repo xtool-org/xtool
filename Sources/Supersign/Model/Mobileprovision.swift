@@ -9,7 +9,7 @@
 import Foundation
 import CSupersign
 
-public final class Mobileprovision: Decodable, @unchecked Sendable {
+public final class Mobileprovision: @unchecked Sendable {
 
     public enum Error: Swift.Error {
         case invalidProfile
@@ -39,24 +39,11 @@ public final class Mobileprovision: Decodable, @unchecked Sendable {
 
     let raw: mobileprovision_t
 
-    private static func mobileprovision(from data: Data) -> mobileprovision_t? {
-        data.withUnsafeBytes {
+    public init(data: Data) throws {
+        guard let profile: mobileprovision_t = data.withUnsafeBytes({
             guard let base = $0.baseAddress else { return nil }
             return mobileprovision_create_from_data(base, $0.count)
-        }
-    }
-
-    public init(data: Data) throws {
-        guard let profile = Self.mobileprovision(from: data) else {
-            throw Error.invalidProfile
-        }
-        self.raw = profile
-    }
-
-    public required init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let data = try container.decode(Data.self)
-        guard let profile = Self.mobileprovision(from: data) else {
+        }) else {
             throw Error.invalidProfile
         }
         self.raw = profile

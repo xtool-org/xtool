@@ -17,7 +17,7 @@ extension AppTokenKey {
     static let xcode = AppTokenKey("com.apple.gs.xcode.auth")
 }
 
-class GrandSlamFetchAppTokensOperation {
+struct GrandSlamFetchAppTokensOperation {
 
     enum Error: Swift.Error {
         case invalidResponse
@@ -45,23 +45,17 @@ class GrandSlamFetchAppTokensOperation {
         }
     }
 
-    private let decoder = PropertyListDecoder()
+    private static let decoder = PropertyListDecoder()
 
     let client: GrandSlamClient
     let apps: [AppTokenKey]
     let loginData: GrandSlamLoginData
 
-    init(client: GrandSlamClient, apps: [AppTokenKey], loginData: GrandSlamLoginData) {
-        self.client = client
-        self.apps = apps
-        self.loginData = loginData
-    }
-
     private func handle(
         response: GrandSlamAppTokensRequest.Decoder.Value
     ) async throws -> [AppTokenKey: Token] {
         let decrypted = try AppTokens.decrypt(gcm: response.encryptedToken, withSK: loginData.sk)
-        let pairs = try decoder
+        let pairs = try Self.decoder
             .decode(Response.self, from: decrypted)
             .tokens
             .map { (AppTokenKey($0), $1) }

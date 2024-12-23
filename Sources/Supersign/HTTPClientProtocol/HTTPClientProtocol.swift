@@ -41,7 +41,7 @@ extension HTTPClientProtocol {
     public func makeRequest(
         _ request: HTTPRequest,
         body: Data? = nil,
-        onProgress: sending @isolated(any) (Double?) -> Void = { _ in }
+        onProgress: @isolated(any) (Double?) -> Void = { _ in }
     ) async throws -> (response: HTTPResponse, body: Data) {
         await onProgress(0)
         let (response, body) = try await send(request, body: body.map { HTTPBody($0) })
@@ -67,12 +67,12 @@ private struct UnimplementedHTTPClient: HTTPClientProtocol, ClientTransport {
     public var asOpenAPITransport: ClientTransport { self }
 
     func send(
-        _ request: HTTPTypes.HTTPRequest,
-        body: OpenAPIRuntime.HTTPBody?,
+        _ request: HTTPRequest,
+        body: HTTPBody?,
         baseURL: URL,
         operationID: String
-    ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
-        let closure: (HTTPTypes.HTTPRequest, OpenAPIRuntime.HTTPBody?, URL, String) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) = unimplemented()
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        let closure: (HTTPRequest, HTTPBody?, URL, String) async throws -> (HTTPResponse, HTTPBody?) = unimplemented()
         return try await closure(request, body, baseURL, operationID)
     }
 

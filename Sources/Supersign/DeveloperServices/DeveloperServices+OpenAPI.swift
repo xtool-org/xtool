@@ -74,16 +74,16 @@ public struct DeveloperAPIXcodeAuthMiddleware: ClientMiddleware {
     private static let queryEncoder = JSONEncoder()
 
     public func intercept(
-        _ request: HTTPTypes.HTTPRequest,
-        body: OpenAPIRuntime.HTTPBody?,
+        _ request: HTTPRequest,
+        body: HTTPBody?,
         baseURL: URL,
         operationID: String,
         next: @Sendable (
-            _ request: HTTPTypes.HTTPRequest,
-            _ body: OpenAPIRuntime.HTTPBody?,
+            _ request: HTTPRequest,
+            _ body: HTTPBody?,
             _ baseURL: URL
-        ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?)
-    ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
+        ) async throws -> (HTTPResponse, HTTPBody?)
+    ) async throws -> (HTTPResponse, HTTPBody?) {
         var request = request
 
         let deviceInfo = try deviceInfoProvider.fetch()
@@ -203,16 +203,16 @@ public struct DeveloperAPIASCAuthMiddleware: ClientMiddleware {
     }
 
     public func intercept(
-        _ request: HTTPTypes.HTTPRequest,
-        body: OpenAPIRuntime.HTTPBody?,
+        _ request: HTTPRequest,
+        body: HTTPBody?,
         baseURL: URL,
         operationID: String,
         next: @Sendable (
-            _ request: HTTPTypes.HTTPRequest,
-            _ body: OpenAPIRuntime.HTTPBody?,
+            _ request: HTTPRequest,
+            _ body: HTTPBody?,
             _ baseURL: URL
-        ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?)
-    ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
+        ) async throws -> (HTTPResponse, HTTPBody?)
+    ) async throws -> (HTTPResponse, HTTPBody?) {
         let jwt = try await generator.generate()
         var request = request
         request.headerFields[.authorization] = "Bearer \(jwt)"

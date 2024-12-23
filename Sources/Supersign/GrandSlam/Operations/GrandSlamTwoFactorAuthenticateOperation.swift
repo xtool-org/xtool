@@ -12,7 +12,7 @@ public protocol TwoFactorAuthDelegate: AnyObject, Sendable {
     func fetchCode() async -> String?
 }
 
-class GrandSlamTwoFactorAuthenticateOperation {
+struct GrandSlamTwoFactorAuthenticateOperation {
 
     enum Error: Swift.Error {
         case incorrectVerificationCode
@@ -23,17 +23,6 @@ class GrandSlamTwoFactorAuthenticateOperation {
     let mode: GrandSlamAuthMode?
     let loginData: GrandSlamLoginData
     unowned let delegate: TwoFactorAuthDelegate
-    init(
-        client: GrandSlamClient,
-        mode: GrandSlamAuthMode?,
-        loginData: GrandSlamLoginData,
-        delegate: TwoFactorAuthDelegate
-    ) {
-        self.client = client
-        self.mode = mode
-        self.loginData = loginData
-        self.delegate = delegate
-    }
 
     private func performSMSAuth() async throws {
         // TODO: parse phone number list from o=complete req?

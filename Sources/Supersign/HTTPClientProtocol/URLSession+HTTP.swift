@@ -18,7 +18,7 @@ extension HTTPClientDependencyKey: DependencyKey {
     public static let liveValue: HTTPClientProtocol = Client()
 }
 
-private final class Client: HTTPClientProtocol {
+private struct Client: HTTPClientProtocol {
     final class ClientDelegate: NSObject, URLSessionWebSocketDelegate {
         let webSocketCallbacks = LockIsolated<[
             URLSessionWebSocketTask: @Sendable (URLSessionWebSocketTask.CloseCode?) -> Void

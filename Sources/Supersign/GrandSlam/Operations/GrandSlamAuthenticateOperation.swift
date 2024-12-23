@@ -8,9 +8,8 @@
 
 import Foundation
 import Crypto
-import _CryptoExtras
 
-class GrandSlamAuthenticateOperation {
+struct GrandSlamAuthenticateOperation {
 
     enum Error: Swift.Error, LocalizedError {
         case internalError
@@ -50,18 +49,6 @@ class GrandSlamAuthenticateOperation {
     let username: String
     let password: String
     unowned let twoFactorDelegate: TwoFactorAuthDelegate
-
-    init(
-        client: GrandSlamClient,
-        username: String,
-        password: String,
-        twoFactorDelegate: TwoFactorAuthDelegate
-    ) {
-        self.client = client
-        self.username = username
-        self.password = password
-        self.twoFactorDelegate = twoFactorDelegate
-    }
 
     private func authenticateTwoFactor(
         mode: GrandSlamAuthMode?,
