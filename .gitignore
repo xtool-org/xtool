@@ -10,4 +10,4 @@ DerivedData/
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
 
-/openapi.json
+/openapi

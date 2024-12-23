@@ -2,9 +2,9 @@ SPEC_URL = https://developer.apple.com/sample-code/app-store-connect/app-store-c
 
 .PHONY: api update-api
 
-api: openapi.json
+api: openapi/openapi.json
 	swift run swift-openapi-generator generate \
-		openapi.json \
+		openapi/openapi.json \
 		--config Sources/DeveloperAPI/openapi-generator-config.yaml \
 		--output-directory Sources/DeveloperAPI/Generated
 	for file in Sources/DeveloperAPI/Generated/*.swift; do \
@@ -14,5 +14,9 @@ api: openapi.json
 update-api:
 	@+$(MAKE) -B api
 
-openapi.json:
-	curl -fsSL "$(SPEC_URL)" | bsdtar -xOf- > openapi.json
+openapi/openapi.json: openapi/base.json Sources/DeveloperAPI/openapi-overlay.yaml
+	npx bump-cli overlay openapi/base.json Sources/DeveloperAPI/openapi-overlay.yaml > openapi/openapi.json
+
+openapi/base.json:
+	@mkdir -p openapi
+	curl -fsSL "$(SPEC_URL)" | bsdtar -xOf- > openapi/base.json
