@@ -181,7 +181,7 @@ extension SwiftVersion {
 
 struct InstallSDKOperation {
     func run() async throws {
-        #if os(macOS) && false
+        #if os(macOS)
         print("Skipping SDK install; the iOS SDK ships with Xcode on macOS")
         #else
         let arch = try SDKArch.current
