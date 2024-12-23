@@ -1,17 +1,17 @@
 import Foundation
+import Dependencies
 
 struct OmnisetteADIProvider: RawADIProvider {
+    @Dependency(\.httpClient) private var client
+
     // should implement v3 of https://github.com/SideStore/omnisette-server
     // list: https://servers.sidestore.io/servers.json
     // e.g. https://ani.sidestore.io
     private let url: URL
-    private let client: HTTPClientProtocol
     init(
-        url: URL = URL(string: "https://ani.sidestore.io")!, // URL(string: "http://localhost:6969")!,
-        httpFactory: HTTPClientFactory = defaultHTTPClientFactory
+        url: URL = URL(string: "https://ani.sidestore.io")! // URL(string: "http://localhost:6969")!
     ) {
         self.url = url
-        self.client = httpFactory.makeClient()
     }
 
     static let decoder: JSONDecoder = {
@@ -34,7 +34,7 @@ struct OmnisetteADIProvider: RawADIProvider {
         }
         let body = try await client.makeRequest(
             HTTPRequest(url: url.appendingPathComponent("v3/client_info"))
-        ).body ?? Data()
+        ).body
         let clientInfo = try Self.decoder.decode(ClientInfo.self, from: body)
         return clientInfo.clientInfo
     }
@@ -74,13 +74,13 @@ struct OmnisetteADIProvider: RawADIProvider {
         }
 
         var request = HTTPRequest(url: url.appendingPathComponent("v3/get_headers"))
-        request.method = "POST"
-        request.body = .buffer(try Self.encoder.encode(Request(
+        request.method = .post
+        request.headerFields[.contentType] = "application/json"
+        let body = try Self.encoder.encode(Request(
             identifier: userID.rawBytes,
             adiPb: provisioningInfo
-        )))
-        request.headers["Content-Type"] = "application/json"
-        let response = try await client.makeRequest(request).body ?? Data()
+        ))
+        let response = try await client.makeRequest(request, body: body).body
         let decoded = try Self.decoder.decode(Response.self, from: response)
         if let rinfo = UInt64(decoded.rinfo) {
             routingInfo = rinfo
@@ -180,29 +180,5 @@ private final class OmnisetteProvisioningSession: RawADIProvisioningSession {
 extension UUID {
     fileprivate var rawBytes: Data {
         withUnsafeBytes(of: uuid) { Data($0) }
-    }
-}
-
-extension ADIDataProvider {
-    public static func adiProvider(
-        deviceInfo: DeviceInfo,
-        storage: KeyValueStorage,
-        provisioningData: ProvisioningData? = nil,
-        httpFactory: HTTPClientFactory = defaultHTTPClientFactory
-    ) throws -> ADIDataProvider {
-        #if os(Linux)
-        let provider = SupersetteADIProvider(
-            configDirectory: URL.homeDirectory.appending(path: ".config/Supercharge/Anisette")
-        )
-        #else
-        let provider = OmnisetteADIProvider()
-        #endif
-        return try ADIDataProvider(
-            rawProvider: provider,
-            deviceInfo: deviceInfo,
-            storage: storage,
-            provisioningData: provisioningData,
-            httpFactory: httpFactory
-        )
     }
 }

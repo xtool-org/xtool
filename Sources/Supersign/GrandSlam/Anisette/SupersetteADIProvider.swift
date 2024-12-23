@@ -2,20 +2,16 @@
 
 import Foundation
 import CSupersette
+import Dependencies
 
 public actor SupersetteADIProvider: RawADIProvider {
     @MainActor private static var loadTask: Task<Void, Error>?
+    @Dependency(\.httpClient) private var httpClient
+    @Dependency(\.persistentDirectory) private var persistentDirectory
 
-    public let directory: URL
-    public let httpClient: HTTPClientProtocol
+    private var directory: URL { persistentDirectory.appendingPathComponent("Anisette") }
 
-    public init(
-        configDirectory: URL,
-        httpClientFactory: HTTPClientFactory = defaultHTTPClientFactory
-    ) {
-        self.directory = configDirectory
-        self.httpClient = httpClientFactory.makeClient()
-    }
+    public init() {}
 
     private func _loadADI(id: UUID) async throws {
         let dir = self.directory
@@ -35,7 +31,7 @@ public actor SupersetteADIProvider: RawADIProvider {
                     let progString = "\(Int(progress * 100))%".padding(toLength: 4, leading: true)
                     print("\r[Downloading libraries] \(progString)", terminator: "")
                     fflush(stdoutSafe)
-                }.body!
+                }.body
                 try data.write(to: applemusic)
             }
 

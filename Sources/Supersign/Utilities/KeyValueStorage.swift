@@ -8,6 +8,7 @@
 
 import Foundation
 import ConcurrencyExtras
+import Dependencies
 
 public enum KeyValueStorageError: Error {
     case stringConversionFailure
@@ -19,6 +20,17 @@ public protocol KeyValueStorage: Sendable {
     // default implementations provided
     func string(forKey key: String) throws -> String?
     func setString(_ string: String?, forKey key: String) throws
+}
+
+public enum KeyValueStorageDependencyKey: TestDependencyKey {
+    public static let testValue: KeyValueStorage = UnimplementedKeyValueStorage()
+}
+
+extension DependencyValues {
+    public var keyValueStorage: KeyValueStorage {
+        get { self[KeyValueStorageDependencyKey.self] }
+        set { self[KeyValueStorageDependencyKey.self] = newValue }
+    }
 }
 
 extension KeyValueStorage {
@@ -44,6 +56,16 @@ extension KeyValueStorage {
     }
 }
 
+private struct UnimplementedKeyValueStorage: KeyValueStorage {
+    func data(forKey key: String) throws -> Data? {
+        unimplemented(placeholder: nil)
+    }
+    
+    func setData(_ data: Data?, forKey key: String) throws {
+        unimplemented()
+    }
+}
+
 public final class MemoryKeyValueStorage: KeyValueStorage {
 
     private let dict = LockIsolated<[String: Data]>([:])
@@ -60,10 +82,11 @@ public final class MemoryKeyValueStorage: KeyValueStorage {
 }
 
 public struct DirectoryStorage: KeyValueStorage {
-    let base: URL
-    public init(base: URL) {
-        self.base = base
-    }
+    @Dependency(\.persistentDirectory) var directory
+
+    private var base: URL { directory.appendingPathComponent("data") }
+
+    public init() {}
 
     private func url(for key: String) -> URL {
         base.appendingPathComponent(key)

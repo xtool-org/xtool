@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Dependencies
 
 public struct DeviceInfo: Codable, Sendable {
 
@@ -89,4 +90,21 @@ public struct DeviceInfo: Codable, Sendable {
         ]
     }
 
+}
+
+public struct DeviceInfoProvider: TestDependencyKey, Sendable {
+    public var fetch: @Sendable () throws -> DeviceInfo
+
+    public init(fetch: @escaping @Sendable () throws -> DeviceInfo) {
+        self.fetch = fetch
+    }
+
+    public static let testValue = DeviceInfoProvider(fetch: unimplemented())
+}
+
+extension DependencyValues {
+    public var deviceInfoProvider: DeviceInfoProvider {
+        get { self[DeviceInfoProvider.self] }
+        set { self[DeviceInfoProvider.self] = newValue }
+    }
 }

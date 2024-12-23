@@ -1,6 +1,9 @@
 import Foundation
 import Supersign
 import ArgumentParser
+import DeveloperAPI
+import OpenAPIRuntime
+import Dependencies
 
 struct DSTeamsListCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -11,16 +14,10 @@ struct DSTeamsListCommand: AsyncParsableCommand {
     func run() async throws {
         let token = try AuthToken.saved()
 
-        let deviceInfo = try DeviceInfo.fetch()
-        let anisetteProvider = try ADIDataProvider.adiProvider(
-            deviceInfo: deviceInfo, storage: SupersignCLI.config.storage
-        )
-
-        let client = DeveloperServicesClient(
-            loginToken: token.dsToken,
-            deviceInfo: deviceInfo,
-            anisetteProvider: anisetteProvider
-        )
+        guard case let .xcode(authData) = try token.authData() else {
+            throw Console.Error("This command requires password-based authentication")
+        }
+        let client = DeveloperServicesClient(authData: authData)
         let teams: [DeveloperServicesTeam] = try await client.send(DeveloperServicesListTeamsRequest())
         print(
             teams.map {
@@ -67,13 +64,12 @@ struct DSAnisetteCommand: AsyncParsableCommand {
     )
 
     func run() async throws {
-        // swiftlint:disable:next force_try
-        let res = try! await ADIDataProvider(
-            rawProvider: Provider(),
-            deviceInfo: .current()!,
-            storage: SupersignCLI.config.storage
-        ).fetchAnisetteData()
-
+        let provider = withDependencies {
+            $0.rawADIProvider = Provider()
+        } operation: {
+            ADIDataProvider()
+        }
+        let res = try await provider.fetchAnisetteData()
         print(res)
     }
 }

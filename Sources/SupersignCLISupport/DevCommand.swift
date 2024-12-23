@@ -96,11 +96,6 @@ struct DevRunCommand: AsyncParsableCommand {
 
     @OptionGroup var connectionOptions: ConnectionOptions
 
-    @Option(
-        name: .shortAndLong,
-        help: "Preferred team ID"
-    ) var team: String?
-
     func run() async throws {
         let output = try await PackOperation(options: packOptions).run()
 
@@ -113,11 +108,8 @@ struct DevRunCommand: AsyncParsableCommand {
         let installer = IntegratedInstaller(
             udid: client.udid,
             lookupMode: .only(client.connectionType),
-            appleID: token.appleID,
-            token: token.dsToken,
-            teamID: token.teamID,
+            auth: try token.authData(),
             configureDevice: false,
-            storage: SupersignCLI.config.storage,
             delegate: installDelegate
         )
 

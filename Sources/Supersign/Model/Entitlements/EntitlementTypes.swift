@@ -86,7 +86,6 @@ public struct AppGroupEntitlement: Entitlement, RawRepresentable {
 public struct GetTaskAllowEntitlement: Entitlement, RawRepresentable {
     public static let identifier = "get-task-allow"
     public static let isFree = true
-    public static let canList = false
 
     public var rawValue: Bool
     public init(rawValue: Bool) { self.rawValue = rawValue }

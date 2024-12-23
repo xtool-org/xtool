@@ -27,7 +27,7 @@ public protocol DeveloperServicesRequest: Sendable {
 }
 
 public extension DeveloperServicesRequest {
-    var apiVersion: DeveloperServicesAPIVersion { DeveloperServicesAPIVersionOld() }
+    var apiVersion: DeveloperServicesAPIVersion { DeveloperServicesAPIVersionLegacy() }
     var methodOverride: String? { nil }
     func configure(urlRequest: inout HTTPRequest) {}
 }

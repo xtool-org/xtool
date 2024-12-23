@@ -2,6 +2,8 @@ import Foundation
 import Supersign
 import ArgumentParser
 
+#if false
+
 struct InstallSuperchargeCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "install",
@@ -59,3 +61,5 @@ struct SuperchargeCommand: ParsableCommand {
         defaultSubcommand: InstallSuperchargeCommand.self
     )
 }
+
+#endif

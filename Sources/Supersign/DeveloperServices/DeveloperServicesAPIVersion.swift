@@ -17,7 +17,7 @@ public protocol DeveloperServicesAPIVersion: Sendable {
     func decode<R: Decodable>(response: Data) throws -> R
 }
 
-public struct DeveloperServicesAPIVersionOld: DeveloperServicesAPIVersion {
+public struct DeveloperServicesAPIVersionLegacy: DeveloperServicesAPIVersion {
 
     public struct Error: LocalizedError {
         public let code: Int
@@ -114,77 +114,6 @@ public struct DeveloperServicesAPIVersionOld: DeveloperServicesAPIVersion {
         try Self.decoder
             .decode(Response<R>.self, from: response)
             .result.get()
-    }
-
-}
-
-public struct DeveloperServicesAPIVersionV1: DeveloperServicesAPIVersion {
-
-    public struct UnknownError: Swift.Error {}
-
-    public struct Error: LocalizedError, Decodable {
-        public let status: String
-        public let code: String
-        public let title: String
-        public let detail: String
-
-        public var errorDescription: String? {
-            "\(code) (\(status)): \(title)\n\(detail)"
-        }
-    }
-
-    private struct Response<T: Decodable>: Decodable {
-        private let errors: [Error]?
-        private let data: T?
-
-        fileprivate var result: Result<T, Swift.Error> {
-            if let data = data { return .success(data) }
-            let errors = self.errors ?? []
-            switch errors.count {
-            case 0: return .failure(UnknownError())
-            case 1: return .failure(errors[0])
-            default: return .failure(ErrorList(errors))
-            }
-        }
-    }
-
-    private static let decoder: JSONDecoder = {
-        let decoder = JSONDecoder()
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
-        formatter.calendar = Calendar(identifier: .iso8601)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        decoder.dateDecodingStrategy = .formatted(formatter)
-        return decoder
-    }()
-
-    public func url(forAction action: String) -> URL? {
-        let urlString = "https://developerservices2.apple.com/services/v1/\(action)"
-        return URL(string: urlString)
-    }
-
-    public let contentType = "application/vnd.api+json"
-    public let accept = "application/vnd.api+json"
-
-    public func body(withParameters parameters: [String: Any]) throws -> Data {
-        var components = URLComponents()
-        components.queryItems = parameters.map { URLQueryItem(name: $0, value: "\($1)") }
-        let query = components.query ?? ""
-        let dict = ["urlEncodedQueryParams": query]
-        return try JSONSerialization.data(withJSONObject: dict)
-    }
-
-    public func decode<R: Decodable>(response: Data) throws -> R {
-        // If `response` is empty and R is EmptyResponse, just return a new EmptyResponse
-        // instead of crashing
-        if let type = R.self as? EmptyResponse.Type {
-            // swiftlint:disable:next force_cast
-            return type.init() as! R
-        } else {
-            return try Self.decoder
-                .decode(Response<R>.self, from: response)
-                .result.get()
-        }
     }
 
 }

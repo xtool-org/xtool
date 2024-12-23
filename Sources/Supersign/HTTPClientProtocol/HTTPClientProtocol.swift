@@ -7,62 +7,97 @@
 
 import Foundation
 import OpenAPIRuntime
+import Dependencies
+import HTTPTypes
 
-public struct HTTPRequest: Sendable {
-    public enum Body: Sendable {
-        case buffer(Data)
-    }
-
-    public var url: URL
-    public var method: String?
-    public var headers: [String: String]
-    public var body: Body?
-
-    public init(
-        url: URL,
-        method: String? = nil,
-        headers: [String: String] = [:],
-        body: Body? = nil
-    ) {
-        self.url = url
-        self.method = method
-        self.headers = headers
-        self.body = body
-    }
-}
-
-public struct HTTPResponse: Sendable {
-    public var url: URL
-    public var status: Int
-    public var headers: [String: String]
-    public var body: Data?
-
-    public init(
-        url: URL,
-        status: Int,
-        headers: [String: String] = [:],
-        body: Data? = nil
-    ) {
-        self.url = url
-        self.status = status
-        self.headers = headers
-        self.body = body
-    }
-}
+public typealias HTTPRequest = HTTPTypes.HTTPRequest
+public typealias HTTPResponse = HTTPTypes.HTTPResponse
+public typealias HTTPBody = OpenAPIRuntime.HTTPBody
 
 public protocol HTTPClientProtocol: Sendable {
     var asOpenAPITransport: ClientTransport { get }
 
-    func makeRequest(
-        _ request: HTTPRequest,
-        onProgress: sending @isolated(any) (Double?) -> Void
-    ) async throws -> HTTPResponse
     func makeWebSocket(url: URL) async throws -> WebSocketSession
 }
 
 extension HTTPClientProtocol {
-    public func makeRequest(_ request: HTTPRequest) async throws -> HTTPResponse {
-        try await makeRequest(request) { _ in }
+    public func send(
+        _ request: HTTPRequest,
+        body: HTTPBody? = nil
+    ) async throws -> (response: HTTPResponse, body: HTTPBody?) {
+        let transport = asOpenAPITransport
+        let request = request
+        var baseComponents = URLComponents()
+        baseComponents.scheme = request.scheme
+        baseComponents.host = request.authority
+        return try await transport.send(
+            request,
+            body: body,
+            baseURL: baseComponents.url!,
+            operationID: "dummy"
+        )
+    }
+
+    public func makeRequest(
+        _ request: HTTPRequest,
+        body: Data? = nil,
+        onProgress: sending @isolated(any) (Double?) -> Void = { _ in }
+    ) async throws -> (response: HTTPResponse, body: Data) {
+        await onProgress(0)
+        let (response, body) = try await send(request, body: body.map { HTTPBody($0) })
+        guard let body else {
+            return (response, Data())
+        }
+        switch body.length {
+        case .unknown:
+            return (response, try await body.reduce(into: Data()) { $0 += $1 })
+        case .known(let length):
+            var data = Data(capacity: Int(length))
+            let total = Double(length)
+            for try await chunk in body {
+                data += chunk
+                await onProgress(min(Double(data.count) / total, 1))
+            }
+            return (response, data)
+        }
+    }
+}
+
+private struct UnimplementedHTTPClient: HTTPClientProtocol, ClientTransport {
+    public var asOpenAPITransport: ClientTransport { self }
+
+    func send(
+        _ request: HTTPTypes.HTTPRequest,
+        body: OpenAPIRuntime.HTTPBody?,
+        baseURL: URL,
+        operationID: String
+    ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
+        let closure: (HTTPTypes.HTTPRequest, OpenAPIRuntime.HTTPBody?, URL, String) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) = unimplemented()
+        return try await closure(request, body, baseURL, operationID)
+    }
+
+    func makeRequest(
+        _ request: HTTPRequest,
+        onProgress: sending @isolated(any) (Double?) -> Void
+    ) async throws -> HTTPResponse {
+        let closure: () throws -> HTTPResponse = unimplemented()
+        return try closure()
+    }
+
+    public func makeWebSocket(url: URL) async throws -> any WebSocketSession {
+        let closure: (URL) async throws -> any WebSocketSession = unimplemented()
+        return try await closure(url)
+    }
+}
+
+public enum HTTPClientDependencyKey: TestDependencyKey {
+    public static let testValue: HTTPClientProtocol = UnimplementedHTTPClient()
+}
+
+extension DependencyValues {
+    public var httpClient: HTTPClientProtocol {
+        get { self[HTTPClientDependencyKey.self] }
+        set { self[HTTPClientDependencyKey.self] = newValue }
     }
 }
 
@@ -76,15 +111,3 @@ public enum WebSocketMessage: Sendable {
     case text(String)
     case data(Data)
 }
-
-public protocol HTTPClientFactory: Sendable {
-    func makeClient() -> HTTPClientProtocol
-}
-
-public let defaultHTTPClientFactory: HTTPClientFactory = {
-    #if os(Linux)
-    return AsyncHTTPClientFactory.shared
-    #else
-    return URLHTTPClientFactory.shared
-    #endif
-}()

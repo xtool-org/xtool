@@ -9,11 +9,6 @@ struct InstallCommand: AsyncParsableCommand {
         abstract: "Install an ipa file to your device"
     )
 
-    @Option(
-        name: .shortAndLong,
-        help: "Preferred team ID"
-    ) var team: String?
-
     @OptionGroup var connectionOptions: ConnectionOptions
 
     @Argument(
@@ -31,11 +26,8 @@ struct InstallCommand: AsyncParsableCommand {
         let installer = IntegratedInstaller(
             udid: client.udid,
             lookupMode: .only(client.connectionType),
-            appleID: token.appleID,
-            token: token.dsToken,
-            teamID: token.teamID,
+            auth: try token.authData(),
             configureDevice: false,
-            storage: SupersignCLI.config.storage,
             delegate: installDelegate
         )
 

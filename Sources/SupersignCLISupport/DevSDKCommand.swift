@@ -2,9 +2,7 @@ import Foundation
 import Supersign
 import Version
 import ArgumentParser
-#if os(Linux)
-import FoundationNetworking
-#endif
+import Dependencies
 
 struct DevSDKCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -77,10 +75,9 @@ struct DarwinSDKVersions: Decodable {
     var current: String
     var metadata: [String: Metadata]
 
-    static func all(
-        httpFactory: HTTPClientFactory = defaultHTTPClientFactory
-    ) async throws -> DarwinSDKVersions {
-        let data = try await httpFactory.makeClient().makeRequest(HTTPRequest(url: url)).body ?? Data()
+    static func all() async throws -> DarwinSDKVersions {
+        @Dependency(\.httpClient) var httpClient
+        let data = try await httpClient.makeRequest(HTTPRequest(url: url)).body
         return try decoder.decode(self, from: data)
     }
 }

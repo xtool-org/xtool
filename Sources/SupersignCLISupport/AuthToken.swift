@@ -1,66 +1,82 @@
 import Foundation
 import Supersign
+import Dependencies
 
-struct AuthToken: Codable {
-    var appleID: String
-    var adsid: String
-    var token: String
-    var expiry: Date
-
-    private var _teamID: String
-    var teamID: DeveloperServicesTeam.ID {
-        get { .init(rawValue: _teamID) }
-        set { _teamID = newValue.rawValue }
+enum AuthToken: Codable, CustomStringConvertible {
+    struct Xcode: Codable {
+        var appleID: String
+        var adsid: String
+        var token: String
+        var expiry: Date
+        var teamID: String
     }
 
-    private enum CodingKeys: String, CodingKey {
-        case appleID
-        case _teamID = "teamID"
-        case adsid
-        case token
-        case expiry
+    struct AppStoreConnect: Codable {
+        var id: String
+        var issuerID: String
+        var pem: String
+    }
+
+    case appStoreConnect(AppStoreConnect)
+    case xcode(Xcode)
+
+    var description: String {
+        switch self {
+        case .appStoreConnect(let data):
+            """
+            - ASC key ID: \(data.id)
+            - Issuer ID: \(data.issuerID)
+            """
+        case .xcode(let data):
+            """
+            - Apple ID: \(data.appleID)
+            - Team ID: \(data.teamID)
+            - Token expiry: \(data.expiry.formatted(.dateTime))
+            """
+        }
     }
 }
 
 extension AuthToken {
 
-    init(
-        appleID: String,
-        teamID: DeveloperServicesTeam.ID,
-        dsToken: DeveloperServicesLoginToken
-    ) {
-        self.appleID = appleID
-        self._teamID = teamID.rawValue
-        self.adsid = dsToken.adsid
-        self.token = dsToken.token
-        self.expiry = dsToken.expiry
-    }
-
-    var dsToken: DeveloperServicesLoginToken {
-        DeveloperServicesLoginToken(
-            adsid: adsid,
-            token: token,
-            expiry: expiry
-        )
+    private static var storage: KeyValueStorage {
+        @Dependency(\.keyValueStorage) var storage
+        return storage
     }
 
     private static let encoder = JSONEncoder()
     private static let decoder = JSONDecoder()
 
     static func saved() throws -> Self {
-        guard let data = try SupersignCLI.config.storage.data(forKey: "SUPAuthToken") else {
+        guard let data = try storage.data(forKey: "SUPAuthToken") else {
             throw Console.Error("Please log in with `supersign ds login` before running this command.")
         }
         return try decoder.decode(AuthToken.self, from: data)
     }
 
     static func clear() throws {
-        try SupersignCLI.config.storage.setData(nil, forKey: "SUPAuthToken")
+        try Self.storage.setData(nil, forKey: "SUPAuthToken")
     }
 
     func save() throws {
         let data = try Self.encoder.encode(self)
-        try SupersignCLI.config.storage.setData(data, forKey: "SUPAuthToken")
+        try Self.storage.setData(data, forKey: "SUPAuthToken")
+    }
+
+    func authData() throws -> DeveloperAPIAuthData {
+        switch self {
+        case .appStoreConnect(let data):
+            return .appStoreConnect(.init(id: data.id, issuerID: data.issuerID, pem: data.pem))
+        case .xcode(let data):
+            return .xcode(.init(
+                loginToken: DeveloperServicesLoginToken(
+                    adsid: data.adsid,
+                    token: data.token,
+                    expiry: data.expiry
+                ),
+                teamID: .init(rawValue: data.teamID)
+            ))
+        }
     }
 
 }

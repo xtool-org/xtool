@@ -12,10 +12,10 @@ enum GrandSlamMethod {
     case get
     case post([String: Any])
 
-    var name: String {
+    var httpMethod: HTTPRequest.Method {
         switch self {
-        case .get: return "GET"
-        case .post: return "POST"
+        case .get: return .get
+        case .post: return .post
         }
     }
 }

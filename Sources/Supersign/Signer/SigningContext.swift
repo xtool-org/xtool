@@ -13,38 +13,22 @@ public struct SigningContext: Sendable {
 
     public let udid: String
     public let deviceName: String
-    public let teamID: DeveloperServicesTeam.ID
-    public let client: DeveloperServicesClient
-    public let signingInfoManager: SigningInfoManager
-    public let platform: DeveloperServicesPlatform
+    public let auth: DeveloperAPIAuthData
     public let signerImpl: SignerImpl
 
     public var developerAPIClient: DeveloperAPIClient {
-        DeveloperAPIClient(
-            xcodeAPI: DeveloperAPIXcodeMiddleware(
-                anisetteDataProvider: client.anisetteDataProvider,
-                loginToken: client.loginToken,
-                deviceInfo: client.deviceInfo,
-                teamID: teamID.rawValue
-            )
-        )
+        DeveloperAPIClient(auth: auth)
     }
 
     public init(
         udid: String,
         deviceName: String,
-        teamID: DeveloperServicesTeam.ID,
-        client: DeveloperServicesClient,
-        signingInfoManager: SigningInfoManager,
-        platform: DeveloperServicesPlatform = .current,
+        auth: DeveloperAPIAuthData,
         signerImpl: SignerImpl? = nil
     ) throws {
         self.udid = udid
         self.deviceName = deviceName
-        self.teamID = teamID
-        self.client = client
-        self.signingInfoManager = signingInfoManager
-        self.platform = platform
+        self.auth = auth
         self.signerImpl = try signerImpl ?? .first()
     }
 

@@ -9,11 +9,6 @@ final class SupersignCLIAuthDelegate: TwoFactorAuthDelegate {
 }
 
 actor SupersignCLIDelegate: IntegratedInstallerDelegate {
-    public enum Error: Swift.Error {
-        case decompressionFailed
-        case compressionFailed
-    }
-
     init() {}
 
     private let updateTask = LockIsolated<Task<Void, Never>?>(nil)
@@ -94,59 +89,6 @@ actor SupersignCLIDelegate: IntegratedInstallerDelegate {
             return try await Console.confirm("Continue?")
         } catch {
             return false
-        }
-    }
-
-    // TODO: Use `powershell Compress-Archive` and `powershell Expand-Archive` on Windows
-
-    func decompress(
-        ipa: URL,
-        in directory: URL,
-        progress: @escaping (Double?) -> Void
-    ) async throws {
-        progress(nil)
-
-        let unzip = Process()
-        unzip.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        unzip.arguments = ["unzip", "-q", ipa.path, "-d", directory.path]
-        try await unzip.launchAndWait()
-        guard unzip.terminationStatus == 0 else {
-            throw Error.decompressionFailed
-        }
-    }
-
-    func compress(
-        payloadDir: URL,
-        progress: @escaping (Double?) -> Void
-    ) async throws -> URL {
-        progress(nil)
-
-        let dest = payloadDir.deletingLastPathComponent().appendingPathComponent("app.ipa")
-
-        let zip = Process()
-        zip.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        zip.currentDirectoryURL = payloadDir.deletingLastPathComponent()
-        zip.arguments = ["zip", "-yqru0", dest.path, "Payload"]
-        try await zip.launchAndWait()
-        guard zip.terminationStatus == 0 else { throw Error.compressionFailed }
-
-        return dest
-    }
-}
-
-extension Process {
-    fileprivate func launchAndWait() async throws {
-        try await withCheckedThrowingContinuation { continuation in
-            terminationHandler = { _ in
-                continuation.resume()
-            }
-            do {
-                try self.run()
-            } catch {
-                continuation.resume(throwing: error)
-                return
-            }
-            Task.detached { self.waitUntilExit() }
         }
     }
 }

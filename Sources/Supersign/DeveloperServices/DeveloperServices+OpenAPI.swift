@@ -3,49 +3,71 @@ import DeveloperAPI
 import HTTPTypes
 import OpenAPIRuntime
 import OpenAPIURLSession
+import Dependencies
 
 extension DeveloperAPIClient {
     public init(
-        middlewares: [any ClientMiddleware],
-        httpFactory: HTTPClientFactory = defaultHTTPClientFactory
+        auth: DeveloperAPIAuthData
     ) {
+        @Dependency(\.httpClient) var httpClient
         self.init(
             serverURL: try! Servers.Server1.url(),
             configuration: .init(
                 dateTranscoder: .iso8601WithFractionalSeconds
             ),
-            transport: httpFactory.makeClient().asOpenAPITransport,
-            middlewares: middlewares
-        )
-    }
-
-    public init(
-        xcodeAPI: DeveloperAPIXcodeMiddleware,
-        httpFactory: HTTPClientFactory = defaultHTTPClientFactory
-    ) {
-        self.init(
-            middlewares: [xcodeAPI],
-            httpFactory: httpFactory
+            transport: httpClient.asOpenAPITransport,
+            middlewares: [
+                auth.middleware
+            ]
         )
     }
 }
 
-public struct DeveloperAPIXcodeMiddleware: ClientMiddleware {
-    public let loginToken: DeveloperServicesLoginToken
-    public let deviceInfo: DeviceInfo
-    public let teamID: String
-    public let anisetteDataProvider: AnisetteDataProvider
+public enum DeveloperAPIAuthData: Sendable {
+    case appStoreConnect(ASCKey)
+    case xcode(XcodeAuthData)
+
+    fileprivate var middleware: ClientMiddleware {
+        switch self {
+        case .appStoreConnect(let key):
+            DeveloperAPIASCAuthMiddleware(key: key)
+        case .xcode(let authData):
+            DeveloperAPIXcodeAuthMiddleware(authData: authData)
+        }
+    }
+
+    // A unique ID tied to this token
+    public var identityID: String {
+        switch self {
+        case .appStoreConnect(let key):
+            key.issuerID
+        case .xcode(let data):
+            data.teamID.rawValue
+        }
+    }
+}
+
+public struct XcodeAuthData: Sendable {
+    public var loginToken: DeveloperServicesLoginToken
+    public var teamID: DeveloperServicesTeam.ID
 
     public init(
-        anisetteDataProvider: AnisetteDataProvider,
         loginToken: DeveloperServicesLoginToken,
-        deviceInfo: DeviceInfo,
-        teamID: String
+        teamID: DeveloperServicesTeam.ID
     ) {
-        self.anisetteDataProvider = anisetteDataProvider
         self.loginToken = loginToken
-        self.deviceInfo = deviceInfo
         self.teamID = teamID
+    }
+}
+
+public struct DeveloperAPIXcodeAuthMiddleware: ClientMiddleware {
+    @Dependency(\.deviceInfoProvider) private var deviceInfoProvider
+    @Dependency(\.anisetteDataProvider) private var anisetteDataProvider
+
+    public var authData: XcodeAuthData
+
+    public init(authData: XcodeAuthData) {
+        self.authData = authData
     }
 
     private static let baseURL = URL(string: "https://developerservices2.apple.com/services")!
@@ -63,6 +85,8 @@ public struct DeveloperAPIXcodeMiddleware: ClientMiddleware {
         ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?)
     ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
         var request = request
+
+        let deviceInfo = try deviceInfoProvider.fetch()
 
         // General
         request.headerFields[.acceptLanguage] = Locale.preferredLanguages.joined(separator: ", ")
@@ -82,8 +106,8 @@ public struct DeveloperAPIXcodeMiddleware: ClientMiddleware {
 
         // GrandSlam authentication
         request.headerFields[.init("X-Apple-App-Info")!] = AppTokenKey.xcode.rawValue
-        request.headerFields[.init("X-Apple-I-Identity-Id")!] = loginToken.adsid
-        request.headerFields[.init("X-Apple-GS-Token")!] = loginToken.token
+        request.headerFields[.init("X-Apple-I-Identity-Id")!] = authData.loginToken.adsid
+        request.headerFields[.init("X-Apple-GS-Token")!] = authData.loginToken.token
 
         // Anisette
         let anisetteData = try await anisetteDataProvider.fetchAnisetteData()
@@ -102,14 +126,14 @@ public struct DeveloperAPIXcodeMiddleware: ClientMiddleware {
             let path = request.path ?? "/"
             var components = URLComponents(string: path) ?? .init()
             components.queryItems = (components.queryItems ?? []) + [
-                URLQueryItem(name: "teamId", value: teamID)
+                URLQueryItem(name: "teamId", value: authData.teamID.rawValue)
             ]
             let query = components.percentEncodedQuery ?? ""
 
             components.query = nil
             request.path = components.path
 
-            let bodyData = try Self.queryEncoder.encode(["urlEncodedQueryParams": query])
+            let bodyData = try DeveloperAPIXcodeAuthMiddleware.queryEncoder.encode(["urlEncodedQueryParams": query])
             body = HTTPBody(bodyData)
         case .patch, .post:
             // set .data.attributes.teamId = teamID
@@ -139,7 +163,7 @@ public struct DeveloperAPIXcodeMiddleware: ClientMiddleware {
                 workingAttributes = decodedAttributes
             }
 
-            workingAttributes["teamId"] = teamID
+            workingAttributes["teamId"] = authData.teamID.rawValue
             workingData["attributes"] = workingAttributes
             workingBody["data"] = workingData
 
@@ -151,7 +175,7 @@ public struct DeveloperAPIXcodeMiddleware: ClientMiddleware {
             throw Errors.unrecognizedHTTPMethod(originalMethod.rawValue)
         }
 
-        var (response, responseBody) = try await next(request, body, Self.baseURL)
+        var (response, responseBody) = try await next(request, body, DeveloperAPIXcodeAuthMiddleware.baseURL)
 
         if response.headerFields[.contentType] == "application/vnd.api+json" {
             response.headerFields[.contentType] = "application/json"
@@ -163,5 +187,35 @@ public struct DeveloperAPIXcodeMiddleware: ClientMiddleware {
     public enum Errors: Error {
         case unrecognizedHTTPMethod(String)
         case malformedPayload(String)
+    }
+}
+
+public struct DeveloperAPIASCAuthMiddleware: ClientMiddleware {
+    private var generator: ASCJWTGenerator
+
+    public var key: ASCKey {
+        get { generator.key }
+        set { generator = ASCJWTGenerator(key: newValue) }
+    }
+
+    public init(key: ASCKey) {
+        generator = ASCJWTGenerator(key: key)
+    }
+
+    public func intercept(
+        _ request: HTTPTypes.HTTPRequest,
+        body: OpenAPIRuntime.HTTPBody?,
+        baseURL: URL,
+        operationID: String,
+        next: @Sendable (
+            _ request: HTTPTypes.HTTPRequest,
+            _ body: OpenAPIRuntime.HTTPBody?,
+            _ baseURL: URL
+        ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?)
+    ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
+        let jwt = try await generator.generate()
+        var request = request
+        request.headerFields[.authorization] = "Bearer \(jwt)"
+        return try await next(request, body, baseURL)
     }
 }

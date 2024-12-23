@@ -9,6 +9,7 @@
 import Foundation
 import SwiftyMobileDevice
 import ConcurrencyExtras
+import Dependencies
 
 extension LockdownClient {
     static let installerLabel = "supersign"
@@ -17,39 +18,11 @@ extension LockdownClient {
 #if !os(iOS)
 
 public protocol IntegratedInstallerDelegate: AnyObject, Sendable {
-
     func setPresentedMessage(_ message: IntegratedInstaller.Message?)
     func installerDidUpdate(toStage stage: String, progress: Double?)
 
     // defaults to always returning true
     func confirmRevocation(of certificates: [DeveloperServicesCertificate]) async -> Bool
-
-    /// Decompress the zipped ipa file
-    ///
-    /// - Parameter ipa: The `ipa` file to decompress.
-    /// - Parameter directory: The directory into which `ipa` should be decompressed.
-    /// - Parameter progress: A closure to which the callee can provide progress updates.
-    /// - Parameter currentProgress: The current progress, or `nil` to indicate it is indeterminate.
-    func decompress(
-        ipa: URL,
-        in directory: URL,
-        progress: @escaping @Sendable (_ currentProgress: Double?) -> Void
-    ) async throws
-
-    // `compress` is required because the only way to upload symlinks via afc is by
-    // putting them in a zip archive (afc_make_symlink was disabled due to security or
-    // something)
-
-    /// Compress the app before installation.
-    ///
-    /// - Parameter payloadDir: The `Payload` directory which is to be compressed.
-    /// - Parameter progress: A closure to which the callee can provide progress updates.
-    /// - Parameter currentProgress: The current progress, or `nil` to indicate it is indeterminate.
-    func compress(
-        payloadDir: URL,
-        progress: @escaping @Sendable (_ currentProgress: Double?) -> Void
-    ) async throws -> URL
-
 }
 
 extension IntegratedInstallerDelegate {
@@ -81,12 +54,11 @@ public actor IntegratedInstaller {
 
     let udid: String
     let lookupMode: LookupMode
-    let appleID: String
-    let token: DeveloperServicesLoginToken
-    let teamID: DeveloperServicesTeam.ID
+    let auth: DeveloperAPIAuthData
     let configureDevice: Bool
-    let storage: KeyValueStorage
     public weak var delegate: IntegratedInstallerDelegate?
+
+    @Dependency(\.zipCompressor) private var compressor
 
     private var appInstaller: AppInstaller?
 
@@ -142,20 +114,14 @@ public actor IntegratedInstaller {
     public init(
         udid: String,
         lookupMode: LookupMode,
-        appleID: String,
-        token: DeveloperServicesLoginToken,
-        teamID: DeveloperServicesTeam.ID,
+        auth: DeveloperAPIAuthData,
         configureDevice: Bool,
-        storage: KeyValueStorage,
         delegate: IntegratedInstallerDelegate
     ) {
         self.udid = udid
         self.lookupMode = lookupMode
-        self.appleID = appleID
-        self.token = token
-        self.teamID = teamID
+        self.auth = auth
         self.configureDevice = configureDevice
-        self.storage = storage
         self.delegate = delegate
     }
 
@@ -257,8 +223,8 @@ public actor IntegratedInstaller {
 
         switch app.pathExtension {
         case "ipa":
-            try await delegate?.decompress(
-                ipa: app,
+            try await compressor.decompress(
+                file: app,
                 in: tempDir,
                 progress: { progress in
                     self.queueUpdateTask {
@@ -280,10 +246,6 @@ public actor IntegratedInstaller {
         let payload = self.tempDir.appendingPathComponent("Payload")
         guard let appDir = payload.implicitContents.first(where: { $0.pathExtension == "app" })
             else { throw Error.appExtractionFailed }
-
-        guard let deviceInfo = DeviceInfo.current() else {
-            throw Error.deviceInfoFetchFailed
-        }
 
         try await updateStage(to: "Logging in")
 
@@ -311,23 +273,14 @@ public actor IntegratedInstaller {
         } else {
             nil
         }
+        _ = pairingKeys
 
         try await updateProgress(to: 1)
-
-        let anisetteProvider = try ADIDataProvider.adiProvider(deviceInfo: deviceInfo, storage: storage)
-        let client = DeveloperServicesClient(
-            loginToken: token,
-            deviceInfo: deviceInfo,
-            anisetteProvider: anisetteProvider
-        )
 
         let context = try SigningContext(
             udid: udid,
             deviceName: deviceName,
-            teamID: teamID,
-            client: client,
-            signingInfoManager: KeyValueSigningInfoManager(storage: storage),
-            platform: .iOS
+            auth: auth
         )
 
         let signer = Signer(context: context) { certs in
@@ -346,26 +299,15 @@ public actor IntegratedInstaller {
                 }
             },
             didProvision: { @Sendable [self] in
-                if let pairingKeys = pairingKeys {
-                    let info = try context.signingInfoManager.info(forTeamID: context.teamID)
-                    try Superconfig(
-                        udid: udid,
-                        pairingKeys: pairingKeys,
-                        deviceInfo: deviceInfo,
-                        preferredTeamID: teamID.rawValue,
-                        preferredSigningInfo: info,
-                        appleID: appleID,
-                        provisioningData: anisetteProvider.provisioningData(),
-                        token: token
-                    ).save(inAppDir: appDir)
-                }
+                // TODO: reintroduce Superconfig
+                _ = self
             }
         )
 
         try await self.updateStage(to: "Packaging", initialProgress: nil)
 
-        let ipa = try await delegate?.compress(
-            payloadDir: appDir.deletingLastPathComponent(),
+        let ipa = try await compressor.compress(
+            directory: appDir.deletingLastPathComponent(),
             progress: { progress in
                 self.queueUpdateTask {
                     $0.updateProgressIgnoringCancellation(to: progress)
@@ -375,7 +317,7 @@ public actor IntegratedInstaller {
 
         try await self.updateProgress(to: 1)
 
-        let appInstaller = AppInstaller(ipa: ipa!, udid: udid, connectionPreferences: .init(lookupMode: lookupMode))
+        let appInstaller = AppInstaller(ipa: ipa, udid: udid, connectionPreferences: .init(lookupMode: lookupMode))
         self.appInstaller = appInstaller
         try await appInstaller.install(
             progress: { stage in

@@ -10,15 +10,12 @@ import Foundation
 import ConcurrencyExtras
 import OpenAPIRuntime
 import OpenAPIURLSession
+import Dependencies
 
 public struct UnknownHTTPError: Error {}
 
-final class URLHTTPClientFactory: HTTPClientFactory {
-    static let shared = URLHTTPClientFactory()
-
-    private let client = Client()
-
-    func makeClient() -> HTTPClientProtocol { client }
+extension HTTPClientDependencyKey: DependencyKey {
+    public static let liveValue: HTTPClientProtocol = Client()
 }
 
 private final class Client: HTTPClientProtocol {
@@ -57,82 +54,6 @@ private final class Client: HTTPClientProtocol {
 
     var asOpenAPITransport: any ClientTransport {
         URLSessionTransport(configuration: .init(session: session))
-    }
-
-    public func makeRequest(
-        _ request: HTTPRequest,
-        onProgress: sending @isolated(any) (Double?) -> Void
-    ) async throws -> HTTPResponse {
-        final class ProgressDelegate: NSObject, URLSessionDataDelegate {
-            private let progressContinuation: AsyncStream<Double>.Continuation
-            let progressStream: AsyncStream<Double>
-
-            @MainActor private var count = 0
-
-            override init() {
-                (progressStream, progressContinuation) = AsyncStream<Double>.makeStream(
-                    // it's okay to skip missed progress updates
-                    bufferingPolicy: .bufferingNewest(1)
-                )
-            }
-
-            func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-                let count = MainActor.assumeIsolated {
-                    self.count += data.count
-                    return self.count
-                }
-                if let contentLength = dataTask.response?.expectedContentLength, contentLength != -1 {
-                    let progress = min(Double(count) / Double(contentLength), 1)
-                    progressContinuation.yield(progress)
-                }
-            }
-
-            func finish() {
-                progressContinuation.finish()
-            }
-        }
-
-        var req = URLRequest(url: request.url)
-        req.httpMethod = request.method
-        request.headers.forEach { k, v in
-            req.setValue(v, forHTTPHeaderField: k)
-        }
-        switch request.body {
-        case .buffer(let data):
-            req.httpBody = data
-        case nil:
-            break
-        }
-
-        let delegate = ProgressDelegate()
-        async let progressWatcher: Void = {
-            for await progress in delegate.progressStream {
-                await onProgress(progress)
-            }
-        }()
-        let (data, response) = if #available(macOS 12, iOS 15, tvOS 15, watchOS 8, *) {
-            try await session.data(for: req, delegate: delegate)
-        } else {
-            try await session.data(for: req)
-        }
-        delegate.finish()
-        _ = await progressWatcher
-
-        guard let httpResp = response as? HTTPURLResponse else { throw UnknownHTTPError() }
-        let headers = [String: String](
-            uniqueKeysWithValues: httpResp.allHeaderFields.compactMap { k, v in
-                guard let kStr = k as? String,
-                      let vStr = v as? String
-                else { return nil }
-                return (kStr, vStr)
-            }
-        )
-        return HTTPResponse(
-            url: request.url,
-            status: httpResp.statusCode,
-            headers: headers,
-            body: data
-        )
     }
 
     public func makeWebSocket(url: URL) async throws -> any WebSocketSession {

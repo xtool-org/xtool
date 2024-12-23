@@ -1,6 +1,7 @@
 import Foundation
 import Crypto
 import ConcurrencyExtras
+import Dependencies
 
 public protocol RawADIProvider: Sendable {
     func clientInfo() async throws -> String
@@ -26,6 +27,43 @@ extension RawADIProvider {
     }
 }
 
+private struct UnimplementedRawADIProvider: RawADIProvider {
+    func startProvisioning(
+        spim: Data,
+        userID: UUID
+    ) async throws -> (any RawADIProvisioningSession, Data) {
+        let closure: (Data, UUID) async throws -> (any RawADIProvisioningSession, Data) = unimplemented()
+        return try await closure(spim, userID)
+    }
+
+    func requestOTP(
+        userID: UUID,
+        routingInfo: inout UInt64,
+        provisioningInfo: Data
+    ) async throws -> (machineID: Data, otp: Data) {
+        let closure: (UUID, inout UInt64, Data) async throws -> (Data, Data) = unimplemented()
+        return try await closure(userID, &routingInfo, provisioningInfo)
+    }
+}
+
+public enum RawADIProviderDependencyKey: DependencyKey {
+    public static let testValue: RawADIProvider = UnimplementedRawADIProvider()
+    public static let liveValue: RawADIProvider = {
+        #if os(Linux)
+        return SupersetteADIProvider()
+        #else
+        return OmnisetteADIProvider()
+        #endif
+    }()
+}
+
+extension DependencyValues {
+    public var rawADIProvider: RawADIProvider {
+        get { self[RawADIProviderDependencyKey.self] }
+        set { self[RawADIProviderDependencyKey.self] = newValue }
+    }
+}
+
 public protocol RawADIProvisioningSession: Sendable {
     func endProvisioning(
         routingInfo: UInt64,
@@ -35,7 +73,7 @@ public protocol RawADIProvisioningSession: Sendable {
 }
 
 // uses CoreADI APIs
-public final class ADIDataProvider: AnisetteDataProvider {
+public struct ADIDataProvider: AnisetteDataProvider {
 
     public enum ADIError: Error {
         case hashingFailed
@@ -44,41 +82,28 @@ public final class ADIDataProvider: AnisetteDataProvider {
         case badEndResponse
     }
 
-    public let rawProvider: RawADIProvider
-    public let deviceInfo: DeviceInfo
-    public let storage: KeyValueStorage
+    @Dependency(\.keyValueStorage) var storage
+    @Dependency(\.rawADIProvider) var rawProvider
+    @Dependency(\.httpClient) var httpClient
 
-    private let httpClient: HTTPClientProtocol
-    private let lookupManager: GrandSlamLookupManager
+    private let lookupManager = GrandSlamLookupManager()
     private let localUserUID: UUID
     private let localUserID: String
 
     private let _clientInfo = LockIsolated<String?>(nil)
 
-    public init(
-        rawProvider: RawADIProvider,
-        deviceInfo: DeviceInfo,
-        storage: KeyValueStorage, // ideally secure, eg keychain
-        provisioningData: ProvisioningData? = nil,
-        httpFactory: HTTPClientFactory = defaultHTTPClientFactory
-    ) throws {
-        self.rawProvider = rawProvider
-        self.deviceInfo = deviceInfo
-        self.storage = storage
-
-        self.httpClient = httpFactory.makeClient()
-        self.lookupManager = .init(deviceInfo: deviceInfo, httpFactory: httpFactory)
-
+    public init(provisioningData: ProvisioningData? = nil) {
+        @Dependency(\.keyValueStorage) var storage
         if let provisioningData {
             self.localUserUID = provisioningData.localUserUID
             try? storage.setData(provisioningData.adiPb, forKey: Self.provisioningKey)
             try? storage.setString("\(provisioningData.routingInfo)", forKey: Self.routingInfoKey)
-        } else if let localUserUIDString = try storage.string(forKey: Self.localUserUIDKey),
+        } else if let localUserUIDString = try? storage.string(forKey: Self.localUserUIDKey),
            let localUserUID = UUID(uuidString: localUserUIDString) {
             self.localUserUID = localUserUID
         } else {
             let localUserUID = UUID()
-            try storage.setString(localUserUID.uuidString, forKey: Self.localUserUIDKey)
+            try? storage.setString(localUserUID.uuidString, forKey: Self.localUserUIDKey)
             self.localUserUID = localUserUID
         }
         // localUserID = SHA256(local user UID)
@@ -142,29 +167,25 @@ public final class ADIDataProvider: AnisetteDataProvider {
 
         let body = try Self.encoder.encode(GSARequest(request: request))
 
-        var request = HTTPRequest(
-            url: endpointURL,
-            method: "POST",
-            headers: [
-                "Content-Type": "text/x-xml-plist",
-                AnisetteData.localUserIDKey: self.localUserID,
-                "Accept-Language": "en_US"
-            ],
-            body: .buffer(body)
-        )
-        request.headers["X-MMe-Country"] = Locale.current.regionCode
+        var request = HTTPRequest(url: endpointURL)
+        request.method = .post
+        request.headerFields = [
+            .contentType: "text/x-xml-plist",
+            .acceptLanguage: "en_US",
+            .init(AnisetteData.localUserIDKey)!: self.localUserID,
+        ]
+        request.headerFields[.init("X-MMe-Country")!] = Locale.current.regionCode
 
-        request.headers[DeviceInfo.clientInfoKey] = try await clientInfo()
-        request.headers[DeviceInfo.deviceIDKey] = self.localUserUID.uuidString
+        request.headerFields[.init(DeviceInfo.clientInfoKey)!] = try await clientInfo()
+        request.headerFields[.init(DeviceInfo.deviceIDKey)!] = self.localUserUID.uuidString
 //        request.headers[DeviceInfo.clientInfoKey] = self.deviceInfo.clientInfo.clientString
 //        self.deviceInfo.dictionary.forEach { request.headers[$0] = $1 }
 
-        let resp = try await self.httpClient.makeRequest(request)
+        let (_, response) = try await self.httpClient.makeRequest(request, body: body)
 
-        guard let body = resp.body else { throw ADIError.noResponse }
-//        print(String(data: body, encoding: .utf8) ?? "<no utf8 data>")
+//        print(String(data: response, encoding: .utf8) ?? "<no utf8 data>")
 
-        return try GrandSlamOperationDecoder<Response>.decode(data: body)
+        return try GrandSlamOperationDecoder<Response>.decode(data: response)
     }
 
     private func endProvisioning(

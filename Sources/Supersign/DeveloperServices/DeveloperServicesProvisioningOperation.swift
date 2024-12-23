@@ -48,7 +48,11 @@ public struct DeveloperServicesProvisioningOperation: DeveloperServicesOperation
         ).perform()
 
         progress(2/3)
-        let provisioningDict = try await DeveloperServicesAddAppOperation(context: context, root: app).perform()
+        let provisioningDict = try await DeveloperServicesAddAppOperation(
+            context: context,
+            signingInfo: signingInfo,
+            root: app
+        ).perform()
 
         progress(3/3)
         return .init(signingInfo: signingInfo, provisioningDict: provisioningDict)
