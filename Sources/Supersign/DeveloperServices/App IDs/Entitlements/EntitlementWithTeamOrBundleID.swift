@@ -9,23 +9,23 @@
 import Foundation
 
 protocol EntitlementWithTeamOrBundleID: Entitlement {
-    mutating func update(teamID: DeveloperServicesTeam.ID, bundleID: String)
+    init(teamID: DeveloperServicesTeam.ID, bundleID: String)
 }
 
 extension ApplicationIdentifierEntitlement: EntitlementWithTeamOrBundleID {
-    mutating func update(teamID: DeveloperServicesTeam.ID, bundleID: String) {
+    init(teamID: DeveloperServicesTeam.ID, bundleID: String) {
         self.rawValue = "\(teamID.rawValue).\(bundleID)"
     }
 }
 
 extension TeamIdentifierEntitlement: EntitlementWithTeamOrBundleID {
-    mutating func update(teamID: DeveloperServicesTeam.ID, bundleID: String) {
+    init(teamID: DeveloperServicesTeam.ID, bundleID: String) {
         self.rawValue = teamID.rawValue
     }
 }
 
 extension KeychainAccessGroupsEntitlement: EntitlementWithTeamOrBundleID {
-    mutating func update(teamID: DeveloperServicesTeam.ID, bundleID: String) {
+    init(teamID: DeveloperServicesTeam.ID, bundleID: String) {
         rawValue = ["\(teamID.rawValue).\(bundleID)"]
     }
 }
@@ -33,13 +33,13 @@ extension KeychainAccessGroupsEntitlement: EntitlementWithTeamOrBundleID {
 extension Entitlements {
 
     public mutating func update(teamID: DeveloperServicesTeam.ID, bundleID: String) throws {
+        let teamOrBundleIDTypes = EntitlementContainer.supportedTypes
+            .compactMap { $0 as? EntitlementWithTeamOrBundleID.Type }
+        let teamOrBundleIDSet = Set(teamOrBundleIDTypes.map(ObjectIdentifier.init))
+
         try updateEntitlements { entitlements in
-            for entitlementIndex in entitlements.indices {
-                if var copy = entitlements[entitlementIndex] as? EntitlementWithTeamOrBundleID {
-                    copy.update(teamID: teamID, bundleID: bundleID)
-                    entitlements[entitlementIndex] = copy
-                }
-            }
+            entitlements.removeAll { teamOrBundleIDSet.contains(ObjectIdentifier(type(of: $0))) }
+            entitlements += teamOrBundleIDTypes.map { $0.init(teamID: teamID, bundleID: bundleID) }
         }
     }
 
