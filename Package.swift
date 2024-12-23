@@ -66,7 +66,7 @@ let package = Package(
             dependencies: [
                 .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
             ],
-            exclude: ["openapi-generator-config.yaml"]
+            exclude: ["openapi-generator-config.yaml", "openapi-overlay.yaml"]
         ),
         .target(
             name: "Supersign",

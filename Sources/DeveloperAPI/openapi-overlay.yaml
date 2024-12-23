@@ -3,27 +3,20 @@ info:
   title: Overlay for App Store Connect API
   version: 1.0.0
 actions:
-  - target: '$'
+  - target: '$.components.schemas.BundleIdCapabilityCreateRequest.properties.data.properties.relationships'
     update:
-      components:
-        schemas:
-          BundleIdCapabilityCreateRequest:
-            properties:
-              data:
-                properties:
-                  relationships:
-                    properties:
-                      capability:
-                        type: object
-                        properties:
-                          data:
-                            type: object
-                            properties:
-                              type:
-                                type: string
-                                enum: [capabilities]
-                              id:
-                                "$ref": "#/components/schemas/CapabilityType"
-                            required: [id, type]
-                        required: [data]
-                    required: [capability]
+      properties:
+        capability:
+          type: object
+          properties:
+            data:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum: [capabilities]
+                id:
+                  "$ref": "#/components/schemas/CapabilityType"
+              required: [id, type]
+          required: [data]
+      required: [capability]
