@@ -20,9 +20,7 @@ extension KeyValueStorageDependencyKey: DependencyKey {
 //        #if os(macOS)
 //        KeychainStorage(service: "com.kabiroberai.Supercharge-Keychain.credentials")
 //        #else
-        DirectoryStorage(
-            base: URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".config/Supercharge/data")
-        )
+        DirectoryStorage()
 //        #endif
     }()
 }

@@ -82,10 +82,11 @@ public final class MemoryKeyValueStorage: KeyValueStorage {
 }
 
 public struct DirectoryStorage: KeyValueStorage {
-    let base: URL
-    public init(base: URL) {
-        self.base = base
-    }
+    @Dependency(\.persistentDirectory) var directory
+
+    private var base: URL { directory.appendingPathComponent("data") }
+
+    public init() {}
 
     private func url(for key: String) -> URL {
         base.appendingPathComponent(key)

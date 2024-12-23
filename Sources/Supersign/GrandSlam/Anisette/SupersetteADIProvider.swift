@@ -7,11 +7,11 @@ import Dependencies
 public actor SupersetteADIProvider: RawADIProvider {
     @MainActor private static var loadTask: Task<Void, Error>?
     @Dependency(\.httpClient) private var httpClient
+    @Dependency(\.persistentDirectory) private var persistentDirectory
 
-    public let directory: URL
-    public init() {
-        self.directory = URL.homeDirectory.appending(path: ".config/Supercharge/Anisette")
-    }
+    private var directory: URL { persistentDirectory.appendingPathComponent("Anisette") }
+
+    public init() {}
 
     private func _loadADI(id: UUID) async throws {
         let dir = self.directory
