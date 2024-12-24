@@ -10,7 +10,7 @@ enum AuthMode: String, CaseIterable, CustomStringConvertible, ExpressibleByArgum
 
     var description: String {
         switch self {
-        case .key: "Key (requires Apple Developer Program membership)"
+        case .key: "Key (requires paid Apple Developer Program membership)"
         case .password: "Password (works with any Apple ID but uses private APIs)"
         }
     }
