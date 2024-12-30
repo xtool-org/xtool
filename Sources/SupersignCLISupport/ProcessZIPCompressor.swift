@@ -19,9 +19,9 @@ extension ZIPCompressor: DependencyKey {
             let dest = dir.deletingLastPathComponent().appendingPathComponent("app.ipa")
 
             let zip = Process()
-            zip.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+            zip.executableURL = try await ToolRegistry.locate("zip")
             zip.currentDirectoryURL = dir.deletingLastPathComponent()
-            zip.arguments = ["zip", "-yqru0", dest.path, "Payload"]
+            zip.arguments = ["-yqru0", dest.path, "Payload"]
             try zip.run()
             await zip.waitForExit()
             guard zip.terminationStatus == 0 else {
@@ -33,8 +33,8 @@ extension ZIPCompressor: DependencyKey {
         decompress: { ipa, directory, progress in
             progress(nil)
             let unzip = Process()
-            unzip.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-            unzip.arguments = ["unzip", "-q", ipa.path, "-d", directory.path]
+            unzip.executableURL = try await ToolRegistry.locate("unzip")
+            unzip.arguments = ["-q", ipa.path, "-d", directory.path]
             try unzip.run()
             await unzip.waitForExit()
             guard unzip.terminationStatus == 0 else {

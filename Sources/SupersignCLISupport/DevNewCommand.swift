@@ -161,8 +161,8 @@ struct DevNewCommand: AsyncParsableCommand {
         }
 
         let gitInit = Process()
-        gitInit.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        gitInit.arguments = ["git", "init"]
+        gitInit.executableURL = try await ToolRegistry.locate("git")
+        gitInit.arguments = ["init"]
         gitInit.currentDirectoryURL = baseURL
         try gitInit.run()
         await gitInit.waitForExit()

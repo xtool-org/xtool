@@ -149,8 +149,8 @@ extension SwiftVersion {
         let outPipe = Pipe()
         let errPipe = Pipe()
         let swift = Process()
-        swift.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        swift.arguments = ["swift", "--version"]
+        swift.executableURL = try await ToolRegistry.locate("swift")
+        swift.arguments = ["--version"]
         swift.standardOutput = outPipe
         swift.standardError = errPipe
         try swift.run()
@@ -217,9 +217,9 @@ struct InstallSDKOperation {
         }
 
         let install = Process()
-        install.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        install.executableURL = try await ToolRegistry.locate("swift")
         install.arguments = [
-            "swift", "sdk", "install",
+            "sdk", "install",
             """
             https://github.com/kabiroberai/swift-sdk-darwin/releases/download/\(list.current)/\
             darwin-linux-\(arch.releaseName).artifactbundle.zip
