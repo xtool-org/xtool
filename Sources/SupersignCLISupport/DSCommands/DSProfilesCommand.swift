@@ -31,15 +31,6 @@ struct DSProfilesListCommand: AsyncParsableCommand {
                 continue
             }
 
-            ///   - name:
-            ///   - platform:
-            ///   - profileType:
-            ///   - profileState:
-            ///   - profileContent:
-            ///   - uuid:
-            ///   - createdDate:
-            ///   - expirationDate:
-
             if let name = attributes.name {
                 print("  name: \(name)")
             }
