@@ -53,8 +53,11 @@ struct DSCertificatesListCommand: AsyncParsableCommand {
                 print("  expiry: \(expirationDate.formatted(.dateTime))")
             }
 
-            if let contentString = attributes.certificateContent,
-               let content = Data(base64Encoded: contentString) {
+            if let contentString = attributes.certificateContent {
+                guard let content = Data(base64Encoded: contentString) else {
+                    print("  content: error: bad base64")
+                    continue
+                }
                 do {
                     let certificate = try Certificate(data: content)
                     print("  content:")

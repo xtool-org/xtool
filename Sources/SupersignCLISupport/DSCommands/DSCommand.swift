@@ -55,8 +55,10 @@ struct DSCommand: AsyncParsableCommand {
         abstract: "Interact with Apple Developer Services",
         subcommands: [
             DSTeamsCommand.self,
-            DSIdentifiersCommand.self,
             DSCertificatesCommand.self,
+            DSIdentifiersCommand.self,
+            DSDevicesCommand.self,
+            DSProfilesCommand.self,
             DSAnisetteCommand.self,
         ]
     )
