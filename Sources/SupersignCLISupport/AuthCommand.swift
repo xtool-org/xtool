@@ -49,7 +49,7 @@ struct AuthOperation {
         }
         try token.save()
 
-        print("Logged in")
+        print("Logged in.\n\(token)")
     }
 
     private func logInWithKey() async throws -> AuthToken {
