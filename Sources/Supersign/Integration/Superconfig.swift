@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Superconfig: Codable {
+public struct Superconfig: Codable, Sendable {
     // Stuff that needs to come from the installer
     public let udid: String
     public let pairingKeys: Data
