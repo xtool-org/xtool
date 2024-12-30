@@ -70,15 +70,15 @@ struct DSProfilesListCommand: AsyncParsableCommand {
                     let digest = try profile.digest()
                     print("    team identifiers:")
                     for teamID in digest.teamIdentifiers {
-                        print("      - \(teamID.rawValue)")
+                        print("    - \(teamID.rawValue)")
                     }
                     print("    certificates:")
                     for certificate in digest.certificates {
-                        print("      - \(certificate.serialNumber())")
+                        print("    - \(certificate.serialNumber())")
                     }
                     print("    devices:")
                     for device in digest.devices {
-                        print("      - \(device)")
+                        print("    - \(device)")
                     }
                     let entitlements = try? String(decoding: Self.encoder.encode(digest.entitlements), as: UTF8.self)
                     print("    entitlements: \(entitlements ?? "<error>")")
