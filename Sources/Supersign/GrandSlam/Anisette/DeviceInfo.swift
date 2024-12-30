@@ -113,6 +113,8 @@ public struct DeviceInfoProvider: DependencyKey, Sendable {
     }
 
     private static let current = Result { try DeviceInfo.fetch() }
+
+    public static let testValue = DeviceInfoProvider(fetch: unimplemented())
     public static let liveValue = DeviceInfoProvider { try current.get() }
 }
 

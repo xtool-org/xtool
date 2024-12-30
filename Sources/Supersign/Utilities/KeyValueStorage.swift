@@ -22,8 +22,9 @@ public protocol KeyValueStorage: Sendable {
     func setString(_ string: String?, forKey key: String) throws
 }
 
-public enum KeyValueStorageDependencyKey: DependencyKey {
-    public static let liveValue: KeyValueStorage = DirectoryStorage()
+private enum KeyValueStorageDependencyKey: DependencyKey {
+    static let testValue: KeyValueStorage = UnimplementedKeyValueStorage()
+    static let liveValue: KeyValueStorage = DirectoryStorage()
 }
 
 extension DependencyValues {
@@ -56,7 +57,17 @@ extension KeyValueStorage {
     }
 }
 
-public final class MemoryKeyValueStorage: KeyValueStorage {
+public struct UnimplementedKeyValueStorage: KeyValueStorage {
+    public func data(forKey key: String) throws -> Data? {
+        unimplemented(placeholder: nil)
+    }
+
+    public func setData(_ data: Data?, forKey key: String) throws {
+        unimplemented()
+    }
+}
+
+public struct MemoryKeyValueStorage: KeyValueStorage {
 
     private let dict = LockIsolated<[String: Data]>([:])
     public init() {}

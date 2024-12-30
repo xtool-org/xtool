@@ -46,9 +46,9 @@ private struct UnimplementedRawADIProvider: RawADIProvider {
     }
 }
 
-public enum RawADIProviderDependencyKey: DependencyKey {
-    public static let testValue: RawADIProvider = UnimplementedRawADIProvider()
-    public static let liveValue: RawADIProvider = {
+private enum RawADIProviderDependencyKey: DependencyKey {
+    static let testValue: RawADIProvider = UnimplementedRawADIProvider()
+    static let liveValue: RawADIProvider = {
         #if os(Linux)
         return SupersetteADIProvider()
         #else

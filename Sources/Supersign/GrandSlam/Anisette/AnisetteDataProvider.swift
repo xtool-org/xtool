@@ -35,9 +35,9 @@ extension DependencyValues {
     }
 }
 
-public struct AnisetteDataProviderDependencyKey: DependencyKey {
-    public static let testValue: AnisetteDataProvider = UnimplementedAnisetteDataProvider()
-    public static let liveValue: AnisetteDataProvider = ADIDataProvider()
+private struct AnisetteDataProviderDependencyKey: DependencyKey {
+    static let testValue: AnisetteDataProvider = UnimplementedAnisetteDataProvider()
+    static let liveValue: AnisetteDataProvider = ADIDataProvider()
 }
 
 private struct UnimplementedAnisetteDataProvider: AnisetteDataProvider {
