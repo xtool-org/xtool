@@ -1,32 +1,7 @@
 import Foundation
 import Supersign
 import ArgumentParser
-import DeveloperAPI
-import OpenAPIRuntime
 import Dependencies
-
-struct DSTeamsListCommand: AsyncParsableCommand {
-    static let configuration = CommandConfiguration(
-        commandName: "list",
-        abstract: "List Developer Services teams"
-    )
-
-    func run() async throws {
-        let token = try AuthToken.saved()
-
-        guard case let .xcode(authData) = try token.authData() else {
-            throw Console.Error("This command requires password-based authentication")
-        }
-        let client = DeveloperServicesClient(authData: authData)
-        let teams: [DeveloperServicesTeam] = try await client.send(DeveloperServicesListTeamsRequest())
-        print(
-            teams.map {
-                "\($0.name) [\($0.status)]: \($0.id.rawValue)" +
-                    $0.memberships.map { "\n- \($0.name) (\($0.platform))" }.joined()
-            }.joined(separator: "\n")
-        )
-    }
-}
 
 struct DSAnisetteCommand: AsyncParsableCommand {
     private final class Provider: RawADIProvider, RawADIProvisioningSession {
@@ -74,21 +49,14 @@ struct DSAnisetteCommand: AsyncParsableCommand {
     }
 }
 
-struct DSTeamsCommand: ParsableCommand {
-    static let configuration = CommandConfiguration(
-        commandName: "teams",
-        abstract: "Interact with Developer Services teams",
-        subcommands: [DSTeamsListCommand.self],
-        defaultSubcommand: DSTeamsListCommand.self
-    )
-}
-
 struct DSCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "ds",
         abstract: "Interact with Apple Developer Services",
         subcommands: [
             DSTeamsCommand.self,
+            DSIdentifiersCommand.self,
+            DSCertificatesCommand.self,
             DSAnisetteCommand.self,
         ]
     )
