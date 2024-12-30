@@ -46,9 +46,9 @@ public actor SupersetteADIProvider: RawADIProvider {
 
             // TODO: Use ZIPFoundation
             let proc = Process()
-            proc.executableURL = URL(filePath: "/usr/bin/unzip")
+            proc.executableURL = URL(filePath: "/usr/bin/env")
             proc.arguments = [
-                "-q",
+                "unzip", "-q",
                 applemusic.path(),
                 "\(archDir)/libCoreADI.so",
                 "\(archDir)/libstoreservicescore.so",
