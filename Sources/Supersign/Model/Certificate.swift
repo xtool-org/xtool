@@ -44,8 +44,8 @@ public struct Certificate: Codable, Sendable {
 
     private func subjectAttribute(_ attribute: ASN1ObjectIdentifier) throws -> String {
         let commonName = raw.subject.lazy.flatMap { $0 }.first { $0.type == attribute }
-        guard let commonName else { throw Error.invalidCertificate }
-        return "\(commonName.value)"
+        guard let commonName, let parsed = String(commonName.value) else { throw Error.invalidCertificate }
+        return parsed
     }
 
     public func developerIdentity() throws -> String {
