@@ -22,8 +22,8 @@ public protocol KeyValueStorage: Sendable {
     func setString(_ string: String?, forKey key: String) throws
 }
 
-public enum KeyValueStorageDependencyKey: TestDependencyKey {
-    public static let testValue: KeyValueStorage = UnimplementedKeyValueStorage()
+public enum KeyValueStorageDependencyKey: DependencyKey {
+    public static let liveValue: KeyValueStorage = DirectoryStorage()
 }
 
 extension DependencyValues {
@@ -53,16 +53,6 @@ extension KeyValueStorage {
     public subscript(stringForKey key: String) -> String? {
         get { try? string(forKey: key) }
         nonmutating set { try? setString(newValue, forKey: key) }
-    }
-}
-
-private struct UnimplementedKeyValueStorage: KeyValueStorage {
-    func data(forKey key: String) throws -> Data? {
-        unimplemented(placeholder: nil)
-    }
-    
-    func setData(_ data: Data?, forKey key: String) throws {
-        unimplemented()
     }
 }
 
