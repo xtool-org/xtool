@@ -92,14 +92,28 @@ public struct DeviceInfo: Codable, Sendable {
 
 }
 
-public struct DeviceInfoProvider: TestDependencyKey, Sendable {
+extension DeviceInfo {
+    public enum FetchError: Error {
+        case couldNotFetch
+    }
+
+    fileprivate static func fetch() throws -> Self {
+        guard let deviceInfo = DeviceInfo.current() else {
+            throw FetchError.couldNotFetch
+        }
+        return deviceInfo
+    }
+}
+
+public struct DeviceInfoProvider: DependencyKey, Sendable {
     public var fetch: @Sendable () throws -> DeviceInfo
 
     public init(fetch: @escaping @Sendable () throws -> DeviceInfo) {
         self.fetch = fetch
     }
 
-    public static let testValue = DeviceInfoProvider(fetch: unimplemented())
+    private static let current = Result { try DeviceInfo.fetch() }
+    public static let liveValue = DeviceInfoProvider { try current.get() }
 }
 
 extension DependencyValues {

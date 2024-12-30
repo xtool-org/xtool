@@ -83,7 +83,7 @@ extension DeviceInfo {
     }
 
 }
-#elseif os(Linux) || os(Windows)
+#else
 extension DeviceInfo {
     public static func current() -> DeviceInfo? {
         return DeviceInfo(
@@ -97,5 +97,5 @@ extension DeviceInfo {
 }
 #endif
 
-// FIXME: Figure out DeviceInfo.current() on Windows/Linux
+// FIXME: Figure out DeviceInfo.current() outside macOS
 // (see above)

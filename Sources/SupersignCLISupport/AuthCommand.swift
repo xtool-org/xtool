@@ -201,17 +201,3 @@ struct AuthCommand: AsyncParsableCommand {
         defaultSubcommand: AuthLoginCommand.self
     )
 }
-
-extension DeviceInfo {
-    static func fetch() throws -> Self {
-        guard let deviceInfo = DeviceInfo.current() else {
-            throw Console.Error("Could not fetch client info.")
-        }
-        return deviceInfo
-    }
-}
-
-extension DeviceInfoProvider: DependencyKey {
-    private static let current = Result { try DeviceInfo.fetch() }
-    public static let liveValue = DeviceInfoProvider { try current.get() }
-}
