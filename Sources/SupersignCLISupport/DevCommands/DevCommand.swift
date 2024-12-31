@@ -26,9 +26,15 @@ struct PackOperation {
             name: .shortAndLong,
             help: "Build with configuration"
         ) var configuration: BuildConfiguration = .debug
+
+        init() {}
+
+        init(configuration: BuildConfiguration) {
+            self.configuration = configuration
+        }
     }
 
-    var buildOptions = BuildOptions()
+    var buildOptions = BuildOptions(configuration: .debug)
     var xcode = false
 
     @discardableResult
