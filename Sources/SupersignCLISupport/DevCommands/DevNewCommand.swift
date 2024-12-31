@@ -161,12 +161,6 @@ struct DevNewCommand: AsyncParsableCommand {
             try "\(contents)\n".write(to: url, atomically: true, encoding: .utf8)
         }
 
-        let gitInit = Process()
-        gitInit.executableURL = try await ToolRegistry.locate("git")
-        gitInit.arguments = ["init"]
-        gitInit.currentDirectoryURL = baseURL
-        try await gitInit.runUntilExit()
-
         print("\nFinished generating project \(name). Next steps:")
         print("- Enter the directory with `cd \(name)`")
         print("- Build and run with `supersign dev`")
