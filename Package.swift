@@ -29,7 +29,6 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/SuperchargeApp/SuperchargeCore", .upToNextMinor(from: "1.2.0")),
         .package(url: "https://github.com/SuperchargeApp/SwiftyMobileDevice", .upToNextMinor(from: "1.3.1")),
-        .package(url: "https://github.com/kabiroberai/swiftpack", .upToNextMinor(from: "1.0.1")),
         .package(url: "https://github.com/kabiroberai/zsign", .upToNextMinor(from: "1.3.0")),
 
         .package(url: "https://github.com/apple/swift-system", from: "1.4.0"),
@@ -51,6 +50,10 @@ let package = Package(
 
         .package(url: "https://github.com/attaswift/BigInt", from: "5.5.0"),
         .package(url: "https://github.com/mxcl/Version", from: "2.1.0"),
+        .package(url: "https://github.com/jpsim/Yams", from: "5.1.3"),
+
+        // TODO: just depend on tuist/XcodeProj instead
+        .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.42.0"),
     ],
     targets: [
         .systemLibrary(name: "CSupersette"),
@@ -125,13 +128,20 @@ let package = Package(
             dependencies: [
                 "SwiftyMobileDevice",
                 "Supersign",
-                .product(name: "PackLib", package: "swiftpack"),
+                "PackLib",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "SystemPackage", package: "swift-system"),
                 .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "Version", package: "Version"),
             ],
             cSettings: cSettings
+        ),
+        .target(
+            name: "PackLib",
+            dependencies: [
+                .product(name: "Yams", package: "Yams"),
+                .product(name: "XcodeGenKit", package: "XcodeGen", condition: .when(platforms: [.macOS])),
+            ]
         ),
         .executableTarget(
             name: "SupersignCLI",

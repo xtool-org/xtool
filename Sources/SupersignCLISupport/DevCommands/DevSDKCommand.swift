@@ -3,6 +3,7 @@ import Supersign
 import Version
 import ArgumentParser
 import Dependencies
+import PackLib
 
 struct DevSDKCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -153,10 +154,10 @@ extension SwiftVersion {
         swift.arguments = ["--version"]
         swift.standardOutput = outPipe
         swift.standardError = errPipe
-        try swift.run()
         async let outputTask = outPipe.fileHandleForReading.readToEnd()
-        await swift.waitForExit()
-        guard swift.terminationStatus == 0 else {
+        do {
+            try await swift.runUntilExit()
+        } catch is Process.Failure {
             throw Console.Error("Failed to obtain Swift version")
         }
         let outputData = try await outputTask
@@ -226,9 +227,9 @@ struct InstallSDKOperation {
             """,
             "--checksum", item.checksum(for: arch)
         ]
-        try install.run()
-        await install.waitForExit()
-        guard install.terminationStatus == 0 else {
+        do {
+            try await install.runUntilExit()
+        } catch is Process.Failure {
             throw Console.Error("Failed to install SDK")
         }
         #endif

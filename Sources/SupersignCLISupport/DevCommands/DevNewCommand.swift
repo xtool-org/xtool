@@ -1,5 +1,6 @@
 import ArgumentParser
 import Foundation
+import PackLib
 
 struct DevNewCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -62,7 +63,7 @@ struct DevNewCommand: AsyncParsableCommand {
                         .macOS(.v14),
                     ],
                     products: [
-                        // A Swiftpack project should contain exactly one library target,
+                        // A Supersign project should contain exactly one library target,
                         // representing the main app.
                         .library(
                             name: "\(moduleName)",
@@ -79,7 +80,7 @@ struct DevNewCommand: AsyncParsableCommand {
             ),
 
             (
-                "swiftpack.yml",
+                "supersign.yml",
                 """
                 version: 1
                 bundleID: com.example.\(name)
@@ -98,7 +99,7 @@ struct DevNewCommand: AsyncParsableCommand {
                 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
                 .netrc
                 
-                /swiftpack
+                /supersign
                 /.sourcekit-lsp
                 """
             ),
@@ -164,8 +165,7 @@ struct DevNewCommand: AsyncParsableCommand {
         gitInit.executableURL = try await ToolRegistry.locate("git")
         gitInit.arguments = ["init"]
         gitInit.currentDirectoryURL = baseURL
-        try gitInit.run()
-        await gitInit.waitForExit()
+        try await gitInit.runUntilExit()
 
         print("\nFinished generating project \(name). Next steps:")
         print("- Enter the directory with `cd \(name)`")

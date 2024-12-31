@@ -1,5 +1,5 @@
 {
-  "originHash" : "19c490b9f4eaa20eede93f53a3b352116957402a682ed84a47bfaf23c195de03",
+  "originHash" : "360bc3ae9f3e8613a4fb4b6583a90d4819977ed68df921d928f49717dad97299",
   "pins" : [
     {
       "identity" : "aexml",
@@ -314,15 +314,6 @@
       "state" : {
         "revision" : "2e949055d9797c1a6bddcda0e58dada16cc8e970",
         "version" : "6.0.3"
-      }
-    },
-    {
-      "identity" : "swiftpack",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/kabiroberai/swiftpack",
-      "state" : {
-        "revision" : "3610144c5fd3b1a50c323476ac7f42cebb9780bc",
-        "version" : "1.0.1"
       }
     },
     {

@@ -1,13 +1,7 @@
-//
-//  File.swift
-//  Supersign
-//
-//  Created by Kabir Oberai on 23/12/24.
-//
-
 import Foundation
 import Supersign
 import Dependencies
+import PackLib
 
 extension ZIPCompressor: DependencyKey {
     // TODO: Use `powershell Compress-Archive` and `powershell Expand-Archive` on Windows
@@ -22,11 +16,7 @@ extension ZIPCompressor: DependencyKey {
             zip.executableURL = try await ToolRegistry.locate("zip")
             zip.currentDirectoryURL = dir.deletingLastPathComponent()
             zip.arguments = ["-yqru0", dest.path, "Payload"]
-            try zip.run()
-            await zip.waitForExit()
-            guard zip.terminationStatus == 0 else {
-                throw ZIPCompressorError.compressionFailed
-            }
+            try await zip.runUntilExit()
 
             return dest
         },
@@ -35,16 +25,7 @@ extension ZIPCompressor: DependencyKey {
             let unzip = Process()
             unzip.executableURL = try await ToolRegistry.locate("unzip")
             unzip.arguments = ["-q", ipa.path, "-d", directory.path]
-            try unzip.run()
-            await unzip.waitForExit()
-            guard unzip.terminationStatus == 0 else {
-                throw ZIPCompressorError.decompressionFailed
-            }
+            try await unzip.runUntilExit()
         }
     )
-}
-
-enum ZIPCompressorError: Error {
-    case compressionFailed
-    case decompressionFailed
 }
