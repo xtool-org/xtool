@@ -80,13 +80,15 @@ public struct BuildSettings: Sendable {
             baseArguments = [tool]
         }
 
+        let extraArguments: [String] = [
+            "--package-path", packagePathOverride ?? packagePath,
+            "--configuration", configuration.rawValue,
+        ]
+
         var env = ProcessInfo.processInfo.environment
         env.removeValue(forKey: "SDKROOT")
         process.environment = env
-        process.arguments = baseArguments + [
-            "--package-path", packagePathOverride ?? packagePath,
-            "--configuration", configuration.rawValue,
-        ] + sdkOptions + options + arguments
+        process.arguments = baseArguments + extraArguments + sdkOptions + options + arguments
         return process
     }
 }
