@@ -72,7 +72,8 @@ public struct XcodePacker {
             packages: [
                 "RootPackage": .local(
                     path: fromProjectToRoot.string,
-                    group: nil
+                    group: nil,
+                    excludeFromProject: false
                 ),
             ],
             options: SpecOptions(

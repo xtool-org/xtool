@@ -53,7 +53,7 @@ let package = Package(
         .package(url: "https://github.com/jpsim/Yams", from: "5.1.3"),
 
         // TODO: just depend on tuist/XcodeProj instead
-        .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.42.0"),
+        .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.43.0"),
     ],
     targets: [
         .systemLibrary(name: "CSupersette"),
