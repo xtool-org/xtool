@@ -43,29 +43,11 @@ struct DevSDKBuildCommand: AsyncParsableCommand {
     ) var arch: ArchSelection = .auto
 
     func run() async throws {
-        let builderArch: SDKBuilder.Arch = switch arch {
-        case .auto:
-            #if arch(arm64)
-            .aarch64
-            #elseif arch(x86_64)
-            .x86_64
-            #else
-            throw Console.Error("Could not auto-detect target architecture. Please specify one with '--arch'.")
-            #endif
-        case .arm64: .aarch64
-        case .x86_64: .x86_64
-        }
-
-        let input: SDKBuilder.Input = if path.hasSuffix(".xip") {
-            .xip(path)
-        } else if path.hasSuffix(".app") || path.hasSuffix(".app/") {
-            .app(path)
-        } else {
-            throw Console.Error("Expected input path to end in .xip or .app")
-        }
-
+        let builderArch = try arch.sdkBuilderArch
+        let input = try SDKBuilder.Input(path: path)
         let builder = SDKBuilder(input: input, outputPath: outputDir, arch: builderArch)
-        try await builder.buildSDK()
+        let sdkPath = try await builder.buildSDK()
+        print("Built SDK at \(sdkPath)")
     }
 }
 
@@ -73,6 +55,23 @@ enum ArchSelection: String, ExpressibleByArgument {
     case auto
     case x86_64
     case arm64
+
+    var sdkBuilderArch: SDKBuilder.Arch {
+        get throws {
+            switch self {
+            case .auto:
+                #if arch(arm64)
+                .aarch64
+                #elseif arch(x86_64)
+                .x86_64
+                #else
+                throw Console.Error("Could not auto-detect target architecture. Please specify one with '--arch'.")
+                #endif
+            case .arm64: .aarch64
+            case .x86_64: .x86_64
+            }
+        }
+    }
 }
 
 struct DevSDKInstallCommand: AsyncParsableCommand {
@@ -81,8 +80,14 @@ struct DevSDKInstallCommand: AsyncParsableCommand {
         abstract: "Install the Darwin Swift SDK"
     )
 
+    @Argument(
+        help: "Path to Xcode.xip or Xcode.app",
+        completion: .file(extensions: ["xip", "app"])
+    )
+    var path: String
+
     func run() async throws {
-        try await InstallSDKOperation().run()
+        try await InstallSDKOperation(path: path).run()
     }
 }
 
@@ -96,48 +101,8 @@ struct DevSDKRemoveCommand: AsyncParsableCommand {
         guard let sdk = try DarwinSDK.current() else {
             throw Console.Error("Cannot remove SDK: no Darwin SDK installed")
         }
-        try FileManager.default.removeItem(at: sdk.bundle)
+        try sdk.remove()
         print("Uninstalled SDK")
-    }
-}
-
-struct DarwinSDKVersions: Decodable {
-    private static let url = URL(string: """
-    https://raw.githubusercontent.com/kabiroberai/swift-sdk-darwin/refs/heads/main/versions.json
-    """)!
-
-    private static let decoder = JSONDecoder()
-
-    struct Metadata: Decodable {
-        var arm64Checksum: String
-        var x64Checksum: String
-        var compilerRange: [String]
-
-        func checksum(for arch: SDKArch) -> String {
-            switch arch {
-            case .arm64: return arm64Checksum
-            case .x86_64: return x64Checksum
-            }
-        }
-
-        var versionRange: Range<Version> {
-            get throws {
-                guard compilerRange.count == 2,
-                      let lower = Version(tolerant: compilerRange[0]),
-                      let upper = Version(tolerant: compilerRange[1]) else {
-                    throw Console.Error("Could not parse SDK metadata list. You may need to update Supersign.")
-                }
-                return lower..<upper
-            }
-        }
-    }
-    var current: String
-    var metadata: [String: Metadata]
-
-    static func all() async throws -> DarwinSDKVersions {
-        @Dependency(\.httpClient) var httpClient
-        let data = try await httpClient.makeRequest(HTTPRequest(url: url)).body
-        return try decoder.decode(self, from: data)
     }
 }
 
@@ -161,6 +126,21 @@ struct DarwinSDK {
         }
     }
 
+    @discardableResult
+    static func install(from path: String) throws -> DarwinSDK {
+        let url = URL(fileURLWithPath: path)
+        guard DarwinSDK(bundle: url) != nil else { throw Console.Error("Invalid Darwin SDK at '\(path)'")}
+        let targetURL = sdksDir.appendingPathComponent("darwin.artifactbundle")
+        if targetURL.exists {
+            throw Console.Error("Darwin SDK is already installed at '\(targetURL.path)'. Please remove it first.")
+        }
+        try FileManager.default.moveItem(at: url, to: targetURL)
+        guard let sdk = DarwinSDK(bundle: targetURL) else {
+            throw Console.Error("Darwin SDK failed to install")
+        }
+        return sdk
+    }
+
     static func current() throws -> DarwinSDK? {
         let sdks = (try? FileManager.default.contentsOfDirectory(at: sdksDir, includingPropertiesForKeys: nil)) ?? []
         let darwinSDKs = sdks.compactMap { DarwinSDK(bundle: $0) }
@@ -176,29 +156,9 @@ struct DarwinSDK {
             """)
         }
     }
-}
 
-enum SDKArch {
-    case arm64
-    case x86_64
-
-    var releaseName: String {
-        switch self {
-        case .arm64: "aarch64"
-        case .x86_64: "x86_64"
-        }
-    }
-
-    static var current: SDKArch {
-        get throws {
-            #if arch(arm64)
-            return .arm64
-            #elseif arch(x86_64)
-            return .x86_64
-            #else
-            throw Console.Error("Unsupported architecture: the Swift SDK supports aarch64 and x86_64.")
-            #endif
-        }
+    func remove() throws {
+        try FileManager.default.removeItem(at: bundle)
     }
 }
 
@@ -239,57 +199,26 @@ extension SwiftVersion {
 }
 
 struct InstallSDKOperation {
+    let path: String
+
     func run() async throws {
         #if os(macOS)
         print("Skipping SDK install; the iOS SDK ships with Xcode on macOS")
         #else
-        let arch = try SDKArch.current
-
-        let list = try await DarwinSDKVersions.all()
-        guard let item = list.metadata[list.current] else {
-            throw Console.Error("""
-            Couldn't find SDK metadata for '\(list.current)'. You may need to update Supersign.
-            """)
-        }
-        let acceptedRange = try item.versionRange
-        let swiftVersion = try await SwiftVersion.current()
-
-        guard acceptedRange.contains(swiftVersion) else {
-            throw Console.Error("""
-            You currently have Swift version \(swiftVersion) installed. \
-            The Darwin Swift SDK currently requires Swift ≥\(acceptedRange.lowerBound), \
-            <\(acceptedRange.upperBound).
-            """)
-        }
-
         if let sdk = try DarwinSDK.current() {
-            let installed = sdk.version
-            if list.current != installed {
-                print("Installed Darwin SDK version is '\(installed)' but latest is '\(list.current)'. Updating...")
-                try FileManager.default.removeItem(at: sdk.bundle)
-            } else {
-                print("Darwin SDK is up to date.")
-                return
-            }
-        } else {
-            print("Darwin Swift SDK not found on disk. Installing...")
+            print("Removing existing SDK...")
+            try sdk.remove()
         }
 
-        let install = Process()
-        install.executableURL = try await ToolRegistry.locate("swift")
-        install.arguments = [
-            "sdk", "install",
-            """
-            https://github.com/kabiroberai/swift-sdk-darwin/releases/download/\(list.current)/\
-            darwin-linux-\(arch.releaseName).artifactbundle.zip
-            """,
-            "--checksum", item.checksum(for: arch)
-        ]
-        do {
-            try await install.runUntilExit()
-        } catch is Process.Failure {
-            throw Console.Error("Failed to install SDK")
-        }
+        let input = try SDKBuilder.Input(path: path)
+        let arch = try ArchSelection.auto.sdkBuilderArch
+
+        let tempDir = try TemporaryDirectory(name: "DarwinSDKBuild")
+        let builder = SDKBuilder(input: input, outputPath: tempDir.url.path, arch: arch)
+        let sdkPath = try await builder.buildSDK()
+
+        try DarwinSDK.install(from: sdkPath)
+        print("Installed darwin.artifactbundle")
         #endif
     }
 }

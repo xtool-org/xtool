@@ -14,13 +14,24 @@ struct SDKBuilder {
     enum Input {
         case xip(String)
         case app(String)
+
+        init(path: String) throws {
+            if path.hasSuffix(".xip") {
+                self = .xip(path)
+            } else if path.hasSuffix(".app") || path.hasSuffix(".app/") {
+                self = .app(path)
+            } else {
+                throw Console.Error("Expected input path to end in .xip or .app")
+            }
+        }
     }
 
     let input: Input
     let outputPath: String
     let arch: Arch
 
-    func buildSDK() async throws {
+    @discardableResult
+    func buildSDK() async throws -> String {
         // tag from https://github.com/kabiroberai/darwin-tools-linux-llvm
         let darwinToolsVersion = "1.0.1"
 
@@ -282,7 +293,7 @@ struct SDKBuilder {
         try Data("\(sdkVersion)\n".utf8)
             .write(to: output.appendingPathComponent("darwin-sdk-version.txt"))
 
-        print("Built SDK at \(output.path)")
+        return output.path
     }
 
     // returns the number of files we actually want to keep,

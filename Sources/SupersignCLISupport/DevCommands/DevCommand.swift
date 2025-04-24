@@ -16,7 +16,19 @@ struct DevSetupCommand: AsyncParsableCommand {
 
     func run() async throws {
         try await AuthOperation(logoutFromExisting: false).run()
-        try await InstallSDKOperation().run()
+
+        if try DarwinSDK.current() == nil {
+            let path = try await Console.prompt("""
+            Logged in! Now installing the Darwin SDK.
+            
+            Please download the SDK from http://developer.apple.com/download/all/?q=Xcode
+            and enter the path to the downloaded Xcode.xip.
+            
+            Path to Xcode.xip: 
+            """)
+
+            try await InstallSDKOperation(path: path).run()
+        }
     }
 }
 
