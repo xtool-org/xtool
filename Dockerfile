@@ -1,7 +1,7 @@
 # Note: We use 20.04 since AppImage recommends building on the
 # oldest configuration that you support
 
-FROM swift:6.0-focal AS build-base
+FROM swift:6.1-focal AS build-base
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -17,6 +17,7 @@ RUN apt-get update \
     libxml2 \
     curl libcurl4-openssl-dev \
     zip unzip \
+    liblzma-dev zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 

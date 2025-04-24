@@ -51,6 +51,7 @@ let package = Package(
         .package(url: "https://github.com/attaswift/BigInt", from: "5.5.0"),
         .package(url: "https://github.com/mxcl/Version", from: "2.1.0"),
         .package(url: "https://github.com/jpsim/Yams", from: "5.1.3"),
+         .package(url: "https://github.com/saagarjha/unxip", from: "3.1.0"),
 
         // TODO: just depend on tuist/XcodeProj instead
         .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.43.0"),
@@ -110,6 +111,12 @@ let package = Package(
             cSettings: cSettings
         ),
         .testTarget(
+            name: "SupersignCLITests",
+            dependencies: [
+                "SupersignCLISupport",
+            ]
+        ),
+        .testTarget(
             name: "SupersignTests",
             dependencies: [
                 "Supersign",
@@ -133,6 +140,7 @@ let package = Package(
                 .product(name: "SystemPackage", package: "swift-system"),
                 .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "Version", package: "Version"),
+                .product(name: "libunxip", package: "unxip"),
             ],
             cSettings: cSettings
         ),

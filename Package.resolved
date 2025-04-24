@@ -1,5 +1,5 @@
 {
-  "originHash" : "360bc3ae9f3e8613a4fb4b6583a90d4819977ed68df921d928f49717dad97299",
+  "originHash" : "7d8342a181303ec948ba0a80e3bdadfdefbde5ca30e750282a9caf834410fae7",
   "pins" : [
     {
       "identity" : "aexml",
@@ -332,6 +332,15 @@
       "state" : {
         "revision" : "a7fb063c3819618773c2a9a10c19be7682fd8395",
         "version" : "1.3.1"
+      }
+    },
+    {
+      "identity" : "unxip",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/saagarjha/unxip",
+      "state" : {
+        "revision" : "d6f0009109f7502f8f5b3f23dcd5b43cf5b29b32",
+        "version" : "3.1.0"
       }
     },
     {

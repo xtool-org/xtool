@@ -12,9 +12,67 @@ struct DevSDKCommand: AsyncParsableCommand {
         subcommands: [
             DevSDKInstallCommand.self,
             DevSDKRemoveCommand.self,
+            DevSDKBuildCommand.self,
         ],
         defaultSubcommand: DevSDKInstallCommand.self
     )
+}
+
+struct DevSDKBuildCommand: AsyncParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "build",
+        abstract: "Build the Darwin SDK from Xcode.xip"
+    )
+
+    @Argument(
+        help: "Path to Xcode.xip or Xcode.app",
+        completion: .file(extensions: ["xip", "app"])
+    )
+    var path: String
+
+    @Argument(
+        help: "Output directory"
+    )
+    var outputDir: String
+
+    @Option(
+        help: ArgumentHelp(
+            "The architecture of the Linux host the SDK is being built for.",
+            discussion: "Defaults to 'auto', which attempts to match the current host architecture."
+        )
+    ) var arch: ArchSelection = .auto
+
+    func run() async throws {
+        let builderArch: SDKBuilder.Arch = switch arch {
+        case .auto:
+            #if arch(arm64)
+            .aarch64
+            #elseif arch(x86_64)
+            .x86_64
+            #else
+            throw Console.Error("Could not auto-detect target architecture. Please specify one with '--arch'.")
+            #endif
+        case .arm64: .aarch64
+        case .x86_64: .x86_64
+        }
+
+        let input: SDKBuilder.Input = if path.hasSuffix(".xip") {
+            .xip(path)
+        } else if path.hasSuffix(".app") || path.hasSuffix(".app/") {
+            .app(path)
+        } else {
+            throw Console.Error("Expected input path to end in .xip or .app")
+        }
+
+        let builder = SDKBuilder(input: input, outputPath: outputDir, arch: builderArch)
+        try await builder.buildSDK()
+    }
+}
+
+enum ArchSelection: String, ExpressibleByArgument {
+    case auto
+    case x86_64
+    case arm64
 }
 
 struct DevSDKInstallCommand: AsyncParsableCommand {
