@@ -2,8 +2,16 @@ on:
   workflow_dispatch:
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        host:
+          - runner: ubuntu-24.04
+            arch: x86_64
+          - runner: ubuntu-24.04-arm
+            arch: aarch64
+    runs-on: ${{ matrix.host.runner }}
     permissions:
       contents: write
     steps:
@@ -12,9 +20,29 @@ jobs:
       - name: Build
         run: |
           docker compose run --build --rm supersign -c Linux/build.sh
-      - name: Release
-        uses: softprops/action-gh-release@v2
+          mv Linux/packages/Supersign.AppImage Linux/packages/Supersign-${{ matrix.host.arch }}.AppImage
+      - name: Upload artifact
+        id: upload_artifact
+        uses: actions/upload-artifact@v4
         with:
-          draft: true
-          files: |
-            Linux/packages/Supersign.AppImage
+          name: Supersign-${{ matrix.host.arch }}
+          path: Linux/packages/Supersign-${{ matrix.host.arch }}.AppImage
+  release:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download artifact
+        id: download_artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: Supersign-*
+          path: output
+      - name: Create and publish release
+        id: publish_release
+        run: |
+          TAG="${GITHUB_REF##*/}-${GITHUB_SHA:0:7}"
+          gh release create "$TAG" --draft --title "Draft Release"
+          gh release upload "$TAG" output/**/*.AppImage

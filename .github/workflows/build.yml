@@ -17,11 +17,6 @@ jobs:
       - name: Build
         run: |
           docker compose run --build --rm supersign -c "swift build --product SupersignCLI"
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Supersign-${{ matrix.host.arch }}.AppImage
-          path: Linux/packages/Supersign.AppImage
   build-macos:
     runs-on: macos-15
     steps:
