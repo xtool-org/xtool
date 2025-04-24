@@ -27,7 +27,9 @@ struct DevSetupCommand: AsyncParsableCommand {
             Path to Xcode.xip: 
             """)
 
-            try await InstallSDKOperation(path: path).run()
+            let expanded = (path as NSString).expandingTildeInPath
+
+            try await InstallSDKOperation(path: expanded).run()
         }
     }
 }
