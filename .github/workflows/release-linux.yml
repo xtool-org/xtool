@@ -19,8 +19,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Build
         run: |
-          docker compose run --build --rm supersign -c Linux/build.sh
-          mv Linux/packages/Supersign.AppImage Linux/packages/Supersign-${{ matrix.host.arch }}.AppImage
+          docker compose run --build --rm supersign -c "Linux/build.sh && mv Linux/packages/Supersign{,-${{ matrix.host.arch }}}.AppImage"
       - name: Upload artifact
         id: upload_artifact
         uses: actions/upload-artifact@v4
