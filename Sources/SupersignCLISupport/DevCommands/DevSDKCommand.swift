@@ -127,7 +127,7 @@ struct DarwinSDK {
     }
 
     @discardableResult
-    static func install(from path: String) throws -> DarwinSDK {
+    static func install(movingFrom path: String) throws -> DarwinSDK {
         let url = URL(fileURLWithPath: path)
         guard DarwinSDK(bundle: url) != nil else { throw Console.Error("Invalid Darwin SDK at '\(path)'")}
         let targetURL = sdksDir.appendingPathComponent("darwin.artifactbundle")
@@ -217,7 +217,7 @@ struct InstallSDKOperation {
         let builder = SDKBuilder(input: input, outputPath: tempDir.url.path, arch: arch)
         let sdkPath = try await builder.buildSDK()
 
-        try DarwinSDK.install(from: sdkPath)
+        try DarwinSDK.install(movingFrom: sdkPath)
 
         // don't destroy tempDir before this point
         withExtendedLifetime(tempDir) {}

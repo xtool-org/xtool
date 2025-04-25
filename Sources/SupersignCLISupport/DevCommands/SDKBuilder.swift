@@ -32,9 +32,6 @@ struct SDKBuilder {
 
     @discardableResult
     func buildSDK() async throws -> String {
-        // tag from https://github.com/kabiroberai/darwin-tools-linux-llvm
-        let darwinToolsVersion = "1.0.1"
-
         // TODO: store relevant info for staleness check
         let sdkVersion = "develop"
 
@@ -46,6 +43,114 @@ struct SDKBuilder {
             at: output,
             withIntermediateDirectories: true
         )
+
+        // TODO: parallelize these two steps
+        // we need to synchronize progress reporting though
+
+        try await installToolset(in: output)
+
+        let dev = try await installDeveloper(in: output)
+
+        func sdk(platform: String, prefix: String) throws -> String {
+            let regex = try NSRegularExpression(pattern: #"^\#(prefix)\d+\.\d+\.sdk$"#)
+            let dir = dev.appendingPathComponent("Platforms/\(platform).platform/Developer/SDKs")
+            let names = try dir.contents().map(\.lastPathComponent)
+            guard let name = names.first(where: {
+                regex.firstMatch(in: $0, range: NSRange($0.startIndex..., in: $0)) != nil
+            }) else {
+                throw Console.Error("Could not find SDK for \(platform)/\(prefix)")
+            }
+            return name
+        }
+
+        func triple(platform: String, sdk: String) -> SDKDefinition.Triple {
+            SDKDefinition.Triple(
+                sdkRootPath: "Developer/Platforms/\(platform).platform/Developer/SDKs/\(sdk)",
+                includeSearchPaths: ["Developer/Platforms/\(platform).platform/Developer/usr/lib"],
+                librarySearchPaths: ["Developer/Platforms/\(platform).platform/Developer/usr/lib"],
+                swiftResourcesPath: "Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift",
+                swiftStaticResourcesPath: "Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift_static",
+                toolsetPaths: ["toolset.json"]
+            )
+        }
+
+        let iPhoneOSSDK = try sdk(platform: "iPhoneOS", prefix: "iPhoneOS")
+        let iPhoneSimSDK = try sdk(platform: "iPhoneSimulator", prefix: "iPhoneSimulator")
+        let macOSSDK = try sdk(platform: "MacOSX", prefix: "MacOSX")
+
+        print("""
+        - \(iPhoneOSSDK)
+        - \(iPhoneSimSDK)
+        - \(macOSSDK)
+        """)
+
+        print("[Writing metadata]")
+        try """
+        {
+            "schemaVersion": "1.0",
+            "artifacts": {
+                "darwin": {
+                    "type": "swiftSDK",
+                    "version": "0.0.1",
+                    "variants": [
+                        {
+                            "path": ".",
+                            "supportedTriples": ["aarch64-unknown-linux-gnu", "x86_64-unknown-linux-gnu"]
+                        }
+                    ]
+                }
+            }
+        }
+        """.write(
+            to: output.appendingPathComponent("info.json"),
+            atomically: false,
+            encoding: .utf8
+        )
+
+        try """
+        {
+            "schemaVersion": "1.0",
+            "rootPath": "toolset/bin",
+            "linker": {
+                "path": "ld64.lld"
+            },
+            "swiftCompiler": {
+                "extraCLIOptions": [
+                    "-use-ld=lld"
+                ]
+            }
+        }
+        """.write(
+            to: output.appendingPathComponent("toolset.json"),
+            atomically: false,
+            encoding: .utf8
+        )
+
+        let sdkDefinition = SDKDefinition(
+            schemaVersion: "4.0",
+            targetTriples: [
+                "arm64-apple-ios": triple(platform: "iPhoneOS", sdk: iPhoneOSSDK),
+                "arm64-apple-ios-simulator": triple(platform: "iPhoneSimulator", sdk: iPhoneSimSDK),
+                "x86_64-apple-ios-simulator": triple(platform: "iPhoneSimulator", sdk: iPhoneSimSDK),
+                "arm64-apple-macosx": triple(platform: "MacOSX", sdk: macOSSDK),
+                "x86_64-apple-macosx": triple(platform: "MacOSX", sdk: macOSSDK),
+            ]
+        )
+
+        let encoder = JSONEncoder()
+        try encoder
+            .encode(sdkDefinition)
+            .write(to: output.appendingPathComponent("swift-sdk.json"))
+
+        try Data("\(sdkVersion)\n".utf8)
+            .write(to: output.appendingPathComponent("darwin-sdk-version.txt"))
+
+        return output.path
+    }
+
+    private func installToolset(in output: URL) async throws {
+        // tag from https://github.com/kabiroberai/darwin-tools-linux-llvm
+        let darwinToolsVersion = "1.0.1"
 
         let toolsetDir = output.appendingPathComponent("toolset")
 
@@ -75,19 +180,23 @@ struct SDKBuilder {
         }
         let writer = pipe.fileHandleForWriting
         var written: Int64 = 0
-        for try await chunk in body {
-            try writer.write(contentsOf: chunk)
-            written += Int64(chunk.count)
-            if let length {
-                let progress = Int(Double(written) / Double(length) * 100)
-                print("\r[Downloading toolchain] \(progress)%", terminator: "")
-                fflush(stdoutSafe)
+        do {
+            defer { try? writer.close() }
+            for try await chunk in body {
+                try writer.write(contentsOf: chunk)
+                written += Int64(chunk.count)
+                if let length {
+                    let progress = Int(Double(written) / Double(length) * 100)
+                    print("\r[Downloading toolchain] \(progress)%", terminator: "")
+                    fflush(stdoutSafe)
+                }
             }
         }
         print()
-        try writer.close()
         try await tarExit
+    }
 
+    private func installDeveloper(in output: URL) async throws -> URL {
         let dev = output.appendingPathComponent("Developer")
 
         let appDir: URL
@@ -164,28 +273,7 @@ struct SDKBuilder {
             try? FileManager.default.removeItem(at: cleanupStageDir)
         }
 
-        func sdk(platform: String, prefix: String) throws -> String {
-            let regex = try NSRegularExpression(pattern: #"^\#(prefix)\d+\.\d+\.sdk$"#)
-            let dir = dev.appendingPathComponent("Platforms/\(platform).platform/Developer/SDKs")
-            let names = try dir.contents().map(\.lastPathComponent)
-            guard let name = names.first(where: {
-                regex.firstMatch(in: $0, range: NSRange($0.startIndex..., in: $0)) != nil
-            }) else {
-                throw Console.Error("Could not find SDK for \(platform)/\(prefix)")
-            }
-            return name
-        }
-
-        let iPhoneOSSDK = try sdk(platform: "iPhoneOS", prefix: "iPhoneOS")
-        let iPhoneSimSDK = try sdk(platform: "iPhoneSimulator", prefix: "iPhoneSimulator")
-        let macOSSDK = try sdk(platform: "MacOSX", prefix: "MacOSX")
-
-        print("""
-        [Finalizing SDKs]
-        - \(iPhoneOSSDK)
-        - \(iPhoneSimSDK)
-        - \(macOSSDK)
-        """)
+        print("[Finalizing SDKs]")
 
         /*
          XCTest and Testing.framework are located in *.platform/Developer/{Library/Frameworks,usr/lib} rather than inside
@@ -225,79 +313,7 @@ struct SDKBuilder {
             )
         }
 
-        print("[Writing metadata]")
-        try """
-        {
-            "schemaVersion": "1.0",
-            "artifacts": {
-                "darwin": {
-                    "type": "swiftSDK",
-                    "version": "0.0.1",
-                    "variants": [
-                        {
-                            "path": ".",
-                            "supportedTriples": ["aarch64-unknown-linux-gnu", "x86_64-unknown-linux-gnu"]
-                        }
-                    ]
-                }
-            }
-        }
-        """.write(
-            to: output.appendingPathComponent("info.json"),
-            atomically: false,
-            encoding: .utf8
-        )
-
-        try """
-        {
-            "schemaVersion": "1.0",
-            "rootPath": "toolset/bin",
-            "linker": {
-                "path": "ld64.lld"
-            },
-            "swiftCompiler": {
-                "extraCLIOptions": [
-                    "-use-ld=lld"
-                ]
-            }
-        }
-        """.write(
-            to: output.appendingPathComponent("toolset.json"),
-            atomically: false,
-            encoding: .utf8
-        )
-
-        func triple(platform: String, sdk: String) -> SDKDefinition.Triple {
-            SDKDefinition.Triple(
-                sdkRootPath: "Developer/Platforms/\(platform).platform/Developer/SDKs/\(sdk)",
-                includeSearchPaths: ["Developer/Platforms/\(platform).platform/Developer/usr/lib"],
-                librarySearchPaths: ["Developer/Platforms/\(platform).platform/Developer/usr/lib"],
-                swiftResourcesPath: "Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift",
-                swiftStaticResourcesPath: "Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift_static",
-                toolsetPaths: ["toolset.json"]
-            )
-        }
-
-        let sdkDefinition = SDKDefinition(
-            schemaVersion: "4.0",
-            targetTriples: [
-                "arm64-apple-ios": triple(platform: "iPhoneOS", sdk: iPhoneOSSDK),
-                "arm64-apple-ios-simulator": triple(platform: "iPhoneSimulator", sdk: iPhoneSimSDK),
-                "x86_64-apple-ios-simulator": triple(platform: "iPhoneSimulator", sdk: iPhoneSimSDK),
-                "arm64-apple-macosx": triple(platform: "MacOSX", sdk: macOSSDK),
-                "x86_64-apple-macosx": triple(platform: "MacOSX", sdk: macOSSDK),
-            ]
-        )
-
-        let encoder = JSONEncoder()
-        try encoder
-            .encode(sdkDefinition)
-            .write(to: output.appendingPathComponent("swift-sdk.json"))
-
-        try Data("\(sdkVersion)\n".utf8)
-            .write(to: output.appendingPathComponent("darwin-sdk-version.txt"))
-
-        return output.path
+        return dev
     }
 
     // returns the number of files we actually want to keep,
