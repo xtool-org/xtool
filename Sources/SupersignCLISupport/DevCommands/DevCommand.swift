@@ -19,9 +19,9 @@ struct DevSetupCommand: AsyncParsableCommand {
 
         if try DarwinSDK.current() == nil {
             let path = try await Console.prompt("""
-            Logged in! Now installing the Darwin SDK.
+            Now generating the Darwin SDK.
             
-            Please download the SDK from http://developer.apple.com/download/all/?q=Xcode
+            Please download Xcode from http://developer.apple.com/download/all/?q=Xcode
             and enter the path to the downloaded Xcode.xip.
             
             Path to Xcode.xip: 
