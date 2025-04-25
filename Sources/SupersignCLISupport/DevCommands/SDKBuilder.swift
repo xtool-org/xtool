@@ -38,8 +38,6 @@ struct SDKBuilder {
         // TODO: store relevant info for staleness check
         let sdkVersion = "develop"
 
-        print("[Cleaning stage]")
-
         let output = URL(fileURLWithPath: outputPath, isDirectory: true)
             .appendingPathComponent("darwin.artifactbundle")
 
@@ -82,7 +80,7 @@ struct SDKBuilder {
             written += Int64(chunk.count)
             if let length {
                 let progress = Int(Double(written) / Double(length) * 100)
-                print("\r[Installing toolchain] \(progress)%", terminator: "")
+                print("\r[Downloading toolchain] \(progress)%", terminator: "")
                 fflush(stdoutSafe)
             }
         }
@@ -100,7 +98,13 @@ struct SDKBuilder {
         case .xip(let inputPath):
             let devStage = output.appendingPathComponent("DeveloperStage")
             try FileManager.default.createDirectory(at: devStage, withIntermediateDirectories: false)
-            wanted = try await extractXIP(inputPath: inputPath, outDir: devStage.path)
+            // unxip doesn't like cooperative cancellation atm so shield it.
+            // if the user does a ^C during unxip, we'll just wait until extraction
+            // is over before bailing
+            wanted = try await Task {
+                try await extractXIP(inputPath: inputPath, outDir: devStage.path)
+            }.value
+            try Task.checkCancellation()
             appDir = devStage.appendingPathComponent("Xcode.app")
             cleanupStageDir = devStage
         case .app(let appPath):
@@ -155,7 +159,7 @@ struct SDKBuilder {
         }
         print()
 
-        print("[Cleaning XIP]")
+        print("[Cleaning up]")
         if let cleanupStageDir {
             try? FileManager.default.removeItem(at: cleanupStageDir)
         }

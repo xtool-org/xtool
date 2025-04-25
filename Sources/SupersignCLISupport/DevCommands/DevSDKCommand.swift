@@ -218,6 +218,10 @@ struct InstallSDKOperation {
         let sdkPath = try await builder.buildSDK()
 
         try DarwinSDK.install(from: sdkPath)
+
+        // don't destroy tempDir before this point
+        withExtendedLifetime(tempDir) {}
+
         print("Installed darwin.artifactbundle")
         #endif
     }
