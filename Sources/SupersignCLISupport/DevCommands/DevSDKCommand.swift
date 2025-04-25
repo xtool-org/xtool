@@ -157,6 +157,10 @@ struct DarwinSDK {
         }
     }
 
+    func isUpToDate() -> Bool {
+        true
+    }
+
     func remove() throws {
         try FileManager.default.removeItem(at: bundle)
     }

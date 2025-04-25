@@ -22,10 +22,13 @@ struct AuthOperation {
     var logoutFromExisting: Bool
 
     var mode: AuthMode? = nil
+    var quiet = false
 
     func run() async throws {
         if let token = try? AuthToken.saved(), !logoutFromExisting {
-            print("Logged in.\n\(token)")
+            if !quiet {
+                print("Logged in.\n\(token)")
+            }
             return
         }
 

@@ -10,7 +10,23 @@ struct DevNewCommand: AsyncParsableCommand {
 
     @Argument var name: String?
 
+    @Flag(
+        help: ArgumentHelp(
+            "Skip setup steps. (default: false)",
+            discussion: """
+            By default, this command first invokes `supersign dev setup` to complete \
+            any missing setup steps, like authenticating and installing the SDK. Use \
+            this flag to always skip setup.
+            """
+        )
+    ) var skipSetup = false
+
     func run() async throws {
+        if !skipSetup {
+            // perform any remaining setup steps first
+            try await DevSetupOperation(quiet: true).run()
+        }
+
         let name = try await Console.promptRequired("Package name: ", existing: self.name)
 
         var allowedFirstCharacters: CharacterSet = ["_"]

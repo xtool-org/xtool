@@ -15,9 +15,27 @@ struct DevSetupCommand: AsyncParsableCommand {
     )
 
     func run() async throws {
-        try await AuthOperation(logoutFromExisting: false).run()
+        try await DevSetupOperation().run()
+    }
+}
 
-        if try DarwinSDK.current() == nil {
+struct DevSetupOperation {
+    var quiet = false
+
+    func run() async throws {
+        try await AuthOperation(logoutFromExisting: false, quiet: quiet).run()
+
+        switch try DarwinSDK.current()?.isUpToDate() {
+        case true?:
+            if !quiet {
+                print("Darwin SDK is up to date.")
+            }
+        case false?:
+            if !quiet {
+                print("Darwin SDK is outdated.")
+            }
+            fallthrough
+        case nil:
             let path = try await Console.prompt("""
             Now generating the Darwin SDK.
             
