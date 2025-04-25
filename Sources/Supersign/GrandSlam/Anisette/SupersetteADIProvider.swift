@@ -147,7 +147,11 @@ public actor SupersetteADIProvider: RawADIProvider {
         
         let adiDirectory = directory.appending(path: "adi")
         try? FileManager.default.createDirectory(at: adiDirectory, withIntermediateDirectories: true)
-        try provisioningInfo.write(to: adiDirectory.appending(path: "adi.pb"))
+        let adiFile = adiDirectory.appending(path: "adi.pb")
+        // this file may be saved as write-protected, but we can still remove it
+        // and then overwrite it.
+        try? FileManager.default.removeItem(at: adiFile)
+        try provisioningInfo.write(to: adiFile)
 
         try check(supersette_OTPRequest(
             UInt64(bitPattern: -2),
