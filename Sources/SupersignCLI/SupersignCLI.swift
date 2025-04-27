@@ -3,7 +3,9 @@ import Supersign
 import SupersignCLISupport
 import Dependencies
 
-@main enum SupersignCLIMain {
+@_documentation(visibility: private)
+@main
+enum SupersignCLIMain {
     static func main() async throws {
         prepareDependencies { dependencies in
             #warning("Improve persistence mechanism")
