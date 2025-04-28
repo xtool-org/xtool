@@ -1,0 +1,11 @@
+@Tutorials(name: "Tutorials") {
+    @Intro(title: "Tutorials") {
+        Install Supersign and build your first iOS app on Linux.
+    }
+    
+    @Chapter(name: "Getting Started") {
+        @Image(source: "HelloWorld", alt: "Getting Started")
+        
+        @TutorialReference(tutorial: "doc:First-app")
+    }
+}
