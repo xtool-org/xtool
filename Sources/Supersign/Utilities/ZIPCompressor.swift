@@ -28,10 +28,10 @@ public struct ZIPCompressor: TestDependencyKey, Sendable {
 
     /// Decompress the zipped ipa file
     ///
-    /// - Parameter ipa: The `ipa` file to decompress.
+    /// - Parameter file: The `ipa` file to decompress.
     /// - Parameter directory: The directory into which `ipa` should be decompressed.
     /// - Parameter progress: A closure to which the callee can provide progress updates.
-    /// - Parameter currentProgress: The current progress, or `nil` to indicate it is indeterminate.
+    ///   - term currentProgress: The current progress, or `nil` to indicate it is indeterminate.
     public func decompress(
         file: URL,
         in directory: URL,
@@ -46,9 +46,9 @@ public struct ZIPCompressor: TestDependencyKey, Sendable {
 
     /// Compress the app before installation.
     ///
-    /// - Parameter payloadDir: The `Payload` directory which is to be compressed.
+    /// - Parameter directory: The `Payload` directory which is to be compressed.
     /// - Parameter progress: A closure to which the callee can provide progress updates.
-    /// - Parameter currentProgress: The current progress, or `nil` to indicate it is indeterminate.
+    ///   - term currentProgress: The current progress, or `nil` to indicate it is indeterminate.
     public func compress(
         directory: URL,
         progress: @escaping @Sendable (_ currentProgress: Double?) -> Void
