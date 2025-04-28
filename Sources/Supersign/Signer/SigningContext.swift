@@ -38,7 +38,7 @@ public struct SigningContext: Sendable {
 import UIKit
 #endif
 extension SigningContext {
-    public static var hostName: String {
+    @MainActor public static var hostName: String {
         #if targetEnvironment(simulator)
         return "Simulator"
         #elseif canImport(UIKit)

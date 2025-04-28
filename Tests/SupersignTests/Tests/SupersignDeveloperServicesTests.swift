@@ -30,7 +30,7 @@ class SupersignDeveloperServicesTests: XCTestCase {
     }
 
     // integration test for provisioning
-    func testProvisioningIntegration() async throws {
+    @MainActor func testProvisioningIntegration() async throws {
         let listTeams = DeveloperServicesListTeamsRequest()
         let teams = try await client.send(listTeams)
         let team = teams.first { $0.status == "active" && $0.memberships.contains { $0.platform == .iOS } }!

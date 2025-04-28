@@ -46,7 +46,7 @@ class SupersignSigningTests: XCTestCase {
     // swiftlint:enable force_try
 
     // integration test for signing
-    func testSigningIntegration() throws {
+    @MainActor func testSigningIntegration() throws {
         let listTeams = DeveloperServicesListTeamsRequest()
         let teams = try XCTTry(client.sendTest(listTeams))
         let team = teams.first { $0.status == "active" && $0.memberships.contains { $0.platform == .iOS } }!
