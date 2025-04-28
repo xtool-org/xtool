@@ -41,7 +41,11 @@ sudo apt-get install \
 
 `libimobiledevice6` and `libimobiledevice-utils` aren't strictly needed but they provide tools like `ideviceinfo` that may be useful for interacting with other aspects of your iOS device.
 
-### 3. Download Supersign
+### 3. Download Xcode.xip
+
+From <http://developer.apple.com/download/all/?q=Xcode>, download **Xcode 16.3**. Note the path where `Xcode_16.3.xip` is saved.
+
+### 4. Download Supersign
 
 Next, download the [latest GitHub Release](https://github.com/SuperchargeApp/Supersign/releases/latest) of `Supersign.AppImage` for your architecture. Rename it to `supersign` and add it to a location in your `PATH`.
 
@@ -60,10 +64,6 @@ supersign --help
 # OVERVIEW: The Supersign command line tool
 # ...
 ```
-
-### 4. Download Xcode.xip
-
-From <http://developer.apple.com/download/all/?q=Xcode>, download **Xcode 16.3**. Note the path where `Xcode_16.3.xip` is saved.
 
 ### 5. Configure Supersign
 
