@@ -21,25 +21,38 @@ swift --version
 # Swift version 6.1 (swift-6.1-RELEASE)
 ```
 
-### 2. Install libimobiledevice
+### 2. Install usbmuxd
 
-Supersign relies on [libimobiledevice](https://libimobiledevice.org), or more specifically its [usbmuxd](https://github.com/libimobiledevice/usbmuxd) subproject, to talk to your iOS device from Linux.
+Supersign relies on [usbmuxd](https://github.com/libimobiledevice/usbmuxd) to talk to your iOS device from Linux.
 
-Your Linux distro probably comes with a `usbmuxd` package, and it may be pre-installed. To check if it is, run:
+Your Linux distro probably offers this package, and it may be preinstalled. To check if it is, run
 
 ```bash
 file /var/run/usbmuxd
 # /var/run/usbmuxd: socket
 ```
 
-If you instead get a "No such file or directory" error, you need to install `usbmuxd` yourself. On Ubuntu, for example, you can do this with
+If instead you get a "No such file or directory" error, you need to install `usbmuxd` yourself. On Ubuntu, for example, you can do this with
 
 ```bash
-sudo apt-get install \
-  usbmuxd libimobiledevice6 libimobiledevice-utils 
+sudo apt-get install usbmuxd
 ```
 
-`libimobiledevice6` and `libimobiledevice-utils` aren't strictly needed but they provide tools like `ideviceinfo` that may be useful for interacting with other aspects of your iOS device.
+> Some other useful tools:
+>
+> `usbmuxd` is part of the [libimobiledevice](https://libimobiledevice.org) project. You may want to install other libimobiledevice tools, such as `ideviceinfo`, that offer many ways to interact with your iOS device from the command line. On Ubuntu, you can run
+>
+> ```bash
+> sudo apt-get install libimobiledevice-utils
+> # The following NEW packages will be installed:
+> #   libimobiledevice-utils
+> # 0 upgraded, 1 newly installed
+> ideviceinfo
+> # DeviceName: Kabir's iPhone
+> # SerialNumber: ...
+> # UniqueDeviceID: ...
+> # ...
+> ```
 
 ### 3. Download Xcode.xip
 
