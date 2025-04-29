@@ -1,4 +1,4 @@
-@Tutorials(name: "Tutorials") {
+@Tutorials(name: "Supersign") {
     @Intro(title: "Tutorials") {
         Install Supersign and build your first iOS app on Linux.
     }
