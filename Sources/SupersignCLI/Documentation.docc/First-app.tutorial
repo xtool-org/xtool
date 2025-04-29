@@ -32,7 +32,7 @@
             @Step {
                 Read `.sourcekit-lsp/config.json`.
                 
-                This file tells SourceKit to use the `arm64-apple-ios` Swift SDK. When building an iOS app on Linux, Supersign instructs SwiftPM to use the [Swift SDK for Cross Compilation](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0387-cross-compilation-destinations.md) that we built during the setup process; specifically, `arm64-apple-ios` from `darwin.artifactbundle`. This SDK contains the necessary modules for building iOS apps, such as UIKit and SwiftUI, as well as tools for building and manipulating iOS binaries. Swift SDKs are quite powerful, and you may want to check out the documentation to better understand how they work.
+                This file tells SourceKit to build for the `arm64-apple-ios` system defined in `darwin.artifactbundle`. This is the [Swift SDK](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0387-cross-compilation-destinations.md) that we built during the setup process. It contains the necessary modules for building iOS apps, such as UIKit and SwiftUI, as well as tools for building and manipulating iOS binaries. Under the hood, Supersign also calls `swift build` with `--swift-sdk arm64-apple-ios` for the same reason.
                 
                 @Code(name: "Terminal", file: "template-4b.sh", previousFile: "template-4a.sh") {}
             }
