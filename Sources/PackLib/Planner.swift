@@ -107,6 +107,10 @@ public struct Planner: Sendable {
             }
         }
 
+        if let rootResources = schema.base.resources {
+            resources += rootResources.map { .root(source: $0) }
+        }
+
         let bundleID = schema.idSpecifier.formBundleID(product: library.name)
 
         var infoPlist: [String: Sendable] = [
@@ -148,7 +152,8 @@ public struct Planner: Sendable {
             deploymentTarget: deploymentTarget,
             bundleID: bundleID,
             infoPlist: infoPlist,
-            resources: resources
+            resources: resources,
+            iconPath: self.schema.base.iconPath
         )
     }
 
@@ -211,12 +216,14 @@ public struct Plan: Sendable {
     public var bundleID: String
     public var infoPlist: [String: any Sendable]
     public var resources: [Resource]
+    public var iconPath: String?
 }
 
 public enum Resource: Codable, Sendable {
     case bundle(package: String, target: String)
     case binaryTarget(name: String)
     case library(name: String)
+    case root(source: String)
 }
 
 private struct PackageDependency: Decodable {

@@ -80,6 +80,10 @@ public struct XcodePacker {
                 localPackagesGroup: ""
             )
         )
+
+        // TODO: Handle plan.resources of type .root
+        // TODO: Handle plan.iconPath
+
         let generator = ProjectGenerator(project: project)
         let xcodeproj = projectDir + "\(plan.product).xcodeproj"
         let xcworkspace = supersignDir + "\(plan.product).xcworkspace"

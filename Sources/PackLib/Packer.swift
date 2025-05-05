@@ -73,6 +73,15 @@ public struct Packer: Sendable {
         )
 
         let outputURL = output.url
+
+        @Sendable func packFileToRoot(srcName: String) async throws {
+            let srcURL = URL(fileURLWithPath: srcName)
+            let destURL = outputURL.appendingPathComponent(srcURL.lastPathComponent)
+            try FileManager.default.copyItem(at: srcURL, to: destURL)
+
+            try Task.checkCancellation()
+        }
+
         @Sendable func packFile(srcName: String, dstName: String? = nil, sign: Bool = false) async throws {
             let srcURL = URL(fileURLWithPath: srcName, relativeTo: binDir)
             let dstURL = URL(fileURLWithPath: dstName ?? srcURL.lastPathComponent, relativeTo: outputURL)
@@ -100,16 +109,30 @@ public struct Packer: Sendable {
                         }
                     case .library(let name):
                         try await packFile(srcName: "lib\(name).dylib", dstName: "Frameworks/lib\(name).dylib", sign: true)
+                    case .root(let source):
+                        try await packFileToRoot(srcName: source)
                     }
+                }
+            }
+            if let iconPath = plan.iconPath {
+                group.addTask {
+                    try await packFileToRoot(srcName: iconPath)
                 }
             }
             group.addTask {
                 try await packFile(srcName: "\(plan.product)-App", dstName: plan.product)
             }
             group.addTask {
+                var info = plan.infoPlist
+
+                if let iconPath = plan.iconPath {
+                    let iconName = URL(fileURLWithPath: iconPath).deletingPathExtension().lastPathComponent
+                    info["CFBundleIconFile"] = iconName
+                }
+
                 let infoPath = outputURL.appendingPathComponent("Info.plist")
                 let encodedPlist = try PropertyListSerialization.data(
-                    fromPropertyList: plan.infoPlist,
+                    fromPropertyList: info,
                     format: .xml,
                     options: 0
                 )

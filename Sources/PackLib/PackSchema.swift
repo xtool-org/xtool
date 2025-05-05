@@ -14,6 +14,8 @@ public struct PackSchemaBase: Codable, Sendable {
     public var product: String?
 
     public var infoPath: String?
+    public var iconPath: String?
+    public var resources: [String]?
 }
 
 public struct PackSchema: Sendable {
@@ -46,6 +48,13 @@ public struct PackSchema: Sendable {
             idSpecifier = .orgID(orgID)
         case (nil, nil):
             throw StringError("supersign.yml: Must specify either orgID or bundleID")
+        }
+
+        if let iconPath = base.iconPath {
+            let ext = URL(fileURLWithPath: iconPath).pathExtension
+            guard ext == "png" else {
+                throw StringError("supersign.yml: iconPath should have a 'png' path extension. Got '\(ext)'.")
+            }
         }
     }
 
