@@ -1,4 +1,4 @@
-# Control Your App's Structure
+# Control your app's structure
 
 Add resources, modify your `Info.plist`, and more. 
 

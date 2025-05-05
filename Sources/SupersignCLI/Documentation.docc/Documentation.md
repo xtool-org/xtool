@@ -13,12 +13,12 @@ You can use `supersign` to interact with iOS applications and Apple Developer Se
 
 ## Topics
 
-### Getting Started
+### Getting started
 
 - <doc:Installation-Linux>
 - <doc:Installation-macOS>
 - <doc:First-app>
 
-### Common Tasks
+### Common tasks
 
 - <doc:Control>

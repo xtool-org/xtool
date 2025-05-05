@@ -1,5 +1,5 @@
 @Tutorial(time: 30) {
-    @Intro(title: "Build Your First iOS App on Linux") {
+    @Intro(title: "Build your first iOS app on Linux") {
         Once you've completed <doc:Installation-Linux>, use Supersign to build and deploy an iOS app from your Linux machine.
     }
     
