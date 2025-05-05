@@ -18,3 +18,7 @@ You can use `supersign` to interact with iOS applications and Apple Developer Se
 - <doc:Installation-Linux>
 - <doc:Installation-macOS>
 - <doc:First-app>
+
+### Common Tasks
+
+- <doc:Control>
