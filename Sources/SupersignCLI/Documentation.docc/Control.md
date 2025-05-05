@@ -60,7 +60,7 @@ For example, you might create an `Info.plist` file that looks something like
 - The default `Info.plist` has a `UISupportedInterfaceOrientations` value of portrait. This will replace it with landscape-only.
 - We don't include a `CFBundleDisplayName` by default, so this will add the key and specify a display name of "My App".
 
-## Copy Resources (SwiftPM)
+## Copy resources (SwiftPM)
 
 If you need to include non-code resource files, like images, the easiest way to do so is to use [SwiftPM Resources](https://developer.apple.com/documentation/xcode/bundling-resources-with-a-swift-package). These "just work" with Supersign.
 
@@ -81,7 +81,7 @@ Then, to draw it on screen, you can use
 Image("Blob", bundle: Bundle.module)
 ```
 
-## Copy Resources (Top Level)
+## Copy resources (top level)
 
 SwiftPM resources are copied into `.bundle` directories nested inside your `.app`. Sometimes, you need to place a file in a specific location in the app directory instead.
 
@@ -96,7 +96,7 @@ resources:
 
 The file will be copied to `Hello.app/GoogleServices-Info.plist`.
 
-## Add an App Icon
+## Add an app icon
 
 Say your app icon is saved at `Resources/AppIcon.png`. You can make this your app icon by setting the `iconPath` key in `supersign.yml`:
 

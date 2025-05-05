@@ -80,7 +80,7 @@ supersign --help
 # ...
 ```
 
-### 2. Configure Supersign: Auth
+### 2. Configure Supersign: log in
 
 Perform one-time setup with
 
