@@ -124,6 +124,6 @@ swift sdk list
 # darwin
 ```
 
-## Next Steps
+## Next steps
 
 You're now ready to use Supersign! See <doc:First-app>.

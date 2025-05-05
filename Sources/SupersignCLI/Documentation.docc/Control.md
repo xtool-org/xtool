@@ -15,7 +15,7 @@ bundleID: com.example.Hello
 EOF
 ```
 
-## Change your Bundle ID
+## Change your bundle ID
 
 You can update your app's bundle ID by editing the `bundleID` field in `supersign.yml`.
 
