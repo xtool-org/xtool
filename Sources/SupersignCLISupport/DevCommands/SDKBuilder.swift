@@ -187,7 +187,7 @@ struct SDKBuilder {
                 written += Int64(chunk.count)
                 if let length {
                     let progress = Int(Double(written) / Double(length) * 100)
-                    print("\r[Downloading toolchain] \(progress)%", terminator: "")
+                    print("\r[Downloading toolset] \(progress)%", terminator: "")
                     fflush(stdoutSafe)
                 }
             }

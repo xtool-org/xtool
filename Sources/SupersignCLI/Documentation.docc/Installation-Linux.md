@@ -6,12 +6,11 @@ Set up Supersign for iOS app development on Linux.
 
 This article outlines the steps to install `supersign` and begin developing iOS apps on Linux.
 
-## Steps
+## Prerequisites
 
-### 1. Install Swift
+### Swift
 
-First, install the latest Swift toolchain for your Linux distribution from <https://swift.org/install/linux>.
-
+Install the Swift 6.1 toolchain for your Linux distribution from <https://swift.org/install/linux>.
 
 After following the steps there, confirm that Swift is installed correctly:
 
@@ -21,26 +20,27 @@ swift --version
 # Swift version 6.1 (swift-6.1-RELEASE)
 ```
 
-### 2. Install usbmuxd
+### usbmuxd
 
 Supersign relies on [usbmuxd](https://github.com/libimobiledevice/usbmuxd) to talk to your iOS device from Linux.
 
 Your Linux distro probably offers this package, and it may be preinstalled. To check if it is, run
 
 ```bash
-file /var/run/usbmuxd
-# /var/run/usbmuxd: socket
+usbmuxd --help
+# Usage: usbmuxd [OPTIONS]
+# ...
 ```
 
-If instead you get a "No such file or directory" error, you need to install `usbmuxd` yourself. On Ubuntu, for example, you can do this with
+If instead you get "command not found", you need to install `usbmuxd` yourself. On Ubuntu/Debian, for example, you can do this with
 
 ```bash
 sudo apt-get install usbmuxd
 ```
 
-> Some other useful tools:
+> Other useful tools:
 >
-> `usbmuxd` is part of the [libimobiledevice](https://libimobiledevice.org) project. You may want to install other libimobiledevice tools, such as `ideviceinfo`, that offer many ways to interact with your iOS device from the command line. On Ubuntu, you can run
+> `usbmuxd` is part of the [libimobiledevice](https://libimobiledevice.org) project. You may want to install other libimobiledevice tools, such as `ideviceinfo`, that offer many ways to interact with your iOS device from the command line. On Ubuntu/Debian, you can run
 >
 > ```bash
 > sudo apt-get install libimobiledevice-utils
@@ -54,13 +54,15 @@ sudo apt-get install usbmuxd
 > # ...
 > ```
 
-### 3. Download Xcode.xip
+### Xcode.xip
 
-From <http://developer.apple.com/download/all/?q=Xcode>, download **Xcode 16.3**. Note the path where `Xcode_16.3.xip` is saved.
+Download **Xcode 16.3** from <https://developer.apple.com/services-account/download?path=/Developer_Tools/Xcode_16.3/Xcode_16.3.xip>. Note the path where `Xcode_16.3.xip` is saved.
 
-### 4. Download Supersign
+## Installation
 
-Next, download the [latest GitHub Release](https://github.com/SuperchargeApp/Supersign/releases/latest) of `Supersign.AppImage` for your architecture. Rename it to `supersign` and add it to a location in your `PATH`.
+### 1. Download Supersign
+
+Once you have the prerequisites, download the [latest GitHub Release](https://github.com/SuperchargeApp/Supersign/releases/latest) of `Supersign.AppImage` for your architecture. Rename it to `supersign` and add it to a location in your `PATH`.
 
 ```bash
 curl -fL \
@@ -78,7 +80,7 @@ supersign --help
 # ...
 ```
 
-### 5. Configure Supersign
+### 2. Configure Supersign: Auth
 
 Perform one-time setup with
 
@@ -103,9 +105,13 @@ Choice (0-1):
 
 Once you select a login mode, you'll be asked to provide the corresponding credentials (API key or email+password+2FA). Needless to say, *your credentials are only sent to Apple* and nobody else (feel free to build Supersign from source and check!)
 
+### 3. Configure Supersign: SDK
+
 After you're logged in, you'll be asked to provide the path to the `Xcode.xip` file you downloaded earlier.
 
 ```
+Choice (0-1): 0
+...
 Path to Xcode.xip:
 ```
 
