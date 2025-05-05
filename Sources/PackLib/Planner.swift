@@ -109,39 +109,38 @@ public struct Planner: Sendable {
 
         let bundleID = schema.idSpecifier.formBundleID(product: library.name)
 
-        let infoPlist: [String: Sendable]
+        var infoPlist: [String: Sendable] = [
+            "CFBundleInfoDictionaryVersion": "6.0",
+            "UIRequiredDeviceCapabilities": ["arm64"],
+            "LSRequiresIPhoneOS": true,
+            "CFBundleSupportedPlatforms": ["iPhoneOS"],
+            "CFBundlePackageType": "APPL",
+            "UIDeviceFamily": [1, 2],
+            "CFBundleDevelopmentRegion": "en",
+            "UISupportedInterfaceOrientations": ["UIInterfaceOrientationPortrait"],
+            "UISupportedInterfaceOrientations~ipad": [
+              "UIInterfaceOrientationPortrait",
+              "UIInterfaceOrientationPortraitUpsideDown",
+              "UIInterfaceOrientationLandscapeLeft",
+              "UIInterfaceOrientationLandscapeRight"
+            ],
+            "UILaunchScreen": [:] as [String: Sendable],
+            "CFBundleVersion": "1",
+            "CFBundleShortVersionString": "1.0.0",
+            "MinimumOSVersion": deploymentTarget,
+            "CFBundleIdentifier": bundleID,
+            "CFBundleName": "\(library.name)",
+            "CFBundleExecutable": "\(library.name)",
+        ]
+
         if let plist = self.schema.base.infoPath {
             let data = try await Data(reading: URL(fileURLWithPath: plist))
             let info = try PropertyListSerialization.propertyList(from: data, format: nil)
             if let info = info as? [String: Sendable] {
-                infoPlist = info
+                infoPlist.merge(info, uniquingKeysWith: { $1 })
             } else {
                 throw StringError("Info.plist has invalid format: expected a dictionary.")
             }
-        } else {
-            infoPlist = [
-                "CFBundleInfoDictionaryVersion": "6.0",
-                "UIRequiredDeviceCapabilities": ["arm64"],
-                "LSRequiresIPhoneOS": true,
-                "CFBundleSupportedPlatforms": ["iPhoneOS"],
-                "CFBundlePackageType": "APPL",
-                "UIDeviceFamily": [1, 2],
-                "CFBundleDevelopmentRegion": "en",
-                "UISupportedInterfaceOrientations": ["UIInterfaceOrientationPortrait"],
-                "UISupportedInterfaceOrientations~ipad": [
-                  "UIInterfaceOrientationPortrait",
-                  "UIInterfaceOrientationPortraitUpsideDown",
-                  "UIInterfaceOrientationLandscapeLeft",
-                  "UIInterfaceOrientationLandscapeRight"
-                ],
-                "UILaunchScreen": [:] as [String: Sendable],
-                "CFBundleVersion": "1",
-                "CFBundleShortVersionString": "1.0.0",
-                "MinimumOSVersion": deploymentTarget,
-                "CFBundleIdentifier": bundleID,
-                "CFBundleName": "\(library.name)",
-                "CFBundleExecutable": "\(library.name)",
-            ]
         }
 
         return Plan(
