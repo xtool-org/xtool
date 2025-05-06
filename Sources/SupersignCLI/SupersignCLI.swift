@@ -1,6 +1,6 @@
 import Foundation
 import XKit
-import SupersignCLISupport
+import XToolSupport
 import Dependencies
 
 @_documentation(visibility: private)

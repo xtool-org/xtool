@@ -1,5 +1,5 @@
 import Testing
-@testable import SupersignCLISupport
+@testable import XToolSupport
 
 extension SDKEntry {
     fileprivate static let test = E("Root", [

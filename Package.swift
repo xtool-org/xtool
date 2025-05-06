@@ -18,8 +18,8 @@ let package = Package(
             targets: ["XKit"]
         ),
         .library(
-            name: "SupersignCLISupport",
-            targets: ["SupersignCLISupport"]
+            name: "XToolSupport",
+            targets: ["XToolSupport"]
         ),
         .executable(
             name: "SupersignCLI",
@@ -112,9 +112,9 @@ let package = Package(
             cSettings: cSettings
         ),
         .testTarget(
-            name: "SupersignCLITests",
+            name: "XToolTests",
             dependencies: [
-                "SupersignCLISupport",
+                "XToolSupport",
             ]
         ),
         .testTarget(
@@ -132,7 +132,7 @@ let package = Package(
             ]
         ),
         .target(
-            name: "SupersignCLISupport",
+            name: "XToolSupport",
             dependencies: [
                 "SwiftyMobileDevice",
                 "XKit",
@@ -157,7 +157,7 @@ let package = Package(
             dependencies: [
                 "SwiftyMobileDevice",
                 "XKit",
-                "SupersignCLISupport",
+                "XToolSupport",
             ],
             cSettings: cSettings
         ),
