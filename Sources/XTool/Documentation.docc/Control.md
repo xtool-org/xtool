@@ -6,7 +6,7 @@ Add resources, modify your `Info.plist`, and more.
 
 When building your app, xtool provides many knobs to add resources and modify files in its `.app` bundle. This article explains how to perform some common tasks along these lines.
 
-Many of the tasks here involve modifying the `xtool.yml` file. The default `xtool dev new` template should generate this file for you. If you don't have it, make sure you create one first.
+Many of the tasks here involve modifying the `xtool.yml` file. The default `xtool new` template should generate this file for you. If you don't have it, make sure you create one first.
 
 ```bash
 cat > xtool.yml << EOF

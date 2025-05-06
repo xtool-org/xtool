@@ -85,7 +85,7 @@ xtool --help
 Perform one-time setup with
 
 ```bash
-xtool dev setup
+xtool setup
 ```
 
 You'll first be asked to log in:

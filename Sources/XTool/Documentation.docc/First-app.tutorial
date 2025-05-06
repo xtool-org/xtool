@@ -8,7 +8,7 @@
         
         @Steps {
             @Step {
-                xtool comes with a template for iOS-capable Swift Packages. Run `xtool dev new` to create a new package.
+                xtool comes with a template for iOS-capable Swift Packages. Run `xtool new` to create a new package.
                 
                 @Code(name: "Terminal", file: "template-1b.sh", previousFile: "template-1a.sh") {}
             }

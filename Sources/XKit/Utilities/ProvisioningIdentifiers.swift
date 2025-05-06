@@ -12,7 +12,7 @@ enum ProvisioningIdentifiers {}
 
 extension ProvisioningIdentifiers {
 
-    static let idPrefix = "SC-"
+    static let idPrefix = "XTL-"
     static let groupPrefix = "group."
     static let namePrefix = "XTool "
 

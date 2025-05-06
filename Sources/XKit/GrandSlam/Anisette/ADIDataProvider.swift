@@ -112,9 +112,9 @@ public struct ADIDataProvider: AnisetteDataProvider {
             .joined()
     }
 
-    private static let localUserUIDKey = "SUPLocalUserUID"
-    private static let provisioningKey = "SUPProvisioningInfo"
-    private static let routingInfoKey = "SUPRoutingInfo"
+    private static let localUserUIDKey = "XTLLocalUserUID"
+    private static let provisioningKey = "XTLProvisioningInfo"
+    private static let routingInfoKey = "XTLRoutingInfo"
 
     private struct GSARequest<T: Encodable>: Encodable {
         let header: [String: String] = [:]

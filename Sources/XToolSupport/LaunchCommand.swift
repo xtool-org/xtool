@@ -3,16 +3,16 @@ import XKit
 import SwiftyMobileDevice
 import ArgumentParser
 
-struct RunCommand: AsyncParsableCommand {
+struct LaunchCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "run",
-        abstract: "Run an installed app"
+        commandName: "launch",
+        abstract: "Launch an installed app"
     )
     
     @OptionGroup var connectionOptions: ConnectionOptions
 
     @Argument(
-        help: "The app to run"
+        help: "The app to launch"
     ) var bundleID: String
 
     @Argument(

@@ -48,19 +48,19 @@ extension AuthToken {
     private static let decoder = JSONDecoder()
 
     static func saved() throws -> Self {
-        guard let data = try storage.data(forKey: "SUPAuthToken") else {
+        guard let data = try storage.data(forKey: "XTLAuthToken") else {
             throw Console.Error("Please log in with `xtool auth` before running this command.")
         }
         return try decoder.decode(AuthToken.self, from: data)
     }
 
     static func clear() throws {
-        try Self.storage.setData(nil, forKey: "SUPAuthToken")
+        try Self.storage.setData(nil, forKey: "XTLAuthToken")
     }
 
     func save() throws {
         let data = try Self.encoder.encode(self)
-        try Self.storage.setData(data, forKey: "SUPAuthToken")
+        try Self.storage.setData(data, forKey: "XTLAuthToken")
     }
 
     func authData() throws -> DeveloperAPIAuthData {

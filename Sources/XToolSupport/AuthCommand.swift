@@ -195,7 +195,7 @@ struct AuthStatusCommand: AsyncParsableCommand {
 struct AuthCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "auth",
-        abstract: "Authenticate with Apple Developer Services",
+        abstract: "Manage Apple Developer Services authentication",
         subcommands: [
             AuthLoginCommand.self,
             AuthLogoutCommand.self,

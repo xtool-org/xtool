@@ -1,4 +1,4 @@
-Developer$ xtool dev new Hello
+Developer$ xtool new Hello
 Creating package: Hello
 Creating Package.swift
 Creating xtool.yml

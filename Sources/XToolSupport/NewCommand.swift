@@ -2,10 +2,10 @@ import ArgumentParser
 import Foundation
 import PackLib
 
-struct DevNewCommand: AsyncParsableCommand {
+struct NewCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "new",
-        abstract: "Create a new project"
+        abstract: "Create a new xtool SwiftPM project"
     )
 
     @Argument var name: String?
@@ -14,7 +14,7 @@ struct DevNewCommand: AsyncParsableCommand {
         help: ArgumentHelp(
             "Skip setup steps. (default: false)",
             discussion: """
-            By default, this command first invokes `xtool dev setup` to complete \
+            By default, this command first invokes `xtool setup` to complete \
             any missing setup steps, like authenticating and installing the SDK. Use \
             this flag to always skip setup.
             """
@@ -24,7 +24,7 @@ struct DevNewCommand: AsyncParsableCommand {
     func run() async throws {
         if !skipSetup {
             // perform any remaining setup steps first
-            try await DevSetupOperation(quiet: true).run()
+            try await SetupOperation(quiet: true).run()
         }
 
         let name = try await Console.promptRequired("Package name: ", existing: self.name)

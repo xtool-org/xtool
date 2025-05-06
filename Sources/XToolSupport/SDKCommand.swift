@@ -5,7 +5,7 @@ import ArgumentParser
 import Dependencies
 import PackLib
 
-struct DevSDKCommand: AsyncParsableCommand {
+struct SDKCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "sdk",
         abstract: "Manage the Darwin Swift SDK",

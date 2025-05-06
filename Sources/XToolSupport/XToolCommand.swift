@@ -12,14 +12,32 @@ struct XToolCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "xtool",
         abstract: "The xtool command line interface",
-        subcommands: [
-            AuthCommand.self,
-            DSCommand.self,
-            DevicesCommand.self,
-            InstallCommand.self,
-            UninstallCommand.self,
-            DevCommand.self,
-            RunCommand.self,
+        groupedSubcommands: [
+            CommandGroup(
+                name: "Configuration",
+                subcommands: [
+                    SetupCommand.self,
+                    AuthCommand.self,
+                    SDKCommand.self,
+                ]
+            ),
+            CommandGroup(
+                name: "Development",
+                subcommands: [
+                    NewCommand.self,
+                    DevCommand.self,
+                    DSCommand.self,
+                ]
+            ),
+            CommandGroup(
+                name: "Device",
+                subcommands: [
+                    DevicesCommand.self,
+                    InstallCommand.self,
+                    UninstallCommand.self,
+                    LaunchCommand.self,
+                ]
+            )
         ]
     )
 }

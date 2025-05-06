@@ -3,55 +3,6 @@ import ArgumentParser
 import PackLib
 import XKit
 
-struct DevSetupCommand: AsyncParsableCommand {
-    static let configuration = CommandConfiguration(
-        commandName: "setup",
-        abstract: "Set up xtool for iOS development",
-        discussion: """
-        Authenticates with Apple if needed, then adds the iOS SDK to SwiftPM.
-
-        Equivalent to running `xtool auth && xtool dev sdk`
-        """
-    )
-
-    func run() async throws {
-        try await DevSetupOperation().run()
-    }
-}
-
-struct DevSetupOperation {
-    var quiet = false
-
-    func run() async throws {
-        try await AuthOperation(logoutFromExisting: false, quiet: quiet).run()
-
-        switch try DarwinSDK.current()?.isUpToDate() {
-        case true?:
-            if !quiet {
-                print("Darwin SDK is up to date.")
-            }
-        case false?:
-            if !quiet {
-                print("Darwin SDK is outdated.")
-            }
-            fallthrough
-        case nil:
-            let path = try await Console.prompt("""
-            Now generating the Darwin SDK.
-            
-            Please download Xcode from http://developer.apple.com/download/all/?q=Xcode
-            and enter the path to the downloaded Xcode.xip.
-            
-            Path to Xcode.xip: 
-            """)
-
-            let expanded = (path as NSString).expandingTildeInPath
-
-            try await InstallSDKOperation(path: expanded).run()
-        }
-    }
-}
-
 struct PackOperation {
     struct BuildOptions: ParsableArguments {
         @Option(
@@ -178,11 +129,8 @@ struct DevRunCommand: AsyncParsableCommand {
 struct DevCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "dev",
-        abstract: "Develop iOS apps with SwiftPM",
+        abstract: "Build and run an xtool SwiftPM project",
         subcommands: [
-            DevSetupCommand.self,
-            DevNewCommand.self,
-            DevSDKCommand.self,
             DevXcodeCommand.self,
             DevBuildCommand.self,
             DevRunCommand.self,
