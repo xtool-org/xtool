@@ -10,8 +10,8 @@ public struct Packer: Sendable {
     }
 
     private func build() async throws {
-        let supersignDir = URL(fileURLWithPath: "supersign")
-        let packageDir = supersignDir.appendingPathComponent(".supersign-tmp")
+        let xtoolDir = URL(fileURLWithPath: "xtool")
+        let packageDir = xtoolDir.appendingPathComponent(".xtool-tmp")
         try? FileManager.default.removeItem(at: packageDir)
         try FileManager.default.createDirectory(at: packageDir, withIntermediateDirectories: true)
 
@@ -150,7 +150,7 @@ public struct Packer: Sendable {
             }
         }
 
-        let dest = URL(fileURLWithPath: "supersign")
+        let dest = URL(fileURLWithPath: "xtool")
             .appendingPathComponent(output.url.lastPathComponent)
         try? FileManager.default.removeItem(at: dest)
         try output.persist(at: dest)

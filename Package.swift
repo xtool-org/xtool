@@ -7,23 +7,23 @@ let cSettings: [CSetting] = [
 ]
 
 let package = Package(
-    name: "Supersign",
+    name: "xtool",
     platforms: [
         .iOS(.v15),
         .macOS(.v12),
     ],
     products: [
         .library(
-            name: "Supersign",
-            targets: ["Supersign"]
+            name: "XKit",
+            targets: ["XKit"]
         ),
         .library(
-            name: "SupersignCLISupport",
-            targets: ["SupersignCLISupport"]
+            name: "XToolSupport",
+            targets: ["XToolSupport"]
         ),
         .executable(
-            name: "SupersignCLI",
-            targets: ["SupersignCLI"]
+            name: "xtool",
+            targets: ["XTool"]
         ),
     ],
     dependencies: [
@@ -60,7 +60,7 @@ let package = Package(
     targets: [
         .systemLibrary(name: "CSupersette"),
         .target(
-            name: "CSupersign",
+            name: "CXKit",
             dependencies: [
                 .product(name: "OpenSSL", package: "SuperchargeCore")
             ],
@@ -74,10 +74,10 @@ let package = Package(
             exclude: ["openapi-generator-config.yaml", "openapi-overlay.yaml"]
         ),
         .target(
-            name: "Supersign",
+            name: "XKit",
             dependencies: [
                 "DeveloperAPI",
-                "CSupersign",
+                "CXKit",
                 .byName(name: "CSupersette", condition: .when(platforms: [.linux])),
                 .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
@@ -112,15 +112,15 @@ let package = Package(
             cSettings: cSettings
         ),
         .testTarget(
-            name: "SupersignCLITests",
+            name: "XToolTests",
             dependencies: [
-                "SupersignCLISupport",
+                "XToolSupport",
             ]
         ),
         .testTarget(
-            name: "SupersignTests",
+            name: "XKitTests",
             dependencies: [
-                "Supersign",
+                "XKit",
                 .product(name: "SuperutilsTestSupport", package: "SuperchargeCore")
             ],
             exclude: [
@@ -132,10 +132,10 @@ let package = Package(
             ]
         ),
         .target(
-            name: "SupersignCLISupport",
+            name: "XToolSupport",
             dependencies: [
                 "SwiftyMobileDevice",
-                "Supersign",
+                "XKit",
                 "PackLib",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "SystemPackage", package: "swift-system"),
@@ -153,11 +153,11 @@ let package = Package(
             ]
         ),
         .executableTarget(
-            name: "SupersignCLI",
+            name: "XTool",
             dependencies: [
                 "SwiftyMobileDevice",
-                "Supersign",
-                "SupersignCLISupport",
+                "XKit",
+                "XToolSupport",
             ],
             cSettings: cSettings
         ),

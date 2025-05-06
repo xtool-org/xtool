@@ -1,14 +1,14 @@
 version: 1
 builder:
   configs:
-    - scheme: SupersignCLI
+    - scheme: xtool
       platform: macosSpm
       documentation_targets:
-      - SupersignCLI
-    - scheme: SupersignCLI
+      - xtool
+    - scheme: xtool
       platform: macosXcodebuild
-    # - scheme: SupersignCLI
+    # - scheme: xtool
     #   platform: linux
     #   image: # TODO: we need to use our own Docker image for this
-    - scheme: Supersign
+    - scheme: XKit
       platform: ios

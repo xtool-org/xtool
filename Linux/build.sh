@@ -16,9 +16,9 @@ fi
 rm -rf staging/tmp
 mkdir -p staging/tmp staging/linuxdeploy
 
-swift build --package-path .. -c release --product SupersignCLI --static-swift-stdlib
+swift build --package-path .. -c release --product xtool --static-swift-stdlib
 bin="$(swift build --package-path .. -c release --show-bin-path)"
-strip "${bin}/SupersignCLI"
+strip "${bin}/xtool"
 
 curr_git_info="$(curl -fsSL https://api.github.com/repos/linuxdeploy/linuxdeploy/git/refs/tags/continuous)"
 
@@ -42,14 +42,14 @@ fi
 mkdir -p staging/tmp/AppDir/usr/bin
 find "${bin}"/ -name '*.resources' -print0 | xargs -0 -I {} cp -a {} "${PWD}/staging/tmp/AppDir/usr/bin/"
 
-LDAI_OUTPUT="staging/tmp/Supersign.AppImage" ./staging/linuxdeploy/linuxdeploy.AppImage \
+LDAI_OUTPUT="staging/tmp/xtool.AppImage" ./staging/linuxdeploy/linuxdeploy.AppImage \
     --appdir staging/tmp/AppDir \
     --output appimage \
-    -e "${bin}/SupersignCLI" \
-    -d Supersign.desktop \
-    -i Supersign.png
+    -e "${bin}/xtool" \
+    -d xtool.desktop \
+    -i xtool.png
 mkdir -p packages
-mv -f staging/tmp/Supersign.AppImage packages/Supersign.AppImage
+mv -f staging/tmp/xtool.AppImage packages/xtool.AppImage
 
 rm -rf staging/tmp
 

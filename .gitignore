@@ -1,5 +1,5 @@
-/Tests/SupersignTests/config/*
-!/Tests/SupersignTests/config/config-template.json
+/Tests/XKitTests/config/*
+!/Tests/XKitTests/config/config-template.json
 *.ipa
 .DS_Store
 /.build

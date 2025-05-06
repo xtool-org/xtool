@@ -196,7 +196,7 @@ public struct Planner: Sendable {
                 throw StringError("""
                 Multiple library products were found (\(products.map(\.name))). Please either:
                 1) Expose exactly one library product, or
-                2) Specify the product you want via the 'product' key in supersign.yml.
+                2) Specify the product you want via the 'product' key in xtool.yml.
                 """)
             }
             guard let product = products.first(where: { $0.name == name }) else {

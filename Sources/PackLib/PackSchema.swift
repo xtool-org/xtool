@@ -38,7 +38,7 @@ public struct PackSchema: Sendable {
         self.base = base
 
         if base.version != .v1 {
-            throw StringError("supersign.yml: Unsupported schema version: \(base.version.rawValue)")
+            throw StringError("xtool.yml: Unsupported schema version: \(base.version.rawValue)")
         }
 
         switch (base.bundleID, base.orgID) {
@@ -47,13 +47,13 @@ public struct PackSchema: Sendable {
         case (nil, let orgID?):
             idSpecifier = .orgID(orgID)
         case (nil, nil):
-            throw StringError("supersign.yml: Must specify either orgID or bundleID")
+            throw StringError("xtool.yml: Must specify either orgID or bundleID")
         }
 
         if let iconPath = base.iconPath {
             let ext = URL(fileURLWithPath: iconPath).pathExtension
             guard ext == "png" else {
-                throw StringError("supersign.yml: iconPath should have a 'png' path extension. Got '\(ext)'.")
+                throw StringError("xtool.yml: iconPath should have a 'png' path extension. Got '\(ext)'.")
             }
         }
     }

@@ -1,0 +1,11 @@
+@Tutorials(name: "xtool") {
+    @Intro(title: "Tutorials") {
+        Install xtool and build your first iOS app on Linux.
+    }
+    
+    @Chapter(name: "Getting Started") {
+        @Image(source: "HelloWorld", alt: "Getting Started")
+        
+        @TutorialReference(tutorial: "doc:First-app")
+    }
+}
