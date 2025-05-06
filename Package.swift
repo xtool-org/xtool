@@ -58,7 +58,7 @@ let package = Package(
         .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.43.0"),
     ],
     targets: [
-        .systemLibrary(name: "CSupersette"),
+        .systemLibrary(name: "XADI"),
         .target(
             name: "CXKit",
             dependencies: [
@@ -78,7 +78,7 @@ let package = Package(
             dependencies: [
                 "DeveloperAPI",
                 "CXKit",
-                .byName(name: "CSupersette", condition: .when(platforms: [.linux])),
+                .byName(name: "XADI", condition: .when(platforms: [.linux])),
                 .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
                 .product(name: "SwiftyMobileDevice", package: "SwiftyMobileDevice"),

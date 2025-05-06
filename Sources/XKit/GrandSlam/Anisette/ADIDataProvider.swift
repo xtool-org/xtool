@@ -50,7 +50,7 @@ private enum RawADIProviderDependencyKey: DependencyKey {
     static let testValue: RawADIProvider = UnimplementedRawADIProvider()
     static let liveValue: RawADIProvider = {
         #if os(Linux)
-        return SupersetteADIProvider()
+        return XADIProvider()
         #else
         return OmnisetteADIProvider()
         #endif

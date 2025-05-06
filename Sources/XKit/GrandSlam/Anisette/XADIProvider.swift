@@ -1,10 +1,10 @@
 #if os(Linux)
 
 import Foundation
-import CSupersette
+import XADI
 import Dependencies
 
-public actor SupersetteADIProvider: RawADIProvider {
+public actor XADIProvider: RawADIProvider {
     @MainActor private static var loadTask: Task<Void, Error>?
     @Dependency(\.httpClient) private var httpClient
     @Dependency(\.persistentDirectory) private var persistentDirectory
@@ -63,14 +63,14 @@ public actor SupersetteADIProvider: RawADIProvider {
             try? FileManager.default.removeItem(at: tmp)
         }
 
-        supersette_Load(strdup(libDir.path()))
+        xadi_Load(strdup(libDir.path()))
 
         let rawID = id.uuidString.replacingOccurrences(of: "-", with: "").prefix(16).lowercased()
-        try check(supersette_SetAndroidID(rawID, UInt32(rawID.utf8.count)))
+        try check(xadi_SetAndroidID(rawID, UInt32(rawID.utf8.count)))
 
         let adi = dir.appending(path: "adi")
         try? FileManager.default.createDirectory(at: adi, withIntermediateDirectories: true)
-        try check(supersette_SetProvisioningPath(adi.path()))
+        try check(xadi_SetProvisioningPath(adi.path()))
     }
 
     @MainActor private func loadADI(id: UUID) async throws {
@@ -96,7 +96,7 @@ public actor SupersetteADIProvider: RawADIProvider {
         var cpimBytes: UnsafeMutableRawPointer?
         var cpimLen: UInt32 = 0
         try check(spim.withUnsafeBytes { spimBytes in
-            supersette_ProvisioningStart(
+            xadi_ProvisioningStart(
                 UInt64(bitPattern: -2),
                 spimBytes.baseAddress!, UInt32(spimBytes.count),
                 &cpimBytes, &cpimLen,
@@ -104,7 +104,7 @@ public actor SupersetteADIProvider: RawADIProvider {
             )
         })
         let data = Data(UnsafeRawBufferPointer(start: cpimBytes, count: Int(cpimLen)))
-        _ = cpimBytes.map { supersette_Dispose($0) }
+        _ = cpimBytes.map { xadi_Dispose($0) }
         return (
             ADISession(
                 sessionID: sessionID,
@@ -121,7 +121,7 @@ public actor SupersetteADIProvider: RawADIProvider {
         func endProvisioning(routingInfo: UInt64, ptm: Data, tk: Data) async throws -> Data {
             try check(ptm.withUnsafeBytes { ptmBuf in
                 tk.withUnsafeBytes { tkBuf in
-                    supersette_ProvisioningEnd(
+                    xadi_ProvisioningEnd(
                         sessionID,
                         ptmBuf.baseAddress!, UInt32(ptmBuf.count),
                         tkBuf.baseAddress!, UInt32(tkBuf.count)
@@ -153,7 +153,7 @@ public actor SupersetteADIProvider: RawADIProvider {
         try? FileManager.default.removeItem(at: adiFile)
         try provisioningInfo.write(to: adiFile)
 
-        try check(supersette_OTPRequest(
+        try check(xadi_OTPRequest(
             UInt64(bitPattern: -2),
             &midBytes, &midLen,
             &otpBytes, &otpLen
@@ -162,8 +162,8 @@ public actor SupersetteADIProvider: RawADIProvider {
         let mid = Data(UnsafeRawBufferPointer(start: midBytes, count: Int(midLen)))
         let otp = Data(UnsafeRawBufferPointer(start: otpBytes, count: Int(otpLen)))
 
-        _ = midBytes.map { supersette_Dispose($0) }
-        _ = otpBytes.map { supersette_Dispose($0) }
+        _ = midBytes.map { xadi_Dispose($0) }
+        _ = otpBytes.map { xadi_Dispose($0) }
 
         return (machineID: mid, otp: otp)
     }

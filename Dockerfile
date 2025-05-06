@@ -66,23 +66,23 @@ RUN cd libimobiledevice \
     && make install DESTDIR=/prefix
 
 
-FROM build-base AS build-supersette
+FROM build-base AS build-xadi
 
 RUN mkdir -p /prefix/usr/lib
 
 RUN curl -fsS https://dlang.org/install.sh | bash -s ldc
 
-ADD https://github.com/SuperchargeApp/SupersetteD.git#main /SupersetteD
+ADD https://github.com/xtool-org/xadi.git#main /xadi
 
-RUN cd SupersetteD \
+RUN cd xadi \
     && /bin/bash -c 'source $(/root/dlang/install.sh ldc -a) && dub build --build=release' \
-    && cp -r bin/libsupersette.so /prefix/usr/lib/libsupersette.so
+    && cp -r bin/libxadi.so /prefix/usr/lib/libxadi.so
 
 
 FROM build-base
 
 COPY --from=build-limd /prefix/usr /usr
-COPY --from=build-supersette /prefix/usr /usr
+COPY --from=build-xadi /prefix/usr /usr
 
 # Docker doesn't support FUSE
 ENV APPIMAGE_EXTRACT_AND_RUN=1
