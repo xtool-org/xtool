@@ -1,10 +1,10 @@
 services:
-  supersign:
+  xtool:
     build:
       context: .
     volumes:
-      - .:/Supersign
-    container_name: supersign
+      - .:/xtool
+    container_name: xtool
     stdin_open: true
     tty: true
     cap_add:

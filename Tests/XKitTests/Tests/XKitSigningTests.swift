@@ -1,6 +1,6 @@
 //
-//  SupersignSigningTests.swift
-//  SupersignTests
+//  XKitSigningTests.swift
+//  XKitTests
 //
 //  Created by Kabir Oberai on 06/11/19.
 //  Copyright © 2019 Kabir Oberai. All rights reserved.
@@ -14,7 +14,7 @@ import XCTest
 import SuperutilsTestSupport
 import XKit
 
-class SupersignSigningTests: XCTestCase {
+class XKitSigningTests: XCTestCase {
 
     var client: DeveloperServicesClient!
     var signerImpl: SignerImpl!

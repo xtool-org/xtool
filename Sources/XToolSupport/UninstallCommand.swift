@@ -17,7 +17,7 @@ struct UninstallCommand: AsyncParsableCommand {
 
     func run() async throws {
         let client = try await connectionOptions.client()
-        let installProxy = try InstallationProxyClient(device: client.device, label: "supersign-inst")
+        let installProxy = try InstallationProxyClient(device: client.device, label: "xtool-inst")
         do {
             try await installProxy.uninstall(
                 bundleID: bundleID,

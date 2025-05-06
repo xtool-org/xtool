@@ -1,6 +1,6 @@
 //
 //  Debugger.swift
-//  Supersign
+//  XKit
 //
 //  Created by Kabir Oberai on 26/03/21.
 //  Copyright © 2021 Kabir Oberai. All rights reserved.

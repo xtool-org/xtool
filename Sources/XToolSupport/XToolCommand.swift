@@ -2,16 +2,16 @@ import Foundation
 import XKit
 import ArgumentParser
 
-public enum SupersignCLI {
+public enum XTool {
     public static func run(arguments: [String]? = nil) async throws {
-        await SupersignCommand.cancellableMain(arguments)
+        await XToolCommand.cancellableMain(arguments)
     }
 }
 
-struct SupersignCommand: AsyncParsableCommand {
+struct XToolCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "supersign",
-        abstract: "The Supersign command line tool",
+        commandName: "xtool",
+        abstract: "The xtool command line interface",
         subcommands: [
             AuthCommand.self,
             DSCommand.self,

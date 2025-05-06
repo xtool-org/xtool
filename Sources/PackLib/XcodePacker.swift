@@ -16,10 +16,10 @@ public struct XcodePacker {
     public func createProject() async throws -> URL {
         let targetName = "\(plan.product)-App"
 
-        let supersignDir: Path = "supersign"
+        let xtoolDir: Path = "xtool"
 
-        let projectDir: Path = supersignDir + ".supersign-tmp"
-        try? supersignDir.delete()
+        let projectDir: Path = xtoolDir + ".xtool-tmp"
+        try? xtoolDir.delete()
         try projectDir.mkpath()
 
         let infoPath = projectDir + "Info.plist"
@@ -86,7 +86,7 @@ public struct XcodePacker {
 
         let generator = ProjectGenerator(project: project)
         let xcodeproj = projectDir + "\(plan.product).xcodeproj"
-        let xcworkspace = supersignDir + "\(plan.product).xcworkspace"
+        let xcworkspace = xtoolDir + "\(plan.product).xcworkspace"
         do {
             let current = Path.current
             Path.current = xcodeproj.parent()

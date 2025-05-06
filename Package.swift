@@ -22,8 +22,8 @@ let package = Package(
             targets: ["XToolSupport"]
         ),
         .executable(
-            name: "SupersignCLI",
-            targets: ["SupersignCLI"]
+            name: "xtool",
+            targets: ["xtool"]
         ),
     ],
     dependencies: [
@@ -153,7 +153,7 @@ let package = Package(
             ]
         ),
         .executableTarget(
-            name: "SupersignCLI",
+            name: "xtool",
             dependencies: [
                 "SwiftyMobileDevice",
                 "XKit",

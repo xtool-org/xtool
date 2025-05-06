@@ -1,6 +1,6 @@
 //
 //  GrandSlamClient.swift
-//  Supersign
+//  XKit
 //
 //  Created by Kabir Oberai on 19/11/19.
 //  Copyright © 2019 Kabir Oberai. All rights reserved.

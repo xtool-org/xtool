@@ -1,6 +1,6 @@
 //
 //  AppInstaller.swift
-//  Supersign
+//  XKit
 //
 //  Created by Kabir Oberai on 13/11/19.
 //  Copyright © 2019 Kabir Oberai. All rights reserved.
@@ -77,7 +77,7 @@ public actor AppInstaller {
 
     // serial queue
     private let installQueue = DispatchQueue(
-        label: "com.kabiroberai.Supersign.install-queue"
+        label: "com.kabiroberai.xtool.install-queue"
     )
 
     public let ipa: URL

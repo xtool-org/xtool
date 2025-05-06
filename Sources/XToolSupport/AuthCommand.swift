@@ -90,7 +90,7 @@ struct AuthOperation {
 
         print("Logging in...")
 
-        let authDelegate = SupersignCLIAuthDelegate()
+        let authDelegate = XToolAuthDelegate()
         let manager = DeveloperServicesLoginManager()
         let token = try await manager.logIn(
             withUsername: username,
@@ -152,7 +152,7 @@ struct AuthLogoutCommand: AsyncParsableCommand {
         help: ArgumentHelp(
             "Reset 2-factor authentication data",
             discussion: """
-            This resets the "pseudo-device" that Supersign presents itself as \
+            This resets the "pseudo-device" that xtool presents itself as \
             when authenticating with Apple using the password login mode.
 
             Effectively, this means you will be prompted to complete 2-factor \

@@ -1,6 +1,6 @@
 //
 //  DeveloperServicesTestClient.swift
-//  SupersignTests
+//  XKitTests
 //
 //  Created by Kabir Oberai on 06/11/19.
 //  Copyright © 2019 Kabir Oberai. All rights reserved.

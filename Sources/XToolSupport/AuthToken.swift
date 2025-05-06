@@ -49,7 +49,7 @@ extension AuthToken {
 
     static func saved() throws -> Self {
         guard let data = try storage.data(forKey: "SUPAuthToken") else {
-            throw Console.Error("Please log in with `supersign ds login` before running this command.")
+            throw Console.Error("Please log in with `xtool auth` before running this command.")
         }
         return try decoder.decode(AuthToken.self, from: data)
     }

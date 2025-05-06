@@ -1,6 +1,6 @@
 //
-//  SupersignDeveloperServicesTests.swift
-//  SupersignTests
+//  XKitDeveloperServicesTests.swift
+//  XKitTests
 //
 //  Created by Kabir Oberai on 30/10/19.
 //  Copyright © 2019 Kabir Oberai. All rights reserved.
@@ -12,7 +12,7 @@ import XKit
 
 // swiftlint:disable force_try
 
-class SupersignDeveloperServicesTests: XCTestCase {
+class XKitDeveloperServicesTests: XCTestCase {
 
     var storage: KeyValueStorage!
     var client: DeveloperServicesClient!

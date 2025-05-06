@@ -25,7 +25,7 @@ struct RunCommand: AsyncParsableCommand {
     func run() async throws {
         let client = try await connectionOptions.client()
 
-        let installProxy = try InstallationProxyClient(device: client.device, label: "supersign-inst")
+        let installProxy = try InstallationProxyClient(device: client.device, label: "xtool-inst")
         let executable: URL
         do {
             executable = try installProxy.executable(forBundleID: bundleID)
@@ -35,7 +35,7 @@ struct RunCommand: AsyncParsableCommand {
 
         print("Launching \(executable.lastPathComponent)...")
 
-        let debugserver = try DebugserverClient(device: client.device, label: "supersign")
+        let debugserver = try DebugserverClient(device: client.device, label: "xtool")
         guard try debugserver.launch(executable: executable, arguments: args) == "OK" else {
             throw Console.Error("Launch failed (!OK)")
         }

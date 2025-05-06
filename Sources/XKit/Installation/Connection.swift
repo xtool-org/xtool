@@ -1,6 +1,6 @@
 //
 //  Connection.swift
-//  Supersign
+//  XKit
 //
 //  Created by Kabir Oberai on 15/11/19.
 //  Copyright © 2019 Kabir Oberai. All rights reserved.
@@ -68,7 +68,7 @@ public actor Connection {
         let preferences: Preferences
     }
 
-    private static let label = "supersign"
+    private static let label = "xtool"
     private static let pool = WeakPool<ConnectionDescriptor, Connection, Error>()
 
     private var handle: AnyObject?

@@ -22,7 +22,7 @@ struct InstallCommand: AsyncParsableCommand {
 
         print("Installing to device: \(client.deviceName) (udid: \(client.udid))")
 
-        let installDelegate = SupersignCLIDelegate()
+        let installDelegate = XToolInstallerDelegate()
         let installer = IntegratedInstaller(
             udid: client.udid,
             lookupMode: .only(client.connectionType),

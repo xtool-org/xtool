@@ -1,6 +1,6 @@
 //
 //  Config.swift
-//  SupersignTests
+//  XKitTests
 //
 //  Created by Kabir Oberai on 05/11/19.
 //  Copyright © 2019 Kabir Oberai. All rights reserved.

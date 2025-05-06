@@ -1,6 +1,6 @@
 //
 //  SRPClient.swift
-//  Supersign
+//  XKit
 //
 //  Created by Kabir Oberai on 11/04/20.
 //  Copyright © 2020 Kabir Oberai. All rights reserved.

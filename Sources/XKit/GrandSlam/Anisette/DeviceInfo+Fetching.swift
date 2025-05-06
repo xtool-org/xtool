@@ -1,6 +1,6 @@
 //
 //  DeviceInfo+Fetching.swift
-//  Supersign
+//  XKit
 //
 //  Created by Kabir Oberai on 18/06/20.
 //  Copyright © 2020 Kabir Oberai. All rights reserved.

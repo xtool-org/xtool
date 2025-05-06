@@ -2,7 +2,7 @@
 
 //
 //  DDIMounter.swift
-//  Supersign
+//  XKit
 //
 //  Created by Kabir Oberai on 25/03/21.
 //  Copyright © 2021 Kabir Oberai. All rights reserved.

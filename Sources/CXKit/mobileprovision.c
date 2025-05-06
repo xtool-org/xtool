@@ -1,6 +1,6 @@
 //
 //  mobileprovision_utils.c
-//  supersign
+//  XKit
 //
 //  Created by Kabir Oberai on 05/07/19.
 //  Copyright © 2019 Kabir Oberai. All rights reserved.

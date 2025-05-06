@@ -12,7 +12,7 @@ import ConcurrencyExtras
 import Dependencies
 
 extension LockdownClient {
-    static let installerLabel = "supersign"
+    static let installerLabel = "xtool"
 }
 
 #if !os(iOS)

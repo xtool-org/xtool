@@ -1,6 +1,6 @@
 //
 //  ProvisioningIdentifiers.swift
-//  Supersign
+//  XKit
 //
 //  Created by Kabir Oberai on 14/10/19.
 //  Copyright © 2019 Kabir Oberai. All rights reserved.

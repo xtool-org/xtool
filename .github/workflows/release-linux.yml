@@ -19,13 +19,13 @@ jobs:
         uses: actions/checkout@v4
       - name: Build
         run: |
-          docker compose run --build --rm supersign -c "Linux/build.sh && mv Linux/packages/Supersign{,-${{ matrix.host.arch }}}.AppImage"
+          docker compose run --build --rm xtool -c "Linux/build.sh && mv Linux/packages/xtool{,-${{ matrix.host.arch }}}.AppImage"
       - name: Upload artifact
         id: upload_artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Supersign-${{ matrix.host.arch }}
-          path: Linux/packages/Supersign-${{ matrix.host.arch }}.AppImage
+          name: xtool-${{ matrix.host.arch }}
+          path: Linux/packages/xtool-${{ matrix.host.arch }}.AppImage
   release:
     needs: build
     runs-on: ubuntu-24.04
@@ -39,7 +39,7 @@ jobs:
         id: download_artifact
         uses: actions/download-artifact@v4
         with:
-          pattern: Supersign-*
+          pattern: xtool-*
           path: output
       - name: Create and publish release
         id: publish_release

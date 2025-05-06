@@ -2,13 +2,13 @@ import Foundation
 import XKit
 import ConcurrencyExtras
 
-final class SupersignCLIAuthDelegate: TwoFactorAuthDelegate {
+final class XToolAuthDelegate: TwoFactorAuthDelegate {
     func fetchCode() async -> String? {
         try? await Console.prompt("Code: ")
     }
 }
 
-actor SupersignCLIDelegate: IntegratedInstallerDelegate {
+actor XToolInstallerDelegate: IntegratedInstallerDelegate {
     init() {}
 
     private let updateTask = LockIsolated<Task<Void, Never>?>(nil)

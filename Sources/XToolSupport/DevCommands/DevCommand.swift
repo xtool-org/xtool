@@ -6,11 +6,11 @@ import XKit
 struct DevSetupCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "setup",
-        abstract: "Set up Supersign for iOS development",
+        abstract: "Set up xtool for iOS development",
         discussion: """
         Authenticates with Apple if needed, then adds the iOS SDK to SwiftPM.
 
-        Equivalent to running `supersign auth && supersign dev sdk`
+        Equivalent to running `xtool auth && xtool dev sdk`
         """
     )
 
@@ -74,7 +74,7 @@ struct PackOperation {
         print("Planning...")
 
         let schema: PackSchema
-        let configPath = URL(fileURLWithPath: "supersign.yml")
+        let configPath = URL(fileURLWithPath: "xtool.yml")
         if FileManager.default.fileExists(atPath: configPath.path) {
             schema = try await PackSchema(url: configPath)
         } else {
@@ -160,7 +160,7 @@ struct DevRunCommand: AsyncParsableCommand {
         let client = try await connectionOptions.client()
         print("Installing to device: \(client.deviceName) (udid: \(client.udid))")
 
-        let installDelegate = SupersignCLIDelegate()
+        let installDelegate = XToolInstallerDelegate()
         let installer = IntegratedInstaller(
             udid: client.udid,
             lookupMode: .only(client.connectionType),

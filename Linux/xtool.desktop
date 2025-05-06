@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Supersign
+Name=xtool
 Categories=Development;
-Exec=SupersignCLI
-Icon=Supersign
+Exec=xtool
+Icon=xtool
 # TODO: remove
 Terminal=true

@@ -5,7 +5,7 @@ import Dependencies
 
 @_documentation(visibility: private)
 @main
-enum SupersignCLIMain {
+enum XToolMain {
     static func main() async throws {
         prepareDependencies { dependencies in
             #warning("Improve persistence mechanism")
@@ -17,6 +17,6 @@ enum SupersignCLIMain {
 //            dependencies.keyValueStorage = KeychainStorage(service: "com.kabiroberai.Supercharge-Keychain.credentials")
 //            #endif
         }
-        try await SupersignCLI.run()
+        try await XTool.run()
     }
 }

@@ -1,6 +1,6 @@
 //
 //  LocalAnisetteDataProviders.swift
-//  Supersign
+//  XKit
 //
 //  Created by Kabir Oberai on 29/06/20.
 //  Copyright © 2020 Kabir Oberai. All rights reserved.

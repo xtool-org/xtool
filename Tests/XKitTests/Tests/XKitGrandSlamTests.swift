@@ -1,6 +1,6 @@
 //
-//  SupersignGrandSlamTests.swift
-//  SupersignTests
+//  XKitGrandSlamTests.swift
+//  XKitTests
 //
 //  Created by Kabir Oberai on 10/04/20.
 //  Copyright © 2020 Kabir Oberai. All rights reserved.
@@ -19,7 +19,7 @@ final class TwoFactorAuthenticator: TwoFactorAuthDelegate {
     }
 }
 
-class SupersignGrandSlamTests: XCTestCase {
+class XKitGrandSlamTests: XCTestCase {
 
     var authenticator: TwoFactorAuthenticator!
     var storage: KeyValueStorage!

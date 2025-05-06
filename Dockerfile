@@ -92,6 +92,6 @@ ENV APPIMAGE_EXTRACT_AND_RUN=1
 # socat -dd TCP-LISTEN:27015,range=127.0.0.1/32,reuseaddr,fork UNIX-CLIENT:/var/run/usbmuxd
 ENV USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015
 
-WORKDIR /Supersign
+WORKDIR /xtool
 
 ENTRYPOINT [ "/bin/bash" ]

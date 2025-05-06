@@ -14,7 +14,7 @@ struct DevNewCommand: AsyncParsableCommand {
         help: ArgumentHelp(
             "Skip setup steps. (default: false)",
             discussion: """
-            By default, this command first invokes `supersign dev setup` to complete \
+            By default, this command first invokes `xtool dev setup` to complete \
             any missing setup steps, like authenticating and installing the SDK. Use \
             this flag to always skip setup.
             """
@@ -79,7 +79,7 @@ struct DevNewCommand: AsyncParsableCommand {
                         .macOS(.v14),
                     ],
                     products: [
-                        // A Supersign project should contain exactly one library target,
+                        // An xtool project should contain exactly one library target,
                         // representing the main app.
                         .library(
                             name: "\(moduleName)",
@@ -96,7 +96,7 @@ struct DevNewCommand: AsyncParsableCommand {
             ),
 
             (
-                "supersign.yml",
+                "xtool.yml",
                 """
                 version: 1
                 bundleID: com.example.\(name)
@@ -115,7 +115,7 @@ struct DevNewCommand: AsyncParsableCommand {
                 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
                 .netrc
                 
-                /supersign
+                /xtool
                 /.sourcekit-lsp
                 """
             ),
@@ -179,6 +179,6 @@ struct DevNewCommand: AsyncParsableCommand {
 
         print("\nFinished generating project \(name). Next steps:")
         print("- Enter the directory with `cd \(name)`")
-        print("- Build and run with `supersign dev`")
+        print("- Build and run with `xtool dev`")
     }
 }
