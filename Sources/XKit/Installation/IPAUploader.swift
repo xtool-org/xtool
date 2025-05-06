@@ -70,7 +70,7 @@ public final class IPAUploader: Sendable {
             try client.createDirectory(at: Self.packagePath)
         }
 
-        let dest = Self.packagePath.appendingPathComponent("Supercharge-App")
+        let dest = Self.packagePath.appendingPathComponent("XTool-App")
         if try client.fileExists(at: dest) {
             try client.removeItemAndContents(at: dest)
         }

@@ -1,10 +1,10 @@
-# ``SupersignCLI``
+# ``xtool``
 
-The `supersign` command line interface (CLI).
+The `xtool` command line interface (CLI).
 
 ## Overview
 
-You can use `supersign` to interact with iOS applications and Apple Developer Services, including
+You can use `xtool` to interact with iOS applications and Apple Developer Services, including
 
 - Building a Swift Package into an iOS app on **macOS or Linux**.
 - Managing Codesigning Certificates, Devices, App Identifiers, and Provisioning Profiles across both free and paid Apple Developer accounts.

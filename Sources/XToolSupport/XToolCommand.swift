@@ -19,8 +19,6 @@ struct XToolCommand: AsyncParsableCommand {
             InstallCommand.self,
             UninstallCommand.self,
             DevCommand.self,
-            // no Supercharge support... yet...
-            // SuperchargeCommand.self,
             RunCommand.self,
         ]
     )

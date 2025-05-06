@@ -1,10 +1,10 @@
 # Installation (Linux)
 
-Set up Supersign for iOS app development on Linux.
+Set up xtool for iOS app development on Linux.
 
 ## Overview
 
-This article outlines the steps to install `supersign` and begin developing iOS apps on Linux.
+This article outlines the steps to install `xtool` and begin developing iOS apps on Linux.
 
 ## Prerequisites
 
@@ -22,7 +22,7 @@ swift --version
 
 ### usbmuxd
 
-Supersign relies on [usbmuxd](https://github.com/libimobiledevice/usbmuxd) to talk to your iOS device from Linux.
+xtool relies on [usbmuxd](https://github.com/libimobiledevice/usbmuxd) to talk to your iOS device from Linux.
 
 Your Linux distro probably offers this package, and it may be preinstalled. To check if it is, run
 
@@ -60,32 +60,32 @@ Download **Xcode 16.3** from <https://developer.apple.com/services-account/downl
 
 ## Installation
 
-### 1. Download Supersign
+### 1. Download xtool
 
-Once you have the prerequisites, download the [latest GitHub Release](https://github.com/SuperchargeApp/Supersign/releases/latest) of `Supersign.AppImage` for your architecture. Rename it to `supersign` and add it to a location in your `PATH`.
+Once you have the prerequisites, download the [latest GitHub Release](https://github.com/xtool-org/xtool/releases/latest) of `xtool.AppImage` for your architecture. Rename it to `xtool` and add it to a location in your `PATH`.
 
 ```bash
 curl -fL \
-  "https://github.com/SuperchargeApp/Supersign/releases/latest/download/Supersign-$(uname -m).AppImage" \
-  -o supersign
-chmod +x supersign
-sudo mv supersign /usr/local/bin/
+  "https://github.com/xtool-org/xtool/releases/latest/download/xtool-$(uname -m).AppImage" \
+  -o xtool
+chmod +x xtool
+sudo mv xtool /usr/local/bin/
 ```
 
-Confirm that Supersign is installed correctly:
+Confirm that xtool is installed correctly:
 
 ```bash
-supersign --help
-# OVERVIEW: The Supersign command line tool
+xtool --help
+# OVERVIEW: The xtool command line interface
 # ...
 ```
 
-### 2. Configure Supersign: log in
+### 2. Configure xtool: log in
 
 Perform one-time setup with
 
 ```bash
-supersign dev setup
+xtool dev setup
 ```
 
 You'll first be asked to log in:
@@ -103,9 +103,9 @@ Choice (0-1):
 >
 > **Password:** If you aren't enrolled in the paid developer program, you'll want to use password-based authentication. This relies on private Apple APIs to authenticate, so you may want to create a throwaway Apple ID to be extra cautious.
 
-Once you select a login mode, you'll be asked to provide the corresponding credentials (API key or email+password+2FA). Needless to say, *your credentials are only sent to Apple* and nobody else (feel free to build Supersign from source and check!)
+Once you select a login mode, you'll be asked to provide the corresponding credentials (API key or email+password+2FA). Needless to say, *your credentials are only sent to Apple* and nobody else (feel free to build xtool from source and check!)
 
-### 3. Configure Supersign: SDK
+### 3. Configure xtool: SDK
 
 After you're logged in, you'll be asked to provide the path to the `Xcode.xip` file you downloaded earlier.
 
@@ -115,7 +115,7 @@ Choice (0-1): 0
 Path to Xcode.xip:
 ```
 
-Enter the path (for example `~/Downloads/Xcode_16.3.xip`) and hit enter. Supersign will extract the Xcode XIP to generate and install an iOS Swift SDK for you.
+Enter the path (for example `~/Downloads/Xcode_16.3.xip`) and hit enter. xtool will extract the Xcode XIP to generate and install an iOS Swift SDK for you.
 
 Confirm that it worked:
 
@@ -126,4 +126,4 @@ swift sdk list
 
 ## Next steps
 
-You're now ready to use Supersign! See <doc:First-app>.
+You're now ready to use xtool! See <doc:First-app>.

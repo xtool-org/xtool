@@ -14,7 +14,7 @@ extension ProvisioningIdentifiers {
 
     static let idPrefix = "SC-"
     static let groupPrefix = "group."
-    static let namePrefix = "Supercharge "
+    static let namePrefix = "XTool "
 
     static func sanitize(identifier: String) -> String {
         guard identifier.hasPrefix(Self.idPrefix) else { return identifier }

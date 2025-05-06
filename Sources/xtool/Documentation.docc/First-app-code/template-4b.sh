@@ -1,7 +1,7 @@
-Developer$ supersign dev new Hello
+Developer$ xtool dev new Hello
 Creating package: Hello
 Creating Package.swift
-Creating supersign.yml
+Creating xtool.yml
 Creating .gitignore
 Creating .sourcekit-lsp/config.json
 Creating Sources/Hello/HelloApp.swift
@@ -15,10 +15,9 @@ Hello$ ls -la
 drwxrwxr-x  2 user user 4096 .sourcekit-lsp
 -rw-rw-r--  1 user user  463 Package.swift
 drwxrwxr-x  3 user user 4096 Sources
-drwxrwxr-x  4 user user 4096 supersign
--rw-rw-r--  1 user user   39 supersign.yml
+-rw-rw-r--  1 user user   39 xtool.yml
 
-Hello$ cat supersign.yml
+Hello$ cat xtool.yml
 version: 1
 bundleID: com.example.Hello
 

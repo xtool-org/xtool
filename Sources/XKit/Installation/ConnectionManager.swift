@@ -1,11 +1,3 @@
-//
-//  ConnectionManager.swift
-//  Supercharge Installer
-//
-//  Created by Kabir Oberai on 19/06/20.
-//  Copyright © 2020 Kabir Oberai. All rights reserved.
-//
-
 import Foundation
 import SwiftyMobileDevice
 

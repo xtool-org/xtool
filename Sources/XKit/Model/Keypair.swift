@@ -51,7 +51,7 @@ public struct Keypair {
             version: .v1,
             subject: DistinguishedName {
                 CountryName("US")
-                CommonName("Supercharge")
+                CommonName("xtool")
             },
             privateKey: X509.Certificate.PrivateKey(raw),
             attributes: CertificateSigningRequest.Attributes(),

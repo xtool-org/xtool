@@ -15,7 +15,7 @@ import ConcurrencyExtras
 public actor SignerImpl {
 
     private static let signingQueue = DispatchQueue(
-        label: "com.kabiroberai.Supercharge.signing-queue",
+        label: "com.kabiroberai.xtool.signing-queue",
         attributes: .concurrent
     )
 

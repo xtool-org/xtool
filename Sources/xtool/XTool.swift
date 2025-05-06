@@ -14,7 +14,7 @@ enum XToolMain {
             // for Linux, maybe use libsecret?
             // see https://github.com/atom/node-keytar
 //            #if os(macOS)
-//            dependencies.keyValueStorage = KeychainStorage(service: "com.kabiroberai.Supercharge-Keychain.credentials")
+//            dependencies.keyValueStorage = KeychainStorage(service: "com.kabiroberai.xtool-keychain.credentials")
 //            #endif
         }
         try await XTool.run()

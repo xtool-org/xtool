@@ -1,14 +1,14 @@
 @Tutorial(time: 30) {
     @Intro(title: "Build your first iOS app on Linux") {
-        Once you've completed <doc:Installation-Linux>, use Supersign to build and deploy an iOS app from your Linux machine.
+        Once you've completed <doc:Installation-Linux>, use xtool to build and deploy an iOS app from your Linux machine.
     }
     
-    @Section(title: "Create a Supersign project") {
-        We'll start by creating a project from Supersign's default template.
+    @Section(title: "Create an xtool project") {
+        We'll start by creating a project from xtool's default template.
         
         @Steps {
             @Step {
-                Supersign comes with a template for iOS-capable Swift Packages. Run `supersign dev new` to create a new package.
+                xtool comes with a template for iOS-capable Swift Packages. Run `xtool dev new` to create a new package.
                 
                 @Code(name: "Terminal", file: "template-1b.sh", previousFile: "template-1a.sh") {}
             }
@@ -22,7 +22,7 @@
             }
             
             @Step {
-                Read `supersign.yml`.
+                Read `xtool.yml`.
                 
                 This file describes how to bundle the Swift library into an iOS app. At minimum, you need to provide a Bundle ID. This defaults to `com.example.<PackageName>`, in this case `com.example.Hello`.
                 
@@ -32,7 +32,7 @@
             @Step {
                 Read `.sourcekit-lsp/config.json`.
                 
-                This file tells SourceKit to build for the `arm64-apple-ios` system defined in `darwin.artifactbundle`. This is the [Swift SDK](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0387-cross-compilation-destinations.md) that we built during the setup process. It contains the necessary modules for building iOS apps, such as UIKit and SwiftUI, as well as tools for building and manipulating iOS binaries. Under the hood, Supersign also calls `swift build` with `--swift-sdk arm64-apple-ios` for the same reason.
+                This file tells SourceKit to build for the `arm64-apple-ios` system defined in `darwin.artifactbundle`. This is the [Swift SDK](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0387-cross-compilation-destinations.md) that we built during the setup process. It contains the necessary modules for building iOS apps, such as UIKit and SwiftUI, as well as tools for building and manipulating iOS binaries. Under the hood, xtool also calls `swift build` with `--swift-sdk arm64-apple-ios` for the same reason.
                 
                 @Code(name: "Terminal", file: "template-4b.sh", previousFile: "template-4a.sh") {}
             }
@@ -44,7 +44,7 @@
         
         @Steps {
             @Step {
-                From inside the package directory, run `supersign dev`.
+                From inside the package directory, run `xtool dev`.
                 
                 The first time you run this, SwiftPM might take a few minutes to build the app. This is because it needs to build the Swift Modules for the iOS SDK. Subsequent runs should be a lot faster since SwiftPM caches these modules globally.
                 
@@ -52,9 +52,9 @@
             }
             
             @Step {
-                After the build is complete, Supersign will attempt to install it on your device.
+                After the build is complete, xtool will attempt to install it on your device.
                 
-                At this point, connect your iOS device to your computer via USB. If you installed `libimobiledevice-utils` during setup, you can verify that your device is connected by running `ideviceinfo`. Supersign will continue after automatically detecting that your device is connected.
+                At this point, connect your iOS device to your computer via USB. If you installed `libimobiledevice-utils` during setup, you can verify that your device is connected by running `ideviceinfo`. xtool will continue after automatically detecting that your device is connected.
                 
                 @Code(name: "Terminal", file: "build-2.sh", reset: true)
             }
@@ -62,7 +62,7 @@
             @Step {
                 Pair your device if prompted.
                 
-                The first time you run `supersign dev`, you may see a "Trust" dialog on your iOS device to proceed with pairing. Tap **Trust** and enter your passcode on iOS. Supersign may throw an error after this: if so, just run `supersign dev` again.
+                The first time you run `xtool dev`, you may see a "Trust" dialog on your iOS device to proceed with pairing. Tap **Trust** and enter your passcode on iOS. xtool may throw an error after this: if so, just run `xtool dev` again.
                 
                 @Code(name: "Terminal", file: "build-2.sh", reset: true) {
                     @Image(source: "Trust", alt: "Prompt alerting user to trust device")
@@ -70,7 +70,7 @@
             }
             
             @Step {
-                Supersign will now connect to Apple Developer Services, register your device with your Apple ID, generate a Certificate + App ID + Provisioning Profile, sign the app, and then install it.
+                xtool will now connect to Apple Developer Services, register your device with your Apple ID, generate a Certificate + App ID + Provisioning Profile, sign the app, and then install it.
                 
                 @Code(name: "Terminal", file: "build-3.sh", reset: true) {}
             }
@@ -78,7 +78,7 @@
             @Step {
                 Enable Developer Mode if needed.
                 
-                At this point, you may run into an error asking you to enable **Development Mode** on your iOS device. Follow [these instructions](https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device) and then run `supersign dev` again.
+                At this point, you may run into an error asking you to enable **Development Mode** on your iOS device. Follow [these instructions](https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device) and then run `xtool dev` again.
                 
                 @Code(name: "Terminal", file: "build-3.sh", reset: true) {
                     @Image(source: "Developer", alt: "Developer mode in Settings")
@@ -144,7 +144,7 @@
             }
             
             @Step {
-                Run `supersign dev` again to re-build and re-install. This should go a lot faster than the first time.
+                Run `xtool dev` again to re-build and re-install. This should go a lot faster than the first time.
                 
                 @Code(name: "Terminal", file: "rerun-5b.sh", previousFile: "rerun-5a.sh") {}
             }

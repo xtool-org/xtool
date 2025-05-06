@@ -46,7 +46,7 @@ extension SigningContext {
         #elseif os(macOS)
         return Host.current().localizedName ?? "Mac"
         #else
-        return "Supercharge Client"
+        return "XTool Client"
         #endif
     }
 }

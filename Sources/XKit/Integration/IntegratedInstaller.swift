@@ -1,11 +1,3 @@
-//
-//  Installer.swift
-//  Supercharge Installer
-//
-//  Created by Kabir Oberai on 19/06/20.
-//  Copyright © 2020 Kabir Oberai. All rights reserved.
-//
-
 import Foundation
 import SwiftyMobileDevice
 import ConcurrencyExtras
@@ -63,7 +55,7 @@ public actor IntegratedInstaller {
     private var appInstaller: AppInstaller?
 
     private let tempDir = FileManager.default.temporaryDirectoryShim
-        .appendingPathComponent("com.kabiroberai.Supercharge-Installer.Staging")
+        .appendingPathComponent("com.kabiroberai.xtool.Staging")
 
     private var stage: String?
 

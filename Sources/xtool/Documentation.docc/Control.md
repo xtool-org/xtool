@@ -4,12 +4,12 @@ Add resources, modify your `Info.plist`, and more.
 
 ## Overview
 
-When building your app, Supersign provides many knobs to add resources and modify files in its `.app` bundle. This article explains how to perform some common tasks along these lines.
+When building your app, xtool provides many knobs to add resources and modify files in its `.app` bundle. This article explains how to perform some common tasks along these lines.
 
-Many of the tasks here involve modifying the `supersign.yml` file. The default `supersign dev new` template should generate this file for you. If you don't have it, make sure you create one first.
+Many of the tasks here involve modifying the `xtool.yml` file. The default `xtool dev new` template should generate this file for you. If you don't have it, make sure you create one first.
 
 ```bash
-cat > supersign.yml << EOF
+cat > xtool.yml << EOF
 version: 1
 bundleID: com.example.Hello
 EOF
@@ -17,19 +17,19 @@ EOF
 
 ## Change your bundle ID
 
-You can update your app's bundle ID by editing the `bundleID` field in `supersign.yml`.
+You can update your app's bundle ID by editing the `bundleID` field in `xtool.yml`.
 
 > Note:
 >
-> Supersign adds a prefix to your bundle ID when signing and installing the app on a real device. For example, it may update the above bundle id to `SC-1234.com.example.Hello`. This is because, at least with free accounts (those not enrolled in the Apple Developer Program), two accounts cannot use the same bundle ID. Prefixing ensures that if you share your app with someone else, they won't run into a bundle ID conflict when installing it.
+> xtool adds a prefix to your bundle ID when signing and installing the app on a real device. For example, it may update the above bundle id to `SC-1234.com.example.Hello`. This is because, at least with free accounts (those not enrolled in the Apple Developer Program), two accounts cannot use the same bundle ID. Prefixing ensures that if you share your app with someone else, they won't run into a bundle ID conflict when installing it.
 >
-> With additional engineering effort, this limitation could be lifted for paid Developer Program users by leveraging wildcard provisioning profiles. If you have a concrete use case for this and/or wish to contribute, please [file an issue](https://github.com/SuperchargeApp/Supersign/issues/new).
+> With additional engineering effort, this limitation could be lifted for paid Developer Program users by leveraging wildcard provisioning profiles. If you have a concrete use case for this and/or wish to contribute, please [file an issue](https://github.com/xtool-org/xtool/issues/new).
 
 ## Customize Info.plist
 
-Supersign automatically generates a bare-bones `Info.plist` file for you. However, you may need to add new `Info.plist` keys or edit existing ones.
+xtool automatically generates a bare-bones `Info.plist` file for you. However, you may need to add new `Info.plist` keys or edit existing ones.
 
-To do this, create an `Info.plist` file in your project containing just the keys you want to add/update, and tell Supersign about it by adding the `infoPath` key:
+To do this, create an `Info.plist` file in your project containing just the keys you want to add/update, and tell xtool about it by adding the `infoPath` key:
 
 ```yaml
 infoPath: path/to/Info.plist
@@ -37,7 +37,7 @@ infoPath: path/to/Info.plist
 
 > Tip:
 >
-> After running `supersign dev [build]`, you can inspect the built app bundle at `./supersign/YourApp.app` to view its `Info.plist` and other resources. 
+> After running `xtool dev [build]`, you can inspect the built app bundle at `./xtool/YourApp.app` to view its `Info.plist` and other resources. 
 
 For example, you might create an `Info.plist` file that looks something like
 
@@ -62,7 +62,7 @@ For example, you might create an `Info.plist` file that looks something like
 
 ## Copy resources (SwiftPM)
 
-If you need to include non-code resource files, like images, the easiest way to do so is to use [SwiftPM Resources](https://developer.apple.com/documentation/xcode/bundling-resources-with-a-swift-package). These "just work" with Supersign.
+If you need to include non-code resource files, like images, the easiest way to do so is to use [SwiftPM Resources](https://developer.apple.com/documentation/xcode/bundling-resources-with-a-swift-package). These "just work" with xtool.
 
 For example, if you have `Sources/Hello/Blob.png`, you can include it in your app by updating the `targets` in your `Package.swift` to
 
@@ -85,9 +85,9 @@ Image("Blob", bundle: Bundle.module)
 
 SwiftPM resources are copied into `.bundle` directories nested inside your `.app`. Sometimes, you need to place a file in a specific location in the app directory instead.
 
-To achieve this, you can include a `resources` array in your `supersign.yml` containing a list of files that should be directly included at the root level of the app bundle.
+To achieve this, you can include a `resources` array in your `xtool.yml` containing a list of files that should be directly included at the root level of the app bundle.
 
-For example, if you use Firebase, you usually need to include a [`GoogleServices-Info.plist`](https://firebase.google.com/docs/ios/setup#add-config-file) file in your root bundle. If you saved this file in your project directory at `./Resources/GoogleServices-Info.plist`, you can update your `supersign.yml` with
+For example, if you use Firebase, you usually need to include a [`GoogleServices-Info.plist`](https://firebase.google.com/docs/ios/setup#add-config-file) file in your root bundle. If you saved this file in your project directory at `./Resources/GoogleServices-Info.plist`, you can update your `xtool.yml` with
 
 ```yaml
 resources:
@@ -98,7 +98,7 @@ The file will be copied to `Hello.app/GoogleServices-Info.plist`.
 
 ## Add an app icon
 
-Say your app icon is saved at `Resources/AppIcon.png`. You can make this your app icon by setting the `iconPath` key in `supersign.yml`:
+Say your app icon is saved at `Resources/AppIcon.png`. You can make this your app icon by setting the `iconPath` key in `xtool.yml`:
 
 ```yaml
 iconPath: Resources/AppIcon.png

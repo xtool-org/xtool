@@ -1,7 +1,7 @@
 Developer$
 Creating package: Hello
 Creating Package.swift
-Creating supersign.yml
+Creating xtool.yml
 Creating .gitignore
 Creating .sourcekit-lsp/config.json
 Creating Sources/Hello/HelloApp.swift

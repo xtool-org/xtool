@@ -6,7 +6,7 @@ private struct PersistentDirectoryProvider: DependencyKey, Sendable {
 
     static let liveValue = PersistentDirectoryProvider(
         directory: URL(fileURLWithPath: NSHomeDirectory())
-            .appendingPathComponent(".config/Supercharge")
+            .appendingPathComponent(".config/xtool")
     )
 }
 
