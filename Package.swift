@@ -118,7 +118,7 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "SupersignTests",
+            name: "XKitTests",
             dependencies: [
                 "XKit",
                 .product(name: "SuperutilsTestSupport", package: "SuperchargeCore")
