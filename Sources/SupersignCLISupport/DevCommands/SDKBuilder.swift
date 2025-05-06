@@ -2,7 +2,7 @@ import Foundation
 import Dependencies
 import SystemPackage
 import libunxip
-import Supersign // HTTPClient, stdoutSafe
+import XKit // HTTPClient, stdoutSafe
 import PackLib // ToolRegistry
 
 struct SDKBuilder {

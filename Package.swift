@@ -7,15 +7,15 @@ let cSettings: [CSetting] = [
 ]
 
 let package = Package(
-    name: "Supersign",
+    name: "xtool",
     platforms: [
         .iOS(.v15),
         .macOS(.v12),
     ],
     products: [
         .library(
-            name: "Supersign",
-            targets: ["Supersign"]
+            name: "XKit",
+            targets: ["XKit"]
         ),
         .library(
             name: "SupersignCLISupport",
@@ -60,7 +60,7 @@ let package = Package(
     targets: [
         .systemLibrary(name: "CSupersette"),
         .target(
-            name: "CSupersign",
+            name: "CXKit",
             dependencies: [
                 .product(name: "OpenSSL", package: "SuperchargeCore")
             ],
@@ -74,10 +74,10 @@ let package = Package(
             exclude: ["openapi-generator-config.yaml", "openapi-overlay.yaml"]
         ),
         .target(
-            name: "Supersign",
+            name: "XKit",
             dependencies: [
                 "DeveloperAPI",
-                "CSupersign",
+                "CXKit",
                 .byName(name: "CSupersette", condition: .when(platforms: [.linux])),
                 .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
@@ -120,7 +120,7 @@ let package = Package(
         .testTarget(
             name: "SupersignTests",
             dependencies: [
-                "Supersign",
+                "XKit",
                 .product(name: "SuperutilsTestSupport", package: "SuperchargeCore")
             ],
             exclude: [
@@ -135,7 +135,7 @@ let package = Package(
             name: "SupersignCLISupport",
             dependencies: [
                 "SwiftyMobileDevice",
-                "Supersign",
+                "XKit",
                 "PackLib",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "SystemPackage", package: "swift-system"),
@@ -156,7 +156,7 @@ let package = Package(
             name: "SupersignCLI",
             dependencies: [
                 "SwiftyMobileDevice",
-                "Supersign",
+                "XKit",
                 "SupersignCLISupport",
             ],
             cSettings: cSettings

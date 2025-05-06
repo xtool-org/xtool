@@ -1,6 +1,6 @@
 import Foundation
 import ArgumentParser
-import Supersign
+import XKit
 import DeveloperAPI
 
 struct DSCertificatesCommand: AsyncParsableCommand {

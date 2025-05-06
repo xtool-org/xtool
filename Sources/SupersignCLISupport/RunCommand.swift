@@ -1,5 +1,5 @@
 import Foundation
-import Supersign
+import XKit
 import SwiftyMobileDevice
 import ArgumentParser
 

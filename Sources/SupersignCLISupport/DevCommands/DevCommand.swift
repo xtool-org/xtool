@@ -1,7 +1,7 @@
 import Foundation
 import ArgumentParser
 import PackLib
-import Supersign
+import XKit
 
 struct DevSetupCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(

@@ -12,7 +12,7 @@
 
 import XCTest
 import SuperutilsTestSupport
-import Supersign
+import XKit
 
 class SupersignSigningTests: XCTestCase {
 

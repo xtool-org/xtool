@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import Supersign
+import XKit
 
 struct Config: Decodable {
     struct AppleID: Decodable {

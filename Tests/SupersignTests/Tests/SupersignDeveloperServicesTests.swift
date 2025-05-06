@@ -8,7 +8,7 @@
 
 import XCTest
 import SuperutilsTestSupport
-import Supersign
+import XKit
 
 // swiftlint:disable force_try
 

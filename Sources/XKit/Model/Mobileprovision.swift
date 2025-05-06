@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import CSupersign
+import CXKit
 
 public final class Mobileprovision: @unchecked Sendable {
 

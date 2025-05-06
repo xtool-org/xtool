@@ -10,7 +10,7 @@
 
 import XCTest
 import SuperutilsTestSupport
-@testable import Supersign
+@testable import XKit
 
 final class TwoFactorAuthenticator: TwoFactorAuthDelegate {
     func fetchCode() async -> String? {

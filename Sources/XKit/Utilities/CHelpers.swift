@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import CSupersign
+import CXKit
 
 package var stdoutSafe: UnsafeMutablePointer<FILE> {
     get_stdout()

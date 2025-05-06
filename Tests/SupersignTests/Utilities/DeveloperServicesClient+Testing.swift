@@ -8,7 +8,7 @@
 
 import Foundation
 import XCTest
-@testable import Supersign
+@testable import XKit
 
 #if false
 

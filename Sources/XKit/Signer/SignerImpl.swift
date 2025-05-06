@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import CSupersign
+import CXKit
 import SignerSupport
 import ConcurrencyExtras
 

@@ -1,6 +1,6 @@
 import Foundation
 import ArgumentParser
-import Supersign
+import XKit
 
 struct DSTeamsCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
