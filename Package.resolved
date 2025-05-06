@@ -1,5 +1,5 @@
 {
-  "originHash" : "b9f8453a6faaca7c9abefbbf1357e95438780871971a8da009870fc2004b7524",
+  "originHash" : "1ee13cd4a459e88ce1b0fc7ff796f3fc888396f5b2c303f37739a845dd0bd2da",
   "pins" : [
     {
       "identity" : "aexml",
@@ -346,7 +346,7 @@
     {
       "identity" : "swiftymobiledevice",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/SuperchargeApp/SwiftyMobileDevice",
+      "location" : "https://github.com/xtool-org/SwiftyMobileDevice",
       "state" : {
         "revision" : "a7fb063c3819618773c2a9a10c19be7682fd8395",
         "version" : "1.3.1"
@@ -418,7 +418,7 @@
     {
       "identity" : "zsign",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/kabiroberai/zsign",
+      "location" : "https://github.com/xtool-org/zsign",
       "state" : {
         "revision" : "c3fea016227f595cd51f037450650a2ff362f7db",
         "version" : "1.3.0"

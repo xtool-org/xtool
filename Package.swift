@@ -28,8 +28,8 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/SuperchargeApp/SuperchargeCore", .upToNextMinor(from: "1.2.0")),
-        .package(url: "https://github.com/SuperchargeApp/SwiftyMobileDevice", .upToNextMinor(from: "1.3.1")),
-        .package(url: "https://github.com/kabiroberai/zsign", .upToNextMinor(from: "1.3.0")),
+        .package(url: "https://github.com/xtool-org/SwiftyMobileDevice", .upToNextMinor(from: "1.3.1")),
+        .package(url: "https://github.com/xtool-org/zsign", .upToNextMinor(from: "1.3.0")),
 
         .package(url: "https://github.com/apple/swift-system", from: "1.4.0"),
         .package(url: "https://github.com/apple/swift-http-types", from: "1.3.1"),
@@ -52,7 +52,7 @@ let package = Package(
         .package(url: "https://github.com/attaswift/BigInt", from: "5.5.0"),
         .package(url: "https://github.com/mxcl/Version", from: "2.1.0"),
         .package(url: "https://github.com/jpsim/Yams", from: "5.1.3"),
-         .package(url: "https://github.com/saagarjha/unxip", from: "3.1.0"),
+        .package(url: "https://github.com/saagarjha/unxip", from: "3.1.0"),
 
         // TODO: just depend on tuist/XcodeProj instead
         .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.43.0"),
