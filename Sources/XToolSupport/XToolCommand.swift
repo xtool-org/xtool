@@ -11,7 +11,7 @@ public enum XTool {
 struct XToolCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "xtool",
-        abstract: "The xtool command line interface",
+        abstract: "Cross-platform Xcode replacement",
         groupedSubcommands: [
             CommandGroup(
                 name: "Configuration",

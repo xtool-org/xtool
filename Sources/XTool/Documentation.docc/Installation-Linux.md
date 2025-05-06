@@ -76,7 +76,7 @@ Confirm that xtool is installed correctly:
 
 ```bash
 xtool --help
-# OVERVIEW: The xtool command line interface
+# OVERVIEW: Cross-platform Xcode replacement
 # ...
 ```
 

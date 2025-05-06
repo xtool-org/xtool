@@ -1,8 +1,18 @@
 # xtool
 
-An all-in-one tool/library for sideloading iOS apps and talking to Apple Developer Services. Supports macOS and Linux.
+Cross-platform Xcode replacement. Build and deploy iOS apps with SwiftPM on Linux and macOS.
 
-## Prerequisites
+## Overview
+
+xtool is a cross-platform (Linux/WSL/macOS) tool that replicates Xcode functionality with open standards.
+
+Highlights:
+
+✅ Build a SwiftPM package into an iOS app
+✅ Sign and install iOS apps
+✅ Interact with Apple Developer Services programmatically
+
+## Usage
 
 - xtool works out of the box on macOS.
 - On Linux, you'll need the development packages of [libimobiledevice](https://github.com/libimobiledevice/libimobiledevice) + its dependencies.
@@ -14,26 +24,35 @@ An all-in-one tool/library for sideloading iOS apps and talking to Apple Develop
 $ git clone https://github.com/xtool-org/xtool
 $ cd xtool
 $ swift run xtool --help
-OVERVIEW: The xtool command line interface
+OVERVIEW: Cross-platform Xcode replacement
 
 USAGE: xtool <subcommand>
 
 OPTIONS:
   -h, --help              Show help information.
 
-SUBCOMMANDS:
+CONFIGURATION SUBCOMMANDS:
+  setup                   Set up xtool for iOS development
+  auth                    Manage Apple Developer Services authentication
+  sdk                     Manage the Darwin Swift SDK
+
+DEVELOPMENT SUBCOMMANDS:
+  new                     Create a new xtool SwiftPM project
+  dev                     Build and run an xtool SwiftPM project
   ds                      Interact with Apple Developer Services
+
+DEVICE SUBCOMMANDS:
   devices                 List devices
   install                 Install an ipa file to your device
   uninstall               Uninstall an installed app
-  run                     Run an installed app
+  launch                  Launch an installed app
 
   See 'xtool help <subcommand>' for detailed help.
 ```
 
 ## Installation (Library)
 
-Just add `XKit` as a SwiftPM dependency!
+xtool includes a library that you can use to interact with Apple Developer Services, iOS devices, and more from your own app. You can use this by adding `XKit` as a SwiftPM dependency.
 
 ```swift
 // package dependency:
