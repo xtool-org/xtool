@@ -20,7 +20,7 @@ View the documentation on [Swift Package Index](https://swiftpackageindex.com/xt
 
 ### Screenshot
 
-![A screenshot of xtool being invoked from VSCode](Sources/XTool/Documentation.docc/Resources/Cover.png)
+![A screenshot of xtool being invoked from VSCode](Sources/xtool/Documentation.docc/Resources/Cover.png)
 
 ### Command line interface
 
