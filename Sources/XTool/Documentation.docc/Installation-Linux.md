@@ -88,7 +88,7 @@ Perform one-time setup with
 xtool setup
 ```
 
-You'll first be asked to log in:
+You'll be asked to log in:
 
 ```
 Select login mode
