@@ -23,7 +23,7 @@ let package = Package(
         ),
         .executable(
             name: "xtool",
-            targets: ["XTool"]
+            targets: ["xtool"]
         ),
     ],
     dependencies: [
@@ -153,7 +153,7 @@ let package = Package(
             ]
         ),
         .executableTarget(
-            name: "XTool",
+            name: "xtool",
             dependencies: [
                 "SwiftyMobileDevice",
                 "XKit",
