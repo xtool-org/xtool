@@ -4,7 +4,7 @@ builder:
     - scheme: xtool
       platform: macosSpm
       documentation_targets:
-      - xtool
+      - XTool
     - scheme: xtool
       platform: macosXcodebuild
     # - scheme: xtool
