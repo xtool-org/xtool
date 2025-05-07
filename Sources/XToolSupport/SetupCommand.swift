@@ -24,6 +24,9 @@ struct SetupOperation {
     func run() async throws {
         try await AuthOperation(logoutFromExisting: false, quiet: quiet).run()
 
+        #if os(macOS)
+        print("Skipping Darwin SDK setup since we're on macOS.")
+        #else
         switch try DarwinSDK.current()?.isUpToDate() {
         case true?:
             if !quiet {
@@ -48,5 +51,6 @@ struct SetupOperation {
 
             try await InstallSDKOperation(path: expanded).run()
         }
+        #endif
     }
 }

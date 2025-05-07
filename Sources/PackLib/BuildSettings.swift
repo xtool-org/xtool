@@ -25,17 +25,12 @@ public struct BuildSettings: Sendable {
         // TODO: allow customizing?
         self.triple = "arm64-apple-ios"
 
-        #if os(macOS)
-        let sdkPath = try await Self.xcrun(["-show-sdk-path", "--sdk", "iphoneos"])
-        self.sdkOptions = [
-            "--triple", triple,
-            "--sdk", sdkPath,
-        ]
-        #else
-        self.sdkOptions = [
-            "--swift-sdk", triple
-        ]
-        #endif
+        // on macOS we don't explicitly install a Swift SDK but
+        // SwiftPM vends "implicit" Darwin SDKs as of Swift 6.1,
+        // i.e. we can pass `--swift-sdk arm64-apple-ios` and it
+        // just works. See:
+        // https://github.com/swiftlang/swift-package-manager/pull/6828
+        self.sdkOptions = ["--swift-sdk", triple]
     }
 
     #if os(macOS)
