@@ -1,15 +1,18 @@
 # ``xtool``
 
-The `xtool` command line interface (CLI).
+Cross-platform Xcode replacement.
 
 ## Overview
 
-You can use `xtool` to interact with iOS applications and Apple Developer Services, including
+xtool is a cross-platform (Linux/WSL/macOS) tool that replicates Xcode functionality with open standards.
 
-- Building a Swift Package into an iOS app on **macOS or Linux**.
-- Managing Codesigning Certificates, Devices, App Identifiers, and Provisioning Profiles across both free and paid Apple Developer accounts.
-- Codesigning a `.ipa`.
-- Installing a `.ipa` on your iOS device.
+✅ Build a SwiftPM package into an iOS app
+
+✅ Sign and install iOS apps
+
+✅ Interact with Apple Developer Services programmatically
+
+![A screenshot of xtool being invoked from VSCode](Cover.png)
 
 ## Topics
 
