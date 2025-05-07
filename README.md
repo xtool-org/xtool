@@ -6,8 +6,6 @@ Cross-platform Xcode replacement. Build and deploy iOS apps with SwiftPM on Linu
 
 xtool is a cross-platform (Linux/WSL/macOS) tool that replicates Xcode functionality with open standards.
 
-Highlights:
-
 ✅ Build a SwiftPM package into an iOS app
 
 ✅ Sign and install iOS apps
