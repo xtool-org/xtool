@@ -14,10 +14,7 @@ xtool is a cross-platform (Linux/WSL/macOS) tool that replicates Xcode functiona
 
 ## Getting Started
 
-1. Follow the guide to install `xtool`
-    - [Installation (Linux)](#)
-    - [Installation (macOS)](#)
-2. Create and run your first xtool-powered app by following the [tutorial](#)!
+View the documentation on [Swift Package Index](https://swiftpackageindex.com/xtool-org/xtool).
 
 ## Examples
 
