@@ -12,6 +12,8 @@ xtool is a cross-platform (Linux/WSL/macOS) tool that replicates Xcode functiona
 
 ✅ Interact with Apple Developer Services programmatically
 
+<img src="Assets/Screenshot.png" width="80%">
+
 ## Usage
 
 - xtool works out of the box on macOS.
