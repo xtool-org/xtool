@@ -12,16 +12,20 @@ xtool is a cross-platform (Linux/WSL/macOS) tool that replicates Xcode functiona
 
 ✅ Interact with Apple Developer Services programmatically
 
-![A screenshot of xtool being invoked from VSCode](Sources/XTool/Documentation.docc/Resources/Cover.png)
-
 ## Getting Started
 
 1. Follow the guide to install `xtool`
-    - [Linux](#)
-    - macOS: TBD
-2. Create and run your first xtool-powered app by following the [tutorial](#)
+    - [Installation (Linux)](#)
+    - Installation (macOS): TBD
+2. Create and run your first xtool-powered app by following the [tutorial](#)!
 
-## Use xtool via the command line
+## Examples
+
+### Screenshot
+
+![A screenshot of xtool being invoked from VSCode](Sources/XTool/Documentation.docc/Resources/Cover.png)
+
+### Command line interface
 
 ```bash
 $ xtool --help
@@ -51,7 +55,7 @@ DEVICE SUBCOMMANDS:
   See 'xtool help <subcommand>' for detailed help.
 ```
 
-## …or as a library!
+### Library
 
 xtool includes a library that you can use to interact with Apple Developer Services, iOS devices, and more from your own app. You can use this by adding `XKit` as a SwiftPM dependency.
 
