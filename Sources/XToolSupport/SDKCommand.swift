@@ -134,6 +134,7 @@ struct DarwinSDK {
         if targetURL.exists {
             throw Console.Error("Darwin SDK is already installed at '\(targetURL.path)'. Please remove it first.")
         }
+        try? FileManager.default.createDirectory(at: sdksDir, withIntermediateDirectories: true)
         try FileManager.default.moveItem(at: url, to: targetURL)
         guard let sdk = DarwinSDK(bundle: targetURL) else {
             throw Console.Error("Darwin SDK failed to install")
