@@ -72,7 +72,7 @@ public actor Connection {
     private static let pool = WeakPool<ConnectionDescriptor, Connection, Error>()
 
     private var handle: AnyObject?
-    private let heartbeatHandler: HeartbeatHandler
+    private let heartbeatHandler: HeartbeatHandler?
     private let udid: String
     public let device: Device
     public let client: LockdownClient
@@ -101,8 +101,12 @@ public actor Connection {
 
         client = try LockdownClient(device: device, label: Self.label, performHandshake: true)
 
+        #if os(iOS)
         progress(3/4)
         heartbeatHandler = try await HeartbeatHandler(device: device, client: client)
+        #else
+        heartbeatHandler = nil
+        #endif
 
         progress(4/4)
     }
@@ -122,7 +126,7 @@ public actor Connection {
     }
 
     deinit {
-        heartbeatHandler.stop()
+        heartbeatHandler?.stop()
         // we could nil out connections[udid] here but that might lead to
         // weird race conditions against Connection.connection that seem
         // like a nightmare to diagnose, and storing an empty box for a
