@@ -98,8 +98,13 @@ struct AuthOperation {
             twoFactorDelegate: authDelegate
         )
 
+        print("Got full login token")
+
         let client = DeveloperServicesClient(loginToken: token)
         let teams = try await client.send(DeveloperServicesListTeamsRequest())
+
+        print("Got teams")
+
         let team = try await Console.choose(
             from: teams,
             onNoElement: {

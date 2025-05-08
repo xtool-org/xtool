@@ -34,6 +34,7 @@ public struct DeveloperServicesLoginManager: Sendable {
     private func logIn(
         withLoginData loginData: GrandSlamLoginData
     ) async throws -> DeveloperServicesLoginToken {
+        print("Fetching tokens")
         let tokens = try await GrandSlamFetchAppTokensOperation(
             client: client,
             apps: [.xcode],
@@ -49,6 +50,7 @@ public struct DeveloperServicesLoginManager: Sendable {
         password: String,
         twoFactorDelegate: TwoFactorAuthDelegate
     ) async throws -> DeveloperServicesLoginToken {
+        print("Starting login")
         let loginData = try await GrandSlamAuthenticateOperation(
             client: client,
             // GSA requires Apple IDs in lowercase for SRP

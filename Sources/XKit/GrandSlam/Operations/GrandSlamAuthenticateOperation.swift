@@ -65,6 +65,8 @@ struct GrandSlamAuthenticateOperation {
     }
 
     private func authenticate(isRetry: Bool) async throws -> GrandSlamLoginData {
+        print("Doing SRP stuff")
+
         var srpClient = SRPClient()
 
         srpClient.add(string: GrandSlamAuthInitRequest.protocols.joined(separator: ","))
@@ -115,6 +117,8 @@ struct GrandSlamAuthenticateOperation {
                 loginData: loginData
             )
         }
+
+        print("Got loginData")
 
         return loginData
     }

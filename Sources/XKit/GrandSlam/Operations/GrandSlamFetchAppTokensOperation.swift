@@ -64,6 +64,7 @@ struct GrandSlamFetchAppTokensOperation {
 
     func perform() async throws -> [AppTokenKey: Token] {
         let checksum = AppTokens.checksum(withSK: loginData.sk, adsid: loginData.adsid, apps: apps.map { $0.rawValue })
+        print("Got checksum")
         let appTokensRequest = GrandSlamAppTokensRequest(
             username: loginData.adsid,
             apps: apps,
@@ -71,7 +72,9 @@ struct GrandSlamFetchAppTokensOperation {
             idmsToken: loginData.idmsToken,
             checksum: checksum
         )
+        print("Sending tokens req")
         let response = try await client.send(appTokensRequest)
+        print("Handling tokens resp")
         return try await self.handle(response: response)
     }
 
