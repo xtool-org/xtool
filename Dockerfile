@@ -1,7 +1,7 @@
-# Note: We use 20.04 since AppImage recommends building on the
+# Note: We use 22.04 since AppImage recommends building on the
 # oldest configuration that you support
 
-FROM swift:6.1-focal AS build-base
+FROM swift:6.1-jammy AS build-base
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
