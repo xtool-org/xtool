@@ -1,6 +1,6 @@
 @Tutorial(time: 30) {
-    @Intro(title: "Build your first iOS app on Linux") {
-        Once you've completed <doc:Installation-Linux>, use xtool to build and deploy an iOS app from your Linux machine.
+    @Intro(title: "Build your first iOS app on Linux / Windows") {
+        Once you've completed <doc:Installation-Linux>, use xtool to build and deploy an iOS app from your Linux/Windows machine.
     }
     
     @Section(title: "Create an xtool project") {
@@ -118,7 +118,7 @@
             @Step {
                 Follow the instructions to configure [SourceKit-LSP](https://github.com/swiftlang/sourcekit-lsp/blob/242609dcad55824d9eb23269c0aeead187fd0faa/Documentation/Editor%20Integration.md) for your IDE.
 
-                For example, if you're using Visual Studio Code, this means you need to install the [Swift extension](https://marketplace.visualstudio.com/items?itemName=swiftlang.swift-vscode).
+                For example, if you're using Visual Studio Code, this means you need to install the [Swift extension](https://marketplace.visualstudio.com/items?itemName=swiftlang.swift-vscode). If you're on Windows, make sure you're [connected to the WSL remote](https://code.visualstudio.com/docs/remote/wsl).
                 
                 @Image(source: "SwiftExtension", alt: "Swift extension for VSCode")
             }

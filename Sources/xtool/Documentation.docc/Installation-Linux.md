@@ -1,12 +1,18 @@
-# Installation (Linux)
+# Installation (Linux/Windows)
 
-Set up xtool for iOS app development on Linux.
+Set up xtool for iOS app development on Linux or Windows.
 
 ## Overview
 
-This article outlines the steps to install `xtool` and begin developing iOS apps on Linux.
+This article outlines the steps to install `xtool` and begin developing iOS apps on Linux (or Windows via WSL).
 
 ## Prerequisites
+
+### WSL (for Windows users)
+
+If you're on Windows, you can use xtool via [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/install) (WSL).
+
+Once you install WSL, you'll also need to set up USB passthrough. See Microsoft's instructions on [installing USBIPD](https://learn.microsoft.com/en-us/windows/wsl/connect-usb). Make sure you're able to bind your iOS device to WSL via USB.
 
 ### Swift
 
