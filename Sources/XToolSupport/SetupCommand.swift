@@ -25,7 +25,9 @@ struct SetupOperation {
         try await AuthOperation(logoutFromExisting: false, quiet: quiet).run()
 
         #if os(macOS)
-        print("Skipping Darwin SDK setup since we're on macOS.")
+        if !quiet {
+            print("Skipping Darwin SDK setup since we're on macOS.")
+        }
         #else
         switch try DarwinSDK.current()?.isUpToDate() {
         case true?:

@@ -79,7 +79,7 @@ struct NewCommand: AsyncParsableCommand {
                         .macOS(.v14),
                     ],
                     products: [
-                        // An xtool project should contain exactly one library target,
+                        // An xtool project should contain exactly one library product,
                         // representing the main app.
                         .library(
                             name: "\(moduleName)",
@@ -116,7 +116,6 @@ struct NewCommand: AsyncParsableCommand {
                 .netrc
                 
                 /xtool
-                /.sourcekit-lsp
                 """
             ),
 
