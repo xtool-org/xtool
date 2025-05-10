@@ -19,6 +19,7 @@ jobs:
           DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
         run: |
           cd macOS
+          bundle install
           bundle exec fastlane package
       - name: Upload app
         uses: actions/upload-artifact@v4
