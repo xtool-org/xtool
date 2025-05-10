@@ -10,12 +10,19 @@ lane :package do
     is_key_content_base64: true,
   )
 
+  create_keychain(
+    name: "xtool.keychain",
+    password: "",
+    unlock: true,
+  )
+
   Tempfile.create(["Identity", ".p12"]) do |file|
     file.write(Base64.decode64(ENV["IDENTITY_P12"]))
     file.close
     import_certificate(
       certificate_path: file.path,
-      keychain_name: "login",
+      keychain_name: "xtool.keychain",
+      keychain_password: "",
     )
   end
 
@@ -26,10 +33,16 @@ lane :package do
     developer_id: true,
   )
 
+  update_code_signing_settings(
+    use_automatic_signing: false,
+    team_id: ENV["DEVELOPMENT_TEAM"],
+    code_sign_identity: "Developer ID Application",
+    profile_name: lane_context[SharedValues::SIGH_NAME],
+  )
+
   gym(
     export_method: "developer-id",
     output_directory: "./Build/Output",
-    xcargs: "DEVELOPMENT_TEAM=#{ENV["DEVELOPMENT_TEAM"]}"
   )
 
   notarize(
