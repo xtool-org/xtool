@@ -1,5 +1,6 @@
 GENERATE_INFOPLIST_FILE = YES
 CODE_SIGN_ENTITLEMENTS = Support/XToolMac.entitlements
 CODE_SIGN_STYLE = Automatic
+ENABLE_HARDENED_RUNTIME = YES
 
 #include? "Private.xcconfig"
