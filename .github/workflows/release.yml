@@ -1,8 +1,9 @@
 on:
   workflow_dispatch:
+  push:
 
 jobs:
-  build:
+  build-linux:
     strategy:
       fail-fast: false
       matrix:
@@ -21,13 +22,41 @@ jobs:
         run: |
           docker compose run --build --rm xtool -c "Linux/build.sh && mv Linux/packages/xtool{,-${{ matrix.host.arch }}}.AppImage"
       - name: Upload artifact
-        id: upload_artifact
         uses: actions/upload-artifact@v4
         with:
           name: xtool-${{ matrix.host.arch }}
           path: Linux/packages/xtool-${{ matrix.host.arch }}.AppImage
+  build-mac:
+    runs-on: macos-15
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          working-directory: macOS
+          bundler-cache: true
+      - name: Build
+        env:
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
+          IDENTITY_P12: ${{ secrets.IDENTITY_P12 }}
+          DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
+        run: |
+          cd macOS
+          bundle exec fastlane package
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: xtool-mac
+          path: |
+            macOS/Build/Output/xtool.app.zip
+            macOS/Build/Output/xtool.app.dSYM.zip
   release:
-    needs: build
+    needs: [build-linux, build-mac]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -36,14 +65,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Download artifact
-        id: download_artifact
         uses: actions/download-artifact@v4
         with:
           pattern: xtool-*
           path: output
       - name: Create and publish release
-        id: publish_release
         run: |
           TAG="${GITHUB_REF##*/}-${GITHUB_SHA:0:7}"
           gh release create "$TAG" --draft --title "Draft Release"
-          gh release upload "$TAG" output/**/*.AppImage
+          gh release upload "$TAG" output/**/*.{AppImage,app.zip,app.dSYM.zip}
