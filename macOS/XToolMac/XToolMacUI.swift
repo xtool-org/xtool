@@ -11,7 +11,7 @@ struct XToolMacUI: App {
 
 private struct ContentView: View {
     private static let command = """
-    sudo ln -fs /Applications/XToolMac.app/Contents/Resources/bin/xtool /usr/local/bin/xtool
+    sudo ln -fs /Applications/xtool.app/Contents/Resources/bin/xtool /usr/local/bin/xtool
     """
 
     var body: some View {

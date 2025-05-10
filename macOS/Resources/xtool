@@ -19,4 +19,4 @@ if [ -z "$APP_PATH" ]; then
     exit 1
 fi
 
-XTL_CLI=1 "$APP_PATH/Contents/MacOS/XToolMac" "$@"
+XTL_CLI=1 "$APP_PATH/Contents/MacOS/xtool" "$@"
