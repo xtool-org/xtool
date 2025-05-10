@@ -5,6 +5,7 @@ GEM
       base64
       nkf
       rexml
+    abbrev (0.1.2)
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
     artifactory (3.0.17)
@@ -174,6 +175,7 @@ GEM
     nkf (0.2.0)
     optparse (0.6.0)
     os (1.1.4)
+    ostruct (0.6.1)
     plist (3.7.2)
     public_suffix (6.0.2)
     rake (13.2.1)
@@ -224,8 +226,11 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  abbrev
   fastlane
   fastlane-plugin-xcodegen
+  mutex_m
+  ostruct
 
 BUNDLED WITH
    2.6.7
