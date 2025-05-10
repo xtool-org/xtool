@@ -1,5 +1,6 @@
 on:
   workflow_dispatch:
+  push:
 
 jobs:
   build-linux:
@@ -32,6 +33,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          working-directory: macOS
+          bundler-cache: true
       - name: Build
         env:
           APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
@@ -41,7 +47,6 @@ jobs:
           DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
         run: |
           cd macOS
-          bundle install
           bundle exec fastlane package
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
