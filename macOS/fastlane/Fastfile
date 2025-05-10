@@ -16,6 +16,11 @@ lane :package do
     unlock: true,
   )
 
+  unlock_keychain(
+    path: "xtool.keychain",
+    password: "",
+  )
+
   Tempfile.create(["Identity", ".p12"]) do |file|
     file.write(Base64.decode64(ENV["IDENTITY_P12"]))
     file.close
