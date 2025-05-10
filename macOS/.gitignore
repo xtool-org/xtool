@@ -1,2 +1,7 @@
 /XToolMac.xcodeproj
 Private*.xcconfig
+
+/fastlane/README.md
+/fastlane/report.xml
+/Build
+/Private

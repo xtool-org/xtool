@@ -1,0 +1,48 @@
+default_platform(:mac)
+
+ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "120"
+
+lane :package do
+  xcodegen
+
+  # Config is controlled via env vars
+  app_store_connect_api_key(
+    is_key_content_base64: true,
+  )
+
+  Tempfile.create(["Identity", ".p12"]) do |file|
+    file.write(Base64.decode64(ENV["IDENTITY_P12"]))
+    file.close
+    import_certificate(
+      certificate_path: file.path,
+      keychain_name: "login",
+    )
+  end
+
+  sigh(
+    platform: "macos",
+    output_path: "./Build/Signing",
+    force: true,
+    developer_id: true,
+  )
+
+  gym(
+    export_method: "developer-id",
+    output_directory: "./Build/Output",
+    xcargs: "DEVELOPMENT_TEAM=#{ENV["DEVELOPMENT_TEAM"]}"
+  )
+
+  notarize(
+    package: "./Build/Output/xtool.app",
+  )
+
+  # we need to re-package after notarization and stapling.
+  # we have to use `ditto --sequesterRsrc` rather than zip
+  # because the default strategy stores resource forks as
+  # ._Foo but codesigning doesn't like that, and instead
+  # wants them in __MACOSX.
+  sh(
+    "ditto", "-c", "-k", "--keepParent", "--sequesterRsrc",
+    "../Build/Output/xtool.app", "../Build/Output/xtool.app.zip",
+  )
+end
