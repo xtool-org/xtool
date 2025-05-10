@@ -1,0 +1,31 @@
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build
+        env:
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
+          IDENTITY_P12: ${{ secrets.IDENTITY_P12 }}
+          DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
+        run: |
+          cd macOS
+          bundle exec fastlane package
+      - name: Upload app
+        uses: actions/upload-artifact@v4
+        with:
+          name: xtool.app.zip
+          path: macOS/Build/Output/xtool.app.zip
+      - name: Upload dSYMs
+        uses: actions/upload-artifact@v4
+        with:
+          name: xtool.app.dSYM.zip
+          path: macOS/Build/Output/xtool.app.dSYM.zip
