@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Build
         run: |
-          docker compose run --build --rm xtool -c "Linux/build.sh && mv Linux/packages/xtool{,-${{ matrix.host.arch }}}.AppImage"
+          docker compose run --build --rm xtool bash -c "Linux/build.sh && mv Linux/packages/xtool{,-${{ matrix.host.arch }}}.AppImage"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
