@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Build
         run: |
-          docker compose run --build --rm xtool -c "swift build --product xtool"
+          docker compose run --build --rm xtool swift build --product xtool
   build-macos:
     runs-on: macos-15
     steps:

@@ -94,4 +94,4 @@ ENV USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015
 
 WORKDIR /xtool
 
-ENTRYPOINT [ "/bin/bash" ]
+CMD [ "/bin/bash" ]
