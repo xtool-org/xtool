@@ -72,19 +72,21 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
         _ certificates: [DeveloperServicesCertificate],
         requireConfirmation: Bool
     ) async throws -> SigningInfo {
-        if !certificates.isEmpty, requireConfirmation {
-            guard await confirmRevocation(certificates)
-                else { throw CancellationError() }
-        }
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            for certificate in certificates {
-                group.addTask {
-                    _ = try await context.developerAPIClient
-                        .certificatesDeleteInstance(path: .init(id: certificate.id))
-                        .noContent
-                }
+        if try await context.auth.team()?.isFree == true {
+            if !certificates.isEmpty, requireConfirmation {
+                guard await confirmRevocation(certificates)
+                    else { throw CancellationError() }
             }
-            try await group.waitForAll()
+            try await withThrowingTaskGroup(of: Void.self) { group in
+                for certificate in certificates {
+                    group.addTask {
+                        _ = try await context.developerAPIClient
+                            .certificatesDeleteInstance(path: .init(id: certificate.id))
+                            .noContent
+                    }
+                }
+                try await group.waitForAll()
+            }
         }
         let signingInfo = try await createCertificate()
         signingInfoManager[self.context.auth.identityID] = signingInfo
