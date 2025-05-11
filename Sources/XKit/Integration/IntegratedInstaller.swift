@@ -55,7 +55,7 @@ public actor IntegratedInstaller {
     private var appInstaller: AppInstaller?
 
     private let tempDir = FileManager.default.temporaryDirectoryShim
-        .appendingPathComponent("com.kabiroberai.xtool.Staging")
+        .appendingPathComponent("sh.xtool.Staging")
 
     private var stage: String?
 
@@ -299,7 +299,7 @@ public actor IntegratedInstaller {
         try await self.updateStage(to: "Packaging", initialProgress: nil)
 
         let ipa = try await compressor.compress(
-            directory: appDir.deletingLastPathComponent(),
+            directory: payload,
             progress: { progress in
                 self.queueUpdateTask {
                     $0.updateProgressIgnoringCancellation(to: progress)
