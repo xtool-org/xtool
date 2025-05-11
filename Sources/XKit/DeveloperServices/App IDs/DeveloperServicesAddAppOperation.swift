@@ -13,7 +13,6 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
 
     public enum Error: LocalizedError {
         case invalidApp(URL)
-        case teamNotFound(DeveloperServicesTeam.ID)
 
         public var errorDescription: String? {
             switch self {
@@ -22,16 +21,6 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
                     String.localizedStringWithFormat(
                         NSLocalizedString(
                             "add_app_operation.error.invalid_app", value: "Invalid app: %s", comment: ""
-                        ), $0
-                    )
-                }
-            case .teamNotFound(let id):
-                return id.rawValue.withCString {
-                    String.localizedStringWithFormat(
-                        NSLocalizedString(
-                            "add_app_operation.error.team_not_found",
-                            value: "A team with the ID '%s' could not be found. Please select another team.",
-                            comment: ""
                         ), $0
                     )
                 }
@@ -232,20 +221,6 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
         )
     }
 
-    private func getTeamIsFree() async throws -> Bool {
-        switch context.auth {
-        case .appStoreConnect:
-            return false
-        case .xcode(let authData):
-            let client = DeveloperServicesClient(authData: authData)
-            let request = DeveloperServicesListTeamsRequest()
-            let teams = try await client.send(request)
-            guard let team = teams.first(where: { $0.id == authData.teamID })
-                else { throw Error.teamNotFound(authData.teamID) }
-            return team.isFree
-        }
-    }
-
     // keyed by sanitized bundle ID
     private func getCurrentAppIDs() async throws -> [String: Components.Schemas.BundleId] {
         let bundleIDs = try await context.developerAPIClient.bundleIdsGetCollection().ok.body.json.data
@@ -265,7 +240,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
             apps += plugins.implicitContents.filter { $0.pathExtension.lowercased() == "appex" }
         }
 
-        async let isFreeTeamTask = getTeamIsFree()
+        async let isFreeTeamTask = context.auth.team()?.isFree == true
         async let appIDsTask = getCurrentAppIDs()
         let (isFreeTeam, appIDs) = try await (isFreeTeamTask, appIDsTask)
 

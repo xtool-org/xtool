@@ -9,7 +9,7 @@
 import Foundation
 
 public struct DeveloperServicesTeam: Decodable, Sendable {
-    public struct ID: RawRepresentable, Decodable, Sendable {
+    public struct ID: RawRepresentable, Decodable, Sendable, Hashable {
         public let rawValue: String
         public init(rawValue: String) { self.rawValue = rawValue }
     }
