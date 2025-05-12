@@ -15,7 +15,7 @@ update-api:
 	@+$(MAKE) -B api
 
 openapi/openapi.json: openapi/base.json Sources/DeveloperAPI/openapi-overlay.yaml
-	npx bump-cli overlay openapi/base.json Sources/DeveloperAPI/openapi-overlay.yaml > openapi/openapi.json
+	npx --yes bump-cli overlay openapi/base.json Sources/DeveloperAPI/openapi-overlay.yaml > openapi/openapi.json
 
 openapi/base.json:
 	@mkdir -p openapi

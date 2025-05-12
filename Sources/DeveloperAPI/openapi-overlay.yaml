@@ -20,3 +20,6 @@ actions:
               required: [id, type]
           required: [data]
       required: [capability]
+  - target: '$.components.schemas.Device.properties.attributes.properties.deviceClass'
+    update:
+      enum: ["APPLE_VISION_PRO"]
