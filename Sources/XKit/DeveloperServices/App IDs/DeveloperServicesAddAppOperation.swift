@@ -104,9 +104,13 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
                     .ok
                 }
             } else {
-                _ = try await context.developerAPIClient
-                    .bundleIdCapabilitiesDeleteInstance(path: .init(id: cap.id))
-                    .noContent
+                // DeveloperServices doesn't allow deleting these capabilities
+                let requiredCapabilities: Set<Components.Schemas.CapabilityType> = [.inAppPurchase]
+                if let capType = cap.attributes?.capabilityType, !requiredCapabilities.contains(capType) {
+                    _ = try await context.developerAPIClient
+                        .bundleIdCapabilitiesDeleteInstance(path: .init(id: cap.id))
+                        .noContent
+                }
             }
         }
         for (typ, settings) in wantedCapabilities {
