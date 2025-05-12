@@ -44,6 +44,9 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /v1/certificates/{id}`.
     /// - Remark: Generated from `#/paths//v1/certificates/{id}/get(certificates_getInstance)`.
     func certificatesGetInstance(_ input: Operations.CertificatesGetInstance.Input) async throws -> Operations.CertificatesGetInstance.Output
+    /// - Remark: HTTP `PATCH /v1/certificates/{id}`.
+    /// - Remark: Generated from `#/paths//v1/certificates/{id}/patch(certificates_updateInstance)`.
+    func certificatesUpdateInstance(_ input: Operations.CertificatesUpdateInstance.Input) async throws -> Operations.CertificatesUpdateInstance.Output
     /// - Remark: HTTP `DELETE /v1/certificates/{id}`.
     /// - Remark: Generated from `#/paths//v1/certificates/{id}/delete(certificates_deleteInstance)`.
     func certificatesDeleteInstance(_ input: Operations.CertificatesDeleteInstance.Input) async throws -> Operations.CertificatesDeleteInstance.Output
@@ -220,6 +223,19 @@ extension APIProtocol {
             path: path,
             query: query,
             headers: headers
+        ))
+    }
+    /// - Remark: HTTP `PATCH /v1/certificates/{id}`.
+    /// - Remark: Generated from `#/paths//v1/certificates/{id}/patch(certificates_updateInstance)`.
+    public func certificatesUpdateInstance(
+        path: Operations.CertificatesUpdateInstance.Input.Path,
+        headers: Operations.CertificatesUpdateInstance.Input.Headers = .init(),
+        body: Operations.CertificatesUpdateInstance.Input.Body
+    ) async throws -> Operations.CertificatesUpdateInstance.Output {
+        try await certificatesUpdateInstance(Operations.CertificatesUpdateInstance.Input(
+            path: path,
+            headers: headers,
+            body: body
         ))
     }
     /// - Remark: HTTP `DELETE /v1/certificates/{id}`.
@@ -3116,6 +3132,8 @@ public enum Components {
                 public var expirationDate: Foundation.Date?
                 /// - Remark: Generated from `#/components/schemas/Certificate/attributes/certificateContent`.
                 public var certificateContent: Swift.String?
+                /// - Remark: Generated from `#/components/schemas/Certificate/attributes/activated`.
+                public var activated: Swift.Bool?
                 /// Creates a new `AttributesPayload`.
                 ///
                 /// - Parameters:
@@ -3126,6 +3144,7 @@ public enum Components {
                 ///   - platform:
                 ///   - expirationDate:
                 ///   - certificateContent:
+                ///   - activated:
                 public init(
                     name: Swift.String? = nil,
                     certificateType: Components.Schemas.CertificateType? = nil,
@@ -3133,7 +3152,8 @@ public enum Components {
                     serialNumber: Swift.String? = nil,
                     platform: Components.Schemas.BundleIdPlatform? = nil,
                     expirationDate: Foundation.Date? = nil,
-                    certificateContent: Swift.String? = nil
+                    certificateContent: Swift.String? = nil,
+                    activated: Swift.Bool? = nil
                 ) {
                     self.name = name
                     self.certificateType = certificateType
@@ -3142,6 +3162,7 @@ public enum Components {
                     self.platform = platform
                     self.expirationDate = expirationDate
                     self.certificateContent = certificateContent
+                    self.activated = activated
                 }
                 public enum CodingKeys: String, CodingKey {
                     case name
@@ -3151,6 +3172,7 @@ public enum Components {
                     case platform
                     case expirationDate
                     case certificateContent
+                    case activated
                 }
             }
             /// - Remark: Generated from `#/components/schemas/Certificate/attributes`.
@@ -3269,21 +3291,84 @@ public enum Components {
                 }
                 /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/attributes`.
                 public var attributes: Components.Schemas.CertificateCreateRequest.DataPayload.AttributesPayload
+                /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/relationships`.
+                public struct RelationshipsPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/relationships/merchantId`.
+                    public struct MerchantIdPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/relationships/merchantId/data`.
+                        public struct DataPayload: Codable, Hashable, Sendable {
+                            /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/relationships/merchantId/data/type`.
+                            @frozen public enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                                case merchantIds = "merchantIds"
+                            }
+                            /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/relationships/merchantId/data/type`.
+                            public var _type: Components.Schemas.CertificateCreateRequest.DataPayload.RelationshipsPayload.MerchantIdPayload.DataPayload._TypePayload
+                            /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/relationships/merchantId/data/id`.
+                            public var id: Swift.String
+                            /// Creates a new `DataPayload`.
+                            ///
+                            /// - Parameters:
+                            ///   - _type:
+                            ///   - id:
+                            public init(
+                                _type: Components.Schemas.CertificateCreateRequest.DataPayload.RelationshipsPayload.MerchantIdPayload.DataPayload._TypePayload,
+                                id: Swift.String
+                            ) {
+                                self._type = _type
+                                self.id = id
+                            }
+                            public enum CodingKeys: String, CodingKey {
+                                case _type = "type"
+                                case id
+                            }
+                        }
+                        /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/relationships/merchantId/data`.
+                        public var data: Components.Schemas.CertificateCreateRequest.DataPayload.RelationshipsPayload.MerchantIdPayload.DataPayload?
+                        /// Creates a new `MerchantIdPayload`.
+                        ///
+                        /// - Parameters:
+                        ///   - data:
+                        public init(data: Components.Schemas.CertificateCreateRequest.DataPayload.RelationshipsPayload.MerchantIdPayload.DataPayload? = nil) {
+                            self.data = data
+                        }
+                        public enum CodingKeys: String, CodingKey {
+                            case data
+                        }
+                    }
+                    /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/relationships/merchantId`.
+                    public var merchantId: Components.Schemas.CertificateCreateRequest.DataPayload.RelationshipsPayload.MerchantIdPayload?
+                    /// Creates a new `RelationshipsPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - merchantId:
+                    public init(merchantId: Components.Schemas.CertificateCreateRequest.DataPayload.RelationshipsPayload.MerchantIdPayload? = nil) {
+                        self.merchantId = merchantId
+                    }
+                    public enum CodingKeys: String, CodingKey {
+                        case merchantId
+                    }
+                }
+                /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/relationships`.
+                public var relationships: Components.Schemas.CertificateCreateRequest.DataPayload.RelationshipsPayload?
                 /// Creates a new `DataPayload`.
                 ///
                 /// - Parameters:
                 ///   - _type:
                 ///   - attributes:
+                ///   - relationships:
                 public init(
                     _type: Components.Schemas.CertificateCreateRequest.DataPayload._TypePayload,
-                    attributes: Components.Schemas.CertificateCreateRequest.DataPayload.AttributesPayload
+                    attributes: Components.Schemas.CertificateCreateRequest.DataPayload.AttributesPayload,
+                    relationships: Components.Schemas.CertificateCreateRequest.DataPayload.RelationshipsPayload? = nil
                 ) {
                     self._type = _type
                     self.attributes = attributes
+                    self.relationships = relationships
                 }
                 public enum CodingKeys: String, CodingKey {
                     case _type = "type"
                     case attributes
+                    case relationships
                 }
             }
             /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data`.
@@ -3293,6 +3378,69 @@ public enum Components {
             /// - Parameters:
             ///   - data:
             public init(data: Components.Schemas.CertificateCreateRequest.DataPayload) {
+                self.data = data
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/CertificateUpdateRequest`.
+        public struct CertificateUpdateRequest: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/CertificateUpdateRequest/data`.
+            public struct DataPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/CertificateUpdateRequest/data/type`.
+                @frozen public enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case certificates = "certificates"
+                }
+                /// - Remark: Generated from `#/components/schemas/CertificateUpdateRequest/data/type`.
+                public var _type: Components.Schemas.CertificateUpdateRequest.DataPayload._TypePayload
+                /// - Remark: Generated from `#/components/schemas/CertificateUpdateRequest/data/id`.
+                public var id: Swift.String
+                /// - Remark: Generated from `#/components/schemas/CertificateUpdateRequest/data/attributes`.
+                public struct AttributesPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/CertificateUpdateRequest/data/attributes/activated`.
+                    public var activated: Swift.Bool?
+                    /// Creates a new `AttributesPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - activated:
+                    public init(activated: Swift.Bool? = nil) {
+                        self.activated = activated
+                    }
+                    public enum CodingKeys: String, CodingKey {
+                        case activated
+                    }
+                }
+                /// - Remark: Generated from `#/components/schemas/CertificateUpdateRequest/data/attributes`.
+                public var attributes: Components.Schemas.CertificateUpdateRequest.DataPayload.AttributesPayload?
+                /// Creates a new `DataPayload`.
+                ///
+                /// - Parameters:
+                ///   - _type:
+                ///   - id:
+                ///   - attributes:
+                public init(
+                    _type: Components.Schemas.CertificateUpdateRequest.DataPayload._TypePayload,
+                    id: Swift.String,
+                    attributes: Components.Schemas.CertificateUpdateRequest.DataPayload.AttributesPayload? = nil
+                ) {
+                    self._type = _type
+                    self.id = id
+                    self.attributes = attributes
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case _type = "type"
+                    case id
+                    case attributes
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/CertificateUpdateRequest/data`.
+            public var data: Components.Schemas.CertificateUpdateRequest.DataPayload
+            /// Creates a new `CertificateUpdateRequest`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            public init(data: Components.Schemas.CertificateUpdateRequest.DataPayload) {
                 self.data = data
             }
             public enum CodingKeys: String, CodingKey {
@@ -3325,6 +3473,7 @@ public enum Components {
                     case ipod = "IPOD"
                     case appleTv = "APPLE_TV"
                     case mac = "MAC"
+                    case appleVisionPro = "APPLE_VISION_PRO"
                 }
                 /// - Remark: Generated from `#/components/schemas/Device/attributes/deviceClass`.
                 public var deviceClass: Components.Schemas.Device.AttributesPayload.DeviceClassPayload?
@@ -5033,17 +5182,22 @@ public enum Components {
         }
         /// - Remark: Generated from `#/components/schemas/CertificateType`.
         @frozen public enum CertificateType: String, Codable, Hashable, Sendable, CaseIterable {
-            case iosDevelopment = "IOS_DEVELOPMENT"
-            case iosDistribution = "IOS_DISTRIBUTION"
-            case macAppDistribution = "MAC_APP_DISTRIBUTION"
-            case macInstallerDistribution = "MAC_INSTALLER_DISTRIBUTION"
-            case macAppDevelopment = "MAC_APP_DEVELOPMENT"
+            case applePay = "APPLE_PAY"
+            case applePayMerchantIdentity = "APPLE_PAY_MERCHANT_IDENTITY"
+            case applePayPspIdentity = "APPLE_PAY_PSP_IDENTITY"
+            case applePayRsa = "APPLE_PAY_RSA"
             case developerIdKext = "DEVELOPER_ID_KEXT"
             case developerIdKextG2 = "DEVELOPER_ID_KEXT_G2"
             case developerIdApplication = "DEVELOPER_ID_APPLICATION"
             case developerIdApplicationG2 = "DEVELOPER_ID_APPLICATION_G2"
             case development = "DEVELOPMENT"
             case distribution = "DISTRIBUTION"
+            case identityAccess = "IDENTITY_ACCESS"
+            case iosDevelopment = "IOS_DEVELOPMENT"
+            case iosDistribution = "IOS_DISTRIBUTION"
+            case macAppDistribution = "MAC_APP_DISTRIBUTION"
+            case macInstallerDistribution = "MAC_INSTALLER_DISTRIBUTION"
+            case macAppDevelopment = "MAC_APP_DEVELOPMENT"
             case passTypeId = "PASS_TYPE_ID"
             case passTypeIdWithNfc = "PASS_TYPE_ID_WITH_NFC"
         }
@@ -8419,17 +8573,22 @@ public enum Operations {
                 public var filter_lbrack_displayName_rbrack_: [Swift.String]?
                 /// - Remark: Generated from `#/paths/v1/certificates/GET/query/Filter_lbrack_certificateType_rbrack_Payload`.
                 @frozen public enum FilterLbrackCertificateTypeRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                    case iosDevelopment = "IOS_DEVELOPMENT"
-                    case iosDistribution = "IOS_DISTRIBUTION"
-                    case macAppDistribution = "MAC_APP_DISTRIBUTION"
-                    case macInstallerDistribution = "MAC_INSTALLER_DISTRIBUTION"
-                    case macAppDevelopment = "MAC_APP_DEVELOPMENT"
+                    case applePay = "APPLE_PAY"
+                    case applePayMerchantIdentity = "APPLE_PAY_MERCHANT_IDENTITY"
+                    case applePayPspIdentity = "APPLE_PAY_PSP_IDENTITY"
+                    case applePayRsa = "APPLE_PAY_RSA"
                     case developerIdKext = "DEVELOPER_ID_KEXT"
                     case developerIdKextG2 = "DEVELOPER_ID_KEXT_G2"
                     case developerIdApplication = "DEVELOPER_ID_APPLICATION"
                     case developerIdApplicationG2 = "DEVELOPER_ID_APPLICATION_G2"
                     case development = "DEVELOPMENT"
                     case distribution = "DISTRIBUTION"
+                    case identityAccess = "IDENTITY_ACCESS"
+                    case iosDevelopment = "IOS_DEVELOPMENT"
+                    case iosDistribution = "IOS_DISTRIBUTION"
+                    case macAppDistribution = "MAC_APP_DISTRIBUTION"
+                    case macInstallerDistribution = "MAC_INSTALLER_DISTRIBUTION"
+                    case macAppDevelopment = "MAC_APP_DEVELOPMENT"
                     case passTypeId = "PASS_TYPE_ID"
                     case passTypeIdWithNfc = "PASS_TYPE_ID_WITH_NFC"
                 }
@@ -8473,6 +8632,7 @@ public enum Operations {
                     case platform = "platform"
                     case expirationDate = "expirationDate"
                     case certificateContent = "certificateContent"
+                    case activated = "activated"
                 }
                 /// - Remark: Generated from `#/paths/v1/certificates/GET/query/fields[certificates]`.
                 public typealias Fields_lbrack_certificates_rbrack_Payload = [Operations.CertificatesGetCollection.Input.Query.FieldsLbrackCertificatesRbrackPayloadPayload]
@@ -9179,6 +9339,7 @@ public enum Operations {
                     case platform = "platform"
                     case expirationDate = "expirationDate"
                     case certificateContent = "certificateContent"
+                    case activated = "activated"
                 }
                 /// - Remark: Generated from `#/paths/v1/certificates/{id}/GET/query/fields[certificates]`.
                 public typealias Fields_lbrack_certificates_rbrack_Payload = [Operations.CertificatesGetInstance.Input.Query.FieldsLbrackCertificatesRbrackPayloadPayload]
@@ -9474,6 +9635,449 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// - Remark: HTTP `PATCH /v1/certificates/{id}`.
+    /// - Remark: Generated from `#/paths//v1/certificates/{id}/patch(certificates_updateInstance)`.
+    public enum CertificatesUpdateInstance {
+        public static let id: Swift.String = "certificates_updateInstance"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/path`.
+            public struct Path: Sendable, Hashable {
+                /// the id of the requested resource
+                ///
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/path/id`.
+                public var id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - id: the id of the requested resource
+                public init(id: Swift.String) {
+                    self.id = id
+                }
+            }
+            public var path: Operations.CertificatesUpdateInstance.Input.Path
+            /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.CertificatesUpdateInstance.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.CertificatesUpdateInstance.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.CertificatesUpdateInstance.Input.Headers
+            /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/requestBody/content/application\/json`.
+                case json(Components.Schemas.CertificateUpdateRequest)
+            }
+            public var body: Operations.CertificatesUpdateInstance.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            ///   - body:
+            public init(
+                path: Operations.CertificatesUpdateInstance.Input.Path,
+                headers: Operations.CertificatesUpdateInstance.Input.Headers = .init(),
+                body: Operations.CertificatesUpdateInstance.Input.Body
+            ) {
+                self.path = path
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/responses/200/content/application\/json`.
+                    case json(Components.Schemas.CertificateResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.CertificateResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesUpdateInstance.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesUpdateInstance.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Single Certificate
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/patch(certificates_updateInstance)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.CertificatesUpdateInstance.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.CertificatesUpdateInstance.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesUpdateInstance.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesUpdateInstance.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Parameter error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/patch(certificates_updateInstance)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.CertificatesUpdateInstance.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.CertificatesUpdateInstance.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesUpdateInstance.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesUpdateInstance.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Unauthorized error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/patch(certificates_updateInstance)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.CertificatesUpdateInstance.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.CertificatesUpdateInstance.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Forbidden: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/responses/403/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/responses/403/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesUpdateInstance.Output.Forbidden.Body
+                /// Creates a new `Forbidden`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesUpdateInstance.Output.Forbidden.Body) {
+                    self.body = body
+                }
+            }
+            /// Forbidden error
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/patch(certificates_updateInstance)/responses/403`.
+            ///
+            /// HTTP response code: `403 forbidden`.
+            case forbidden(Operations.CertificatesUpdateInstance.Output.Forbidden)
+            /// The associated value of the enum case if `self` is `.forbidden`.
+            ///
+            /// - Throws: An error if `self` is not `.forbidden`.
+            /// - SeeAlso: `.forbidden`.
+            public var forbidden: Operations.CertificatesUpdateInstance.Output.Forbidden {
+                get throws {
+                    switch self {
+                    case let .forbidden(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "forbidden",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/responses/404/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesUpdateInstance.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesUpdateInstance.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// Not found error
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/patch(certificates_updateInstance)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.CertificatesUpdateInstance.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            public var notFound: Operations.CertificatesUpdateInstance.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Conflict: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/responses/409/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/responses/409/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesUpdateInstance.Output.Conflict.Body
+                /// Creates a new `Conflict`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesUpdateInstance.Output.Conflict.Body) {
+                    self.body = body
+                }
+            }
+            /// Request entity error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/patch(certificates_updateInstance)/responses/409`.
+            ///
+            /// HTTP response code: `409 conflict`.
+            case conflict(Operations.CertificatesUpdateInstance.Output.Conflict)
+            /// The associated value of the enum case if `self` is `.conflict`.
+            ///
+            /// - Throws: An error if `self` is not `.conflict`.
+            /// - SeeAlso: `.conflict`.
+            public var conflict: Operations.CertificatesUpdateInstance.Output.Conflict {
+                get throws {
+                    switch self {
+                    case let .conflict(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "conflict",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/responses/422/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesUpdateInstance.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesUpdateInstance.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// Unprocessable request entity error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/patch(certificates_updateInstance)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.CertificatesUpdateInstance.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            public var unprocessableContent: Operations.CertificatesUpdateInstance.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
                             response: self
                         )
                     }
@@ -11557,6 +12161,7 @@ public enum Operations {
                     case platform = "platform"
                     case expirationDate = "expirationDate"
                     case certificateContent = "certificateContent"
+                    case activated = "activated"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/fields[certificates]`.
                 public typealias Fields_lbrack_certificates_rbrack_Payload = [Operations.ProfilesGetCollection.Input.Query.FieldsLbrackCertificatesRbrackPayloadPayload]
@@ -12353,6 +12958,7 @@ public enum Operations {
                     case platform = "platform"
                     case expirationDate = "expirationDate"
                     case certificateContent = "certificateContent"
+                    case activated = "activated"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/fields[certificates]`.
                 public typealias Fields_lbrack_certificates_rbrack_Payload = [Operations.ProfilesGetInstance.Input.Query.FieldsLbrackCertificatesRbrackPayloadPayload]
@@ -14623,6 +15229,7 @@ public enum Operations {
                     case platform = "platform"
                     case expirationDate = "expirationDate"
                     case certificateContent = "certificateContent"
+                    case activated = "activated"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/certificates/GET/query/fields[certificates]`.
                 public typealias Fields_lbrack_certificates_rbrack_Payload = [Operations.ProfilesCertificatesGetToManyRelated.Input.Query.FieldsLbrackCertificatesRbrackPayloadPayload]
