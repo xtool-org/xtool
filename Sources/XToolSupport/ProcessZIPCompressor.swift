@@ -15,7 +15,7 @@ extension ZIPCompressor: DependencyKey {
             let zip = Process()
             zip.executableURL = try await ToolRegistry.locate("zip")
             zip.currentDirectoryURL = dir.deletingLastPathComponent()
-            zip.arguments = ["-yqru0", dest.path, "Payload"]
+            zip.arguments = ["-yqru0", dest.path, dir.lastPathComponent]
             try await zip.runUntilExit()
 
             return dest

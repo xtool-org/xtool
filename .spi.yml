@@ -7,8 +7,8 @@ builder:
       - xtool
     - scheme: xtool
       platform: macosXcodebuild
-    # - scheme: xtool
-    #   platform: linux
-    #   image: # TODO: we need to use our own Docker image for this
+    - scheme: xtool
+      platform: linux
+      image: kabiroberai/xtool-dev:latest
     - scheme: XKit
       platform: ios

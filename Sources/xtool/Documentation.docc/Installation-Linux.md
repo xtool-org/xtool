@@ -64,6 +64,10 @@ sudo apt-get install usbmuxd
 
 Download **Xcode 16.3** from <https://developer.apple.com/services-account/download?path=/Developer_Tools/Xcode_16.3/Xcode_16.3.xip>. Note the path where `Xcode_16.3.xip` is saved.
 
+> Note:
+>
+> The URL above requires authentication, so make sure to visit it in your browser rather than running `curl`. You'll be asked to log in with your Apple ID and accept the license agreement to download Xcode.
+
 ## Installation
 
 ### 1. Download xtool

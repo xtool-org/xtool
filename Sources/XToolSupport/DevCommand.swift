@@ -2,6 +2,7 @@ import Foundation
 import ArgumentParser
 import PackLib
 import XKit
+import Dependencies
 
 struct PackOperation {
     struct BuildOptions: ParsableArguments {
@@ -85,8 +86,42 @@ struct DevBuildCommand: AsyncParsableCommand {
 
     @OptionGroup var packOptions: PackOperation.BuildOptions
 
+    @Flag(
+        help: "Output a .ipa file instead of a .app"
+    ) var ipa = false
+
     func run() async throws {
-        try await PackOperation(buildOptions: packOptions).run()
+        let url = try await PackOperation(
+            buildOptions: packOptions
+        ).run()
+
+        let finalURL: URL
+        if ipa {
+            @Dependency(\.zipCompressor) var compressor
+            finalURL = url.deletingPathExtension().appendingPathExtension("ipa")
+            let tmpDir = try TemporaryDirectory(name: "sh.xtool.tmp")
+            let payloadDir = tmpDir.url.appendingPathComponent("Payload", isDirectory: true)
+            try FileManager.default.createDirectory(
+                at: payloadDir,
+                withIntermediateDirectories: true
+            )
+            try FileManager.default.moveItem(at: url, to: payloadDir.appendingPathComponent(url.lastPathComponent))
+            let ipaURL = try await compressor.compress(directory: payloadDir) { progress in
+                if let progress {
+                    let percent = Int(progress * 100)
+                    print("\rPackaging... \(percent)%", terminator: "")
+                } else {
+                    print("\rPackaging...", terminator: "")
+                }
+            }
+            print()
+            try? FileManager.default.removeItem(at: finalURL)
+            try FileManager.default.moveItem(at: ipaURL, to: finalURL)
+        } else {
+            finalURL = url
+        }
+
+        print("Wrote to \(finalURL.path)")
     }
 }
 
