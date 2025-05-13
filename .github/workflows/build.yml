@@ -32,4 +32,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Build
         run: |
-          xcodebuild build -skipMacroValidation -skipPackagePluginValidation -scheme XKit -destination generic/platform=iOS | xcbeautify
+          set -o pipefail \
+          && xcodebuild build \
+            -skipMacroValidation -skipPackagePluginValidation \
+            -scheme XKit -destination generic/platform=iOS \
+          | xcbeautify
