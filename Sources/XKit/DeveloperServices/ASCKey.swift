@@ -13,6 +13,10 @@ public struct ASCKey: Sendable {
     }
 }
 
+#if os(iOS)
+#error("Dummy failure")
+#endif
+
 actor ASCJWTGenerator {
     // the duration for which we generate JWTs.
     // ASC allows a maximum of 20 minutes.
