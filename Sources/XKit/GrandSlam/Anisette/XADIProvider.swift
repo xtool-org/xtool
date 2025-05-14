@@ -129,6 +129,15 @@ public actor XADIProvider: RawADIProvider {
                 }
             })
             let file = adiDirectory.appending(path: "adi.pb")
+            // adi saves the file as 0o034 (group wx, public r) by default
+            // which is a... strange choice that prevents us from reading
+            // or writing by default. Since we're the owner, we can easily
+            // change this though.
+            try FileManager.default.setAttributes(
+                // rw for owner
+                [.posixPermissions: 0o600],
+                ofItemAtPath: file.path
+            )
             return try Data(contentsOf: file)
         }
     }
@@ -148,9 +157,6 @@ public actor XADIProvider: RawADIProvider {
         let adiDirectory = directory.appending(path: "adi")
         try? FileManager.default.createDirectory(at: adiDirectory, withIntermediateDirectories: true)
         let adiFile = adiDirectory.appending(path: "adi.pb")
-        // this file may be saved as write-protected, but we can still remove it
-        // and then overwrite it.
-        try? FileManager.default.removeItem(at: adiFile)
         try provisioningInfo.write(to: adiFile)
 
         try check(xadi_OTPRequest(
