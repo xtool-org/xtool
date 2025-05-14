@@ -29,27 +29,19 @@ swift --version
 
 ## Installation
 
-### 1. Build xtool
+### 1. Download xtool
 
-You currently have to build xtool from source on macOS, via Swift Package Manager.
+If you have [Homebrew](https://brew.sh), you can install xtool with
 
 ```bash
-git clone https://github.com/xtool-org/xtool
-# Cloning into 'xtool'...
-# Resolving deltas: 100% (1795/1795), done.
-cd xtool
-swift build -c release --product xtool
-# Building for production...
-# [503/503] Linking xtool
-# Build of product 'xtool' complete! (67.64s)
-sudo ln -s "$PWD/.build/release/xtool" /usr/local/bin/xtool
+brew install xtool-org/tap/xtool
 ```
 
-> Important:
+Otherwise, you can download `xtool.app` from the [latest GitHub release](https://github.com/xtool-org/xtool/releases/latest). After moving it into `/Applications`, launch it and run the suggested script to add the `xtool` command to your `PATH`.
+
+> Note:
 >
-> The SwiftPM build currently references relative libraries and resources. This means you can't just `mv` the built `xtool` binary, hence the usage of `ln` to symlink instead. Make sure you **don't delete the directory where you cloned xtool**.
->
-> The plan is to make macOS installation easier and more self-contained in the future by shipping xtool as a `.app`, Homebrew Cask, etc. If you would like to contribute, feel free to reach out via [GitHub Issues](https://github.com/xtool-org/xtool/issues/new).
+> If you install xtool manually, you'll also need to check for new GitHub releases and update it yourself. If you're interested in contributing support for auto-updates through Sparkle, pull requests are appreciated. See [issue #34 on GitHub](https://github.com/xtool-org/xtool/issues/34).
 
 Confirm that xtool is installed correctly:
 
