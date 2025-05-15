@@ -29,7 +29,7 @@ struct SetupOperation {
             print("Skipping Darwin SDK setup since we're on macOS.")
         }
         #else
-        switch try DarwinSDK.current()?.isUpToDate() {
+        switch try await DarwinSDK.current()?.isUpToDate() {
         case true?:
             if !quiet {
                 print("Darwin SDK is up to date.")
