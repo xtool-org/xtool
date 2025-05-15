@@ -149,7 +149,7 @@ struct SDKBuilder {
     }
 
     private func installToolset(in output: URL) async throws {
-        // tag from https://github.com/kabiroberai/darwin-tools-linux-llvm
+        // tag from https://github.com/xtool-org/darwin-tools-linux-llvm
         let darwinToolsVersion = "1.0.1"
 
         let toolsetDir = output.appendingPathComponent("toolset")
@@ -169,7 +169,7 @@ struct SDKBuilder {
 
         @Dependency(\.httpClient) var httpClient
         let url = URL(string: """
-        https://github.com/kabiroberai/darwin-tools-linux-llvm/releases/download/\
+        https://github.com/xtool-org/darwin-tools-linux-llvm/releases/download/\
         v\(darwinToolsVersion)/toolset-\(arch.rawValue).tar.gz
         """)!
         let (response, body) = try await httpClient.send(HTTPRequest(url: url))
