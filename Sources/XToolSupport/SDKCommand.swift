@@ -139,6 +139,11 @@ struct DarwinSDK {
     }
 
     static func install(from path: String) async throws {
+        // we can't just move into ~/.swiftpm/swift-sdks because the swiftpm directory
+        // location depends on factors like $XDG_CONFIG_HOME. Rather than replicating
+        // SwiftPM's logic, which may change, it's more reliable to directly invoke
+        // `swift sdk install`. See: https://github.com/xtool-org/xtool/pull/40
+
         let url = URL(fileURLWithPath: path)
         guard DarwinSDK(bundle: url) != nil else { throw Console.Error("Invalid Darwin SDK at '\(path)'")}
 
