@@ -44,7 +44,7 @@ mkdir -p staging/tmp/AppDir/usr/bin
 find "${bin}"/ -name '*.resources' -print0 | xargs -0 -I {} cp -a {} "${PWD}/staging/tmp/AppDir/usr/bin/"
 
 env \
-LDAI_OUTPUT="staging/tmp/xtool.AppImage" \
+LDAI_OUTPUT="staging/tmp/xtool-${curr_arch}.AppImage" \
 LDAI_UPDATE_INFORMATION="gh-releases-zsync|xtool-org|xtool|latest|xtool-${curr_arch}.AppImage.zsync" \
     ./staging/linuxdeploy/linuxdeploy.AppImage \
     --appdir staging/tmp/AppDir \
@@ -53,8 +53,7 @@ LDAI_UPDATE_INFORMATION="gh-releases-zsync|xtool-org|xtool|latest|xtool-${curr_a
     -d xtool.desktop \
     -i xtool.png
 mkdir -p packages
-mv -f staging/tmp/xtool.AppImage "packages/xtool-${curr_arch}.AppImage"
-mv -f ./xtool.AppImage.zsync "packages/xtool-${curr_arch}.AppImage.zsync"
+mv -f "staging/tmp/xtool-${curr_arch}.AppImage" "./xtool-${curr_arch}.AppImage.zsync" packages/
 
 rm -rf staging/tmp
 
