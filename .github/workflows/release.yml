@@ -19,12 +19,14 @@ jobs:
         uses: actions/checkout@v4
       - name: Build
         run: |
-          docker compose run --build --rm xtool bash -c "Linux/build.sh && mv Linux/packages/xtool{,-${{ matrix.host.arch }}}.AppImage"
+          docker compose run --build --rm xtool Linux/build.sh
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: xtool-${{ matrix.host.arch }}
-          path: Linux/packages/xtool-${{ matrix.host.arch }}.AppImage
+          path: |
+            Linux/packages/xtool-${{ matrix.host.arch }}.AppImage
+            Linux/packages/xtool-${{ matrix.host.arch }}.AppImage.zsync
   build-mac:
     runs-on: macos-15
     permissions:
@@ -72,4 +74,4 @@ jobs:
         run: |
           TAG="${GITHUB_REF##*/}-${GITHUB_SHA:0:7}"
           gh release create "$TAG" --draft --title "Draft Release"
-          gh release upload "$TAG" output/**/*.{AppImage,app.zip,app.dSYM.zip}
+          gh release upload "$TAG" output/**/*.{AppImage,AppImage.zsync,app.zip,app.dSYM.zip}
