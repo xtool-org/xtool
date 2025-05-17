@@ -12,3 +12,5 @@ DerivedData/
 .docc-build
 
 /openapi
+.devcontainer
+.vscode

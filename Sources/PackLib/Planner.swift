@@ -70,7 +70,7 @@ public struct Planner: Sendable {
 
         let library = try selectLibrary(
             from: libraries,
-            matching: schema.base.product
+            matching: schema.product
         )
 
         var resources: [Resource] = []
@@ -107,7 +107,7 @@ public struct Planner: Sendable {
             }
         }
 
-        if let rootResources = schema.base.resources {
+        if let rootResources = schema.resources {
             resources += rootResources.map { .root(source: $0) }
         }
 
@@ -137,7 +137,7 @@ public struct Planner: Sendable {
             "CFBundleExecutable": "\(library.name)",
         ]
 
-        if let plist = self.schema.base.infoPath {
+        if let plist = self.schema.infoPath {
             let data = try await Data(reading: URL(fileURLWithPath: plist))
             let info = try PropertyListSerialization.propertyList(from: data, format: nil)
             if let info = info as? [String: Sendable] {
@@ -153,8 +153,9 @@ public struct Planner: Sendable {
             bundleID: bundleID,
             infoPlist: infoPlist,
             resources: resources,
-            iconPath: self.schema.base.iconPath,
-            entitlementsPath: self.schema.base.entitlementsPath
+            iconPath: self.schema.iconPath,
+            entitlementsPath: self.schema.entitlementsPath,
+            extensions: []
         )
     }
 
@@ -219,6 +220,14 @@ public struct Plan: Sendable {
     public var resources: [Resource]
     public var iconPath: String?
     public var entitlementsPath: String?
+    public var extensions: [Extension]
+
+    public struct Extension: Sendable {
+        public var product: String
+        public var bundleID: String
+        public var infoPlist: [String: any Sendable]
+        public var resources: [Resource]
+    }
 }
 
 public enum Resource: Codable, Sendable {

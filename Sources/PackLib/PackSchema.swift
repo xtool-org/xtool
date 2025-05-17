@@ -18,9 +18,19 @@ public struct PackSchemaBase: Codable, Sendable {
 
     public var iconPath: String?
     public var resources: [String]?
+    public var extensions: [Extension]?
+
+    public struct Extension: Codable, Sendable {
+        public var product: String
+        public var bundleID: String
+        public var version: Version
+    }
 }
 
+@dynamicMemberLookup
 public struct PackSchema: Sendable {
+    public typealias Extension = PackSchemaBase.Extension
+
     public enum IDSpecifier: Sendable {
         case orgID(String)
         case bundleID(String)
@@ -69,5 +79,9 @@ public struct PackSchema: Sendable {
         let data = try await Data(reading: url)
         let base = try YAMLDecoder().decode(PackSchemaBase.self, from: data)
         try self.init(validating: base)
+    }
+
+    public subscript<Subject>(dynamicMember keyPath: KeyPath<PackSchemaBase, Subject>) -> Subject {
+        self.base[keyPath: keyPath]
     }
 }
