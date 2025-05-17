@@ -1,5 +1,7 @@
 on:
-  workflow_dispatch:
+  push:
+    tags:
+      - "*"
 
 jobs:
   build-linux:
@@ -72,6 +74,6 @@ jobs:
           path: output
       - name: Create and publish release
         run: |
-          TAG="${GITHUB_REF##*/}-${GITHUB_SHA:0:7}"
-          gh release create "$TAG" --draft --title "Draft Release"
+          TAG="${{ github.ref_name }}"
+          gh release create "$TAG" --draft --title "v$TAG"
           gh release upload "$TAG" output/**/*.{AppImage,AppImage.zsync,app.zip,app.dSYM.zip}
