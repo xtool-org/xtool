@@ -21,7 +21,9 @@ jobs:
         uses: actions/checkout@v4
       - name: Build
         run: |
-          docker compose run --build --rm xtool Linux/build.sh
+          docker compose run --build \
+            -e XTOOL_VERSION=${{ github.ref_name }} \
+            --rm xtool Linux/build.sh
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -48,6 +50,7 @@ jobs:
           APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
           IDENTITY_P12: ${{ secrets.IDENTITY_P12 }}
           DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
+          XTOOL_VERSION: ${{ github.ref_name }}
         run: |
           cd macOS
           bundle exec fastlane package
