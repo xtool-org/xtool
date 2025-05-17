@@ -12,6 +12,7 @@ struct XToolCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "xtool",
         abstract: "Cross-platform Xcode replacement",
+        version: XTool.version?.description ?? "unknown",
         groupedSubcommands: [
             CommandGroup(
                 name: "Configuration",

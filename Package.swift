@@ -2,8 +2,13 @@
 
 import PackageDescription
 
+let gitCommit: String? = Context.gitInformation?.currentCommit
+let gitTag: String? = Context.gitInformation?.currentTag
+
 let cSettings: [CSetting] = [
     .define("_GNU_SOURCE", .when(platforms: [.linux])),
+    .define("XTL_GIT_COMMIT", to: gitCommit.map { "\"\($0)\"" } ?? "NULL"),
+    .define("XTL_GIT_TAG", to: gitTag.map { "\"\($0)\"" } ?? "NULL"),
 ]
 
 let package = Package(
