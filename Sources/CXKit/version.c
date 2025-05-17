@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include "version.h"
 
 const char * _Nullable xtl_git_commit(void) {
