@@ -78,7 +78,7 @@ public struct DeveloperServicesFetchProfileOperation: DeveloperServicesOperation
                     data: .init(
                         _type: .profiles,
                         attributes: .init(
-                            name: "SC profile \(bundleID.id)",
+                            name: "XTL profile \(bundleID.id)",
                             profileType: .iosAppDevelopment
                         ),
                         relationships: .init(

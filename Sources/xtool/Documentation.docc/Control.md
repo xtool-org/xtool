@@ -21,7 +21,7 @@ You can update your app's bundle ID by editing the `bundleID` field in `xtool.ym
 
 > Note:
 >
-> xtool adds a prefix to your bundle ID when signing and installing the app on a real device. For example, it may update the above bundle id to `SC-1234.com.example.Hello`. This is because, at least with free accounts (those not enrolled in the Apple Developer Program), two accounts cannot use the same bundle ID. Prefixing ensures that if you share your app with someone else, they won't run into a bundle ID conflict when installing it.
+> xtool adds a prefix to your bundle ID when signing and installing the app on a real device. For example, it may update the above bundle id to `XTL-1234.com.example.Hello`. This is because, at least with free accounts (those not enrolled in the Apple Developer Program), two accounts cannot use the same bundle ID. Prefixing ensures that if you share your app with someone else, they won't run into a bundle ID conflict when installing it.
 >
 > With additional engineering effort, this limitation could be lifted for paid Developer Program users by leveraging wildcard provisioning profiles. If you have a concrete use case for this and/or wish to contribute, please [file an issue](https://github.com/xtool-org/xtool/issues/new).
 
