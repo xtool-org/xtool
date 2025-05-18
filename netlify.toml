@@ -6,3 +6,8 @@
   publish = "docs/"
   command = "./build.sh"
   environment = { SWIFT_VERSION = "6.1" }
+
+[[redirects]]
+  from = "/"
+  to = "/documentation/xtooldocs/"
+  status = 302
