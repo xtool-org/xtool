@@ -5,9 +5,6 @@ shopt -s nullglob
 
 cd "$(dirname "$0")"
 
-# release version
-export LINUXDEPLOY_OUTPUT_VERSION="latest"
-
 if ! command -v fusermount &>/dev/null; then
     # Docker doesn't support FUSE
     export APPIMAGE_EXTRACT_AND_RUN=1
@@ -43,10 +40,10 @@ fi
 mkdir -p staging/tmp/AppDir/usr/bin
 find "${bin}"/ -name '*.resources' -print0 | xargs -0 -I {} cp -a {} "${PWD}/staging/tmp/AppDir/usr/bin/"
 
-env \
-LDAI_OUTPUT="staging/tmp/xtool-${curr_arch}.AppImage" \
-LDAI_UPDATE_INFORMATION="gh-releases-zsync|xtool-org|xtool|latest|xtool-${curr_arch}.AppImage.zsync" \
-    ./staging/linuxdeploy/linuxdeploy.AppImage \
+export LINUXDEPLOY_OUTPUT_VERSION="${XTOOL_VERSION:-unversioned}"
+export LDAI_OUTPUT="staging/tmp/xtool-${curr_arch}.AppImage"
+export LDAI_UPDATE_INFORMATION="gh-releases-zsync|xtool-org|xtool|latest|xtool-${curr_arch}.AppImage.zsync"
+./staging/linuxdeploy/linuxdeploy.AppImage \
     --appdir staging/tmp/AppDir \
     --output appimage \
     -e "${bin}/xtool" \
