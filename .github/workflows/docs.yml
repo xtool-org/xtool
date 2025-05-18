@@ -17,11 +17,7 @@ jobs:
         uses: actions/configure-pages@v5
       - name: Build DocC
         run: |
-          swift package --allow-writing-to-package-directory \
-            generate-documentation --target xtool --disable-indexing \
-            --output-path docs
-
-          echo "<script>window.location.href += \"/documentation/xtool\"</script>" > docs/index.html;
+          ./scripts/build-docs.sh
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

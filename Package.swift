@@ -161,5 +161,8 @@ let package = Package(
             ],
             cSettings: cSettings
         ),
+        .executableTarget(
+            name: "XToolDocs"
+        ),
     ]
 )

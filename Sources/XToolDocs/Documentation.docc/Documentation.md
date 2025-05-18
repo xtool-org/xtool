@@ -1,4 +1,8 @@
-# ``xtool``
+# ``XToolDocs``
+
+@Metadata {
+    @DisplayName("xtool")
+}
 
 Cross-platform Xcode replacement.
 
