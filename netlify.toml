@@ -11,3 +11,4 @@
   from = "/"
   to = "/documentation/xtooldocs/"
   status = 302
+  force = true
