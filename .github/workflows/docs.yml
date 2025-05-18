@@ -19,7 +19,6 @@ jobs:
         run: |
           swift package --allow-writing-to-package-directory \
             generate-documentation --target xtool --disable-indexing --output-path docs
-
           echo "<script>window.location.href += \"/documentation/xtool\"</script>" > docs/index.html;
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
