@@ -8,4 +8,5 @@ rm -rf docs
 
 swift package --allow-writing-to-package-directory \
     generate-documentation --target XToolDocs --disable-indexing \
+    --experimental-enable-custom-templates \
     --output-path docs
