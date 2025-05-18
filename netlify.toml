@@ -6,6 +6,7 @@
   publish = "docs/"
   command = "./build.sh"
   environment = { SWIFT_VERSION = "6.1" }
+  ignore = "git -C .. diff --quiet $CACHED_COMMIT_REF $COMMIT_REF Sources/XToolDocs Netlify"
 
 [[redirects]]
   from = "/"

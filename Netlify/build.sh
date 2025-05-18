@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+cd "$(dirname "$0")"
+
 rm -rf docs
 
 swift package --allow-writing-to-package-directory \
