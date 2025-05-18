@@ -1,0 +1,8 @@
+[build]
+  # by setting a custom base directory, we prevent Netlify from running
+  # `swift build` in the root directory, which builds more targets than
+  # we need.
+  base = "Netlify/"
+  publish = "docs/"
+  command = "./build.sh"
+  environment = { SWIFT_VERSION = "6.1" }
