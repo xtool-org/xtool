@@ -6,3 +6,32 @@
   publish = "docs/"
   command = "./build.sh"
   environment = { SWIFT_VERSION = "6.1" }
+  ignore = "git -C .. diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- Sources/XToolDocs Netlify netlify.toml"
+
+[[redirects]]
+  from = "/"
+  to = "/documentation/xtooldocs/"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/documentation"
+  to = "/documentation/xtooldocs/"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/tutorials"
+  to = "/tutorials/toc"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/documentation/xtool/*"
+  to = "/documentation/xtooldocs/:splat"
+  status = 302
+
+[[redirects]]
+  from = "/tutorials/xtool/*"
+  to = "/tutorials/xtooldocs/:splat"
+  status = 302
