@@ -13,3 +13,25 @@
   to = "/documentation/xtooldocs/"
   status = 302
   force = true
+
+[[redirects]]
+  from = "/documentation"
+  to = "/documentation/xtooldocs/"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/tutorials"
+  to = "/tutorials/toc"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/documentation/xtool/*"
+  to = "/documentation/xtooldocs/:splat"
+  status = 302
+
+[[redirects]]
+  from = "/tutorials/xtool/*"
+  to = "/tutorials/xtooldocs/:splat"
+  status = 302
