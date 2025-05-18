@@ -1,8 +1,14 @@
-# ``xtool``
+# ``XToolDocs``
+
+@Metadata {
+    @DisplayName("xtool")
+}
 
 Cross-platform Xcode replacement.
 
 ## Overview
+
+[View on GitHub](https://github.com/xtool-org/xtool)
 
 xtool is a cross-platform (Linux/WSL/macOS) tool that replicates Xcode functionality with open standards.
 
