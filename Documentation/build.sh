@@ -22,5 +22,4 @@ else
 fi
 
 "$docc" "$command" xtool.docc \
-    --experimental-enable-custom-templates \
-    --output-path docs
+    --experimental-enable-custom-templates

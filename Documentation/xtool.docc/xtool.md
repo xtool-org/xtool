@@ -2,13 +2,13 @@
 
 @Metadata {
     @TechnologyRoot
+    @TitleHeading("Command-line Tool")
+    @CallToAction(url: "https://github.com/xtool-org/xtool", label: "View on GitHub")
 }
 
 Cross-platform Xcode replacement.
 
 ## Overview
-
-[View on GitHub](https://github.com/xtool-org/xtool)
 
 xtool is a cross-platform (Linux/WSL/macOS) tool that replicates Xcode functionality with open standards.
 
