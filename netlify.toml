@@ -22,9 +22,16 @@
 
 [[redirects]]
   from = "/tutorials"
-  to = "/tutorials/toc"
+  to = "/tutorials/xtool"
   status = 302
   force = true
+
+# --- Backwards compatibility ---
+
+[[redirects]]
+  from = "/tutorials/toc"
+  to = "/tutorials/xtool"
+  status = 302
 
 [[redirects]]
   from = "/documentation/xtooldocs/*"
