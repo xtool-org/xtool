@@ -23,7 +23,7 @@ xtool is a cross-platform (Linux/WSL/macOS) tool that replicates Xcode functiona
 
 ### Screenshot
 
-![A screenshot of xtool being invoked from VSCode](Sources/XToolDocs/Documentation.docc/Resources/Cover.png)
+![A screenshot of xtool being invoked from VSCode](Documentation/xtool.docc/Resources/Cover.png)
 
 ### Command line interface
 
