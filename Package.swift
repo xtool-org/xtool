@@ -2,6 +2,19 @@
 
 import PackageDescription
 
+let xtoolVersion: String? = {
+    if let explicitVersion = Context.environment["XTOOL_VERSION"] {
+        return explicitVersion
+    } else if let info = Context.gitInformation {
+        let gitCommit = info.currentCommit
+        let gitTag = info.currentTag
+        let gitRef = gitTag ?? "commit \(gitCommit)"
+        return "\(gitRef)\(info.hasUncommittedChanges ? " (dirty)" : "")"
+    } else {
+        return nil
+    }
+}()
+
 let cSettings: [CSetting] = [
     .define("_GNU_SOURCE", .when(platforms: [.linux])),
 ]
@@ -64,7 +77,11 @@ let package = Package(
             dependencies: [
                 .product(name: "OpenSSL", package: "xtool-core")
             ],
-            cSettings: cSettings
+            cSettings: cSettings + (
+                xtoolVersion
+                    .map { [.define("XTOOL_VERSION", to: "\"\($0)\"")] }
+                    ?? []
+            )
         ),
         .target(
             name: "DeveloperAPI",
