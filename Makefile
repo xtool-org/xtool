@@ -96,6 +96,16 @@ else
 .PHONY: $(TEAM_CONFIG)
 endif
 
+.PHONY: docs
+# build documentation
+docs:
+	./Documentation/build.sh
+
+.PHONY: docs-preview
+# preview documentation
+docs-preview:
+	./Documentation/build.sh preview
+
 SPEC_URL = https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip
 
 .PHONY: api
