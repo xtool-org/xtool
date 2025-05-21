@@ -6,7 +6,7 @@ We welcome all bug reports and feature requests! Please create a [new issue](htt
 
 ## Documentation
 
-The xtool documentation at <https://xtool.sh> is built with [swift-docc](https://github.com/swiftlang/swift-docc) and resides at [Documentation/xtool.docc](/Documentation/xtool.docc).
+The xtool documentation at <https://xtool.sh> is built with [swift-docc](https://github.com/swiftlang/swift-docc) and resides at [Documentation/xtool.docc](/Documentation/xtool.docc). It's hosted on Netlify, the configuration for which is in [netlify.toml](/netlify.toml).
 
 When editing the DocC bundle, you can preview it with `make docs-preview`.
 
