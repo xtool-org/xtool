@@ -24,7 +24,7 @@ On macOS, you'll firstly need to have Xcode set up.
 
 The first time you run `make`, we'll try to detect your codesigning identity. If you have multiple, you'll see an interactive prompt to select the team you want to use. The team ID is saved to `./macOS/Support/Private-Team.xcconfig`. You can run `make team` to update it (or do so by hand).
 
-After building, a symlink to the product will be created at `./macOS/Build/xtool`.
+After building, a symlink to the product will be created at `./macOS/Build/xtool`. We generate an Xcode project at `./macOS/XToolMac.xcodeproj` that you can open in order to work in Xcode.
 
 ### Linux
 
