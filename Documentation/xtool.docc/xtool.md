@@ -1,4 +1,10 @@
-# ``xtool``
+# xtool
+
+@Metadata {
+    @TechnologyRoot
+    @TitleHeading("Command-line Tool")
+    @CallToAction(url: "https://github.com/xtool-org/xtool", label: "View on GitHub")
+}
 
 Cross-platform Xcode replacement.
 

@@ -1,0 +1,44 @@
+[build]
+  # by setting a custom base directory, we prevent Netlify from running
+  # `swift build` in the root directory, which builds more targets than
+  # we need.
+  base = "Documentation/"
+  publish = "xtool.docc/.docc-build"
+  command = "./build.sh"
+  environment = { SWIFT_VERSION = "6.1" }
+  ignore = "git -C .. diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- Documentation netlify.toml"
+
+[[redirects]]
+  from = "/"
+  to = "/documentation/xtool/"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/documentation"
+  to = "/documentation/xtool/"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/tutorials"
+  to = "/tutorials/xtool"
+  status = 302
+  force = true
+
+# --- Backwards compatibility ---
+
+[[redirects]]
+  from = "/tutorials/toc"
+  to = "/tutorials/xtool"
+  status = 302
+
+[[redirects]]
+  from = "/documentation/xtooldocs/*"
+  to = "/documentation/xtool/:splat"
+  status = 302
+
+[[redirects]]
+  from = "/tutorials/xtooldocs/*"
+  to = "/tutorials/xtool/:splat"
+  status = 302
