@@ -32,10 +32,24 @@ else
 	@+$(MAKE) linux
 endif
 
+.PHONY: clean
+# clean build artifacts
+clean:
+ifeq ($(IS_MAC),1)
+	@+$(MAKE) mac-clean
+else
+	@+$(MAKE) linux-clean
+endif
+
 .PHONY: linux
 # dev build for Linux
 linux:
 	swift build --product xtool $(ALL_SWIFTFLAGS)
+
+.PHONY: linux-clean
+# clean build artifacts for Linux
+linux-clean:
+	rm -rf .build
 
 .PHONY: linux-dist
 # dist build for Linux
@@ -47,13 +61,19 @@ linux-dist:
 mac: project
 	@rm -rf macOS/Build/XcodeInstall
 	@set -o pipefail && cd macOS && \
-	  xcodebuild build install \
+	  xcodebuild install \
 	  -skipMacroValidation -skipPackagePluginValidation \
 	  -scheme XToolMac -destination generic/platform=macOS \
+	  -derivedDataPath Build/DerivedData \
 	  DSTROOT="$$PWD"/Build/XcodeInstall INSTALL_PATH=/ \
 	  $(ALL_XCFLAGS) $(XC_FORMAT)
 	@ln -fs XcodeInstall/xtool.app/Contents/Resources/bin/xtool macOS/Build/xtool
 	@echo "Output: ./macOS/Build/xtool"
+
+.PHONY: mac-clean
+# clean build artifacts for macOS
+mac-clean:
+	rm -rf macOS/Build
 
 .PHONY: mac-dist
 # dist build for macOS
