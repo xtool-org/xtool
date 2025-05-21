@@ -1,7 +1,105 @@
+ifeq ($(shell uname -s),Darwin)
+
+IS_MAC = 1
+
+ifneq ($(VERBOSE),1)
+ifeq ($(shell type -p xcbeautify &>/dev/null && echo 1),1)
+XC_FORMAT = | xcbeautify
+endif
+endif
+
+endif
+
+ifeq ($(RELEASE),1)
+INTERNAL_SWIFTFLAGS = -c release
+INTERNAL_XCFLAGS = -configuration Release
+else
+INTERNAL_SWIFTFLAGS = -c debug
+INTERNAL_XCFLAGS = -configuration Debug
+endif
+
+ALL_SWIFTFLAGS = $(INTERNAL_SWIFTFLAGS) $(SWIFTFLAGS)
+ALL_XCFLAGS = $(INTERNAL_XCFLAGS) $(XCFLAGS)
+
+TEAM_CONFIG = macOS/Support/Private-Team.xcconfig
+
+.PHONY: all
+# dev build for the current platform
+all:
+ifeq ($(IS_MAC),1)
+	@+$(MAKE) mac
+else
+	@+$(MAKE) linux
+endif
+
+.PHONY: linux
+# dev build for Linux
+linux:
+	swift build --product xtool $(ALL_SWIFTFLAGS)
+
+.PHONY: linux-dist
+# dist build for Linux
+linux-dist:
+	docker compose run --build --rm xtool Linux/build.sh
+
+.PHONY: mac
+# dev build for macOS
+mac: project
+	@rm -rf macOS/Build/XcodeInstall
+	@set -o pipefail && cd macOS && \
+	  xcodebuild build install \
+	  -skipMacroValidation -skipPackagePluginValidation \
+	  -scheme XToolMac -destination generic/platform=macOS \
+	  DSTROOT="$$PWD"/Build/XcodeInstall INSTALL_PATH=/ \
+	  $(ALL_XCFLAGS) $(XC_FORMAT)
+	@ln -fs XcodeInstall/xtool.app/Contents/Resources/bin/xtool macOS/Build/xtool
+	@echo "Output: ./macOS/Build/xtool"
+
+.PHONY: mac-dist
+# dist build for macOS
+# requires a few secrets in the env (see .github/workflows/release.yml)
+mac-dist:
+	@echo "bundle exec fastlane package"
+	@cd macOS && bundle exec fastlane package
+
+.PHONY: reload
+# update Xcode project and restart Xcode
+reload:
+	killall Xcode || :
+	@+$(MAKE) project
+	xed macOS/XToolMac.xcodeproj
+
+.PHONY: project
+# update Xcode project
+project: $(TEAM_CONFIG)
+	@echo "xcodegen"
+	@cd macOS && xcodegen
+
+.PHONY: team
+# update development team
+team:
+	@+$(MAKE) -B $(TEAM_CONFIG)
+
+# update development team if needed.
+#
+# will prompt interactively if there are multiple valid options.
+# set DEVELOPMENT_TEAM=... to force a specific value.
+$(TEAM_CONFIG):
+ifeq ($(DEVELOPMENT_TEAM),)
+	@mkdir -p macOS/Support
+	@team=$$(./scripts/select-identity.sh); \
+	  echo "echo \"DEVELOPMENT_TEAM = $$team\" > $@"; \
+	  echo "DEVELOPMENT_TEAM = $$team" > $@
+else
+	@mkdir -p macOS/Support
+	echo "DEVELOPMENT_TEAM = $(DEVELOPMENT_TEAM)" > $@
+.PHONY: $(TEAM_CONFIG)
+endif
+
 SPEC_URL = https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip
 
-.PHONY: api update-api
-
+.PHONY: api
+# Regenerate the OpenAPI client code
 api: openapi/openapi.json
 	swift run swift-openapi-generator generate \
 		openapi/openapi.json \
@@ -11,6 +109,8 @@ api: openapi/openapi.json
 		sed -i '' -e 's/[[:<:]]Client[[:>:]]/DeveloperAPIClient/g' $$file; \
 	done
 
+.PHONY: update-api
+# Update OpenAPI spec and regenerate the client code
 update-api:
 	@+$(MAKE) -B api
 

@@ -6,4 +6,5 @@ ENABLE_HARDENED_RUNTIME = YES
 PRODUCT_NAME = xtool
 PRODUCT_MODULE_NAME = XToolMac
 
+#include? "Private-Team.xcconfig"
 #include? "Private.xcconfig"
