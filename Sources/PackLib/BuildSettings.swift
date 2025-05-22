@@ -15,15 +15,14 @@ public struct BuildSettings: Sendable {
 
     public init(
         configuration: BuildConfiguration,
+        triple: String,
         packagePath: String = ".",
         options: [String] = []
     ) async throws {
         self.packagePath = packagePath
         self.configuration = configuration
         self.options = options
-
-        // TODO: allow customizing?
-        self.triple = "arm64-apple-ios"
+        self.triple = triple
 
         // on macOS we don't explicitly install a Swift SDK but
         // SwiftPM vends "implicit" Darwin SDKs as of Swift 6.1,
