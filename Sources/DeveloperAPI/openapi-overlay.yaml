@@ -22,7 +22,10 @@ actions:
       required: [capability]
   - target: '$.components.schemas.Device.properties.attributes.properties.deviceClass'
     update:
-      enum: ["APPLE_VISION_PRO"]
+      enum:
+        - APPLE_VISION_PRO
   - target: '$.components.schemas.BundleIdPlatform'
     update:
-      enum: ["SERVICES"]
+      enum:
+        - SERVICES
+        - MACOS
