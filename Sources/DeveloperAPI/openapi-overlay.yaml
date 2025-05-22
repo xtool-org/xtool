@@ -21,6 +21,11 @@ actions:
               required: [id, type]
           required: [data]
       required: [capability]
+  # we don't use this but it triggers a deprecation warning. see:
+  # https://github.com/apple/swift-openapi-generator/issues/715
+  - target: '$.components.schemas.App.properties.relationships.properties.inAppPurchases'
+    update:
+      deprecated: false
   # openapi-generator expects response enums to be exhaustive. Apple's ASC OpenAPI spec
   # misses some cases that they do, actually, return.
   - target: '$.components.schemas.Device.properties.attributes.properties.deviceClass'
