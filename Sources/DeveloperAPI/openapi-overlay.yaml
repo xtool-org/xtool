@@ -23,3 +23,6 @@ actions:
   - target: '$.components.schemas.Device.properties.attributes.properties.deviceClass'
     update:
       enum: ["APPLE_VISION_PRO"]
+  - target: '$.components.schemas.BundleIdPlatform'
+    update:
+      enum: ["SERVICES"]
