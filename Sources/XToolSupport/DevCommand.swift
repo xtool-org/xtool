@@ -18,6 +18,9 @@ struct PackOperation {
         }
     }
 
+    static let defaultTriple = "arm64-apple-ios"
+
+    var triple: String?
     var buildOptions = BuildOptions(configuration: .debug)
     var xcode = false
 
@@ -39,6 +42,7 @@ struct PackOperation {
 
         let buildSettings = try await BuildSettings(
             configuration: buildOptions.configuration,
+            triple: triple ?? Self.defaultTriple,
             options: []
         )
 
@@ -90,8 +94,16 @@ struct DevBuildCommand: AsyncParsableCommand {
         help: "Output a .ipa file instead of a .app"
     ) var ipa = false
 
+    @Option(
+        help: ArgumentHelp(
+            "Custom target triple to build for",
+            discussion: "Defaults to '\(PackOperation.defaultTriple)'"
+        )
+    ) var triple: String?
+
     func run() async throws {
         let url = try await PackOperation(
+            triple: triple,
             buildOptions: packOptions
         ).run()
 
@@ -136,10 +148,39 @@ struct DevRunCommand: AsyncParsableCommand {
 
     @OptionGroup var packOptions: PackOperation.BuildOptions
 
+    #if os(macOS)
+    @Flag(
+        name: .shortAndLong,
+        help: "Target the iOS Simulator"
+    ) var simulator = false
+
+    var triple: String? {
+        if simulator {
+            #if arch(arm64)
+            return "arm64-apple-ios-simulator"
+            #elseif arch(x86_64)
+            return "x86_64-apple-ios-simulator"
+            #else
+            #error("Unsupported architecture")
+            #endif
+        }
+        return nil
+    }
+    #else
+    var triple: String? { nil }
+    #endif
+
     @OptionGroup var connectionOptions: ConnectionOptions
 
     func run() async throws {
-        let output = try await PackOperation(buildOptions: packOptions).run()
+        let output = try await PackOperation(triple: triple, buildOptions: packOptions).run()
+
+        #if os(macOS)
+        if simulator {
+            try await SimInstallOperation(path: output).run()
+            return
+        }
+        #endif
 
         let token = try AuthToken.saved()
 
@@ -175,3 +216,20 @@ struct DevCommand: AsyncParsableCommand {
 }
 
 extension BuildConfiguration: ExpressibleByArgument {}
+
+#if os(macOS)
+struct SimInstallOperation {
+    var path: URL
+
+    // TODO: allow customizing this
+    var simulator = "booted"
+
+    func run() async throws {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
+        process.arguments = ["simctl", "install", simulator, path.path]
+        try await process.runUntilExit()
+        print("Installed to simulator")
+    }
+}
+#endif
