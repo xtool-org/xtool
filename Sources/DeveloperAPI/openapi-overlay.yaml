@@ -3,6 +3,7 @@ info:
   title: Overlay for App Store Connect API
   version: 1.0.0
 actions:
+  # this field is required when using the private Xcode API
   - target: '$.components.schemas.BundleIdCapabilityCreateRequest.properties.data.properties.relationships'
     update:
       properties:
@@ -20,6 +21,8 @@ actions:
               required: [id, type]
           required: [data]
       required: [capability]
+  # openapi-generator expects response enums to be exhaustive. Apple's ASC OpenAPI spec
+  # misses some cases that they do, actually, return.
   - target: '$.components.schemas.Device.properties.attributes.properties.deviceClass'
     update:
       enum:
