@@ -36,4 +36,7 @@ actions:
     update:
       enum:
         - SERVICES
+        # the spec already declares MAC_OS but ASC sometimes seems to
+        # spell this as MACOS instead. see:
+        # https://github.com/xtool-org/xtool/issues/64
         - MACOS
