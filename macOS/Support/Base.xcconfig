@@ -6,5 +6,7 @@ ENABLE_HARDENED_RUNTIME = YES
 PRODUCT_NAME = xtool
 PRODUCT_MODULE_NAME = XToolMac
 
+INFOPLIST_KEY_LSApplicationCategoryType = public.app-category.developer-tools
+
 #include? "Private-Team.xcconfig"
 #include? "Private.xcconfig"
