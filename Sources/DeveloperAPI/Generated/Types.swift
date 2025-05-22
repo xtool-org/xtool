@@ -5021,6 +5021,7 @@ public enum Components {
             case ios = "IOS"
             case macOs = "MAC_OS"
             case universal = "UNIVERSAL"
+            case services = "SERVICES"
         }
         /// - Remark: Generated from `#/components/schemas/CapabilityOption`.
         public struct CapabilityOption: Codable, Hashable, Sendable {
