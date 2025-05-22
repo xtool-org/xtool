@@ -1299,7 +1299,6 @@ public enum Components {
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appAvailabilityV2`.
                 public var appAvailabilityV2: Components.Schemas.App.RelationshipsPayload.AppAvailabilityV2Payload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchases`.
-                @available(*, deprecated)
                 public struct InAppPurchasesPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchases/links`.
                     public var links: Components.Schemas.RelationshipLinks?
@@ -1358,7 +1357,6 @@ public enum Components {
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/inAppPurchases`.
-                @available(*, deprecated)
                 public var inAppPurchases: Components.Schemas.App.RelationshipsPayload.InAppPurchasesPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/subscriptionGroups`.
                 public struct SubscriptionGroupsPayload: Codable, Hashable, Sendable {
@@ -5022,6 +5020,7 @@ public enum Components {
             case macOs = "MAC_OS"
             case universal = "UNIVERSAL"
             case services = "SERVICES"
+            case macos = "MACOS"
         }
         /// - Remark: Generated from `#/components/schemas/CapabilityOption`.
         public struct CapabilityOption: Codable, Hashable, Sendable {

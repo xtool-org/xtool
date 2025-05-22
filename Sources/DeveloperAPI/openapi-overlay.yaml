@@ -3,6 +3,7 @@ info:
   title: Overlay for App Store Connect API
   version: 1.0.0
 actions:
+  # this field is required when using the private Xcode API
   - target: '$.components.schemas.BundleIdCapabilityCreateRequest.properties.data.properties.relationships'
     update:
       properties:
@@ -20,9 +21,22 @@ actions:
               required: [id, type]
           required: [data]
       required: [capability]
+  # we don't use this but it triggers a deprecation warning. see:
+  # https://github.com/apple/swift-openapi-generator/issues/715
+  - target: '$.components.schemas.App.properties.relationships.properties.inAppPurchases'
+    update:
+      deprecated: false
+  # openapi-generator expects response enums to be exhaustive. Apple's ASC OpenAPI spec
+  # misses some cases that they do, actually, return.
   - target: '$.components.schemas.Device.properties.attributes.properties.deviceClass'
     update:
-      enum: ["APPLE_VISION_PRO"]
+      enum:
+        - APPLE_VISION_PRO
   - target: '$.components.schemas.BundleIdPlatform'
     update:
-      enum: ["SERVICES"]
+      enum:
+        - SERVICES
+        # the spec already declares MAC_OS but ASC sometimes seems to
+        # spell this as MACOS instead. see:
+        # https://github.com/xtool-org/xtool/issues/64
+        - MACOS
