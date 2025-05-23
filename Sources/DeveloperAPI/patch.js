@@ -2,6 +2,24 @@
 
 import fs from 'fs';
 
+function update(schema, value) {
+    for (const key in value) {
+        const val = value[key];
+        if (val === null) {
+            delete schema[key];
+        } else if (Array.isArray(val)) {
+            schema[key] = (schema[key] ?? []).concat(val);
+        } else if (typeof val === 'object') {
+            if (schema[key] === undefined) {
+                schema[key] = {};
+            }
+            update(schema[key], val);
+        } else {
+            schema[key] = val;
+        }
+    }
+}
+
 function makeOpen(enumSchema) {
     const copy = structuredClone(enumSchema);
     Object.keys(enumSchema).forEach(k => delete enumSchema[k]);
@@ -17,25 +35,28 @@ function format(schema) {
     const schemas = schema.components.schemas;
 
     // this field is required when using the private Xcode API
-    const capabilityCreateRelationships = schemas.BundleIdCapabilityCreateRequest.properties.data.properties.relationships;
-    capabilityCreateRelationships.properties.capability = {
-        type: 'object',
+    update(schemas.BundleIdCapabilityCreateRequest.properties.data.properties.relationships, {
         properties: {
-            data: {
+            capability: {
                 type: 'object',
                 properties: {
-                    type: {
-                        type: 'string',
-                        enum: ['capabilities'],
+                    data: {
+                        type: 'object',
+                        properties: {
+                            type: {
+                                type: 'string',
+                                enum: ['capabilities'],
+                            },
+                            id: { $ref: '#/components/schemas/CapabilityType' },
+                        },
+                        required: ['id', 'type'],
                     },
-                    id: { $ref: '#/components/schemas/CapabilityType' },
                 },
-                required: ['id', 'type'],
-            },
+                required: ['data'],
+            }
         },
-        required: ['data'],
-    }
-    capabilityCreateRelationships.required.push('capability');
+        required: ['capability'],
+    })
 
     // we don't use this but it triggers a deprecation warning. see:
     // https://github.com/apple/swift-openapi-generator/issues/715
