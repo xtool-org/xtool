@@ -154,7 +154,7 @@ public struct Planner: Sendable {
             infoPlist: infoPlist,
             resources: resources,
             iconPath: self.schema.base.iconPath,
-            entitlementsPath: self.schema.base.entitlementsPath,
+            entitlementsPath: self.schema.base.entitlementsPath
         )
     }
 
