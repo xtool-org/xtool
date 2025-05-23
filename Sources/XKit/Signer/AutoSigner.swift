@@ -1,13 +1,6 @@
-//
-//  Signer.swift
-//  XKit
-//
-//  Created by Kabir Oberai on 13/10/19.
-//  Copyright © 2019 Kabir Oberai. All rights reserved.
-//
-
 import Foundation
 
+/// Provisions and codesigns.
 public struct AutoSigner {
 
     public enum Error: LocalizedError {
@@ -92,7 +85,7 @@ public struct AutoSigner {
         let entitlements = provisioningDict.mapValues(\.entitlements)
 
         status(NSLocalizedString("signer.signing", value: "Signing", comment: ""))
-        try await context.signerImpl.sign(
+        try await context.signer.sign(
             app: app,
             identity: .real(signingInfo.certificate, signingInfo.privateKey),
             entitlementMapping: entitlements,

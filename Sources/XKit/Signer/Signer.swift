@@ -1,18 +1,10 @@
-//
-//  SignerImpl.swift
-//  XKit
-//
-//  Created by Kabir Oberai on 10/10/19.
-//  Copyright © 2019 Kabir Oberai. All rights reserved.
-//
-
 import Foundation
 import CXKit
 import SignerSupport
 import ConcurrencyExtras
 
 /// a wrapper around `signer_t`
-public actor SignerImpl {
+public actor Signer {
 
     public enum Error: LocalizedError {
         case notFound
@@ -53,17 +45,17 @@ public actor SignerImpl {
         self.signer = signer.value
     }
 
-    public static func all() -> some Collection<SignerImpl> {
+    public static func all() -> some Collection<Signer> {
         var list = get_signers()
-        var arr: [SignerImpl] = []
+        var arr: [Signer] = []
         while let curr = list {
-            arr.append(SignerImpl(signer: UncheckedSendable(curr)))
+            arr.append(Signer(signer: UncheckedSendable(curr)))
             list = curr.pointee.next
         }
         return arr
     }
 
-    public static func first() throws -> SignerImpl {
+    public static func first() throws -> Signer {
         try all().first.orThrow(Error.notFound)
     }
 

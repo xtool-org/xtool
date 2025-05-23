@@ -69,7 +69,7 @@ struct PackOperation {
             let decoder = PropertyListDecoder()
             let entitlements = try decoder.decode(Entitlements.self, from: data)
             print("Pseudo-signing...")
-            try await SignerImpl.first().sign(
+            try await Signer.first().sign(
                 app: bundle,
                 identity: .adhoc,
                 entitlementMapping: [bundle: entitlements],
