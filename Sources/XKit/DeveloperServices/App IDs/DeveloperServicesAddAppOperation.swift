@@ -57,7 +57,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
                             _type: .bundleIds,
                             attributes: .init(
                                 name: name,
-                                platform: .ios,
+                                platform: .init(.ios),
                                 identifier: newBundleID
                             )
                         )
@@ -105,8 +105,8 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
                 }
             } else {
                 // DeveloperServices doesn't allow deleting these capabilities
-                let requiredCapabilities: Set<Components.Schemas.CapabilityType> = [.inAppPurchase]
-                if let capType = cap.attributes?.capabilityType, !requiredCapabilities.contains(capType) {
+                let requiredCapabilities: Set<Components.Schemas.CapabilityType.Value1Payload> = [.inAppPurchase]
+                if let capType = cap.attributes?.capabilityType?.value1, !requiredCapabilities.contains(capType) {
                     _ = try await context.developerAPIClient
                         .bundleIdCapabilitiesDeleteInstance(path: .init(id: cap.id))
                         .noContent

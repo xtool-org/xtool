@@ -2,9 +2,22 @@
 
 import fs from 'fs';
 
+function makeOpen(enumSchema) {
+    const copy = structuredClone(enumSchema);
+    Object.keys(enumSchema).forEach(k => delete enumSchema[k]);
+    Object.assign(enumSchema, {
+        anyOf: [
+            copy,
+            { type: 'string' },
+        ]
+    })
+}
+
 function format(schema) {
+    const schemas = schema.components.schemas;
+
     // this field is required when using the private Xcode API
-    const capabilityCreateRelationships = schema.components.schemas.BundleIdCapabilityCreateRequest.properties.data.properties.relationships;
+    const capabilityCreateRelationships = schemas.BundleIdCapabilityCreateRequest.properties.data.properties.relationships;
     capabilityCreateRelationships.properties.capability = {
         type: 'object',
         properties: {
@@ -26,7 +39,15 @@ function format(schema) {
 
     // we don't use this but it triggers a deprecation warning. see:
     // https://github.com/apple/swift-openapi-generator/issues/715
-    schema.components.schemas.App.properties.relationships.properties.inAppPurchases.deprecated = false;
+    schemas.App.properties.relationships.properties.inAppPurchases.deprecated = false;
+
+    // openapi-generator expects response enums to be exhaustive. Apple's ASC OpenAPI spec
+    // misses some cases that they do, actually, return.
+    // https://swiftpackageindex.com/apple/swift-openapi-generator/1.7.2/documentation/swift-openapi-generator/useful-openapi-patterns#Open-enums-and-oneOfs
+    makeOpen(schemas.BundleIdPlatform);
+    makeOpen(schemas.CapabilityType);
+    makeOpen(schemas.CertificateType);
+    makeOpen(schemas.Device.properties.attributes.properties.deviceClass);
 
     return schema;
 }

@@ -15,11 +15,11 @@ public struct DeveloperServicesCapability: Sendable, Hashable {
     public var settings: [Components.Schemas.CapabilitySetting]?
 
     public init(
-        _ capabilityType: Components.Schemas.CapabilityType,
+        _ capabilityType: Components.Schemas.CapabilityType.Value1Payload,
         isFree: Bool,
         settings: [Components.Schemas.CapabilitySetting]? = nil
     ) {
-        self.capabilityType = capabilityType
+        self.capabilityType = .init(capabilityType)
         self.isFree = isFree
         self.settings = settings
     }

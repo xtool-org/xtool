@@ -3464,14 +3464,60 @@ public enum Components {
                 /// - Remark: Generated from `#/components/schemas/Device/attributes/udid`.
                 public var udid: Swift.String?
                 /// - Remark: Generated from `#/components/schemas/Device/attributes/deviceClass`.
-                @frozen public enum DeviceClassPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                    case appleWatch = "APPLE_WATCH"
-                    case ipad = "IPAD"
-                    case iphone = "IPHONE"
-                    case ipod = "IPOD"
-                    case appleTv = "APPLE_TV"
-                    case mac = "MAC"
-                    case appleVisionPro = "APPLE_VISION_PRO"
+                public struct DeviceClassPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/Device/attributes/deviceClass/value1`.
+                    @frozen public enum Value1Payload: String, Codable, Hashable, Sendable, CaseIterable {
+                        case appleWatch = "APPLE_WATCH"
+                        case ipad = "IPAD"
+                        case iphone = "IPHONE"
+                        case ipod = "IPOD"
+                        case appleTv = "APPLE_TV"
+                        case mac = "MAC"
+                    }
+                    /// - Remark: Generated from `#/components/schemas/Device/attributes/deviceClass/value1`.
+                    public var value1: Components.Schemas.Device.AttributesPayload.DeviceClassPayload.Value1Payload?
+                    /// - Remark: Generated from `#/components/schemas/Device/attributes/deviceClass/value2`.
+                    public var value2: Swift.String?
+                    /// Creates a new `DeviceClassPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - value1:
+                    ///   - value2:
+                    public init(
+                        value1: Components.Schemas.Device.AttributesPayload.DeviceClassPayload.Value1Payload? = nil,
+                        value2: Swift.String? = nil
+                    ) {
+                        self.value1 = value1
+                        self.value2 = value2
+                    }
+                    public init(from decoder: any Decoder) throws {
+                        var errors: [any Error] = []
+                        do {
+                            self.value1 = try decoder.decodeFromSingleValueContainer()
+                        } catch {
+                            errors.append(error)
+                        }
+                        do {
+                            self.value2 = try decoder.decodeFromSingleValueContainer()
+                        } catch {
+                            errors.append(error)
+                        }
+                        try Swift.DecodingError.verifyAtLeastOneSchemaIsNotNil(
+                            [
+                                self.value1,
+                                self.value2
+                            ],
+                            type: Self.self,
+                            codingPath: decoder.codingPath,
+                            errors: errors
+                        )
+                    }
+                    public func encode(to encoder: any Encoder) throws {
+                        try encoder.encodeFirstNonNilValueToSingleValueContainer([
+                            self.value1,
+                            self.value2
+                        ])
+                    }
                 }
                 /// - Remark: Generated from `#/components/schemas/Device/attributes/deviceClass`.
                 public var deviceClass: Components.Schemas.Device.AttributesPayload.DeviceClassPayload?
@@ -5015,12 +5061,57 @@ public enum Components {
             }
         }
         /// - Remark: Generated from `#/components/schemas/BundleIdPlatform`.
-        @frozen public enum BundleIdPlatform: String, Codable, Hashable, Sendable, CaseIterable {
-            case ios = "IOS"
-            case macOs = "MAC_OS"
-            case universal = "UNIVERSAL"
-            case services = "SERVICES"
-            case macos = "MACOS"
+        public struct BundleIdPlatform: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/BundleIdPlatform/value1`.
+            @frozen public enum Value1Payload: String, Codable, Hashable, Sendable, CaseIterable {
+                case ios = "IOS"
+                case macOs = "MAC_OS"
+                case universal = "UNIVERSAL"
+            }
+            /// - Remark: Generated from `#/components/schemas/BundleIdPlatform/value1`.
+            public var value1: Components.Schemas.BundleIdPlatform.Value1Payload?
+            /// - Remark: Generated from `#/components/schemas/BundleIdPlatform/value2`.
+            public var value2: Swift.String?
+            /// Creates a new `BundleIdPlatform`.
+            ///
+            /// - Parameters:
+            ///   - value1:
+            ///   - value2:
+            public init(
+                value1: Components.Schemas.BundleIdPlatform.Value1Payload? = nil,
+                value2: Swift.String? = nil
+            ) {
+                self.value1 = value1
+                self.value2 = value2
+            }
+            public init(from decoder: any Decoder) throws {
+                var errors: [any Error] = []
+                do {
+                    self.value1 = try decoder.decodeFromSingleValueContainer()
+                } catch {
+                    errors.append(error)
+                }
+                do {
+                    self.value2 = try decoder.decodeFromSingleValueContainer()
+                } catch {
+                    errors.append(error)
+                }
+                try Swift.DecodingError.verifyAtLeastOneSchemaIsNotNil(
+                    [
+                        self.value1,
+                        self.value2
+                    ],
+                    type: Self.self,
+                    codingPath: decoder.codingPath,
+                    errors: errors
+                )
+            }
+            public func encode(to encoder: any Encoder) throws {
+                try encoder.encodeFirstNonNilValueToSingleValueContainer([
+                    self.value1,
+                    self.value2
+                ])
+            }
         }
         /// - Remark: Generated from `#/components/schemas/CapabilityOption`.
         public struct CapabilityOption: Codable, Hashable, Sendable {
@@ -5150,56 +5241,150 @@ public enum Components {
             }
         }
         /// - Remark: Generated from `#/components/schemas/CapabilityType`.
-        @frozen public enum CapabilityType: String, Codable, Hashable, Sendable, CaseIterable {
-            case icloud = "ICLOUD"
-            case inAppPurchase = "IN_APP_PURCHASE"
-            case gameCenter = "GAME_CENTER"
-            case pushNotifications = "PUSH_NOTIFICATIONS"
-            case wallet = "WALLET"
-            case interAppAudio = "INTER_APP_AUDIO"
-            case maps = "MAPS"
-            case associatedDomains = "ASSOCIATED_DOMAINS"
-            case personalVpn = "PERSONAL_VPN"
-            case appGroups = "APP_GROUPS"
-            case healthkit = "HEALTHKIT"
-            case homekit = "HOMEKIT"
-            case wirelessAccessoryConfiguration = "WIRELESS_ACCESSORY_CONFIGURATION"
-            case applePay = "APPLE_PAY"
-            case dataProtection = "DATA_PROTECTION"
-            case sirikit = "SIRIKIT"
-            case networkExtensions = "NETWORK_EXTENSIONS"
-            case multipath = "MULTIPATH"
-            case hotSpot = "HOT_SPOT"
-            case nfcTagReading = "NFC_TAG_READING"
-            case classkit = "CLASSKIT"
-            case autofillCredentialProvider = "AUTOFILL_CREDENTIAL_PROVIDER"
-            case accessWifiInformation = "ACCESS_WIFI_INFORMATION"
-            case networkCustomProtocol = "NETWORK_CUSTOM_PROTOCOL"
-            case coremediaHlsLowLatency = "COREMEDIA_HLS_LOW_LATENCY"
-            case systemExtensionInstall = "SYSTEM_EXTENSION_INSTALL"
-            case userManagement = "USER_MANAGEMENT"
-            case appleIdAuth = "APPLE_ID_AUTH"
+        public struct CapabilityType: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/CapabilityType/value1`.
+            @frozen public enum Value1Payload: String, Codable, Hashable, Sendable, CaseIterable {
+                case icloud = "ICLOUD"
+                case inAppPurchase = "IN_APP_PURCHASE"
+                case gameCenter = "GAME_CENTER"
+                case pushNotifications = "PUSH_NOTIFICATIONS"
+                case wallet = "WALLET"
+                case interAppAudio = "INTER_APP_AUDIO"
+                case maps = "MAPS"
+                case associatedDomains = "ASSOCIATED_DOMAINS"
+                case personalVpn = "PERSONAL_VPN"
+                case appGroups = "APP_GROUPS"
+                case healthkit = "HEALTHKIT"
+                case homekit = "HOMEKIT"
+                case wirelessAccessoryConfiguration = "WIRELESS_ACCESSORY_CONFIGURATION"
+                case applePay = "APPLE_PAY"
+                case dataProtection = "DATA_PROTECTION"
+                case sirikit = "SIRIKIT"
+                case networkExtensions = "NETWORK_EXTENSIONS"
+                case multipath = "MULTIPATH"
+                case hotSpot = "HOT_SPOT"
+                case nfcTagReading = "NFC_TAG_READING"
+                case classkit = "CLASSKIT"
+                case autofillCredentialProvider = "AUTOFILL_CREDENTIAL_PROVIDER"
+                case accessWifiInformation = "ACCESS_WIFI_INFORMATION"
+                case networkCustomProtocol = "NETWORK_CUSTOM_PROTOCOL"
+                case coremediaHlsLowLatency = "COREMEDIA_HLS_LOW_LATENCY"
+                case systemExtensionInstall = "SYSTEM_EXTENSION_INSTALL"
+                case userManagement = "USER_MANAGEMENT"
+                case appleIdAuth = "APPLE_ID_AUTH"
+            }
+            /// - Remark: Generated from `#/components/schemas/CapabilityType/value1`.
+            public var value1: Components.Schemas.CapabilityType.Value1Payload?
+            /// - Remark: Generated from `#/components/schemas/CapabilityType/value2`.
+            public var value2: Swift.String?
+            /// Creates a new `CapabilityType`.
+            ///
+            /// - Parameters:
+            ///   - value1:
+            ///   - value2:
+            public init(
+                value1: Components.Schemas.CapabilityType.Value1Payload? = nil,
+                value2: Swift.String? = nil
+            ) {
+                self.value1 = value1
+                self.value2 = value2
+            }
+            public init(from decoder: any Decoder) throws {
+                var errors: [any Error] = []
+                do {
+                    self.value1 = try decoder.decodeFromSingleValueContainer()
+                } catch {
+                    errors.append(error)
+                }
+                do {
+                    self.value2 = try decoder.decodeFromSingleValueContainer()
+                } catch {
+                    errors.append(error)
+                }
+                try Swift.DecodingError.verifyAtLeastOneSchemaIsNotNil(
+                    [
+                        self.value1,
+                        self.value2
+                    ],
+                    type: Self.self,
+                    codingPath: decoder.codingPath,
+                    errors: errors
+                )
+            }
+            public func encode(to encoder: any Encoder) throws {
+                try encoder.encodeFirstNonNilValueToSingleValueContainer([
+                    self.value1,
+                    self.value2
+                ])
+            }
         }
         /// - Remark: Generated from `#/components/schemas/CertificateType`.
-        @frozen public enum CertificateType: String, Codable, Hashable, Sendable, CaseIterable {
-            case applePay = "APPLE_PAY"
-            case applePayMerchantIdentity = "APPLE_PAY_MERCHANT_IDENTITY"
-            case applePayPspIdentity = "APPLE_PAY_PSP_IDENTITY"
-            case applePayRsa = "APPLE_PAY_RSA"
-            case developerIdKext = "DEVELOPER_ID_KEXT"
-            case developerIdKextG2 = "DEVELOPER_ID_KEXT_G2"
-            case developerIdApplication = "DEVELOPER_ID_APPLICATION"
-            case developerIdApplicationG2 = "DEVELOPER_ID_APPLICATION_G2"
-            case development = "DEVELOPMENT"
-            case distribution = "DISTRIBUTION"
-            case identityAccess = "IDENTITY_ACCESS"
-            case iosDevelopment = "IOS_DEVELOPMENT"
-            case iosDistribution = "IOS_DISTRIBUTION"
-            case macAppDistribution = "MAC_APP_DISTRIBUTION"
-            case macInstallerDistribution = "MAC_INSTALLER_DISTRIBUTION"
-            case macAppDevelopment = "MAC_APP_DEVELOPMENT"
-            case passTypeId = "PASS_TYPE_ID"
-            case passTypeIdWithNfc = "PASS_TYPE_ID_WITH_NFC"
+        public struct CertificateType: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/CertificateType/value1`.
+            @frozen public enum Value1Payload: String, Codable, Hashable, Sendable, CaseIterable {
+                case applePay = "APPLE_PAY"
+                case applePayMerchantIdentity = "APPLE_PAY_MERCHANT_IDENTITY"
+                case applePayPspIdentity = "APPLE_PAY_PSP_IDENTITY"
+                case applePayRsa = "APPLE_PAY_RSA"
+                case developerIdKext = "DEVELOPER_ID_KEXT"
+                case developerIdKextG2 = "DEVELOPER_ID_KEXT_G2"
+                case developerIdApplication = "DEVELOPER_ID_APPLICATION"
+                case developerIdApplicationG2 = "DEVELOPER_ID_APPLICATION_G2"
+                case development = "DEVELOPMENT"
+                case distribution = "DISTRIBUTION"
+                case identityAccess = "IDENTITY_ACCESS"
+                case iosDevelopment = "IOS_DEVELOPMENT"
+                case iosDistribution = "IOS_DISTRIBUTION"
+                case macAppDistribution = "MAC_APP_DISTRIBUTION"
+                case macInstallerDistribution = "MAC_INSTALLER_DISTRIBUTION"
+                case macAppDevelopment = "MAC_APP_DEVELOPMENT"
+                case passTypeId = "PASS_TYPE_ID"
+                case passTypeIdWithNfc = "PASS_TYPE_ID_WITH_NFC"
+            }
+            /// - Remark: Generated from `#/components/schemas/CertificateType/value1`.
+            public var value1: Components.Schemas.CertificateType.Value1Payload?
+            /// - Remark: Generated from `#/components/schemas/CertificateType/value2`.
+            public var value2: Swift.String?
+            /// Creates a new `CertificateType`.
+            ///
+            /// - Parameters:
+            ///   - value1:
+            ///   - value2:
+            public init(
+                value1: Components.Schemas.CertificateType.Value1Payload? = nil,
+                value2: Swift.String? = nil
+            ) {
+                self.value1 = value1
+                self.value2 = value2
+            }
+            public init(from decoder: any Decoder) throws {
+                var errors: [any Error] = []
+                do {
+                    self.value1 = try decoder.decodeFromSingleValueContainer()
+                } catch {
+                    errors.append(error)
+                }
+                do {
+                    self.value2 = try decoder.decodeFromSingleValueContainer()
+                } catch {
+                    errors.append(error)
+                }
+                try Swift.DecodingError.verifyAtLeastOneSchemaIsNotNil(
+                    [
+                        self.value1,
+                        self.value2
+                    ],
+                    type: Self.self,
+                    codingPath: decoder.codingPath,
+                    errors: errors
+                )
+            }
+            public func encode(to encoder: any Encoder) throws {
+                try encoder.encodeFirstNonNilValueToSingleValueContainer([
+                    self.value1,
+                    self.value2
+                ])
+            }
         }
         /// - Remark: Generated from `#/components/schemas/SubscriptionStatusUrlVersion`.
         @frozen public enum SubscriptionStatusUrlVersion: String, Codable, Hashable, Sendable, CaseIterable {
