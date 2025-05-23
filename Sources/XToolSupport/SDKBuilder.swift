@@ -330,7 +330,7 @@ struct SDKBuilder {
         guard FileManager.default.changeCurrentDirectoryPath(outDir) else {
             throw Console.Error("Could not change directory to '\(outDir)'")
         }
-        defer { FileManager.default.changeCurrentDirectoryPath(oldDirectory) }
+        defer { _ = FileManager.default.changeCurrentDirectoryPath(oldDirectory) }
 
         let inputStream = DataReader.data(readingFrom: fd.rawValue)
 
