@@ -153,7 +153,8 @@ public struct Planner: Sendable {
             bundleID: bundleID,
             infoPlist: infoPlist,
             resources: resources,
-            iconPath: self.schema.base.iconPath
+            iconPath: self.schema.base.iconPath,
+            entitlementsPath: self.schema.base.entitlementsPath
         )
     }
 
@@ -217,6 +218,7 @@ public struct Plan: Sendable {
     public var infoPlist: [String: any Sendable]
     public var resources: [Resource]
     public var iconPath: String?
+    public var entitlementsPath: String?
 }
 
 public enum Resource: Codable, Sendable {
