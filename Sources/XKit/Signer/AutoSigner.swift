@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct Signer {
+public struct AutoSigner {
 
     public enum Error: LocalizedError {
         case noSigners

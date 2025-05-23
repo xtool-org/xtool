@@ -275,7 +275,7 @@ public actor IntegratedInstaller {
             auth: auth
         )
 
-        let signer = Signer(context: context) { certs in
+        let signer = AutoSigner(context: context) { certs in
             await self.delegate?.confirmRevocation(of: certs) ?? false
         }
         let bundleID = try await signer.sign(
