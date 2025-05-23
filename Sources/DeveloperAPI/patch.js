@@ -26,20 +26,20 @@ function replace(schema, value) {
   Object.assign(schema, value);
 }
 
-function copy(schema) {
+function clone(schema) {
   return JSON.parse(JSON.stringify(schema));
 }
 
 function makeOpen(enumSchema) {
   replace(enumSchema, {
     anyOf: [
-      copy(enumSchema),
+      clone(enumSchema),
       { type: 'string' },
     ]
   });
 }
 
-function format(schema) {
+function patch(schema) {
   const schemas = schema.components.schemas;
   
   // this field is required when using the private Xcode API
@@ -83,6 +83,6 @@ function format(schema) {
 
 const text = fs.readFileSync(process.stdin.fd, 'utf8');
 const json = JSON.parse(text);
-const formatted = format(json);
-const formattedText = JSON.stringify(formatted);
-console.log(formattedText);
+const patched = patch(json);
+const patchedText = JSON.stringify(patched);
+console.log(patchedText);
