@@ -75,11 +75,6 @@ public actor AppInstaller {
         }
     }
 
-    // serial queue
-    private let installQueue = DispatchQueue(
-        label: "com.kabiroberai.xtool.install-queue"
-    )
-
     public let ipa: URL
     public let udid: String
     public let connectionPreferences: Connection.Preferences

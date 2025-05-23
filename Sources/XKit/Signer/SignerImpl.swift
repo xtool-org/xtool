@@ -11,13 +11,8 @@ import CXKit
 import SignerSupport
 import ConcurrencyExtras
 
-/// a wrapper around signer_t
+/// a wrapper around `signer_t`
 public actor SignerImpl {
-
-    private static let signingQueue = DispatchQueue(
-        label: "com.kabiroberai.xtool.signing-queue",
-        attributes: .concurrent
-    )
 
     public enum Error: LocalizedError {
         case notFound
@@ -42,6 +37,11 @@ public actor SignerImpl {
                 )
             }
         }
+    }
+
+    public enum Identity {
+        case real(Certificate, PrivateKey)
+        case adhoc
     }
 
     private let signer: UnsafePointer<signer_t>
@@ -69,8 +69,7 @@ public actor SignerImpl {
 
     private func _sign(
         app: URL,
-        certificate: Certificate,
-        privateKey: PrivateKey,
+        identity: Identity,
         entitlementMapping: [URL: Entitlements],
         progress: @escaping (Double?) -> Void
     ) throws {
@@ -99,14 +98,32 @@ public actor SignerImpl {
         }
         let sendableProgress = UncheckedSendable(progress)
         let sendableEntsArray = UncheckedSendable(entsArray)
-        try certificate.data().withUnsafeBytes { cert in
-            let sendableCert = UncheckedSendable(cert)
-            try privateKey.data.withUnsafeBytes { priv in
+
+        let certificateData: Data
+        let privateKeyData: Data
+        let lengthOverride: Int?
+        switch identity {
+        case .real(let certificate, let privateKey):
+            certificateData = try certificate.data()
+            privateKeyData = privateKey.data
+            lengthOverride = nil
+        case .adhoc:
+            // we can't use empty data here because withUnsafeBytes
+            // might return a bufferpointer with a nil base address,
+            // but signer.h expects non-null values. The real fix is
+            // updating xtool-core/SignerSupport/signer.h to annotate
+            // the pointers as nullable, but alas that requires effort.
+            certificateData = Data([0])
+            privateKeyData = Data([0])
+            lengthOverride = 0
+        }
+
+        try certificateData.withUnsafeBytes { cert in
+            try privateKeyData.withUnsafeBytes { priv in
                 var exception: UnsafeMutablePointer<Int8>?
                 defer { exception.map { free($0) } }
 
                 let progress = sendableProgress.value
-                let cert = sendableCert.value
                 let entsArray = sendableEntsArray.value
 
                 guard let certBase = cert.baseAddress,
@@ -117,8 +134,8 @@ public actor SignerImpl {
                 defer { box.release() }
                 guard signer.pointee.sign(
                     app.path,
-                    certBase, cert.count,
-                    privBase, priv.count,
+                    certBase, lengthOverride ?? cert.count,
+                    privBase, lengthOverride ?? priv.count,
                     entsArray, entsArray.count,
                     {
                         // swiftlint:disable:previous opening_brace
@@ -140,15 +157,13 @@ public actor SignerImpl {
 
     public func sign(
         app: URL,
-        certificate: Certificate,
-        privateKey: PrivateKey,
+        identity: Identity,
         entitlementMapping: [URL: Entitlements],
         progress: @escaping (Double?) -> Void
     ) async throws {
         try self._sign(
             app: app,
-            certificate: certificate,
-            privateKey: privateKey,
+            identity: identity,
             entitlementMapping: entitlementMapping,
             progress: progress
         )

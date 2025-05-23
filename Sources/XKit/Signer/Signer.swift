@@ -94,8 +94,7 @@ public struct Signer {
         status(NSLocalizedString("signer.signing", value: "Signing", comment: ""))
         try await context.signerImpl.sign(
             app: app,
-            certificate: signingInfo.certificate,
-            privateKey: signingInfo.privateKey,
+            identity: .real(signingInfo.certificate, signingInfo.privateKey),
             entitlementMapping: entitlements,
             progress: progress
         )
