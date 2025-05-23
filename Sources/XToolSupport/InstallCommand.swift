@@ -34,9 +34,11 @@ struct InstallCommand: AsyncParsableCommand {
         do {
             try await installer.install(app: URL(fileURLWithPath: path))
             print("\nSuccessfully installed!")
+        } catch let error as CancellationError {
+            throw error
         } catch {
-            print("\nFailed :(")
-            print("Error: \(error)")
+            print("\nError: \(error)")
+            throw ExitCode.failure
         }
     }
 }

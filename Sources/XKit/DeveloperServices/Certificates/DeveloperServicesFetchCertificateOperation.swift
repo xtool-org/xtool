@@ -54,7 +54,7 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
                 _type: .certificates,
                 attributes: .init(
                     csrContent: csr.pemString,
-                    certificateType: .development
+                    certificateType: .init(.development)
                 )
             )))
         )

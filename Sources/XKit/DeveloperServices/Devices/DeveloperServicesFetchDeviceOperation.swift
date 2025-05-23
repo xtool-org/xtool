@@ -27,7 +27,7 @@ public struct DeveloperServicesFetchDeviceOperation: DeveloperServicesOperation 
                 _type: .devices,
                 attributes: .init(
                     name: self.context.deviceName,
-                    platform: .ios,
+                    platform: .init(.ios),
                     udid: self.context.udid
                 )
             )))

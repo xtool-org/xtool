@@ -88,7 +88,7 @@ let package = Package(
             dependencies: [
                 .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
             ],
-            exclude: ["openapi-generator-config.yaml", "openapi-overlay.yaml"]
+            exclude: ["openapi-generator-config.yaml", "patch.js"]
         ),
         .target(
             name: "XKit",

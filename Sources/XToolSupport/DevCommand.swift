@@ -198,7 +198,14 @@ struct DevRunCommand: AsyncParsableCommand {
 
         defer { print() }
 
-        try await installer.install(app: output)
+        do {
+            try await installer.install(app: output)
+        } catch let error as CancellationError {
+            throw error
+        } catch {
+            print("\nError: \(error)")
+            throw ExitCode.failure
+        }
     }
 }
 
