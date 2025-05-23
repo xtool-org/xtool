@@ -107,3 +107,36 @@ iconPath: Resources/AppIcon.png
 > Tip:
 >
 > Your app icon must be a png, and it should ideally have a resolution of 1024x1024px.
+
+## Add entitlements
+
+You may need to add special [entitlements](https://developer.apple.com/documentation/bundleresources/entitlements) to your app, for example you need the `com.apple.developer.homekit` entitlement in order to connect to HomeKit devices.
+
+First create an `App.entitlements` file with the necessary entitlements:
+
+```plist
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>com.apple.developer.homekit</key>
+    <true/>
+</dict>
+</plist>
+```
+
+Then, tell xtool about it via `xtool.yml`:
+
+```yaml
+entitlementsPath: App.entitlements
+```
+
+> Troubleshooting:
+>
+> There are a number of situations in which xtool may not be able to successfully apply an entitlement to your app.
+>
+> - Some entitlements, such as [Network Extension](https://developer.apple.com/documentation/bundleresources/entitlements/com.apple.developer.networking.networkextension), don't work with free developer accounts. You might need to enrol in one of the Apple Developer Programs to use these.
+> - Other entitlements, like [User Notifications Filtering](https://developer.apple.com/documentation/bundleresources/entitlements/com.apple.developer.usernotifications.filtering), require special permission from Apple. If you do have the appropriate permission, these may or may not work with xtool.
+> - Many entitlements require specific "Capabilities" to be enabled on your app in the Developer Services portal. xtool handles this for you, but we need to add code to xtool for each Entitlement-Capability mapping. If you run into a Capability that we don't handle yet, please let us know.
+>
+> Entitlements are a large surface area. If you find any bugs or missing functionality, please [create a GitHub Issue](https://github.com/xtool-org/xtool/issues/new/choose).
