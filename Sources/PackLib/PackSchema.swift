@@ -14,6 +14,8 @@ public struct PackSchemaBase: Codable, Sendable {
     public var product: String?
 
     public var infoPath: String?
+    public var entitlementsPath: String?
+
     public var iconPath: String?
     public var resources: [String]?
 }

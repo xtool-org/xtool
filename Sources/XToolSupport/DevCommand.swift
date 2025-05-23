@@ -62,7 +62,22 @@ struct PackOperation {
             buildSettings: buildSettings,
             plan: plan
         )
-        return try await packer.pack()
+        let bundle = try await packer.pack()
+
+        if let entitlementsPath = schema.base.entitlementsPath {
+            let data = try await Data(reading: URL(fileURLWithPath: entitlementsPath))
+            let decoder = PropertyListDecoder()
+            let entitlements = try decoder.decode(Entitlements.self, from: data)
+            print("Pseudo-signing...")
+            try await SignerImpl.first().sign(
+                app: bundle,
+                identity: .adhoc,
+                entitlementMapping: [bundle: entitlements],
+                progress: { _ in }
+            )
+        }
+
+        return bundle
     }
 }
 
