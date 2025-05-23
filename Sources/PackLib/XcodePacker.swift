@@ -42,6 +42,15 @@ public struct XcodePacker {
             throw StringError("Could not parse deployment target '\(plan.deploymentTarget)'")
         }
 
+        var buildSettings: [String: Any] = [
+            "PRODUCT_BUNDLE_IDENTIFIER": plan.bundleID,
+            "TARGETED_DEVICE_FAMILY": families.map { "\($0)" }.joined(separator: ","),
+        ]
+
+        if let entitlementsPath = plan.entitlementsPath {
+            buildSettings["CODE_SIGN_ENTITLEMENTS"] = fromProjectToRoot + Path(entitlementsPath)
+        }
+
         let project = Project(
             name: plan.product,
             targets: [
@@ -50,10 +59,7 @@ public struct XcodePacker {
                     type: .application,
                     platform: .iOS,
                     deploymentTarget: deploymentTarget,
-                    settings: Settings(buildSettings: [
-                        "PRODUCT_BUNDLE_IDENTIFIER": plan.bundleID,
-                        "TARGETED_DEVICE_FAMILY": families.map { "\($0)" }.joined(separator: ","),
-                    ]),
+                    settings: Settings(buildSettings: buildSettings),
                     sources: [
                         TargetSource(path: (fromProjectToRoot + emptyFile).string),
                     ],
