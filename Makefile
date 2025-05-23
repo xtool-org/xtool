@@ -144,8 +144,8 @@ api: openapi/openapi.json
 update-api:
 	@+$(MAKE) -B api
 
-openapi/openapi.json: openapi/base.json Sources/DeveloperAPI/format.js
-	node Sources/DeveloperAPI/format.js < openapi/base.json > openapi/openapi.json
+openapi/openapi.json: openapi/base.json Sources/DeveloperAPI/patch.js
+	node Sources/DeveloperAPI/patch.js < openapi/base.json > openapi/openapi.json
 
 openapi/base.json:
 	@mkdir -p openapi
