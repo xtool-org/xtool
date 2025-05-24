@@ -11,24 +11,26 @@ import DeveloperAPI
 
 public struct SigningContext: Sendable {
 
-    public let udid: String
-    public let deviceName: String
-    public let auth: DeveloperAPIAuthData
-    public let signer: Signer
+    public struct TargetDevice: Sendable, Hashable {
+        public var udid: String
+        public var name: String
+    }
+
+    public var auth: DeveloperAPIAuthData
+    public var targetDevice: TargetDevice?
+    public var signer: Signer
 
     public var developerAPIClient: DeveloperAPIClient {
         DeveloperAPIClient(auth: auth)
     }
 
     public init(
-        udid: String,
-        deviceName: String,
         auth: DeveloperAPIAuthData,
+        targetDevice: TargetDevice? = nil,
         signer: Signer? = nil
     ) throws {
-        self.udid = udid
-        self.deviceName = deviceName
         self.auth = auth
+        self.targetDevice = targetDevice
         self.signer = try signer ?? .first()
     }
 

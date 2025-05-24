@@ -270,9 +270,8 @@ public actor IntegratedInstaller {
         try await updateProgress(to: 1)
 
         let context = try SigningContext(
-            udid: udid,
-            deviceName: deviceName,
-            auth: auth
+            auth: auth,
+            targetDevice: .init(udid: udid, name: deviceName)
         )
 
         let signer = AutoSigner(context: context) { certs in
