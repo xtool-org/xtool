@@ -18,12 +18,13 @@ public struct PackSchemaBase: Codable, Sendable {
 
     public var iconPath: String?
     public var resources: [String]?
+
     public var extensions: [Extension]?
 
     public struct Extension: Codable, Sendable {
         public var product: String
-        public var bundleID: String
-        public var version: Version
+        public var bundleID: String?
+        public var infoPath: String
     }
 }
 
