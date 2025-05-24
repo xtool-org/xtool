@@ -21,8 +21,8 @@ extension ProvisioningIdentifiers {
         return identifier.split(separator: ".").dropFirst().joined(separator: ".")
     }
 
-    static func identifier(fromSanitized sanitized: String, context: SigningContext? = nil) -> String {
-        let uuid = (context?.auth.identityID ?? UUID().uuidString).split(separator: "-")[0].uppercased()
+    static func identifier(fromSanitized sanitized: String, context: SigningContext) -> String {
+        let uuid = context.auth.identityID.split(separator: "-")[0].uppercased()
         return "\(Self.idPrefix)\(uuid).\(sanitized)"
     }
 
@@ -36,7 +36,7 @@ extension ProvisioningIdentifiers {
         return sanitize(identifier: id)
     }
 
-    static func groupID(fromSanitized sanitized: String, context: SigningContext? = nil) -> DeveloperServicesAppGroup.GroupID {
+    static func groupID(fromSanitized sanitized: String, context: SigningContext) -> DeveloperServicesAppGroup.GroupID {
         .init(rawValue: "\(Self.groupPrefix)\(identifier(fromSanitized: sanitized, context: context))")
     }
 
