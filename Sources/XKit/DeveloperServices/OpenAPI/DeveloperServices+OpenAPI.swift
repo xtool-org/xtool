@@ -6,7 +6,7 @@ import OpenAPIURLSession
 import Dependencies
 
 extension DeveloperAPIClient {
-    @TaskLocal fileprivate static var cursor: URLQueryItem?
+    @TaskLocal fileprivate static var cursor: [URLQueryItem] = []
 
     public init(
         auth: DeveloperAPIAuthData
@@ -34,15 +34,19 @@ extension DeveloperAPIClient {
         isolation: isolated (any Actor)? = #isolation,
         perform action: () async throws -> T
     ) async throws -> T {
-        let cursor: URLQueryItem?
+        let cursor: [URLQueryItem]
 
         if let link {
             guard let components = URLComponents(string: link),
-                  let newCursor = components.queryItems?.first(where: { $0.name == "cursor" })
+                  let newOffset = components.queryItems?.first(where: { $0.name == "cursor" }),
+                  let newLimit = components.queryItems?.first(where: { $0.name == "limit" })
                   else { throw Errors.badNextLink(link) }
-            cursor = newCursor
+            // the next value will contain a cursor (offset) *and* a limit even if we didn't
+            // provide a limit in our initial request. we need to include the limit in subsequent
+            // requests, otherwise the cursor isn't respected.
+            cursor = [newOffset, newLimit]
         } else {
-            cursor = nil
+            cursor = []
         }
 
         return try await $cursor.withValue(cursor) {
@@ -155,17 +159,15 @@ public struct DeveloperAPIXcodeAuthMiddleware: ClientMiddleware {
             request.headerFields[.init("X-HTTP-Method-Override")!] = originalMethod.rawValue
             request.method = .post
 
-            var newQueryItems = [
-                URLQueryItem(name: "teamId", value: authData.teamID.rawValue)
-            ]
-
-            if let cursor = DeveloperAPIClient.cursor {
-                newQueryItems.append(cursor)
-            }
-
             let path = request.path ?? "/"
             var components = URLComponents(string: path) ?? .init()
-            components.queryItems = (components.queryItems ?? []) + newQueryItems
+
+            var items = components.queryItems ?? []
+            items.upsertQueryItems(DeveloperAPIClient.cursor + [
+                URLQueryItem(name: "teamId", value: authData.teamID.rawValue)
+            ])
+            components.queryItems = items
+
             let query = components.percentEncodedQuery ?? ""
 
             components.query = nil
@@ -256,12 +258,23 @@ public struct DeveloperAPIASCAuthMiddleware: ClientMiddleware {
         let jwt = try await generator.generate()
         request.headerFields[.authorization] = "Bearer \(jwt)"
 
-        if let cursor = DeveloperAPIClient.cursor {
+        let cursor = DeveloperAPIClient.cursor
+        if !cursor.isEmpty {
             var components = URLComponents(string: request.path ?? "") ?? .init()
-            components.queryItems = (components.queryItems ?? []) + [cursor]
+            var items = components.queryItems ?? []
+            items.upsertQueryItems(cursor)
+            components.queryItems = items
             request.path = components.string
         }
 
         return try await next(request, body, baseURL)
+    }
+}
+
+extension [URLQueryItem] {
+    fileprivate mutating func upsertQueryItems(_ items: [URLQueryItem]) {
+        let newNames = Set(items.map(\.name))
+        removeAll { newNames.contains($0.name) }
+        append(contentsOf: items)
     }
 }

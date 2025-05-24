@@ -66,7 +66,7 @@ public struct DeveloperAPIPages<Page>: AsyncSequence {
                 try await request()
             }
 
-            if let next = getNext(page) {
+            if let next = getNext(page), next != cursor {
                 state = .hasNext(next)
             } else {
                 state = .end
