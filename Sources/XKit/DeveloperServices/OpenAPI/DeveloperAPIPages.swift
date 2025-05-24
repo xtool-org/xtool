@@ -49,6 +49,8 @@ public struct DeveloperAPIPages<Page>: AsyncSequence {
         fileprivate var state: State = .initial
 
         public mutating func next() async throws -> Page? {
+            guard !Task.isCancelled else { return nil }
+
             let cursor: String?
 
             switch state {
