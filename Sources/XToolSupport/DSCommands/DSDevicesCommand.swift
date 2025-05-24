@@ -22,7 +22,15 @@ struct DSDevicesListCommand: AsyncParsableCommand {
 
     func run() async throws {
         let client = DeveloperAPIClient(auth: try AuthToken.saved().authData())
-        let devices = try await client.devicesGetCollection().ok.body.json.data
+
+        let devices = try await DeveloperAPIPages {
+            try await client.devicesGetCollection().ok.body.json
+        } next: {
+            $0.links.next
+        }
+        .map(\.data)
+        .reduce(into: [], +=)
+
         for device in devices {
             print("- id: \(device.id)")
             guard let attributes = device.attributes else {

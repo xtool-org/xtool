@@ -6,6 +6,8 @@ import OpenAPIURLSession
 import Dependencies
 
 extension DeveloperAPIClient {
+    @TaskLocal fileprivate static var cursor: URLQueryItem?
+
     public init(
         auth: DeveloperAPIAuthData
     ) {
@@ -21,6 +23,35 @@ extension DeveloperAPIClient {
                 LoggingMiddleware(),
             ]
         )
+    }
+
+    /// Perform a paginated request, starting at the page given by `link`.
+    ///
+    /// `link` should be a URL that contains a `cursor` query parameter. The
+    /// cursor will be applied to any requests made inside the closure.
+    public static func withNextLink<T>(
+        _ link: String?,
+        isolation: isolated (any Actor)? = #isolation,
+        perform action: () async throws -> T
+    ) async throws -> T {
+        let cursor: URLQueryItem?
+
+        if let link {
+            guard let components = URLComponents(string: link),
+                  let newCursor = components.queryItems?.first(where: { $0.name == "cursor" })
+                  else { throw Errors.badNextLink(link) }
+            cursor = newCursor
+        } else {
+            cursor = nil
+        }
+
+        return try await $cursor.withValue(cursor) {
+            try await action()
+        }
+    }
+
+    public enum Errors: Error {
+        case badNextLink(String)
     }
 }
 
@@ -124,11 +155,17 @@ public struct DeveloperAPIXcodeAuthMiddleware: ClientMiddleware {
             request.headerFields[.init("X-HTTP-Method-Override")!] = originalMethod.rawValue
             request.method = .post
 
-            let path = request.path ?? "/"
-            var components = URLComponents(string: path) ?? .init()
-            components.queryItems = (components.queryItems ?? []) + [
+            var newQueryItems = [
                 URLQueryItem(name: "teamId", value: authData.teamID.rawValue)
             ]
+
+            if let cursor = DeveloperAPIClient.cursor {
+                newQueryItems.append(cursor)
+            }
+
+            let path = request.path ?? "/"
+            var components = URLComponents(string: path) ?? .init()
+            components.queryItems = (components.queryItems ?? []) + newQueryItems
             let query = components.percentEncodedQuery ?? ""
 
             components.query = nil
@@ -214,69 +251,17 @@ public struct DeveloperAPIASCAuthMiddleware: ClientMiddleware {
             _ baseURL: URL
         ) async throws -> (HTTPResponse, HTTPBody?)
     ) async throws -> (HTTPResponse, HTTPBody?) {
-        let jwt = try await generator.generate()
         var request = request
+
+        let jwt = try await generator.generate()
         request.headerFields[.authorization] = "Bearer \(jwt)"
+
+        if let cursor = DeveloperAPIClient.cursor {
+            var components = URLComponents(string: request.path ?? "") ?? .init()
+            components.queryItems = (components.queryItems ?? []) + [cursor]
+            request.path = components.string
+        }
+
         return try await next(request, body, baseURL)
     }
 }
-
-struct LoggingMiddleware: ClientMiddleware {
-    static let regex: NSRegularExpression? = {
-        guard let pat = ProcessInfo.processInfo.environment["XTL_DEV_LOG"] else { return nil }
-        return try? NSRegularExpression(pattern: pat)
-    }()
-
-    func intercept(
-        _ request: HTTPRequest,
-        body: HTTPBody?,
-        baseURL: URL,
-        operationID: String,
-        next: (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
-    ) async throws -> (HTTPResponse, HTTPBody?) {
-        var (response, body) = try await next(request, body, baseURL)
-
-        guard Self.regex?.firstMatch(
-                  in: operationID,
-                  range: NSRange(operationID.startIndex..., in: operationID)
-              ) != nil
-              else { return (response, body) }
-
-        print("\n\(operationID) response status -> \(response.status)")
-
-        if let unwrapped = body {
-            let data = try await Data(collecting: unwrapped, upTo: .max)
-            // body may only be consumable once, replace it with the collected data
-            body = .init(data)
-
-            let text = String(decoding: data, as: UTF8.self)
-            print("\(operationID) response body -> \(text)")
-        }
-
-        return (response, body)
-    }
-}
-
-// syntactic sugar to make it nicer to work with `anyOf:` types
-public protocol OpenAPIExtensibleEnum {
-    associatedtype Value1Payload: RawRepresentable<String>, Codable, Hashable, Sendable, CaseIterable
-    var value1: Value1Payload? { get set }
-    var value2: String? { get set }
-
-    init(value1: Value1Payload?, value2: String?)
-}
-
-extension OpenAPIExtensibleEnum {
-    public var rawValue: String {
-        value2!
-    }
-
-    public init(_ value: Value1Payload) {
-        self.init(value1: value, value2: nil)
-    }
-}
-
-extension Components.Schemas.BundleIdPlatform: OpenAPIExtensibleEnum {}
-extension Components.Schemas.CapabilityType: OpenAPIExtensibleEnum {}
-extension Components.Schemas.CertificateType: OpenAPIExtensibleEnum {}
-extension Components.Schemas.Device.AttributesPayload.DeviceClassPayload: OpenAPIExtensibleEnum {}
