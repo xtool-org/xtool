@@ -265,7 +265,7 @@ public struct Planner: Sendable {
 
 @dynamicMemberLookup
 public struct Plan: Sendable {
-    fileprivate var base: Product
+    package var base: Product
     public var extensions: [Product]
 
     public struct Product: Sendable {
