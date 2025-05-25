@@ -68,11 +68,107 @@ public struct Planner: Sendable {
 
         let libraries = rootPackage.products?.filter { $0.type == .autoLibrary } ?? []
 
-        let library = try selectLibrary(
+        let product = try resolveProduct(
             from: libraries,
-            matching: schema.product
+            matching: schema.product,
+            deploymentTarget: deploymentTarget,
+            plist: self.schema.infoPath,
+            baseBundleID: self.schema.idSpecifier,
+            rootResources: self.schema.resources,
+            rootPackage: rootPackage,
+            packages: packages,
+            packagesByProductName: packagesByProductName
         )
+        
+        let extensions = try (schema.targets ?? []).compactMap {
+            try resolveProduct(
+                from: libraries.filter{ $0.name != product.product },
+                matching: $0.product,
+                deploymentTarget: deploymentTarget,
+                of: $0.type,
+                plist: $0.infoPath,
+                baseBundleID: $0.bundleID.flatMap(PackSchema.IDSpecifier.bundleID) ?? .orgID(product.bundleID),
+                rootResources: $0.resources,
+                rootPackage: rootPackage,
+                packages: packages,
+                packagesByProductName: packagesByProductName
+            )
+        }
 
+        return Plan(
+            base: product,
+            extensions: extensions
+        )
+    }
+
+    private func dumpPackage(at path: String) async throws -> PackageDump {
+        let data = try await _dumpAction(arguments: ["describe", "--type", "json"], path: path)
+        try Task.checkCancellation()
+        return try Self.decoder.decode(PackageDump.self, from: data)
+    }
+
+    private func _dumpAction(arguments: [String], path: String) async throws -> Data {
+        let dump = try await buildSettings.swiftPMInvocation(
+            forTool: "package",
+            arguments: arguments,
+            packagePathOverride: path
+        )
+        let pipe = Pipe()
+        dump.standardOutput = pipe
+        async let task = Data(reading: pipe.fileHandleForReading)
+        try await dump.runUntilExit()
+        return try await task
+    }
+
+    private func selectLibrary(
+        from products: [PackageDump.Product],
+        matching name: String?
+    ) throws -> PackageDump.Product {
+        switch products.count {
+        case 0:
+            throw StringError("No library products were found in the package")
+        case 1:
+            let product = products[0]
+            if let name, product.name != name {
+                throw StringError(
+                    """
+                    Product name ('\(product.name)') does not match the 'product' value in the schema ('\(name)')
+                    """)
+            }
+            return product
+        default:
+            guard let name else {
+                throw StringError(
+                    """
+                    Multiple library products were found (\(products.map(\.name))). Please either:
+                    1) Expose exactly one library product, or
+                    2) Specify the product you want via the 'product' key in xtool.yml.
+                    """)
+            }
+            guard let product = products.first(where: { $0.name == name }) else {
+                throw StringError(
+                    """
+                    Schema declares a 'product' name of '\(name)' but no matching product was found.
+                    Found: \(products.map(\.name)).
+                    """)
+            }
+            return product
+        }
+    }
+
+    private func resolveProduct(
+        from products: [PackageDump.Product],
+        matching name: String?,
+        deploymentTarget: String,
+        of type: PackSchemaBase.Target.TargetType? = nil,
+        plist: String?,
+        baseBundleID: PackSchema.IDSpecifier,
+        rootResources: [String]?,
+        rootPackage: PackageDump,
+        packages: [String: PackageDump],
+        packagesByProductName: [String: String]
+    ) throws -> Plan.Product {
+        let library = try selectLibrary(from: products, matching: name)
         var resources: [Resource] = []
         var visited: Set<String> = []
         var targets = library.targets.map { (rootPackage, $0) }
@@ -107,28 +203,15 @@ public struct Planner: Sendable {
             }
         }
 
-        if let rootResources = schema.resources {
+        if let rootResources {
             resources += rootResources.map { .root(source: $0) }
         }
 
-        let bundleID = schema.idSpecifier.formBundleID(product: library.name)
+        let bundleID = baseBundleID.formBundleID(product: library.name)
 
         var infoPlist: [String: Sendable] = [
             "CFBundleInfoDictionaryVersion": "6.0",
-            "UIRequiredDeviceCapabilities": ["arm64"],
-            "LSRequiresIPhoneOS": true,
-            "CFBundleSupportedPlatforms": ["iPhoneOS"],
-            "CFBundlePackageType": "APPL",
-            "UIDeviceFamily": [1, 2],
             "CFBundleDevelopmentRegion": "en",
-            "UISupportedInterfaceOrientations": ["UIInterfaceOrientationPortrait"],
-            "UISupportedInterfaceOrientations~ipad": [
-              "UIInterfaceOrientationPortrait",
-              "UIInterfaceOrientationPortraitUpsideDown",
-              "UIInterfaceOrientationLandscapeLeft",
-              "UIInterfaceOrientationLandscapeRight"
-            ],
-            "UILaunchScreen": [:] as [String: Sendable],
             "CFBundleVersion": "1",
             "CFBundleShortVersionString": "1.0.0",
             "MinimumOSVersion": deploymentTarget,
@@ -137,8 +220,29 @@ public struct Planner: Sendable {
             "CFBundleExecutable": "\(library.name)",
         ]
 
-        if let plist = self.schema.infoPath {
-            let data = try await Data(reading: URL(fileURLWithPath: plist))
+        switch type {
+        case .none:
+            infoPlist["UIRequiredDeviceCapabilities"] = ["arm64"]
+            infoPlist["LSRequiresIPhoneOS"] = true
+            infoPlist["CFBundleSupportedPlatforms"] = ["iPhoneOS"]
+            infoPlist["CFBundlePackageType"] = "APPL"
+            infoPlist["UIDeviceFamily"] = [1, 2]
+            infoPlist["UISupportedInterfaceOrientations"] = ["UIInterfaceOrientationPortrait"]
+            infoPlist["UISupportedInterfaceOrientations~ipad"] = [
+                "UIInterfaceOrientationPortrait",
+                "UIInterfaceOrientationPortraitUpsideDown",
+                "UIInterfaceOrientationLandscapeLeft",
+                "UIInterfaceOrientationLandscapeRight",
+            ]
+            infoPlist["UILaunchScreen"] = [:] as [String: Sendable]
+        case .extension:
+            // Should set default parameters?
+            infoPlist["NSExtension"] = [:] as [String: Sendable]
+            infoPlist["CFBundlePackageType"] = "XPC!"
+        }
+
+        if let plist {
+            let data = try Data(contentsOf: URL(fileURLWithPath: plist))
             let info = try PropertyListSerialization.propertyList(from: data, format: nil)
             if let info = info as? [String: Sendable] {
                 infoPlist.merge(info, uniquingKeysWith: { $1 })
@@ -147,86 +251,35 @@ public struct Planner: Sendable {
             }
         }
 
-        return Plan(
+        return Plan.Product(
             product: library.name,
             deploymentTarget: deploymentTarget,
             bundleID: bundleID,
             infoPlist: infoPlist,
             resources: resources,
-            iconPath: self.schema.iconPath,
-            entitlementsPath: self.schema.entitlementsPath,
-            extensions: []
+            iconPath: type == nil ? self.schema.iconPath : nil,
+            entitlementsPath: type == nil ? self.schema.entitlementsPath : nil
         )
-    }
-
-    private func dumpPackage(at path: String) async throws -> PackageDump {
-        let data = try await _dumpAction(arguments: ["describe", "--type", "json"], path: path)
-        try Task.checkCancellation()
-        return try Self.decoder.decode(PackageDump.self, from: data)
-    }
-
-    private func _dumpAction(arguments: [String], path: String) async throws -> Data {
-        let dump = try await buildSettings.swiftPMInvocation(
-            forTool: "package",
-            arguments: arguments,
-            packagePathOverride: path
-        )
-        let pipe = Pipe()
-        dump.standardOutput = pipe
-        async let task = Data(reading: pipe.fileHandleForReading)
-        try await dump.runUntilExit()
-        return try await task
-    }
-
-    private func selectLibrary(
-        from products: [PackageDump.Product],
-        matching name: String?
-    ) throws -> PackageDump.Product {
-        switch products.count {
-        case 0:
-            throw StringError("No library products were found in the package")
-        case 1:
-            let product = products[0]
-            if let name, product.name != name {
-                throw StringError("""
-                Product name ('\(product.name)') does not match the 'product' value in the schema ('\(name)')
-                """)
-            }
-            return product
-        default:
-            guard let name else {
-                throw StringError("""
-                Multiple library products were found (\(products.map(\.name))). Please either:
-                1) Expose exactly one library product, or
-                2) Specify the product you want via the 'product' key in xtool.yml.
-                """)
-            }
-            guard let product = products.first(where: { $0.name == name }) else {
-                throw StringError("""
-                Schema declares a 'product' name of '\(name)' but no matching product was found.
-                Found: \(products.map(\.name)).
-                """)
-            }
-            return product
-        }
     }
 }
 
+@dynamicMemberLookup
 public struct Plan: Sendable {
-    public var product: String
-    public var deploymentTarget: String
-    public var bundleID: String
-    public var infoPlist: [String: any Sendable]
-    public var resources: [Resource]
-    public var iconPath: String?
-    public var entitlementsPath: String?
-    public var extensions: [Extension]
+    fileprivate var base: Product
+    public var extensions: [Product]
 
-    public struct Extension: Sendable {
+    public struct Product: Sendable {
         public var product: String
+        public var deploymentTarget: String
         public var bundleID: String
         public var infoPlist: [String: any Sendable]
         public var resources: [Resource]
+        public var iconPath: String?
+        public var entitlementsPath: String?
+    }
+
+    public subscript<Value>(dynamicMember keyPath: KeyPath<Product, Value>) -> Value {
+        self.base[keyPath: keyPath]
     }
 }
 
@@ -240,7 +293,7 @@ public enum Resource: Codable, Sendable {
 private struct PackageDependency: Decodable {
     let identity: String
     let name: String
-    let path: String // on disk
+    let path: String  // on disk
     let dependencies: [PackageDependency]
 }
 
