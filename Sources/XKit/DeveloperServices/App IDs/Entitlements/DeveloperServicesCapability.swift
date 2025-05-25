@@ -39,7 +39,7 @@ extension Entitlement {
 
 extension DataProtectionEntitlement: EntitlementWithCapability {
     var capability: DeveloperServicesCapability {
-        let option: Components.Schemas.CapabilityOption.KeyPayload = switch self {
+        let option: Components.Schemas.CapabilityOption.KeyPayload.Value1Payload = switch self {
         case .complete: .completeProtection
         case .unlessOpen: .protectedUnlessOpen
         case .untilFirstAuth: .protectedUntilFirstUserAuth
@@ -49,8 +49,8 @@ extension DataProtectionEntitlement: EntitlementWithCapability {
             isFree: true,
             settings: [
                 .init(
-                    key: .dataProtectionPermissionLevel,
-                    options: [.init(key: option)]
+                    key: .init(.dataProtectionPermissionLevel),
+                    options: [.init(key: .init(option))]
                 )
             ]
         )

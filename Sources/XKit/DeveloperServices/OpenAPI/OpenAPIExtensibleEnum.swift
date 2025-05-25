@@ -20,6 +20,12 @@ extension OpenAPIExtensibleEnum {
 }
 
 extension Components.Schemas.BundleIdPlatform: OpenAPIExtensibleEnum {}
+extension Components.Schemas.CapabilityOption.KeyPayload: OpenAPIExtensibleEnum {}
+extension Components.Schemas.CapabilitySetting.KeyPayload: OpenAPIExtensibleEnum {}
 extension Components.Schemas.CapabilityType: OpenAPIExtensibleEnum {}
 extension Components.Schemas.CertificateType: OpenAPIExtensibleEnum {}
 extension Components.Schemas.Device.AttributesPayload.DeviceClassPayload: OpenAPIExtensibleEnum {}
+extension Components.Schemas.Device.AttributesPayload.StatusPayload: OpenAPIExtensibleEnum {}
+extension Components.Schemas.Profile.AttributesPayload.ProfileStatePayload: OpenAPIExtensibleEnum {}
+extension Components.Schemas.Profile.AttributesPayload.ProfileTypePayload: OpenAPIExtensibleEnum {}
+extension Components.Schemas.ProfileCreateRequest.DataPayload.AttributesPayload.ProfileTypePayload: OpenAPIExtensibleEnum {}
