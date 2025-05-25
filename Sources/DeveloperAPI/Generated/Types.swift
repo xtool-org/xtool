@@ -5116,13 +5116,60 @@ public enum Components {
         /// - Remark: Generated from `#/components/schemas/CapabilityOption`.
         public struct CapabilityOption: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/CapabilityOption/key`.
-            @frozen public enum KeyPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                case xcode5 = "XCODE_5"
-                case xcode6 = "XCODE_6"
-                case completeProtection = "COMPLETE_PROTECTION"
-                case protectedUnlessOpen = "PROTECTED_UNLESS_OPEN"
-                case protectedUntilFirstUserAuth = "PROTECTED_UNTIL_FIRST_USER_AUTH"
-                case primaryAppConsent = "PRIMARY_APP_CONSENT"
+            public struct KeyPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/CapabilityOption/key/value1`.
+                @frozen public enum Value1Payload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case xcode5 = "XCODE_5"
+                    case xcode6 = "XCODE_6"
+                    case completeProtection = "COMPLETE_PROTECTION"
+                    case protectedUnlessOpen = "PROTECTED_UNLESS_OPEN"
+                    case protectedUntilFirstUserAuth = "PROTECTED_UNTIL_FIRST_USER_AUTH"
+                    case primaryAppConsent = "PRIMARY_APP_CONSENT"
+                }
+                /// - Remark: Generated from `#/components/schemas/CapabilityOption/key/value1`.
+                public var value1: Components.Schemas.CapabilityOption.KeyPayload.Value1Payload?
+                /// - Remark: Generated from `#/components/schemas/CapabilityOption/key/value2`.
+                public var value2: Swift.String?
+                /// Creates a new `KeyPayload`.
+                ///
+                /// - Parameters:
+                ///   - value1:
+                ///   - value2:
+                public init(
+                    value1: Components.Schemas.CapabilityOption.KeyPayload.Value1Payload? = nil,
+                    value2: Swift.String? = nil
+                ) {
+                    self.value1 = value1
+                    self.value2 = value2
+                }
+                public init(from decoder: any Decoder) throws {
+                    var errors: [any Error] = []
+                    do {
+                        self.value1 = try decoder.decodeFromSingleValueContainer()
+                    } catch {
+                        errors.append(error)
+                    }
+                    do {
+                        self.value2 = try decoder.decodeFromSingleValueContainer()
+                    } catch {
+                        errors.append(error)
+                    }
+                    try Swift.DecodingError.verifyAtLeastOneSchemaIsNotNil(
+                        [
+                            self.value1,
+                            self.value2
+                        ],
+                        type: Self.self,
+                        codingPath: decoder.codingPath,
+                        errors: errors
+                    )
+                }
+                public func encode(to encoder: any Encoder) throws {
+                    try encoder.encodeFirstNonNilValueToSingleValueContainer([
+                        self.value1,
+                        self.value2
+                    ])
+                }
             }
             /// - Remark: Generated from `#/components/schemas/CapabilityOption/key`.
             public var key: Components.Schemas.CapabilityOption.KeyPayload?
@@ -5172,10 +5219,57 @@ public enum Components {
         /// - Remark: Generated from `#/components/schemas/CapabilitySetting`.
         public struct CapabilitySetting: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/CapabilitySetting/key`.
-            @frozen public enum KeyPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                case icloudVersion = "ICLOUD_VERSION"
-                case dataProtectionPermissionLevel = "DATA_PROTECTION_PERMISSION_LEVEL"
-                case appleIdAuthAppConsent = "APPLE_ID_AUTH_APP_CONSENT"
+            public struct KeyPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/CapabilitySetting/key/value1`.
+                @frozen public enum Value1Payload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case icloudVersion = "ICLOUD_VERSION"
+                    case dataProtectionPermissionLevel = "DATA_PROTECTION_PERMISSION_LEVEL"
+                    case appleIdAuthAppConsent = "APPLE_ID_AUTH_APP_CONSENT"
+                }
+                /// - Remark: Generated from `#/components/schemas/CapabilitySetting/key/value1`.
+                public var value1: Components.Schemas.CapabilitySetting.KeyPayload.Value1Payload?
+                /// - Remark: Generated from `#/components/schemas/CapabilitySetting/key/value2`.
+                public var value2: Swift.String?
+                /// Creates a new `KeyPayload`.
+                ///
+                /// - Parameters:
+                ///   - value1:
+                ///   - value2:
+                public init(
+                    value1: Components.Schemas.CapabilitySetting.KeyPayload.Value1Payload? = nil,
+                    value2: Swift.String? = nil
+                ) {
+                    self.value1 = value1
+                    self.value2 = value2
+                }
+                public init(from decoder: any Decoder) throws {
+                    var errors: [any Error] = []
+                    do {
+                        self.value1 = try decoder.decodeFromSingleValueContainer()
+                    } catch {
+                        errors.append(error)
+                    }
+                    do {
+                        self.value2 = try decoder.decodeFromSingleValueContainer()
+                    } catch {
+                        errors.append(error)
+                    }
+                    try Swift.DecodingError.verifyAtLeastOneSchemaIsNotNil(
+                        [
+                            self.value1,
+                            self.value2
+                        ],
+                        type: Self.self,
+                        codingPath: decoder.codingPath,
+                        errors: errors
+                    )
+                }
+                public func encode(to encoder: any Encoder) throws {
+                    try encoder.encodeFirstNonNilValueToSingleValueContainer([
+                        self.value1,
+                        self.value2
+                    ])
+                }
             }
             /// - Remark: Generated from `#/components/schemas/CapabilitySetting/key`.
             public var key: Components.Schemas.CapabilitySetting.KeyPayload?

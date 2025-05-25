@@ -74,6 +74,8 @@ function patch(schema) {
   // misses some cases that they do, actually, return.
   // https://swiftpackageindex.com/apple/swift-openapi-generator/1.7.2/documentation/swift-openapi-generator/useful-openapi-patterns#Open-enums-and-oneOfs
   makeOpen(schemas.BundleIdPlatform);
+  makeOpen(schemas.CapabilityOption.properties.key);
+  makeOpen(schemas.CapabilitySetting.properties.key);
   makeOpen(schemas.CapabilityType);
   makeOpen(schemas.CertificateType);
   makeOpen(schemas.Device.properties.attributes.properties.deviceClass);
