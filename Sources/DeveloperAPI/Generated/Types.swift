@@ -477,9 +477,56 @@ public enum Components {
                 /// - Remark: Generated from `#/components/schemas/App/attributes/subscriptionStatusUrlVersionForSandbox`.
                 public var subscriptionStatusUrlVersionForSandbox: Components.Schemas.SubscriptionStatusUrlVersion?
                 /// - Remark: Generated from `#/components/schemas/App/attributes/contentRightsDeclaration`.
-                @frozen public enum ContentRightsDeclarationPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                    case doesNotUseThirdPartyContent = "DOES_NOT_USE_THIRD_PARTY_CONTENT"
-                    case usesThirdPartyContent = "USES_THIRD_PARTY_CONTENT"
+                public struct ContentRightsDeclarationPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/App/attributes/contentRightsDeclaration/value1`.
+                    @frozen public enum Value1Payload: String, Codable, Hashable, Sendable, CaseIterable {
+                        case doesNotUseThirdPartyContent = "DOES_NOT_USE_THIRD_PARTY_CONTENT"
+                        case usesThirdPartyContent = "USES_THIRD_PARTY_CONTENT"
+                    }
+                    /// - Remark: Generated from `#/components/schemas/App/attributes/contentRightsDeclaration/value1`.
+                    public var value1: Components.Schemas.App.AttributesPayload.ContentRightsDeclarationPayload.Value1Payload?
+                    /// - Remark: Generated from `#/components/schemas/App/attributes/contentRightsDeclaration/value2`.
+                    public var value2: Swift.String?
+                    /// Creates a new `ContentRightsDeclarationPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - value1:
+                    ///   - value2:
+                    public init(
+                        value1: Components.Schemas.App.AttributesPayload.ContentRightsDeclarationPayload.Value1Payload? = nil,
+                        value2: Swift.String? = nil
+                    ) {
+                        self.value1 = value1
+                        self.value2 = value2
+                    }
+                    public init(from decoder: any Decoder) throws {
+                        var errors: [any Error] = []
+                        do {
+                            self.value1 = try decoder.decodeFromSingleValueContainer()
+                        } catch {
+                            errors.append(error)
+                        }
+                        do {
+                            self.value2 = try decoder.decodeFromSingleValueContainer()
+                        } catch {
+                            errors.append(error)
+                        }
+                        try Swift.DecodingError.verifyAtLeastOneSchemaIsNotNil(
+                            [
+                                self.value1,
+                                self.value2
+                            ],
+                            type: Self.self,
+                            codingPath: decoder.codingPath,
+                            errors: errors
+                        )
+                    }
+                    public func encode(to encoder: any Encoder) throws {
+                        try encoder.encodeFirstNonNilValueToSingleValueContainer([
+                            self.value1,
+                            self.value2
+                        ])
+                    }
                 }
                 /// - Remark: Generated from `#/components/schemas/App/attributes/contentRightsDeclaration`.
                 public var contentRightsDeclaration: Components.Schemas.App.AttributesPayload.ContentRightsDeclarationPayload?
@@ -3522,9 +3569,56 @@ public enum Components {
                 /// - Remark: Generated from `#/components/schemas/Device/attributes/deviceClass`.
                 public var deviceClass: Components.Schemas.Device.AttributesPayload.DeviceClassPayload?
                 /// - Remark: Generated from `#/components/schemas/Device/attributes/status`.
-                @frozen public enum StatusPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                    case enabled = "ENABLED"
-                    case disabled = "DISABLED"
+                public struct StatusPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/Device/attributes/status/value1`.
+                    @frozen public enum Value1Payload: String, Codable, Hashable, Sendable, CaseIterable {
+                        case enabled = "ENABLED"
+                        case disabled = "DISABLED"
+                    }
+                    /// - Remark: Generated from `#/components/schemas/Device/attributes/status/value1`.
+                    public var value1: Components.Schemas.Device.AttributesPayload.StatusPayload.Value1Payload?
+                    /// - Remark: Generated from `#/components/schemas/Device/attributes/status/value2`.
+                    public var value2: Swift.String?
+                    /// Creates a new `StatusPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - value1:
+                    ///   - value2:
+                    public init(
+                        value1: Components.Schemas.Device.AttributesPayload.StatusPayload.Value1Payload? = nil,
+                        value2: Swift.String? = nil
+                    ) {
+                        self.value1 = value1
+                        self.value2 = value2
+                    }
+                    public init(from decoder: any Decoder) throws {
+                        var errors: [any Error] = []
+                        do {
+                            self.value1 = try decoder.decodeFromSingleValueContainer()
+                        } catch {
+                            errors.append(error)
+                        }
+                        do {
+                            self.value2 = try decoder.decodeFromSingleValueContainer()
+                        } catch {
+                            errors.append(error)
+                        }
+                        try Swift.DecodingError.verifyAtLeastOneSchemaIsNotNil(
+                            [
+                                self.value1,
+                                self.value2
+                            ],
+                            type: Self.self,
+                            codingPath: decoder.codingPath,
+                            errors: errors
+                        )
+                    }
+                    public func encode(to encoder: any Encoder) throws {
+                        try encoder.encodeFirstNonNilValueToSingleValueContainer([
+                            self.value1,
+                            self.value2
+                        ])
+                    }
                 }
                 /// - Remark: Generated from `#/components/schemas/Device/attributes/status`.
                 public var status: Components.Schemas.Device.AttributesPayload.StatusPayload?
@@ -3738,9 +3832,56 @@ public enum Components {
                     /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/attributes/name`.
                     public var name: Swift.String?
                     /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/attributes/status`.
-                    @frozen public enum StatusPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                        case enabled = "ENABLED"
-                        case disabled = "DISABLED"
+                    public struct StatusPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/attributes/status/value1`.
+                        @frozen public enum Value1Payload: String, Codable, Hashable, Sendable, CaseIterable {
+                            case enabled = "ENABLED"
+                            case disabled = "DISABLED"
+                        }
+                        /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/attributes/status/value1`.
+                        public var value1: Components.Schemas.DeviceUpdateRequest.DataPayload.AttributesPayload.StatusPayload.Value1Payload?
+                        /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/attributes/status/value2`.
+                        public var value2: Swift.String?
+                        /// Creates a new `StatusPayload`.
+                        ///
+                        /// - Parameters:
+                        ///   - value1:
+                        ///   - value2:
+                        public init(
+                            value1: Components.Schemas.DeviceUpdateRequest.DataPayload.AttributesPayload.StatusPayload.Value1Payload? = nil,
+                            value2: Swift.String? = nil
+                        ) {
+                            self.value1 = value1
+                            self.value2 = value2
+                        }
+                        public init(from decoder: any Decoder) throws {
+                            var errors: [any Error] = []
+                            do {
+                                self.value1 = try decoder.decodeFromSingleValueContainer()
+                            } catch {
+                                errors.append(error)
+                            }
+                            do {
+                                self.value2 = try decoder.decodeFromSingleValueContainer()
+                            } catch {
+                                errors.append(error)
+                            }
+                            try Swift.DecodingError.verifyAtLeastOneSchemaIsNotNil(
+                                [
+                                    self.value1,
+                                    self.value2
+                                ],
+                                type: Self.self,
+                                codingPath: decoder.codingPath,
+                                errors: errors
+                            )
+                        }
+                        public func encode(to encoder: any Encoder) throws {
+                            try encoder.encodeFirstNonNilValueToSingleValueContainer([
+                                self.value1,
+                                self.value2
+                            ])
+                        }
                     }
                     /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/attributes/status`.
                     public var status: Components.Schemas.DeviceUpdateRequest.DataPayload.AttributesPayload.StatusPayload?
@@ -3814,28 +3955,122 @@ public enum Components {
                 /// - Remark: Generated from `#/components/schemas/Profile/attributes/platform`.
                 public var platform: Components.Schemas.BundleIdPlatform?
                 /// - Remark: Generated from `#/components/schemas/Profile/attributes/profileType`.
-                @frozen public enum ProfileTypePayload: String, Codable, Hashable, Sendable, CaseIterable {
-                    case iosAppDevelopment = "IOS_APP_DEVELOPMENT"
-                    case iosAppStore = "IOS_APP_STORE"
-                    case iosAppAdhoc = "IOS_APP_ADHOC"
-                    case iosAppInhouse = "IOS_APP_INHOUSE"
-                    case macAppDevelopment = "MAC_APP_DEVELOPMENT"
-                    case macAppStore = "MAC_APP_STORE"
-                    case macAppDirect = "MAC_APP_DIRECT"
-                    case tvosAppDevelopment = "TVOS_APP_DEVELOPMENT"
-                    case tvosAppStore = "TVOS_APP_STORE"
-                    case tvosAppAdhoc = "TVOS_APP_ADHOC"
-                    case tvosAppInhouse = "TVOS_APP_INHOUSE"
-                    case macCatalystAppDevelopment = "MAC_CATALYST_APP_DEVELOPMENT"
-                    case macCatalystAppStore = "MAC_CATALYST_APP_STORE"
-                    case macCatalystAppDirect = "MAC_CATALYST_APP_DIRECT"
+                public struct ProfileTypePayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/Profile/attributes/profileType/value1`.
+                    @frozen public enum Value1Payload: String, Codable, Hashable, Sendable, CaseIterable {
+                        case iosAppDevelopment = "IOS_APP_DEVELOPMENT"
+                        case iosAppStore = "IOS_APP_STORE"
+                        case iosAppAdhoc = "IOS_APP_ADHOC"
+                        case iosAppInhouse = "IOS_APP_INHOUSE"
+                        case macAppDevelopment = "MAC_APP_DEVELOPMENT"
+                        case macAppStore = "MAC_APP_STORE"
+                        case macAppDirect = "MAC_APP_DIRECT"
+                        case tvosAppDevelopment = "TVOS_APP_DEVELOPMENT"
+                        case tvosAppStore = "TVOS_APP_STORE"
+                        case tvosAppAdhoc = "TVOS_APP_ADHOC"
+                        case tvosAppInhouse = "TVOS_APP_INHOUSE"
+                        case macCatalystAppDevelopment = "MAC_CATALYST_APP_DEVELOPMENT"
+                        case macCatalystAppStore = "MAC_CATALYST_APP_STORE"
+                        case macCatalystAppDirect = "MAC_CATALYST_APP_DIRECT"
+                    }
+                    /// - Remark: Generated from `#/components/schemas/Profile/attributes/profileType/value1`.
+                    public var value1: Components.Schemas.Profile.AttributesPayload.ProfileTypePayload.Value1Payload?
+                    /// - Remark: Generated from `#/components/schemas/Profile/attributes/profileType/value2`.
+                    public var value2: Swift.String?
+                    /// Creates a new `ProfileTypePayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - value1:
+                    ///   - value2:
+                    public init(
+                        value1: Components.Schemas.Profile.AttributesPayload.ProfileTypePayload.Value1Payload? = nil,
+                        value2: Swift.String? = nil
+                    ) {
+                        self.value1 = value1
+                        self.value2 = value2
+                    }
+                    public init(from decoder: any Decoder) throws {
+                        var errors: [any Error] = []
+                        do {
+                            self.value1 = try decoder.decodeFromSingleValueContainer()
+                        } catch {
+                            errors.append(error)
+                        }
+                        do {
+                            self.value2 = try decoder.decodeFromSingleValueContainer()
+                        } catch {
+                            errors.append(error)
+                        }
+                        try Swift.DecodingError.verifyAtLeastOneSchemaIsNotNil(
+                            [
+                                self.value1,
+                                self.value2
+                            ],
+                            type: Self.self,
+                            codingPath: decoder.codingPath,
+                            errors: errors
+                        )
+                    }
+                    public func encode(to encoder: any Encoder) throws {
+                        try encoder.encodeFirstNonNilValueToSingleValueContainer([
+                            self.value1,
+                            self.value2
+                        ])
+                    }
                 }
                 /// - Remark: Generated from `#/components/schemas/Profile/attributes/profileType`.
                 public var profileType: Components.Schemas.Profile.AttributesPayload.ProfileTypePayload?
                 /// - Remark: Generated from `#/components/schemas/Profile/attributes/profileState`.
-                @frozen public enum ProfileStatePayload: String, Codable, Hashable, Sendable, CaseIterable {
-                    case active = "ACTIVE"
-                    case invalid = "INVALID"
+                public struct ProfileStatePayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/Profile/attributes/profileState/value1`.
+                    @frozen public enum Value1Payload: String, Codable, Hashable, Sendable, CaseIterable {
+                        case active = "ACTIVE"
+                        case invalid = "INVALID"
+                    }
+                    /// - Remark: Generated from `#/components/schemas/Profile/attributes/profileState/value1`.
+                    public var value1: Components.Schemas.Profile.AttributesPayload.ProfileStatePayload.Value1Payload?
+                    /// - Remark: Generated from `#/components/schemas/Profile/attributes/profileState/value2`.
+                    public var value2: Swift.String?
+                    /// Creates a new `ProfileStatePayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - value1:
+                    ///   - value2:
+                    public init(
+                        value1: Components.Schemas.Profile.AttributesPayload.ProfileStatePayload.Value1Payload? = nil,
+                        value2: Swift.String? = nil
+                    ) {
+                        self.value1 = value1
+                        self.value2 = value2
+                    }
+                    public init(from decoder: any Decoder) throws {
+                        var errors: [any Error] = []
+                        do {
+                            self.value1 = try decoder.decodeFromSingleValueContainer()
+                        } catch {
+                            errors.append(error)
+                        }
+                        do {
+                            self.value2 = try decoder.decodeFromSingleValueContainer()
+                        } catch {
+                            errors.append(error)
+                        }
+                        try Swift.DecodingError.verifyAtLeastOneSchemaIsNotNil(
+                            [
+                                self.value1,
+                                self.value2
+                            ],
+                            type: Self.self,
+                            codingPath: decoder.codingPath,
+                            errors: errors
+                        )
+                    }
+                    public func encode(to encoder: any Encoder) throws {
+                        try encoder.encodeFirstNonNilValueToSingleValueContainer([
+                            self.value1,
+                            self.value2
+                        ])
+                    }
                 }
                 /// - Remark: Generated from `#/components/schemas/Profile/attributes/profileState`.
                 public var profileState: Components.Schemas.Profile.AttributesPayload.ProfileStatePayload?
@@ -4291,21 +4526,68 @@ public enum Components {
                     /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/attributes/name`.
                     public var name: Swift.String
                     /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/attributes/profileType`.
-                    @frozen public enum ProfileTypePayload: String, Codable, Hashable, Sendable, CaseIterable {
-                        case iosAppDevelopment = "IOS_APP_DEVELOPMENT"
-                        case iosAppStore = "IOS_APP_STORE"
-                        case iosAppAdhoc = "IOS_APP_ADHOC"
-                        case iosAppInhouse = "IOS_APP_INHOUSE"
-                        case macAppDevelopment = "MAC_APP_DEVELOPMENT"
-                        case macAppStore = "MAC_APP_STORE"
-                        case macAppDirect = "MAC_APP_DIRECT"
-                        case tvosAppDevelopment = "TVOS_APP_DEVELOPMENT"
-                        case tvosAppStore = "TVOS_APP_STORE"
-                        case tvosAppAdhoc = "TVOS_APP_ADHOC"
-                        case tvosAppInhouse = "TVOS_APP_INHOUSE"
-                        case macCatalystAppDevelopment = "MAC_CATALYST_APP_DEVELOPMENT"
-                        case macCatalystAppStore = "MAC_CATALYST_APP_STORE"
-                        case macCatalystAppDirect = "MAC_CATALYST_APP_DIRECT"
+                    public struct ProfileTypePayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/attributes/profileType/value1`.
+                        @frozen public enum Value1Payload: String, Codable, Hashable, Sendable, CaseIterable {
+                            case iosAppDevelopment = "IOS_APP_DEVELOPMENT"
+                            case iosAppStore = "IOS_APP_STORE"
+                            case iosAppAdhoc = "IOS_APP_ADHOC"
+                            case iosAppInhouse = "IOS_APP_INHOUSE"
+                            case macAppDevelopment = "MAC_APP_DEVELOPMENT"
+                            case macAppStore = "MAC_APP_STORE"
+                            case macAppDirect = "MAC_APP_DIRECT"
+                            case tvosAppDevelopment = "TVOS_APP_DEVELOPMENT"
+                            case tvosAppStore = "TVOS_APP_STORE"
+                            case tvosAppAdhoc = "TVOS_APP_ADHOC"
+                            case tvosAppInhouse = "TVOS_APP_INHOUSE"
+                            case macCatalystAppDevelopment = "MAC_CATALYST_APP_DEVELOPMENT"
+                            case macCatalystAppStore = "MAC_CATALYST_APP_STORE"
+                            case macCatalystAppDirect = "MAC_CATALYST_APP_DIRECT"
+                        }
+                        /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/attributes/profileType/value1`.
+                        public var value1: Components.Schemas.ProfileCreateRequest.DataPayload.AttributesPayload.ProfileTypePayload.Value1Payload?
+                        /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/attributes/profileType/value2`.
+                        public var value2: Swift.String?
+                        /// Creates a new `ProfileTypePayload`.
+                        ///
+                        /// - Parameters:
+                        ///   - value1:
+                        ///   - value2:
+                        public init(
+                            value1: Components.Schemas.ProfileCreateRequest.DataPayload.AttributesPayload.ProfileTypePayload.Value1Payload? = nil,
+                            value2: Swift.String? = nil
+                        ) {
+                            self.value1 = value1
+                            self.value2 = value2
+                        }
+                        public init(from decoder: any Decoder) throws {
+                            var errors: [any Error] = []
+                            do {
+                                self.value1 = try decoder.decodeFromSingleValueContainer()
+                            } catch {
+                                errors.append(error)
+                            }
+                            do {
+                                self.value2 = try decoder.decodeFromSingleValueContainer()
+                            } catch {
+                                errors.append(error)
+                            }
+                            try Swift.DecodingError.verifyAtLeastOneSchemaIsNotNil(
+                                [
+                                    self.value1,
+                                    self.value2
+                                ],
+                                type: Self.self,
+                                codingPath: decoder.codingPath,
+                                errors: errors
+                            )
+                        }
+                        public func encode(to encoder: any Encoder) throws {
+                            try encoder.encodeFirstNonNilValueToSingleValueContainer([
+                                self.value1,
+                                self.value2
+                            ])
+                        }
                     }
                     /// - Remark: Generated from `#/components/schemas/ProfileCreateRequest/data/attributes/profileType`.
                     public var profileType: Components.Schemas.ProfileCreateRequest.DataPayload.AttributesPayload.ProfileTypePayload
@@ -5282,10 +5564,57 @@ public enum Components {
             /// - Remark: Generated from `#/components/schemas/CapabilitySetting/visible`.
             public var visible: Swift.Bool?
             /// - Remark: Generated from `#/components/schemas/CapabilitySetting/allowedInstances`.
-            @frozen public enum AllowedInstancesPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                case entry = "ENTRY"
-                case single = "SINGLE"
-                case multiple = "MULTIPLE"
+            public struct AllowedInstancesPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/CapabilitySetting/allowedInstances/value1`.
+                @frozen public enum Value1Payload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case entry = "ENTRY"
+                    case single = "SINGLE"
+                    case multiple = "MULTIPLE"
+                }
+                /// - Remark: Generated from `#/components/schemas/CapabilitySetting/allowedInstances/value1`.
+                public var value1: Components.Schemas.CapabilitySetting.AllowedInstancesPayload.Value1Payload?
+                /// - Remark: Generated from `#/components/schemas/CapabilitySetting/allowedInstances/value2`.
+                public var value2: Swift.String?
+                /// Creates a new `AllowedInstancesPayload`.
+                ///
+                /// - Parameters:
+                ///   - value1:
+                ///   - value2:
+                public init(
+                    value1: Components.Schemas.CapabilitySetting.AllowedInstancesPayload.Value1Payload? = nil,
+                    value2: Swift.String? = nil
+                ) {
+                    self.value1 = value1
+                    self.value2 = value2
+                }
+                public init(from decoder: any Decoder) throws {
+                    var errors: [any Error] = []
+                    do {
+                        self.value1 = try decoder.decodeFromSingleValueContainer()
+                    } catch {
+                        errors.append(error)
+                    }
+                    do {
+                        self.value2 = try decoder.decodeFromSingleValueContainer()
+                    } catch {
+                        errors.append(error)
+                    }
+                    try Swift.DecodingError.verifyAtLeastOneSchemaIsNotNil(
+                        [
+                            self.value1,
+                            self.value2
+                        ],
+                        type: Self.self,
+                        codingPath: decoder.codingPath,
+                        errors: errors
+                    )
+                }
+                public func encode(to encoder: any Encoder) throws {
+                    try encoder.encodeFirstNonNilValueToSingleValueContainer([
+                        self.value1,
+                        self.value2
+                    ])
+                }
             }
             /// - Remark: Generated from `#/components/schemas/CapabilitySetting/allowedInstances`.
             public var allowedInstances: Components.Schemas.CapabilitySetting.AllowedInstancesPayload?
@@ -5481,9 +5810,56 @@ public enum Components {
             }
         }
         /// - Remark: Generated from `#/components/schemas/SubscriptionStatusUrlVersion`.
-        @frozen public enum SubscriptionStatusUrlVersion: String, Codable, Hashable, Sendable, CaseIterable {
-            case v1 = "V1"
-            case v2 = "V2"
+        public struct SubscriptionStatusUrlVersion: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/SubscriptionStatusUrlVersion/value1`.
+            @frozen public enum Value1Payload: String, Codable, Hashable, Sendable, CaseIterable {
+                case v1 = "V1"
+                case v2 = "V2"
+            }
+            /// - Remark: Generated from `#/components/schemas/SubscriptionStatusUrlVersion/value1`.
+            public var value1: Components.Schemas.SubscriptionStatusUrlVersion.Value1Payload?
+            /// - Remark: Generated from `#/components/schemas/SubscriptionStatusUrlVersion/value2`.
+            public var value2: Swift.String?
+            /// Creates a new `SubscriptionStatusUrlVersion`.
+            ///
+            /// - Parameters:
+            ///   - value1:
+            ///   - value2:
+            public init(
+                value1: Components.Schemas.SubscriptionStatusUrlVersion.Value1Payload? = nil,
+                value2: Swift.String? = nil
+            ) {
+                self.value1 = value1
+                self.value2 = value2
+            }
+            public init(from decoder: any Decoder) throws {
+                var errors: [any Error] = []
+                do {
+                    self.value1 = try decoder.decodeFromSingleValueContainer()
+                } catch {
+                    errors.append(error)
+                }
+                do {
+                    self.value2 = try decoder.decodeFromSingleValueContainer()
+                } catch {
+                    errors.append(error)
+                }
+                try Swift.DecodingError.verifyAtLeastOneSchemaIsNotNil(
+                    [
+                        self.value1,
+                        self.value2
+                    ],
+                    type: Self.self,
+                    codingPath: decoder.codingPath,
+                    errors: errors
+                )
+            }
+            public func encode(to encoder: any Encoder) throws {
+                try encoder.encodeFirstNonNilValueToSingleValueContainer([
+                    self.value1,
+                    self.value2
+                ])
+            }
         }
     }
     /// Types generated from the `#/components/parameters` section of the OpenAPI document.
