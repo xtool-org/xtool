@@ -80,12 +80,12 @@ public struct Planner: Sendable {
             packagesByProductName: packagesByProductName
         )
         
-        let extensions = try (schema.targets ?? []).compactMap {
+        let extensions = try (schema.extensions ?? []).compactMap {
             try resolveProduct(
+                isExtension: true,
                 from: libraries.filter{ $0.name != product.product },
                 matching: $0.product,
                 deploymentTarget: deploymentTarget,
-                of: $0.type,
                 plist: $0.infoPath,
                 baseBundleID: $0.bundleID.flatMap(PackSchema.IDSpecifier.bundleID) ?? .orgID(product.bundleID),
                 rootResources: $0.resources,
@@ -157,10 +157,10 @@ public struct Planner: Sendable {
     }
 
     private func resolveProduct(
+        isExtension: Bool = false,
         from products: [PackageDump.Product],
         matching name: String?,
         deploymentTarget: String,
-        of type: PackSchemaBase.Target.TargetType? = nil,
         plist: String?,
         baseBundleID: PackSchema.IDSpecifier,
         rootResources: [String]?,
@@ -220,8 +220,7 @@ public struct Planner: Sendable {
             "CFBundleExecutable": "\(library.name)",
         ]
 
-        switch type {
-        case .none:
+        if !isExtension {
             infoPlist["UIRequiredDeviceCapabilities"] = ["arm64"]
             infoPlist["LSRequiresIPhoneOS"] = true
             infoPlist["CFBundleSupportedPlatforms"] = ["iPhoneOS"]
@@ -235,7 +234,7 @@ public struct Planner: Sendable {
                 "UIInterfaceOrientationLandscapeRight",
             ]
             infoPlist["UILaunchScreen"] = [:] as [String: Sendable]
-        case .extension:
+        } else {
             // Should set default parameters?
             infoPlist["NSExtension"] = [:] as [String: Sendable]
             infoPlist["CFBundlePackageType"] = "XPC!"
@@ -257,15 +256,15 @@ public struct Planner: Sendable {
             bundleID: bundleID,
             infoPlist: infoPlist,
             resources: resources,
-            iconPath: type == nil ? self.schema.iconPath : nil,
-            entitlementsPath: type == nil ? self.schema.entitlementsPath : nil
+            iconPath: !isExtension ? self.schema.iconPath : nil,
+            entitlementsPath: !isExtension ? self.schema.entitlementsPath : nil
         )
     }
 }
 
 @dynamicMemberLookup
 public struct Plan: Sendable {
-    package var base: Product
+    var base: Product
     public var extensions: [Product]
 
     public struct Product: Sendable {

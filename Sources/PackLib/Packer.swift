@@ -50,15 +50,22 @@ public struct Packer: Sendable {
             )\n
             """
         try Data(contents.utf8).write(to: packageSwift)
-        let sources = packageDir.appendingPathComponent("Sources")
-        try? FileManager.default.createDirectory(at: sources, withIntermediateDirectories: true)
-        try Data().write(to: sources.appendingPathComponent("stub.c"))
+
+        func writeStubs(name: String) throws {
+            let sources = packageDir.appending(components: "Sources", name, directoryHint: .isDirectory)
+            print("about to write stubs in \(sources)")
+            try? FileManager.default.createDirectory(at: sources, withIntermediateDirectories: true)
+            try Data().write(to: sources.appending(component: "stub.c", directoryHint: .notDirectory))
+        }
+
+        try writeStubs(name: "\(plan.product)-App")
 
         let builder = try await buildSettings.swiftPMBuild(packageDir: packageDir.path, product: "\(plan.product)-App")
         builder.standardOutput = FileHandle.standardError
         try await builder.runUntilExit()
 
         for ext in plan.extensions {
+            try writeStubs(name: "\(ext.product)-Extension")
             let builder = try await buildSettings.swiftPMBuild(packageDir: packageDir.path, product: "\(ext.product)-Extension")
             builder.standardOutput = FileHandle.standardError
             try await builder.runUntilExit()

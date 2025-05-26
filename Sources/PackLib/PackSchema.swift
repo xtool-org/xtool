@@ -19,24 +19,19 @@ public struct PackSchemaBase: Codable, Sendable {
     public var iconPath: String?
     public var resources: [String]?
 
-    public var targets: [Target]?
+    public var extensions: [Extension]?
 
-    public struct Target: Codable, Sendable {
+    public struct Extension: Codable, Sendable {
         public var product: String
         public var bundleID: String?
         public var infoPath: String
         public var resources: [String]?
-        public var type: TargetType?
-
-        public enum TargetType: String, Codable, Sendable {
-            case `extension`
-        }
     }
 }
 
 @dynamicMemberLookup
 public struct PackSchema: Sendable {
-    public typealias Extension = PackSchemaBase.Target
+    public typealias Extension = PackSchemaBase.Extension
 
     public enum IDSpecifier: Sendable {
         case orgID(String)
