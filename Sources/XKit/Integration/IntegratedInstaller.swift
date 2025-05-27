@@ -239,9 +239,7 @@ public actor IntegratedInstaller {
         guard let appDir = payload.implicitContents.first(where: { $0.pathExtension == "app" })
             else { throw Error.appExtractionFailed }
 
-        try await updateStage(to: "Logging in")
-
-        try await self.updateStage(to: "Preparing device")
+        try await updateStage(to: "Preparing device")
 
         // TODO: Maybe use `Connection` here instead of creating the lockdown
         // client manually?
