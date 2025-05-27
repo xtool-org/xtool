@@ -65,4 +65,3 @@ xtool includes a library that you can use to interact with Apple Developer Servi
 // target dependency:
 .product(name: "XKit", package: "xtool")
 ```
-
