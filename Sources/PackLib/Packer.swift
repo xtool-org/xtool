@@ -61,7 +61,7 @@ public struct Packer: Sendable {
         try writeStubs(name: "\(plan.product)-App")
 
         for ext in plan.extensions {
-            try writeStubs(name: "\(ext.product)-Extension", fileName: "main.swift")
+            try writeStubs(name: "\(ext.product)-Extension")
         }
 
         let builder = try await buildSettings.swiftPMBuild(packageDir: packageDir.path, product: "\(plan.product)-App")
@@ -69,7 +69,7 @@ public struct Packer: Sendable {
         try await builder.runUntilExit()
 
         for ext in plan.extensions {
-            let builder = try await buildSettings.swiftPMBuild(packageDir: packageDir.path, product: "\(ext.product)-Extension")
+            let builder = try await buildSettings.swiftPMBuild(packageDir: packageDir.path, product: "\(ext.product)-Extension", isExtension: true)
             builder.standardOutput = FileHandle.standardError
             try await builder.runUntilExit()
         }
@@ -200,8 +200,14 @@ public struct Packer: Sendable {
 }
 
 private extension BuildSettings {
-    func swiftPMBuild(packageDir: String, product: String) async throws -> Process {
-        try await swiftPMInvocation(
+    func swiftPMBuild(packageDir: String, product: String, isExtension: Bool = false) async throws -> Process {
+        let additionalArgs: [String] = !isExtension ? [] : [
+            "-Xlinker", "-framework", 
+            "-Xlinker", "Foundation", 
+            "-Xlinker", "-e", 
+            "-Xlinker", "_NSExtensionMain"
+        ]
+        return try await swiftPMInvocation(
             forTool: "build",
             arguments: [
                 "--package-path", packageDir,
@@ -215,7 +221,7 @@ private extension BuildSettings {
                 // the issue.
                 "--disable-automatic-resolution",
                 "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
-            ]
+            ] + additionalArgs
         )
     }
 }
