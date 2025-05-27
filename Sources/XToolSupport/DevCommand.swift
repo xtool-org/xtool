@@ -77,6 +77,8 @@ struct PackOperation {
             )
         }
 
+        // TODO: sign extensions with entitlements if present
+
         return bundle
     }
 }

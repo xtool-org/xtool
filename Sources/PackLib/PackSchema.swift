@@ -26,6 +26,7 @@ public struct PackSchemaBase: Codable, Sendable {
         public var bundleID: String?
         public var infoPath: String
         public var resources: [String]?
+        public var entitlementsPath: String?
     }
 }
 

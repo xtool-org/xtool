@@ -33,7 +33,8 @@ public struct Planner: Sendable {
             matching: schema.product,
             plist: self.schema.infoPath,
             baseBundleID: self.schema.idSpecifier,
-            rootResources: self.schema.resources
+            rootResources: self.schema.resources,
+            entitlementsPath: self.schema.entitlementsPath
         )
 
         let extensions = try (schema.extensions ?? []).compactMap {
@@ -43,7 +44,8 @@ public struct Planner: Sendable {
                 matching: $0.product,
                 plist: $0.infoPath,
                 baseBundleID: $0.bundleID.flatMap(PackSchema.IDSpecifier.bundleID) ?? .orgID(product.bundleID),
-                rootResources: $0.resources
+                rootResources: $0.resources,
+                entitlementsPath: $0.entitlementsPath
             )
         }
 
@@ -115,6 +117,7 @@ public struct Planner: Sendable {
         plist: String?,
         baseBundleID: PackSchema.IDSpecifier,
         rootResources: [String]?,
+        entitlementsPath: String?
     ) throws -> Plan.Product {
         let library = try selectLibrary(
             from: rootPackage.products?.filter { $0.type == .autoLibrary } ?? [], 
@@ -160,15 +163,16 @@ public struct Planner: Sendable {
             "CFBundleShortVersionString": "1.0.0",
             "MinimumOSVersion": deploymentTarget,
             "CFBundleIdentifier": bundleID,
-            "CFBundleName": "\(library.name)",
-            "CFBundleExecutable": "\(library.name)",
+            "CFBundleName": library.name,
+            "CFBundleExecutable": library.name,
+            "CFBundleDisplayName": library.name,
+            "CFBundlePackageType": isExtension ? "XPC!" : "APPL"
         ]
 
         if !isExtension {
             infoPlist["UIRequiredDeviceCapabilities"] = ["arm64"]
             infoPlist["LSRequiresIPhoneOS"] = true
             infoPlist["CFBundleSupportedPlatforms"] = ["iPhoneOS"]
-            infoPlist["CFBundlePackageType"] = "APPL"
             infoPlist["UIDeviceFamily"] = [1, 2]
             infoPlist["UISupportedInterfaceOrientations"] = ["UIInterfaceOrientationPortrait"]
             infoPlist["UISupportedInterfaceOrientations~ipad"] = [
@@ -181,7 +185,6 @@ public struct Planner: Sendable {
         } else {
             // Should set default parameters?
             infoPlist["NSExtension"] = [:] as [String: Sendable]
-            infoPlist["CFBundlePackageType"] = "XPC!"
         }
 
         if let plist {
@@ -201,7 +204,7 @@ public struct Planner: Sendable {
             infoPlist: infoPlist,
             resources: resources,
             iconPath: !isExtension ? self.schema.iconPath : nil,
-            entitlementsPath: !isExtension ? self.schema.entitlementsPath : nil
+            entitlementsPath: entitlementsPath
         )
     }
 }
