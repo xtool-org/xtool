@@ -238,7 +238,7 @@ struct SDKBuilder {
         case .unknown: nil
         }
 
-        let outputPath = output.appendingPathComponent("OpenAppleMacros").path
+        let outputPath = output.appendingPathComponent("OpenAppleMacrosServer").path
         do {
             let handle = try FileDescriptor.open(
                 FilePath(outputPath),
@@ -391,7 +391,7 @@ struct SDKBuilder {
             try? FileManager.default.removeItem(at: pluginServer)
             try FileManager.default.createSymbolicLink(
                 atPath: pluginServer.path,
-                withDestinationPath: "../../../../../../OpenAppleMacros"
+                withDestinationPath: "../../../../../../OpenAppleMacrosServer"
             )
 
             let hostDir = platformDir.appendingPathComponent("Developer/usr/lib/swift/host")
