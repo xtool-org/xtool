@@ -39,6 +39,7 @@ public struct Packer: Sendable {
                             ),
                             """
                         }
+                        .joined(separator: "\r\n")
                     )
                     .executableTarget(
                         name: "\(plan.product)-App",
@@ -51,21 +52,23 @@ public struct Packer: Sendable {
             """
         try Data(contents.utf8).write(to: packageSwift)
 
-        func writeStubs(name: String) throws {
-            let sources = packageDir.appending(components: "Sources", name, directoryHint: .isDirectory)
-            print("about to write stubs in \(sources)")
-            try? FileManager.default.createDirectory(at: sources, withIntermediateDirectories: true)
-            try Data().write(to: sources.appending(component: "stub.c", directoryHint: .notDirectory))
+        func writeStubs(name: String, fileName: String = "stub.c") throws {
+            let sources = packageDir.appendingPathComponent("Sources/\(name)", isDirectory: true)
+            try FileManager.default.createDirectory(at: sources, withIntermediateDirectories: true)
+            try Data().write(to: sources.appendingPathComponent(fileName, isDirectory: false))
         }
 
         try writeStubs(name: "\(plan.product)-App")
+
+        for ext in plan.extensions {
+            try writeStubs(name: "\(ext.product)-Extension", fileName: "main.swift")
+        }
 
         let builder = try await buildSettings.swiftPMBuild(packageDir: packageDir.path, product: "\(plan.product)-App")
         builder.standardOutput = FileHandle.standardError
         try await builder.runUntilExit()
 
         for ext in plan.extensions {
-            try writeStubs(name: "\(ext.product)-Extension")
             let builder = try await buildSettings.swiftPMBuild(packageDir: packageDir.path, product: "\(ext.product)-Extension")
             builder.standardOutput = FileHandle.standardError
             try await builder.runUntilExit()
@@ -85,7 +88,7 @@ public struct Packer: Sendable {
         let outputDir = output.url
 
         try await withThrowingTaskGroup(of: Void.self) { group in
-            _pack(
+            Self._pack(
                 product: plan.base, 
                 isExtension: false, 
                 binDir: binDir,
@@ -94,11 +97,11 @@ public struct Packer: Sendable {
             )
 
             for ext in plan.extensions {
-                _pack(
+                Self._pack(
                     product: ext, 
                     isExtension: true,
                     binDir: binDir,
-                    outputDir: outputDir.appending(components: "PlugIns/\(ext.product).appex"),
+                    outputDir: outputDir.appendingPathComponent("PlugIns/\(ext.product).appex", isDirectory: true),
                     &group
                 )
             }
@@ -121,7 +124,7 @@ public struct Packer: Sendable {
         return dest
     }
 
-    @Sendable private func _pack(
+    @Sendable private static func _pack(
         product: Plan.Product,
         isExtension: Bool,
         binDir: URL,
@@ -139,13 +142,15 @@ public struct Packer: Sendable {
         @Sendable func packFile(srcName: String, dstName: String? = nil, sign: Bool = false) async throws {
             let srcURL = URL(fileURLWithPath: srcName, relativeTo: binDir)
             let dstURL = URL(fileURLWithPath: dstName ?? srcURL.lastPathComponent, relativeTo: outputDir)
-            try? FileManager.default.createDirectory(at: dstURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try FileManager.default.createDirectory(at: dstURL.deletingLastPathComponent(), withIntermediateDirectories: true)
             try FileManager.default.copyItem(at: srcURL, to: dstURL)
 
             try Task.checkCancellation()
         }
 
-        for command in plan.resources {
+        try? FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
+
+        for command in product.resources {
             group.addTask {
                 switch command {
                 case .bundle(let package, let target):
@@ -167,18 +172,18 @@ public struct Packer: Sendable {
                 }
             }
         }
-        if let iconPath = plan.iconPath {
+        if let iconPath = product.iconPath {
             group.addTask {
                 try await packFileToRoot(srcName: iconPath)
             }
         }
         group.addTask {
-            try await packFile(srcName: "\(plan.product)-\(!isExtension ? "App" : "Extension")", dstName: plan.product)
+            try await packFile(srcName: "\(product.product)-\(!isExtension ? "App" : "Extension")", dstName: product.product)
         }
         group.addTask {
-            var info = plan.infoPlist
+            var info = product.infoPlist
 
-            if let iconPath = plan.iconPath {
+            if let iconPath = product.iconPath {
                 let iconName = URL(fileURLWithPath: iconPath).deletingPathExtension().lastPathComponent
                 info["CFBundleIconFile"] = iconName
             }

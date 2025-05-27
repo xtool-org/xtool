@@ -12,7 +12,7 @@ public struct Planner: Sendable {
         self.schema = schema
     }
 
-    private static let decoder: JSONDecoder = {
+    fileprivate static let decoder: JSONDecoder = {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         return decoder
@@ -25,73 +25,25 @@ public struct Planner: Sendable {
             arguments: ["show-dependencies", "--format", "json"],
             path: buildSettings.packagePath
         )
-        let dependencyRoot = try Self.decoder.decode(PackageDependency.self, from: dependencyData)
 
-        let packages = try await withThrowingTaskGroup(
-            of: (PackageDependency, PackageDump).self,
-            returning: [String: PackageDump].self
-        ) { group in
-            var visited: Set<String> = []
-            var dependencies: [PackageDependency] = [dependencyRoot]
-            while let dependencyNode = dependencies.popLast() {
-                guard visited.insert(dependencyNode.identity).inserted else { continue }
-                dependencies.append(contentsOf: dependencyNode.dependencies)
-                group.addTask { (dependencyNode, try await dumpPackage(at: dependencyNode.path)) }
-            }
-
-            var packages: [String: PackageDump] = [:]
-            while let result = await group.nextResult() {
-                switch result {
-                case .success((let dependency, let dump)):
-                    packages[dependency.identity] = dump
-                case .failure(_ as CancellationError):
-                    // continue loop
-                    break
-                case .failure(let error):
-                    group.cancelAll()
-                    throw error
-                }
-            }
-
-            return packages
-        }
-
-        var packagesByProductName: [String: String] = [:]
-        for (packageID, package) in packages {
-            for product in package.products ?? [] {
-                packagesByProductName[product.name] = packageID
-            }
-        }
-
-        let rootPackage = packages[dependencyRoot.identity]!
-        let deploymentTarget = rootPackage.platforms?.first { $0.name == "ios" }?.version ?? "13.0"
-
-        let libraries = rootPackage.products?.filter { $0.type == .autoLibrary } ?? []
+        let rootPackage = try await RootPackage(from: dependencyData, dumpPackage: self.dumpPackage)
 
         let product = try resolveProduct(
-            from: libraries,
+            from: rootPackage,
             matching: schema.product,
-            deploymentTarget: deploymentTarget,
             plist: self.schema.infoPath,
             baseBundleID: self.schema.idSpecifier,
-            rootResources: self.schema.resources,
-            rootPackage: rootPackage,
-            packages: packages,
-            packagesByProductName: packagesByProductName
+            rootResources: self.schema.resources
         )
-        
+
         let extensions = try (schema.extensions ?? []).compactMap {
             try resolveProduct(
                 isExtension: true,
-                from: libraries.filter{ $0.name != product.product },
+                from: rootPackage,
                 matching: $0.product,
-                deploymentTarget: deploymentTarget,
                 plist: $0.infoPath,
                 baseBundleID: $0.bundleID.flatMap(PackSchema.IDSpecifier.bundleID) ?? .orgID(product.bundleID),
-                rootResources: $0.resources,
-                rootPackage: rootPackage,
-                packages: packages,
-                packagesByProductName: packagesByProductName
+                rootResources: $0.resources
             )
         }
 
@@ -158,20 +110,19 @@ public struct Planner: Sendable {
 
     private func resolveProduct(
         isExtension: Bool = false,
-        from products: [PackageDump.Product],
+        from rootPackage: RootPackage,
         matching name: String?,
-        deploymentTarget: String,
         plist: String?,
         baseBundleID: PackSchema.IDSpecifier,
         rootResources: [String]?,
-        rootPackage: PackageDump,
-        packages: [String: PackageDump],
-        packagesByProductName: [String: String]
     ) throws -> Plan.Product {
-        let library = try selectLibrary(from: products, matching: name)
-        var resources: [Resource] = []
+        let library = try selectLibrary(
+            from: rootPackage.products?.filter { $0.type == .autoLibrary } ?? [], 
+            matching: name
+        )
+        var resources: [Plan.Resource] = []
         var visited: Set<String> = []
-        var targets = library.targets.map { (rootPackage, $0) }
+        var targets = library.targets.map { (rootPackage.base, $0) }
         while let (targetPackage, targetName) = targets.popLast() {
             guard let target = targetPackage.targets?.first(where: { $0.name == targetName }) else {
                 throw StringError("Could not find target '\(targetName)' in package '\(targetPackage.name)'")
@@ -187,15 +138,7 @@ public struct Planner: Sendable {
                 targets.append((targetPackage, targetName))
             }
             for productName in (target.productDependencies ?? []) {
-                guard let packageID = packagesByProductName[productName] else {
-                    throw StringError("Could not find package containing product '\(productName)'")
-                }
-                guard let package = packages[packageID] else {
-                    throw StringError("Could not find package by id '\(packageID)'")
-                }
-                guard let product = package.products?.first(where: { $0.name == productName }) else {
-                    throw StringError("Could not find product '\(productName)' in package '\(packageID)'")
-                }
+                let (package, product) = try rootPackage.product(name: productName)
                 if product.type == .dynamicLibrary {
                     resources.append(.library(name: productName))
                 }
@@ -208,6 +151,7 @@ public struct Planner: Sendable {
         }
 
         let bundleID = baseBundleID.formBundleID(product: library.name)
+        let deploymentTarget = rootPackage.platforms?.first { $0.name == "ios" }?.version ?? "13.0"
 
         var infoPlist: [String: Sendable] = [
             "CFBundleInfoDictionaryVersion": "6.0",
@@ -280,13 +224,13 @@ public struct Plan: Sendable {
     public subscript<Value>(dynamicMember keyPath: KeyPath<Product, Value>) -> Value {
         self.base[keyPath: keyPath]
     }
-}
 
-public enum Resource: Codable, Sendable {
-    case bundle(package: String, target: String)
-    case binaryTarget(name: String)
-    case library(name: String)
-    case root(source: String)
+    public enum Resource: Codable, Sendable {
+        case bundle(package: String, target: String)
+        case binaryTarget(name: String)
+        case library(name: String)
+        case root(source: String)
+    }
 }
 
 private struct PackageDependency: Decodable {
@@ -361,4 +305,68 @@ private struct PackageDump: Decodable {
     let products: [Product]?
     let targets: [Target]?
     let platforms: [Platform]?
+}
+
+@dynamicMemberLookup
+private struct RootPackage {
+    let base: PackageDump
+    let packages: [String: PackageDump]
+    let packagesByProductName: [String: String]
+
+    init(from data: Data, dumpPackage: @Sendable @escaping (_ path: String) async throws -> PackageDump) async throws {
+        let dependencyRoot = try Planner.decoder.decode(PackageDependency.self, from: data)
+
+        self.packages = try await withThrowingTaskGroup(
+            of: (PackageDependency, PackageDump).self,
+            returning: [String: PackageDump].self
+        ) { group in
+            var visited: Set<String> = []
+            var dependencies: [PackageDependency] = [dependencyRoot]
+            while let dependencyNode = dependencies.popLast() {
+                guard visited.insert(dependencyNode.identity).inserted else { continue }
+                dependencies.append(contentsOf: dependencyNode.dependencies)
+                group.addTask { (dependencyNode, try await dumpPackage(dependencyNode.path)) }
+            }
+
+            var packages: [String: PackageDump] = [:]
+            while let result = await group.nextResult() {
+                switch result {
+                case .success((let dependency, let dump)):
+                    packages[dependency.identity] = dump
+                case .failure(_ as CancellationError):
+                    // continue loop
+                    break
+                case .failure(let error):
+                    group.cancelAll()
+                    throw error
+                }
+            }
+
+            return packages
+        }
+
+        self.base = packages[dependencyRoot.identity]!
+        self.packagesByProductName = packages.reduce(into: [:]) { result, pair in
+            for product in pair.value.products ?? [] {
+                result[product.name] = pair.key
+            }
+        }
+    }
+
+    subscript<Value>(dynamicMember keyPath: KeyPath<PackageDump, Value>) -> Value {
+        self.base[keyPath: keyPath]
+    }
+
+    func product(name productName: String) throws -> (PackageDump, PackageDump.Product) {
+        guard let packageID = packagesByProductName[productName] else {
+            throw StringError("Could not find package containing product '\(productName)'")
+        }
+        guard let package = packages[packageID] else {
+            throw StringError("Could not find package by id '\(packageID)'")
+        }
+        guard let product = package.products?.first(where: { $0.name == productName }) else {
+            throw StringError("Could not find product '\(productName)' in package '\(packageID)'")
+        }
+        return (package, product)
+    }
 }
