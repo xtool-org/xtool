@@ -8,6 +8,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   build-linux:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.repository != github.event.pull_request.head.repo.full_name)
     strategy:
       fail-fast: false
       matrix:
@@ -24,6 +25,7 @@ jobs:
         run: |
           docker compose run --build --rm xtool swift build --product xtool
   build-macos:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.repository != github.event.pull_request.head.repo.full_name)
     runs-on: macos-15
     steps:
       - name: Checkout
@@ -32,6 +34,7 @@ jobs:
         run: |
           swift build --product xtool
   build-ios:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.repository != github.event.pull_request.head.repo.full_name)
     runs-on: macos-15
     steps:
       - name: Checkout
