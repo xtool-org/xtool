@@ -8,7 +8,7 @@ on:
       - '.swiftlint.yml'
       - '**/*.swift'
 jobs:
-  lint:
+  swiftlint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,7 +20,10 @@ jobs:
       - name: Lint
         # based on https://github.com/norio-nomura/action-swiftlint
         run: |
-          set -o pipefail
-          swiftlint --strict | sed -E \
+          swiftlint \
+            | sed -E \
               -e "s/$(pwd|sed 's/\//\\\//g')\///" \
-              -e 's/^(.*):([0-9]+):([0-9]+): (warning|error|[^:]+): (.*)/::\4 file=\1,line=\2,col=\3::\5/'
+              -e 's/^(.*):([0-9]+):([0-9]+): (warning|error|[^:]+): (.*)/::\4 file=\1,line=\2,col=\3::\5/' \
+            | tee swiftlint.log
+          # fail if there are any errors or warnings
+          ! grep -Eq '^::(error|warning)' swiftlint.log
