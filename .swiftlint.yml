@@ -65,7 +65,6 @@ implicit_return:
   included:
     - closure
 excluded:
-  - ".build"
+  - .build
   - macOS/Build
-  - Sources/DeveloperAPI/Generated/Types.swift
-  - Sources/DeveloperAPI/Generated/Client.swift
+  - Sources/DeveloperAPI/Generated
