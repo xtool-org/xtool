@@ -41,11 +41,6 @@ opt_in_rules:
 analyzer_rules:
   - unused_import
 custom_rules:
-  comment_whitespace:
-    name: "Comment Whitespace"
-    regex: //\S
-    match_kinds: comment
-    message: "Comments must begin with a whitespace character"
   spaces_not_tabs:
     name: "Spaces not Tabs"
     regex: ^\t
