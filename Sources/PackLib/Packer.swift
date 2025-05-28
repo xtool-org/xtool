@@ -29,47 +29,31 @@ public struct Packer: Sendable {
                 ],
                 targets: [
                     \(
-                        plan.extensions.map {
+                        plan.allProducts.map {
                             """
                             .executableTarget(
-                                name: "\($0.product)-Extension",
+                                name: "\($0.placeholderName)",
                                 dependencies: [
                                     .product(name: "\($0.product)", package: "RootPackage"),
                                 ]
-                            ),
+                            )
                             """
                         }
-                        .joined(separator: "\r\n")
+                        .joined(separator: ",\r\n")
                     )
-                    .executableTarget(
-                        name: "\(plan.product)-App",
-                        dependencies: [
-                            .product(name: "\(plan.product)", package: "RootPackage"),
-                        ]
-                    ),
                 ]
             )\n
             """
         try Data(contents.utf8).write(to: packageSwift)
 
-        func writeStubs(name: String, fileName: String = "stub.c") throws {
-            let sources = packageDir.appendingPathComponent("Sources/\(name)", isDirectory: true)
+        for product in plan.allProducts {
+            let sources: URL = packageDir.appendingPathComponent("Sources/\(product.placeholderName)", isDirectory: true)
             try FileManager.default.createDirectory(at: sources, withIntermediateDirectories: true)
-            try Data().write(to: sources.appendingPathComponent(fileName, isDirectory: false))
+            try Data().write(to: sources.appendingPathComponent("stub.c", isDirectory: false))
         }
 
-        try writeStubs(name: "\(plan.product)-App")
-
-        for ext in plan.extensions {
-            try writeStubs(name: "\(ext.product)-Extension")
-        }
-
-        let builder = try await buildSettings.swiftPMBuild(packageDir: packageDir.path, product: "\(plan.product)-App")
-        builder.standardOutput = FileHandle.standardError
-        try await builder.runUntilExit()
-
-        for ext in plan.extensions {
-            let builder = try await buildSettings.swiftPMBuild(packageDir: packageDir.path, product: "\(ext.product)-Extension", isExtension: true)
+        for product in plan.allProducts {
+            let builder = try await buildSettings.swiftPMBuild(packageDir: packageDir.path, product: product)
             builder.standardOutput = FileHandle.standardError
             try await builder.runUntilExit()
         }
@@ -78,7 +62,7 @@ public struct Packer: Sendable {
     public func pack() async throws -> URL {
         try await build()
 
-        let output = try TemporaryDirectory(name: "\(plan.product).app")
+        let output = try TemporaryDirectory(name: plan.base.bundle)
 
         let binDir = URL(
             fileURLWithPath: ".build/\(buildSettings.triple)/\(buildSettings.configuration.rawValue)",
@@ -90,7 +74,6 @@ public struct Packer: Sendable {
         try await withThrowingTaskGroup(of: Void.self) { group in
             Self._pack(
                 product: plan.base, 
-                isExtension: false, 
                 binDir: binDir,
                 outputDir: outputDir,
                 &group
@@ -99,9 +82,8 @@ public struct Packer: Sendable {
             for ext in plan.extensions {
                 Self._pack(
                     product: ext, 
-                    isExtension: true,
                     binDir: binDir,
-                    outputDir: outputDir.appendingPathComponent("PlugIns/\(ext.product).appex", isDirectory: true),
+                    outputDir: outputDir.appendingPathComponent("PlugIns/\(ext.bundle)", isDirectory: true),
                     &group
                 )
             }
@@ -126,7 +108,6 @@ public struct Packer: Sendable {
 
     @Sendable private static func _pack(
         product: Plan.Product,
-        isExtension: Bool,
         binDir: URL,
         outputDir: URL,
         _ group: inout ThrowingTaskGroup<Void, Error>
@@ -178,7 +159,7 @@ public struct Packer: Sendable {
             }
         }
         group.addTask {
-            try await packFile(srcName: "\(product.product)-\(!isExtension ? "App" : "Extension")", dstName: product.product)
+            try await packFile(srcName: product.placeholderName, dstName: product.product)
         }
         group.addTask {
             var info = product.infoPlist
@@ -200,19 +181,20 @@ public struct Packer: Sendable {
 }
 
 private extension BuildSettings {
-    func swiftPMBuild(packageDir: String, product: String, isExtension: Bool = false) async throws -> Process {
-        let additionalArgs: [String] = !isExtension ? [] : [
-            "-Xlinker", "-framework", 
-            "-Xlinker", "Foundation", 
-            "-Xlinker", "-e", 
-            "-Xlinker", "_NSExtensionMain"
+    func swiftPMBuild(packageDir: String, product: Plan.Product) async throws -> Process {
+        let additionalArgs: [String] = product.type == .app ? [] : [
+            // Link to Foundation framework which implements the entrypoint to _NSExtensionMain
+            "-Xlinker", "-framework", "-Xlinker", "Foundation", 
+            "-Xlinker", "-e", "-Xlinker", "_NSExtensionMain",
+            "-Xlinker", "@executable_path/../../Frameworks",
+            "-Xswiftc", "-Xfrontend", "-Xswiftc", "-application-extension"
         ]
         return try await swiftPMInvocation(
             forTool: "build",
             arguments: [
                 "--package-path", packageDir,
                 "--scratch-path", ".build",
-                "--product", product,
+                "--product", product.placeholderName,
                 // resolving can cause SwiftPM to overwrite the root package deps
                 // with just the deps needed for the builder package (which is to
                 // say, any "dev dependencies" of the root package may be removed.)
@@ -224,4 +206,25 @@ private extension BuildSettings {
             ] + additionalArgs
         )
     }
+}
+
+private extension Plan {
+    var allProducts: [Product] {
+        [self.base] + extensions
+    }
+}
+
+private extension Plan.Product {
+    var placeholderName: String {
+        "\(self.product)-\(self.type == .app ? "App" : "Extension")"
+    }
+
+    var bundleExt: String {
+        switch type {
+        case .app: "app"
+        case .appex: "appex"
+        }
+    }
+
+    var bundle: String { "\(self.product).\(self.bundleExt)" }
 }

@@ -28,22 +28,25 @@ public struct Planner: Sendable {
 
         let rootPackage = try await RootPackage(from: dependencyData, dumpPackage: self.dumpPackage)
 
-        let product = try resolveProduct(
+        let product = try Self.resolveProduct(
             from: rootPackage,
             matching: schema.product,
+            type: .app,
             plist: self.schema.infoPath,
             baseBundleID: self.schema.idSpecifier,
+            iconPath: self.schema.iconPath,
             rootResources: self.schema.resources,
             entitlementsPath: self.schema.entitlementsPath
         )
 
         let extensions = try (schema.extensions ?? []).compactMap {
-            try resolveProduct(
-                isExtension: true,
+            try Self.resolveProduct(
                 from: rootPackage,
                 matching: $0.product,
+                type: .appex,
                 plist: $0.infoPath,
                 baseBundleID: $0.bundleID.flatMap(PackSchema.IDSpecifier.bundleID) ?? .orgID(product.bundleID),
+                iconPath: nil,
                 rootResources: $0.resources,
                 entitlementsPath: $0.entitlementsPath
             )
@@ -74,7 +77,7 @@ public struct Planner: Sendable {
         return try await task
     }
 
-    private func selectLibrary(
+    private static func selectLibrary(
         from products: [PackageDump.Product],
         matching name: String?
     ) throws -> PackageDump.Product {
@@ -110,12 +113,13 @@ public struct Planner: Sendable {
         }
     }
 
-    private func resolveProduct(
-        isExtension: Bool = false,
+    private static func resolveProduct(
         from rootPackage: RootPackage,
         matching name: String?,
+        type: Plan.ProductType,
         plist: String?,
         baseBundleID: PackSchema.IDSpecifier,
+        iconPath: String?,
         rootResources: [String]?,
         entitlementsPath: String?
     ) throws -> Plan.Product {
@@ -166,10 +170,10 @@ public struct Planner: Sendable {
             "CFBundleName": library.name,
             "CFBundleExecutable": library.name,
             "CFBundleDisplayName": library.name,
-            "CFBundlePackageType": isExtension ? "XPC!" : "APPL"
+            "CFBundlePackageType": type == .appex ? "XPC!" : "APPL"
         ]
 
-        if !isExtension {
+        if type == .app {
             infoPlist["UIRequiredDeviceCapabilities"] = ["arm64"]
             infoPlist["LSRequiresIPhoneOS"] = true
             infoPlist["CFBundleSupportedPlatforms"] = ["iPhoneOS"]
@@ -198,12 +202,13 @@ public struct Planner: Sendable {
         }
 
         return Plan.Product(
+            type: type,
             product: library.name,
             deploymentTarget: deploymentTarget,
             bundleID: bundleID,
             infoPlist: infoPlist,
             resources: resources,
-            iconPath: !isExtension ? self.schema.iconPath : nil,
+            iconPath: iconPath,
             entitlementsPath: entitlementsPath
         )
     }
@@ -215,6 +220,7 @@ public struct Plan: Sendable {
     public var extensions: [Product]
 
     public struct Product: Sendable {
+        public var type: ProductType
         public var product: String
         public var deploymentTarget: String
         public var bundleID: String
@@ -233,6 +239,10 @@ public struct Plan: Sendable {
         case binaryTarget(name: String)
         case library(name: String)
         case root(source: String)
+    }
+
+    public enum ProductType: Sendable {
+        case app, appex
     }
 }
 
