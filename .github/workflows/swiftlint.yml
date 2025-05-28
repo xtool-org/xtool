@@ -13,7 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Lint
-        # based on https://github.com/norio-nomura/action-swiftlint
         run: |
           make lint SWIFTLINT_FLAGS='--reporter=github-actions-logging' | tee swiftlint.log
           # fail if there are any errors or warnings
