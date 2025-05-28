@@ -12,6 +12,7 @@ jobs:
       - name: Lint
         # based on https://github.com/norio-nomura/action-swiftlint
         run: |
+          set -o pipefail
           curl -fSLO https://github.com/realm/SwiftLint/releases/download/0.59.1/swiftlint_linux.zip
           unzip swiftlint_linux.zip swiftlint
           function stripPWD() {
