@@ -12,4 +12,4 @@ DerivedData/
 .docc-build
 
 /openapi
-/.swiftlint
+/tmp
