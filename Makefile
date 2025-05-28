@@ -126,6 +126,10 @@ docs:
 docs-preview:
 	./Documentation/build.sh preview
 
+.PHONY: lint
+lint:
+	swift package plugin --allow-writing-to-package-directory swiftlint
+
 SPEC_URL = https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip
 
 .PHONY: api
