@@ -1,3 +1,4 @@
+swiftlint_version: 0.59.1
 disabled_rules:
   - trailing_comma
   - nesting
