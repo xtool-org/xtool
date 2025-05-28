@@ -12,10 +12,11 @@ jobs:
       - name: Lint
         # based on https://github.com/norio-nomura/action-swiftlint
         run: |
+          curl -fSLO https://github.com/realm/SwiftLint/releases/download/0.59.1/swiftlint_linux.zip
+          unzip swiftlint_linux.zip swiftlint
           function stripPWD() {
             ! ${WORKING_DIRECTORY+false} && cd - > /dev/null
             sed -E "s/$(pwd|sed 's/\//\\\//g')\///"
           }
-          swift package plugin --allow-writing-to-package-directory swiftlint | \
-            stripPWD | \
+          ./swiftlint | stripPWD | \
             sed -E 's/^(.*):([0-9]+):([0-9]+): (warning|error|[^:]+): (.*)/::\4 file=\1,line=\2,col=\3::\5/'
