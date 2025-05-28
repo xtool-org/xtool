@@ -12,12 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install SwiftLint
+        run: |
+          curl -fSLO https://github.com/realm/SwiftLint/releases/download/0.59.1/swiftlint_linux.zip
+          unzip swiftlint_linux.zip swiftlint -d /usr/local/bin
+          rm swiftlint_linux.zip
       - name: Lint
         # based on https://github.com/norio-nomura/action-swiftlint
         run: |
           set -o pipefail
-          curl -fSLO https://github.com/realm/SwiftLint/releases/download/0.59.1/swiftlint_linux.zip
-          unzip swiftlint_linux.zip swiftlint
           function stripPWD() {
             ! ${WORKING_DIRECTORY+false} && cd - > /dev/null
             sed -E "s/$(pwd|sed 's/\//\\\//g')\///"
