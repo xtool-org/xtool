@@ -19,5 +19,5 @@ jobs:
             ! ${WORKING_DIRECTORY+false} && cd - > /dev/null
             sed -E "s/$(pwd|sed 's/\//\\\//g')\///"
           }
-          ./swiftlint | stripPWD | \
+          ./swiftlint --strict | stripPWD | \
             sed -E 's/^(.*):([0-9]+):([0-9]+): (warning|error|[^:]+): (.*)/::\4 file=\1,line=\2,col=\3::\5/'
