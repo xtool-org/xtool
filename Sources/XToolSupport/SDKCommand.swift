@@ -172,6 +172,7 @@ struct DarwinSDK {
 
         // should be something like
         // swiftResourcesPath: /home/user/.swiftpm/swift-sdks/darwin.artifactbundle/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift
+        // swiftlint:disable:previous line_length
         let resourcesPathPrefix = "swiftResourcesPath: "
         let outputString = String(decoding: try await outputData, as: UTF8.self)
 

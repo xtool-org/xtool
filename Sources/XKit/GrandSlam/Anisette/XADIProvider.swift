@@ -153,7 +153,7 @@ public actor XADIProvider: RawADIProvider {
         var midLen: UInt32 = 0
         var otpBytes: UnsafeMutableRawPointer?
         var otpLen: UInt32 = 0
-        
+
         let adiDirectory = directory.appending(path: "adi")
         try? FileManager.default.createDirectory(at: adiDirectory, withIntermediateDirectories: true)
         let adiFile = adiDirectory.appending(path: "adi.pb")

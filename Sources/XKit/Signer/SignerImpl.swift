@@ -130,7 +130,6 @@ public actor Signer {
                     privBase, lengthOverride ?? priv.count,
                     entsArray, entsArray.count,
                     {
-                        // swiftlint:disable:previous opening_brace
                         (Unmanaged<AnyObject>
                             .fromOpaque($0)
                             .takeUnretainedValue()
