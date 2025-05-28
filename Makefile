@@ -127,7 +127,7 @@ docs-preview:
 	./Documentation/build.sh preview
 
 SWIFTLINT_VERSION = $(shell head -1 .swiftlint.yml | cut -d' ' -f2)
-SWIFTLINT_BIN = tmp/swiftlint-$(SWIFTLINT_VERSION)
+SWIFTLINT_BIN = tmp/swiftlint/swiftlint-$(SWIFTLINT_VERSION)
 SWIFTLINT_URL = https://github.com/realm/SwiftLint/releases/download/$(SWIFTLINT_VERSION)/$(if $(IS_MAC),portable_swiftlint,swiftlint_linux).zip
 
 .PHONY: lint
@@ -135,12 +135,12 @@ lint: $(SWIFTLINT_BIN)
 	$(SWIFTLINT_BIN) $(SWIFTLINT_FLAGS)
 
 $(SWIFTLINT_BIN):
-	@rm -rf tmp
-	@mkdir -p tmp
-	curl -fSL $(SWIFTLINT_URL) -o tmp/swiftlint.zip
-	unzip -q tmp/swiftlint.zip swiftlint -d tmp
-	@rm -f tmp/swiftlint.zip
-	@mv tmp/swiftlint $@
+	@rm -rf tmp/swiftlint
+	@mkdir -p tmp/swiftlint
+	curl -fSL $(SWIFTLINT_URL) -o tmp/swiftlint/swiftlint.zip
+	unzip -q tmp/swiftlint/swiftlint.zip swiftlint -d tmp/swiftlint
+	@rm -f tmp/swiftlint/swiftlint.zip
+	@mv tmp/swiftlint/swiftlint $@
 
 SPEC_URL = https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip
 
