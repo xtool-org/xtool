@@ -60,6 +60,7 @@ file_length: 1000
 type_body_length: 500
 cyclomatic_complexity: 12
 function_parameter_count: 7
+comment_spacing: error
 implicit_return:
   included:
     - closure
