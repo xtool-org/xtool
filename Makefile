@@ -132,7 +132,7 @@ SWIFTLINT_URL = https://github.com/realm/SwiftLint/releases/download/$(SWIFTLINT
 
 .PHONY: lint
 lint: $(SWIFTLINT_BIN)
-	$(SWIFTLINT_BIN)
+	$(SWIFTLINT_BIN) $(SWIFTLINT_FLAGS)
 
 $(SWIFTLINT_BIN):
 	@rm -rf .swiftlint
