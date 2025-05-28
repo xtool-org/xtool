@@ -139,8 +139,8 @@ $(SWIFTLINT_BIN):
 	@mkdir -p .swiftlint
 	curl -fSL $(SWIFTLINT_URL) -o .swiftlint/swiftlint.zip
 	unzip -q .swiftlint/swiftlint.zip swiftlint -d .swiftlint
-	rm -f .swiftlint/swiftlint.zip
-	mv .swiftlint/swiftlint $@
+	@rm -f .swiftlint/swiftlint.zip
+	@mv .swiftlint/swiftlint $@
 
 SPEC_URL = https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip
 
