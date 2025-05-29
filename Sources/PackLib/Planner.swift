@@ -31,19 +31,19 @@ public struct Planner: Sendable {
         let product = try Self.resolveProduct(
             from: rootPackage,
             matching: schema.product,
-            type: .app,
-            plist: self.schema.infoPath,
-            baseBundleID: self.schema.idSpecifier,
-            iconPath: self.schema.iconPath,
-            rootResources: self.schema.resources,
-            entitlementsPath: self.schema.entitlementsPath
+            type: .application,
+            plist: schema.infoPath,
+            baseBundleID: schema.idSpecifier,
+            iconPath: schema.iconPath,
+            rootResources: schema.resources,
+            entitlementsPath: schema.entitlementsPath
         )
 
         let extensions = try (schema.extensions ?? []).compactMap {
             try Self.resolveProduct(
                 from: rootPackage,
                 matching: $0.product,
-                type: .appex,
+                type: .appExtension,
                 plist: $0.infoPath,
                 baseBundleID: $0.bundleID.flatMap(PackSchema.IDSpecifier.bundleID) ?? .orgID(product.bundleID),
                 iconPath: nil,
@@ -170,10 +170,11 @@ public struct Planner: Sendable {
             "CFBundleName": library.name,
             "CFBundleExecutable": library.name,
             "CFBundleDisplayName": library.name,
-            "CFBundlePackageType": type == .appex ? "XPC!" : "APPL"
+            "CFBundlePackageType": type == .appExtension ? "XPC!" : "APPL"
         ]
 
-        if type == .app {
+        switch type {
+        case .application:
             infoPlist["UIRequiredDeviceCapabilities"] = ["arm64"]
             infoPlist["LSRequiresIPhoneOS"] = true
             infoPlist["CFBundleSupportedPlatforms"] = ["iPhoneOS"]
@@ -186,7 +187,7 @@ public struct Planner: Sendable {
                 "UIInterfaceOrientationLandscapeRight",
             ]
             infoPlist["UILaunchScreen"] = [:] as [String: Sendable]
-        } else {
+        case .appExtension:
             // Should set default parameters?
             infoPlist["NSExtension"] = [:] as [String: Sendable]
         }
@@ -219,15 +220,8 @@ public struct Plan: Sendable {
     var base: Product
     public var extensions: [Product]
 
-    public struct Product: Sendable {
-        public var type: ProductType
-        public var product: String
-        public var deploymentTarget: String
-        public var bundleID: String
-        public var infoPlist: [String: any Sendable]
-        public var resources: [Resource]
-        public var iconPath: String?
-        public var entitlementsPath: String?
+    public var allProducts: [Product] {
+        [base] + extensions
     }
 
     public subscript<Value>(dynamicMember keyPath: KeyPath<Product, Value>) -> Value {
@@ -241,8 +235,40 @@ public struct Plan: Sendable {
         case root(source: String)
     }
 
+    public struct Product: Sendable {
+        public var type: ProductType
+        public var product: String
+        public var deploymentTarget: String
+        public var bundleID: String
+        public var infoPlist: [String: any Sendable]
+        public var resources: [Resource]
+        public var iconPath: String?
+        public var entitlementsPath: String?
+
+        public var bundleExt: String {
+            switch type {
+            case .application: "app"
+            case .appExtension: "appex"
+            }
+        }
+
+        public var bundle: String { "\(self.product).\(self.bundleExt)" }
+
+        var targetName: String {
+            "\(self.product)-\(self.type == .application ? "App" : "Extension")"
+        }
+
+        func resolveOutput(_ baseDir: URL) -> URL {
+            switch self.type {
+            case .application: baseDir
+            case .appExtension: baseDir.appendingPathComponent("PlugIns/\(self.bundle)", isDirectory: true)
+            }
+        }
+    }
+
     public enum ProductType: Sendable {
-        case app, appex
+        case application
+        case appExtension
     }
 }
 

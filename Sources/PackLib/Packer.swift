@@ -32,7 +32,7 @@ public struct Packer: Sendable {
                         plan.allProducts.map {
                             """
                             .executableTarget(
-                                name: "\($0.placeholderName)",
+                                name: "\($0.targetName)",
                                 dependencies: [
                                     .product(name: "\($0.product)", package: "RootPackage"),
                                 ]
@@ -47,7 +47,7 @@ public struct Packer: Sendable {
         try Data(contents.utf8).write(to: packageSwift)
 
         for product in plan.allProducts {
-            let sources: URL = packageDir.appendingPathComponent("Sources/\(product.placeholderName)", isDirectory: true)
+            let sources: URL = packageDir.appendingPathComponent("Sources/\(product.targetName)", isDirectory: true)
             try FileManager.default.createDirectory(at: sources, withIntermediateDirectories: true)
             try Data().write(to: sources.appendingPathComponent("stub.c", isDirectory: false))
         }
@@ -62,28 +62,19 @@ public struct Packer: Sendable {
     public func pack() async throws -> URL {
         try await build()
 
-        let output = try TemporaryDirectory(name: plan.base.bundle)
+        let output = try TemporaryDirectory(name: plan.bundle)
 
         let binDir = URL(
             fileURLWithPath: ".build/\(buildSettings.triple)/\(buildSettings.configuration.rawValue)",
             isDirectory: true
         )
 
-        let outputDir = output.url
-
         try await withThrowingTaskGroup(of: Void.self) { group in
-            Self._pack(
-                product: plan.base, 
-                binDir: binDir,
-                outputDir: outputDir,
-                &group
-            )
-
-            for ext in plan.extensions {
-                Self._pack(
-                    product: ext, 
-                    binDir: binDir,
-                    outputDir: outputDir.appendingPathComponent("PlugIns/\(ext.bundle)", isDirectory: true),
+            for product in plan.allProducts {
+                try Self._pack(
+                    product: product, 
+                    binDir: binDir, 
+                    outputDir: product.resolveOutput(output.url),
                     &group
                 )
             }
@@ -111,7 +102,7 @@ public struct Packer: Sendable {
         binDir: URL,
         outputDir: URL,
         _ group: inout ThrowingTaskGroup<Void, Error>
-    ) {
+    ) throws {
         @Sendable func packFileToRoot(srcName: String) async throws {
             let srcURL = URL(fileURLWithPath: srcName)
             let destURL = outputDir.appendingPathComponent(srcURL.lastPathComponent)
@@ -129,7 +120,8 @@ public struct Packer: Sendable {
             try Task.checkCancellation()
         }
 
-        try? FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
+        // Ensure output directory is available
+        try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
 
         for command in product.resources {
             group.addTask {
@@ -159,7 +151,7 @@ public struct Packer: Sendable {
             }
         }
         group.addTask {
-            try await packFile(srcName: product.placeholderName, dstName: product.product)
+            try await packFile(srcName: product.targetName, dstName: product.product)
         }
         group.addTask {
             var info = product.infoPlist
@@ -182,19 +174,23 @@ public struct Packer: Sendable {
 
 private extension BuildSettings {
     func swiftPMBuild(packageDir: String, product: Plan.Product) async throws -> Process {
-        let additionalArgs: [String] = product.type == .app ? [] : [
+        let additionalArgs: [String] = switch product.type {
+            case .application: []
+            case .appExtension: [
             // Link to Foundation framework which implements the entrypoint to _NSExtensionMain
             "-Xlinker", "-framework", "-Xlinker", "Foundation", 
             "-Xlinker", "-e", "-Xlinker", "_NSExtensionMain",
-            "-Xlinker", "@executable_path/../../Frameworks",
+            "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks",
+            // Show compiler errors if it tries to access unsafe APIs
             "-Xswiftc", "-Xfrontend", "-Xswiftc", "-application-extension"
-        ]
+            ]
+        }
         return try await swiftPMInvocation(
             forTool: "build",
             arguments: [
                 "--package-path", packageDir,
                 "--scratch-path", ".build",
-                "--product", product.placeholderName,
+                "--product", product.targetName,
                 // resolving can cause SwiftPM to overwrite the root package deps
                 // with just the deps needed for the builder package (which is to
                 // say, any "dev dependencies" of the root package may be removed.)
@@ -206,25 +202,4 @@ private extension BuildSettings {
             ] + additionalArgs
         )
     }
-}
-
-private extension Plan {
-    var allProducts: [Product] {
-        [self.base] + extensions
-    }
-}
-
-private extension Plan.Product {
-    var placeholderName: String {
-        "\(self.product)-\(self.type == .app ? "App" : "Extension")"
-    }
-
-    var bundleExt: String {
-        switch type {
-        case .app: "app"
-        case .appex: "appex"
-        }
-    }
-
-    var bundle: String { "\(self.product).\(self.bundleExt)" }
 }
