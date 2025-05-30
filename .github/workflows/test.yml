@@ -7,30 +7,32 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  # build-appimage:
-  #   runs-on: ubuntu-24.04-arm
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #     - name: Build
-  #       run: |
-  #         docker compose run --build --rm xtool Linux/build.sh
-  #     - name: Upload artifact
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: xtool
-  #         path: |
-  #           Linux/packages/xtool-x86_64.AppImage
+  build-appimage:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build
+        run: |
+          docker compose run --build --rm xtool Linux/build.sh
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: xtool
+          path: |
+            Linux/packages/xtool-aarch64.AppImage
   run-test:
+    needs: build-appimage
     runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
-      # - name: Download artifact
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: xtool
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: xtool
+          path: appimage
       - name: Run Docker
         run: |
           brew install --formula docker colima
           colima start --disk 10
-          docker run hello-world:latest
+          docker run -v .:/app swift:6.1.1 /app/scripts/test-linux.sh
