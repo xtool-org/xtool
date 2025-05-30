@@ -12,7 +12,7 @@ public struct Planner: Sendable {
         self.schema = schema
     }
 
-    private static let decoder: JSONDecoder = {
+    fileprivate static let decoder: JSONDecoder = {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         return decoder
@@ -25,136 +25,36 @@ public struct Planner: Sendable {
             arguments: ["show-dependencies", "--format", "json"],
             path: buildSettings.packagePath
         )
-        let dependencyRoot = try Self.decoder.decode(PackageDependency.self, from: dependencyData)
 
-        let packages = try await withThrowingTaskGroup(
-            of: (PackageDependency, PackageDump).self,
-            returning: [String: PackageDump].self
-        ) { group in
-            var visited: Set<String> = []
-            var dependencies: [PackageDependency] = [dependencyRoot]
-            while let dependencyNode = dependencies.popLast() {
-                guard visited.insert(dependencyNode.identity).inserted else { continue }
-                dependencies.append(contentsOf: dependencyNode.dependencies)
-                group.addTask { (dependencyNode, try await dumpPackage(at: dependencyNode.path)) }
-            }
+        let rootPackage = try await RootPackage(from: dependencyData, dumpPackage: self.dumpPackage)
 
-            var packages: [String: PackageDump] = [:]
-            while let result = await group.nextResult() {
-                switch result {
-                case .success((let dependency, let dump)):
-                    packages[dependency.identity] = dump
-                case .failure(_ as CancellationError):
-                    // continue loop
-                    break
-                case .failure(let error):
-                    group.cancelAll()
-                    throw error
-                }
-            }
-
-            return packages
-        }
-
-        var packagesByProductName: [String: String] = [:]
-        for (packageID, package) in packages {
-            for product in package.products ?? [] {
-                packagesByProductName[product.name] = packageID
-            }
-        }
-
-        let rootPackage = packages[dependencyRoot.identity]!
-        let deploymentTarget = rootPackage.platforms?.first { $0.name == "ios" }?.version ?? "13.0"
-
-        let libraries = rootPackage.products?.filter { $0.type == .autoLibrary } ?? []
-
-        let library = try selectLibrary(
-            from: libraries,
-            matching: schema.base.product
+        let product = try Self.resolveProduct(
+            from: rootPackage,
+            matching: schema.product,
+            type: .application,
+            plist: schema.infoPath,
+            baseBundleID: schema.idSpecifier,
+            iconPath: schema.iconPath,
+            rootResources: schema.resources,
+            entitlementsPath: schema.entitlementsPath
         )
 
-        var resources: [Resource] = []
-        var visited: Set<String> = []
-        var targets = library.targets.map { (rootPackage, $0) }
-        while let (targetPackage, targetName) = targets.popLast() {
-            guard let target = targetPackage.targets?.first(where: { $0.name == targetName }) else {
-                throw StringError("Could not find target '\(targetName)' in package '\(targetPackage.name)'")
-            }
-            guard visited.insert(targetName).inserted else { continue }
-            if target.moduleType == "BinaryTarget" {
-                resources.append(.binaryTarget(name: targetName))
-            }
-            if target.resources?.isEmpty == false {
-                resources.append(.bundle(package: targetPackage.name, target: targetName))
-            }
-            for targetName in (target.targetDependencies ?? []) {
-                targets.append((targetPackage, targetName))
-            }
-            for productName in (target.productDependencies ?? []) {
-                guard let packageID = packagesByProductName[productName] else {
-                    throw StringError("Could not find package containing product '\(productName)'")
-                }
-                guard let package = packages[packageID] else {
-                    throw StringError("Could not find package by id '\(packageID)'")
-                }
-                guard let product = package.products?.first(where: { $0.name == productName }) else {
-                    throw StringError("Could not find product '\(productName)' in package '\(packageID)'")
-                }
-                if product.type == .dynamicLibrary {
-                    resources.append(.library(name: productName))
-                }
-                targets.append(contentsOf: product.targets.map { (package, $0) })
-            }
-        }
-
-        if let rootResources = schema.base.resources {
-            resources += rootResources.map { .root(source: $0) }
-        }
-
-        let bundleID = schema.idSpecifier.formBundleID(product: library.name)
-
-        var infoPlist: [String: Sendable] = [
-            "CFBundleInfoDictionaryVersion": "6.0",
-            "UIRequiredDeviceCapabilities": ["arm64"],
-            "LSRequiresIPhoneOS": true,
-            "CFBundleSupportedPlatforms": ["iPhoneOS"],
-            "CFBundlePackageType": "APPL",
-            "UIDeviceFamily": [1, 2],
-            "CFBundleDevelopmentRegion": "en",
-            "UISupportedInterfaceOrientations": ["UIInterfaceOrientationPortrait"],
-            "UISupportedInterfaceOrientations~ipad": [
-              "UIInterfaceOrientationPortrait",
-              "UIInterfaceOrientationPortraitUpsideDown",
-              "UIInterfaceOrientationLandscapeLeft",
-              "UIInterfaceOrientationLandscapeRight"
-            ],
-            "UILaunchScreen": [:] as [String: Sendable],
-            "CFBundleVersion": "1",
-            "CFBundleShortVersionString": "1.0.0",
-            "MinimumOSVersion": deploymentTarget,
-            "CFBundleIdentifier": bundleID,
-            "CFBundleName": "\(library.name)",
-            "CFBundleExecutable": "\(library.name)",
-        ]
-
-        if let plist = self.schema.base.infoPath {
-            let data = try await Data(reading: URL(fileURLWithPath: plist))
-            let info = try PropertyListSerialization.propertyList(from: data, format: nil)
-            if let info = info as? [String: Sendable] {
-                infoPlist.merge(info, uniquingKeysWith: { $1 })
-            } else {
-                throw StringError("Info.plist has invalid format: expected a dictionary.")
-            }
+        let extensions = try (schema.extensions ?? []).compactMap {
+            try Self.resolveProduct(
+                from: rootPackage,
+                matching: $0.product,
+                type: .appExtension,
+                plist: $0.infoPath,
+                baseBundleID: $0.bundleID.flatMap(PackSchema.IDSpecifier.bundleID) ?? .orgID(product.bundleID),
+                iconPath: nil,
+                rootResources: $0.resources,
+                entitlementsPath: $0.entitlementsPath
+            )
         }
 
         return Plan(
-            product: library.name,
-            deploymentTarget: deploymentTarget,
-            bundleID: bundleID,
-            infoPlist: infoPlist,
-            resources: resources,
-            iconPath: self.schema.base.iconPath,
-            entitlementsPath: self.schema.base.entitlementsPath
+            base: product,
+            extensions: extensions
         )
     }
 
@@ -177,7 +77,7 @@ public struct Planner: Sendable {
         return try await task
     }
 
-    private func selectLibrary(
+    private static func selectLibrary(
         from products: [PackageDump.Product],
         matching name: String?
     ) throws -> PackageDump.Product {
@@ -187,51 +87,195 @@ public struct Planner: Sendable {
         case 1:
             let product = products[0]
             if let name, product.name != name {
-                throw StringError("""
-                Product name ('\(product.name)') does not match the 'product' value in the schema ('\(name)')
-                """)
+                throw StringError(
+                    """
+                    Product name ('\(product.name)') does not match the 'product' value in the schema ('\(name)')
+                    """)
             }
             return product
         default:
             guard let name else {
-                throw StringError("""
-                Multiple library products were found (\(products.map(\.name))). Please either:
-                1) Expose exactly one library product, or
-                2) Specify the product you want via the 'product' key in xtool.yml.
-                """)
+                throw StringError(
+                    """
+                    Multiple library products were found (\(products.map(\.name))). Please either:
+                    1) Expose exactly one library product, or
+                    2) Specify the product you want via the 'product' key in xtool.yml.
+                    """)
             }
             guard let product = products.first(where: { $0.name == name }) else {
-                throw StringError("""
-                Schema declares a 'product' name of '\(name)' but no matching product was found.
-                Found: \(products.map(\.name)).
-                """)
+                throw StringError(
+                    """
+                    Schema declares a 'product' name of '\(name)' but no matching product was found.
+                    Found: \(products.map(\.name)).
+                    """)
             }
             return product
         }
     }
+
+    private static func resolveProduct(
+        from rootPackage: RootPackage,
+        matching name: String?,
+        type: Plan.ProductType,
+        plist: String?,
+        baseBundleID: PackSchema.IDSpecifier,
+        iconPath: String?,
+        rootResources: [String]?,
+        entitlementsPath: String?
+    ) throws -> Plan.Product {
+        let library = try selectLibrary(
+            from: rootPackage.products?.filter { $0.type == .autoLibrary } ?? [], 
+            matching: name
+        )
+        var resources: [Plan.Resource] = []
+        var visited: Set<String> = []
+        var targets = library.targets.map { (rootPackage.base, $0) }
+        while let (targetPackage, targetName) = targets.popLast() {
+            guard let target = targetPackage.targets?.first(where: { $0.name == targetName }) else {
+                throw StringError("Could not find target '\(targetName)' in package '\(targetPackage.name)'")
+            }
+            guard visited.insert(targetName).inserted else { continue }
+            if target.moduleType == "BinaryTarget" {
+                resources.append(.binaryTarget(name: targetName))
+            }
+            if target.resources?.isEmpty == false {
+                resources.append(.bundle(package: targetPackage.name, target: targetName))
+            }
+            for targetName in (target.targetDependencies ?? []) {
+                targets.append((targetPackage, targetName))
+            }
+            for productName in (target.productDependencies ?? []) {
+                let (package, product) = try rootPackage.product(name: productName)
+                if product.type == .dynamicLibrary {
+                    resources.append(.library(name: productName))
+                }
+                targets.append(contentsOf: product.targets.map { (package, $0) })
+            }
+        }
+
+        if let rootResources {
+            resources += rootResources.map { .root(source: $0) }
+        }
+
+        let bundleID = baseBundleID.formBundleID(product: library.name)
+        let deploymentTarget = rootPackage.platforms?.first { $0.name == "ios" }?.version ?? "13.0"
+
+        var infoPlist: [String: Sendable] = [
+            "CFBundleInfoDictionaryVersion": "6.0",
+            "CFBundleDevelopmentRegion": "en",
+            "CFBundleVersion": "1",
+            "CFBundleShortVersionString": "1.0.0",
+            "MinimumOSVersion": deploymentTarget,
+            "CFBundleIdentifier": bundleID,
+            "CFBundleName": library.name,
+            "CFBundleExecutable": library.name,
+            "CFBundleDisplayName": library.name,
+            "CFBundlePackageType": type == .appExtension ? "XPC!" : "APPL"
+        ]
+
+        switch type {
+        case .application:
+            infoPlist["UIRequiredDeviceCapabilities"] = ["arm64"]
+            infoPlist["LSRequiresIPhoneOS"] = true
+            infoPlist["CFBundleSupportedPlatforms"] = ["iPhoneOS"]
+            infoPlist["UIDeviceFamily"] = [1, 2]
+            infoPlist["UISupportedInterfaceOrientations"] = ["UIInterfaceOrientationPortrait"]
+            infoPlist["UISupportedInterfaceOrientations~ipad"] = [
+                "UIInterfaceOrientationPortrait",
+                "UIInterfaceOrientationPortraitUpsideDown",
+                "UIInterfaceOrientationLandscapeLeft",
+                "UIInterfaceOrientationLandscapeRight",
+            ]
+            infoPlist["UILaunchScreen"] = [:] as [String: Sendable]
+        case .appExtension:
+            // Should set default parameters?
+            infoPlist["NSExtension"] = [:] as [String: Sendable]
+        }
+
+        if let plist {
+            let data = try Data(contentsOf: URL(fileURLWithPath: plist))
+            let info = try PropertyListSerialization.propertyList(from: data, format: nil)
+            if let info = info as? [String: Sendable] {
+                infoPlist.merge(info, uniquingKeysWith: { $1 })
+            } else {
+                throw StringError("Info.plist has invalid format: expected a dictionary.")
+            }
+        }
+
+        return Plan.Product(
+            type: type,
+            product: library.name,
+            deploymentTarget: deploymentTarget,
+            bundleID: bundleID,
+            infoPlist: infoPlist,
+            resources: resources,
+            iconPath: iconPath,
+            entitlementsPath: entitlementsPath
+        )
+    }
 }
 
+@dynamicMemberLookup
 public struct Plan: Sendable {
-    public var product: String
-    public var deploymentTarget: String
-    public var bundleID: String
-    public var infoPlist: [String: any Sendable]
-    public var resources: [Resource]
-    public var iconPath: String?
-    public var entitlementsPath: String?
-}
+    var base: Product
+    public var extensions: [Product]
 
-public enum Resource: Codable, Sendable {
-    case bundle(package: String, target: String)
-    case binaryTarget(name: String)
-    case library(name: String)
-    case root(source: String)
+    public var allProducts: [Product] {
+        [base] + extensions
+    }
+
+    public subscript<Value>(dynamicMember keyPath: KeyPath<Product, Value>) -> Value {
+        self.base[keyPath: keyPath]
+    }
+
+    public enum Resource: Codable, Sendable {
+        case bundle(package: String, target: String)
+        case binaryTarget(name: String)
+        case library(name: String)
+        case root(source: String)
+    }
+
+    public struct Product: Sendable {
+        public var type: ProductType
+        public var product: String
+        public var deploymentTarget: String
+        public var bundleID: String
+        public var infoPlist: [String: any Sendable]
+        public var resources: [Resource]
+        public var iconPath: String?
+        public var entitlementsPath: String?
+
+        public var bundleExt: String {
+            switch type {
+            case .application: "app"
+            case .appExtension: "appex"
+            }
+        }
+
+        public var bundle: String { "\(self.product).\(self.bundleExt)" }
+
+        package var targetName: String {
+            "\(self.product)-\(self.type == .application ? "App" : "Extension")"
+        }
+
+        package func resolveDir(_ baseDir: URL) -> URL {
+            switch self.type {
+            case .application: baseDir
+            case .appExtension: baseDir.appendingPathComponent("PlugIns/\(self.bundle)", isDirectory: true)
+            }
+        }
+    }
+
+    public enum ProductType: Sendable {
+        case application
+        case appExtension
+    }
 }
 
 private struct PackageDependency: Decodable {
     let identity: String
     let name: String
-    let path: String // on disk
+    let path: String  // on disk
     let dependencies: [PackageDependency]
 }
 
@@ -300,4 +344,68 @@ private struct PackageDump: Decodable {
     let products: [Product]?
     let targets: [Target]?
     let platforms: [Platform]?
+}
+
+@dynamicMemberLookup
+private struct RootPackage {
+    let base: PackageDump
+    let packages: [String: PackageDump]
+    let packagesByProductName: [String: String]
+
+    init(from data: Data, dumpPackage: @Sendable @escaping (_ path: String) async throws -> PackageDump) async throws {
+        let dependencyRoot = try Planner.decoder.decode(PackageDependency.self, from: data)
+
+        self.packages = try await withThrowingTaskGroup(
+            of: (PackageDependency, PackageDump).self,
+            returning: [String: PackageDump].self
+        ) { group in
+            var visited: Set<String> = []
+            var dependencies: [PackageDependency] = [dependencyRoot]
+            while let dependencyNode = dependencies.popLast() {
+                guard visited.insert(dependencyNode.identity).inserted else { continue }
+                dependencies.append(contentsOf: dependencyNode.dependencies)
+                group.addTask { (dependencyNode, try await dumpPackage(dependencyNode.path)) }
+            }
+
+            var packages: [String: PackageDump] = [:]
+            while let result = await group.nextResult() {
+                switch result {
+                case .success((let dependency, let dump)):
+                    packages[dependency.identity] = dump
+                case .failure(_ as CancellationError):
+                    // continue loop
+                    break
+                case .failure(let error):
+                    group.cancelAll()
+                    throw error
+                }
+            }
+
+            return packages
+        }
+
+        self.base = packages[dependencyRoot.identity]!
+        self.packagesByProductName = packages.reduce(into: [:]) { result, pair in
+            for product in pair.value.products ?? [] {
+                result[product.name] = pair.key
+            }
+        }
+    }
+
+    subscript<Value>(dynamicMember keyPath: KeyPath<PackageDump, Value>) -> Value {
+        self.base[keyPath: keyPath]
+    }
+
+    func product(name productName: String) throws -> (PackageDump, PackageDump.Product) {
+        guard let packageID = packagesByProductName[productName] else {
+            throw StringError("Could not find package containing product '\(productName)'")
+        }
+        guard let package = packages[packageID] else {
+            throw StringError("Could not find package by id '\(packageID)'")
+        }
+        guard let product = package.products?.first(where: { $0.name == productName }) else {
+            throw StringError("Could not find product '\(productName)' in package '\(packageID)'")
+        }
+        return (package, product)
+    }
 }
