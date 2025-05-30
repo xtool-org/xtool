@@ -7,7 +7,7 @@ cd "$(dirname "$0")"/..
 ls -la ./appimage
 cp ./appimage/xtool-$(uname -m).AppImage /usr/local/bin/xtool
 
-swift sdk install ./artifacts/sdk/darwin.artifactbundle
+swift sdk install ./artifacts/sdk/darwin.artifactbundle.zip
 
 mkdir /work
 cd /work

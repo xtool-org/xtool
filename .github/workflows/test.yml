@@ -29,11 +29,12 @@ jobs:
         run: |
           swift build --product xtool
           ./.build/debug/xtool sdk build /Applications/Xcode.app . --arch x86_64
+          zip -yqr darwin.artifactbundle.zip darwin.artifactbundle
       - name: Upload SDK
         uses: actions/upload-artifact@v4
         with:
           name: sdk
-          path: darwin.artifactbundle
+          path: darwin.artifactbundle.zip
   run-test:
     needs: [build-sdk]
     runs-on: macos-13
