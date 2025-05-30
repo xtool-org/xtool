@@ -64,6 +64,8 @@ public struct Packer: Sendable {
 
         let output = try TemporaryDirectory(name: plan.bundle)
 
+        let outputDir = output.url
+
         let binDir = URL(
             fileURLWithPath: ".build/\(buildSettings.triple)/\(buildSettings.configuration.rawValue)",
             isDirectory: true
@@ -74,7 +76,7 @@ public struct Packer: Sendable {
                 try Self._pack(
                     product: product, 
                     binDir: binDir, 
-                    outputDir: product.resolveOutput(output.url),
+                    outputDir: product.resolveDir(outputDir),
                     &group
                 )
             }
@@ -91,7 +93,7 @@ public struct Packer: Sendable {
             }
         }
 
-        let dest = URL(fileURLWithPath: "xtool").appendingPathComponent(output.url.lastPathComponent)
+        let dest = URL(fileURLWithPath: "xtool").appendingPathComponent(outputDir.lastPathComponent)
         try? FileManager.default.removeItem(at: dest)
         try output.persist(at: dest)
         return dest

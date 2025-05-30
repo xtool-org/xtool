@@ -254,11 +254,11 @@ public struct Plan: Sendable {
 
         public var bundle: String { "\(self.product).\(self.bundleExt)" }
 
-        var targetName: String {
+        package var targetName: String {
             "\(self.product)-\(self.type == .application ? "App" : "Extension")"
         }
 
-        func resolveOutput(_ baseDir: URL) -> URL {
+        package func resolveDir(_ baseDir: URL) -> URL {
             switch self.type {
             case .application: baseDir
             case .appExtension: baseDir.appendingPathComponent("PlugIns/\(self.bundle)", isDirectory: true)
