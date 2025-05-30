@@ -22,7 +22,7 @@ jobs:
   #         path: |
   #           Linux/packages/xtool-x86_64.AppImage
   run-test:
-    runs-on: macos-15
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
       # - name: Download artifact
@@ -32,5 +32,5 @@ jobs:
       - name: Run Docker
         run: |
           brew install --formula docker colima
-          colima start --disk 10 || cat /Users/runner/.colima/_lima/colima/ha.stderr.log
+          colima start || cat /Users/runner/.colima/_lima/colima/ha.stderr.log
           docker run hello-world:latest
