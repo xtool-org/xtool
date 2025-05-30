@@ -32,5 +32,5 @@ jobs:
       - name: Run Docker
         run: |
           brew install --formula docker colima
-          colima start --disk 10
+          colima start --disk 10 || cat /Users/runner/.colima/_lima/colima/ha.stderr.log
           docker run hello-world:latest
