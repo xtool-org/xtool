@@ -28,31 +28,28 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: xtool-bin
-          path: artifacts
-      - name: Stage AppImage
-        run: |
-          mkdir -p stage/bin stage/sdks
-          mv artifacts/xtool-aarch64.AppImage stage/bin/xtool
-          chmod +x stage/bin/xtool
+          path: stage
       - name: Build SDK
         run: |
           swift build --product xtool
-          ./.build/debug/xtool sdk build /Applications/Xcode_16.3.app ./stage/sdks/
-      - name: Run Docker
+          ./.build/debug/xtool sdk build /Applications/Xcode_16.3.app stage
+      # https://github.com/abiosoft/colima/issues/970#issuecomment-2224011277
+      - name: Setup Docker
         run: |
-          # https://github.com/abiosoft/colima/issues/970#issuecomment-2224011277
           brew install --formula docker colima qemu
           LIMACTL_PATH=$(brew --prefix)/bin/limactl
-          sudo curl -fL -o $LIMACTL_PATH https://github.com/mikekazakov/lima-nohvf/raw/acd34e689a7186d8317116165101b1fa56083542/limactl && sudo chmod +x $LIMACTL_PATH
+          sudo curl -fL -o $LIMACTL_PATH https://github.com/mikekazakov/lima-nohvf/raw/acd34e689a7186d8317116165101b1fa56083542/limactl
+          sudo chmod +x $LIMACTL_PATH
           colima start --disk 20 --vm-type qemu --arch arm64
+      - name: Run test
+        shell: docker run --rm -i -v ./stage:/stage swift:6.1.1 bash < {0}
+        run: |
+          export APPIMAGE_EXTRACT_AND_RUN=1
 
-          docker run --rm -i \
-            -e APPIMAGE_EXTRACT_AND_RUN=1 \
-            -v ./stage/bin:/usr/local/bin \
-            -v ./stage/sdks:/root/.swiftpm/swift-sdks \
-            swift:6.1.1 \
-            bash << EOF
+          mkdir -p ~/.swiftpm/swift-sdks
+          ln -fs /stage/darwin.artifactbundle ~/.swiftpm/swift-sdks/
+          ln -fs /stage/xtool-aarch64.AppImage /usr/local/bin/xtool
+
           xtool new Hello --skip-setup
           cd Hello
           xtool dev build
-          EOF
