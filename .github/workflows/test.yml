@@ -12,14 +12,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Build (temp)
-        run: |
-          mkdir -p Linux/packages
-          curl -L https://github.com/xtool-org/xtool/releases/download/1.12.2/xtool-aarch64.AppImage \
-            -o Linux/packages/xtool-aarch64.AppImage
-          chmod +x Linux/packages/xtool-aarch64.AppImage
-      # - name: Build
-      #   run: docker compose run --build --rm xtool Linux/build.sh
+      - name: Build
+        run: docker compose run --build --rm xtool Linux/build.sh
       - name: Upload xtool
         uses: actions/upload-artifact@v4
         with:
@@ -30,17 +24,18 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-      - name: Download artifacts
+      - name: Download AppImage
         uses: actions/download-artifact@v4
         with:
           name: xtool-bin
           path: artifacts
-      - name: Build SDK
+      - name: Stage AppImage
         run: |
           mkdir -p stage/bin stage/sdks
           mv artifacts/xtool-aarch64.AppImage stage/bin/xtool
           chmod +x stage/bin/xtool
-
+      - name: Build SDK
+        run: |
           swift build --product xtool
           ./.build/debug/xtool sdk build /Applications/Xcode_16.3.app ./stage/sdks/
       - name: Run Docker
@@ -51,9 +46,13 @@ jobs:
           sudo curl -fL -o $LIMACTL_PATH https://github.com/mikekazakov/lima-nohvf/raw/acd34e689a7186d8317116165101b1fa56083542/limactl && sudo chmod +x $LIMACTL_PATH
           colima start --disk 20 --vm-type qemu --arch arm64
 
-          docker run --rm \
-            -v ./scripts:/scripts \
+          docker run --rm -i \
+            -e APPIMAGE_EXTRACT_AND_RUN=1 \
             -v ./stage/bin:/usr/local/bin \
             -v ./stage/sdks:/root/.swiftpm/swift-sdks \
             swift:6.1.1 \
-            /scripts/test-linux.sh
+            bash << EOF
+          xtool new Hello --skip-setup
+          cd Hello
+          xtool dev build
+          EOF
