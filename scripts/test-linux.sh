@@ -2,7 +2,7 @@
 
 export APPIMAGE_EXTRACT_AND_RUN=1
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")"/..
 
 ls -la ./appimage
-./appimage/xtool-x86_64.AppImage --version
+./appimage/xtool-$(uname -m).AppImage --version

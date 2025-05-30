@@ -39,4 +39,4 @@ jobs:
         run: |
           brew install --formula docker colima
           colima start --disk 10
-          docker run -v .:/app swift:6.1.1 /app/scripts/test-linux.sh
+          docker run --rm -v .:/app swift:6.1.1 /app/scripts/test-linux.sh
