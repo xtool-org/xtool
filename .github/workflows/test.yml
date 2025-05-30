@@ -40,16 +40,16 @@ jobs:
     runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
+      - name: Download xtool (temp)
+        run: |
+          mkdir artifacts
+          curl -L https://github.com/xtool-org/xtool/releases/download/1.12.2/xtool-x86_64.AppImage -o artifacts/xtool
+          chmod +x artifacts/xtool
       - name: Download SDK
         uses: actions/download-artifact@v4
         with:
           name: sdk
           path: artifacts
-      - name: Download xtool (temp)
-        run: |
-          mkdir appimage
-          curl -L https://github.com/xtool-org/xtool/releases/download/1.12.2/xtool-x86_64.AppImage -o appimage/xtool-x86_64.AppImage
-          chmod +x appimage/xtool-x86_64.AppImage
       - name: Run Docker
         run: |
           brew install --formula docker colima

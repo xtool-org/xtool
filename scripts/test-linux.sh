@@ -4,15 +4,14 @@ export APPIMAGE_EXTRACT_AND_RUN=1
 
 cd "$(dirname "$0")"/..
 
-ls -la ./appimage
-cp ./appimage/xtool-$(uname -m).AppImage /usr/local/bin/xtool
+ls -la ./artifacts
 
-swift sdk install ./artifacts/sdk/darwin.artifactbundle.zip
+cp ./artifacts/xtool /usr/local/bin/xtool
+
+swift sdk install ./artifacts/darwin.artifactbundle.zip
 
 mkdir /work
 cd /work
-
-xtool sdk install /Xcode.app
 
 xtool new Hello --skip-setup
 cd Hello
