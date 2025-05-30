@@ -7,20 +7,25 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  # build-appimage:
-  #   runs-on: ubuntu-24.04
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #     - name: Build
-  #       run: |
-  #         docker compose run --build --rm xtool Linux/build.sh
-  #     - name: Upload xtool
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: xtool
-  #         path: |
-  #           Linux/packages/xtool-x86_64.AppImage
+  build-appimage:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build (temp)
+        run: |
+          mkdir -p Linux/packages
+          curl -L https://github.com/xtool-org/xtool/releases/download/1.12.2/xtool-x86_64.AppImage \
+            -o Linux/packages/xtool-x86_64.AppImage
+          chmod +x Linux/packages/xtool-x86_64.AppImage
+      # - name: Build
+      #   run: |
+      #     docker compose run --build --rm xtool Linux/build.sh
+      - name: Upload xtool
+        uses: actions/upload-artifact@v4
+        with:
+          name: xtool-bin
+          path: Linux/packages/xtool-x86_64.AppImage
   build-sdk:
     runs-on: macos-15
     steps:
@@ -33,25 +38,21 @@ jobs:
       - name: Upload SDK
         uses: actions/upload-artifact@v4
         with:
-          name: sdk
+          name: xtool-sdk
           path: darwin.artifactbundle.zip
   run-test:
-    needs: [build-sdk]
+    needs: [build-sdk, build-appimage]
     runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
-      - name: Download xtool (temp)
-        run: |
-          mkdir artifacts
-          curl -L https://github.com/xtool-org/xtool/releases/download/1.12.2/xtool-x86_64.AppImage -o artifacts/xtool
-          chmod +x artifacts/xtool
-      - name: Download SDK
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: sdk
+          name: xtool-*
           path: artifacts
       - name: Run Docker
         run: |
+          ls -la artifacts
           brew install --formula docker colima
-          colima start --disk 10
+          colima start --disk 20
           docker run --rm -v .:/app swift:6.1.1 /app/scripts/test-linux.sh
