@@ -37,6 +37,6 @@ jobs:
           chmod +x appimage/xtool-x86_64.AppImage
       - name: Run Docker
         run: |
-          brew install --formula docker colima qemu
-          colima start --disk 10 --vm-type qemu
+          brew install --formula docker colima
+          colima start --disk 10
           docker run -v .:/app swift:6.1.1 /app/scripts/test-linux.sh
