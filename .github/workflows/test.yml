@@ -33,7 +33,7 @@ jobs:
       - name: Build SDK
         run: |
           swift build --product xtool
-          ./.build/debug/xtool sdk build /Applications/Xcode.app . --arch x86_64
+          ./.build/debug/xtool sdk build /Applications/Xcode_16.3.app . --arch x86_64
           zip -yqr darwin.artifactbundle.zip darwin.artifactbundle
       - name: Upload SDK
         uses: actions/upload-artifact@v4
