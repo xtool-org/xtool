@@ -32,4 +32,5 @@ jobs:
       - name: Run Docker
         run: |
           brew install --formula docker colima
+          colima start --disk 10
           docker run hello-world:latest
