@@ -12,8 +12,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Build
-        run: docker compose run --build --rm xtool Linux/build.sh
+      - name: Build (temp)
+        run: |
+          mkdir -p Linux/packages
+          curl -L https://github.com/xtool-org/xtool/releases/download/1.12.2/xtool-aarch64.AppImage \
+            -o Linux/packages/xtool-aarch64.AppImage
+          chmod +x Linux/packages/xtool-aarch64.AppImage
+      # - name: Build
+      #   run: docker compose run --build --rm xtool Linux/build.sh
       - name: Upload xtool
         uses: actions/upload-artifact@v4
         with:
