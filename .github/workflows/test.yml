@@ -54,6 +54,7 @@ jobs:
       - name: Run Docker
         run: |
           ls -la artifacts
+          mv artifacts/xtool-x86_64.AppImage artifacts/xtool
           brew install --formula docker colima
           colima start --disk 20
           docker run --rm -v .:/app swift:6.1.1 /app/scripts/test-linux.sh
