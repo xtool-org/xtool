@@ -16,4 +16,4 @@ cd /work
 xtool new Hello --skip-setup
 cd Hello
 
-xtool dev build --ipa
+xtool dev build
