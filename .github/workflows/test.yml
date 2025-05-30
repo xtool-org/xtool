@@ -7,12 +7,30 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  # build-appimage:
+  #   runs-on: ubuntu-24.04-arm
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Build
+  #       run: |
+  #         docker compose run --build --rm xtool Linux/build.sh
+  #     - name: Upload artifact
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: xtool
+  #         path: |
+  #           Linux/packages/xtool-x86_64.AppImage
   run-test:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+      # - name: Download artifact
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: xtool
       - name: Run Docker
         run: |
-          brew install docker colima
-          colima start --runtime docker
+          brew install --formula docker colima
+          brew service start colima
           docker run hello-world:latest
