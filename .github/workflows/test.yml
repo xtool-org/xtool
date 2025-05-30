@@ -8,54 +8,40 @@ concurrency:
   cancel-in-progress: true
 jobs:
   build-appimage:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Build (temp)
-        run: |
-          mkdir -p Linux/packages
-          curl -L https://github.com/xtool-org/xtool/releases/download/1.12.2/xtool-x86_64.AppImage \
-            -o Linux/packages/xtool-x86_64.AppImage
-          chmod +x Linux/packages/xtool-x86_64.AppImage
-      # - name: Build
-      #   run: |
-      #     docker compose run --build --rm xtool Linux/build.sh
+      - name: Build
+        run: docker compose run --build --rm xtool Linux/build.sh
       - name: Upload xtool
         uses: actions/upload-artifact@v4
         with:
           name: xtool-bin
-          path: Linux/packages/xtool-x86_64.AppImage
+          path: Linux/packages/xtool-aarch64.AppImage
   build-sdk:
     runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build SDK
-        run: |
-          swift build --product xtool
-          ./.build/debug/xtool sdk build /Applications/Xcode_16.3.app . --arch x86_64
-          zip -yqr darwin.artifactbundle.zip darwin.artifactbundle
-      - name: Upload SDK
-        uses: actions/upload-artifact@v4
-        with:
-          name: xtool-sdk
-          path: darwin.artifactbundle.zip
-  run-test:
-    needs: [build-sdk, build-appimage]
-    runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: xtool-*
-          merge-multiple: true
+          pattern: xtool-bin
           path: artifacts
       - name: Run Docker
         run: |
-          ls -la artifacts
-          mv artifacts/xtool-x86_64.AppImage artifacts/xtool
-          chmod +x artifacts/xtool
-          brew install --formula docker colima
-          colima start --disk 20
-          docker run --rm -v .:/app swift:6.1.1 /app/scripts/test-linux.sh
+          mkdir -p stage/bin stage/sdks
+          mv artifacts/xtool-aarch64.AppImage stage/bin/xtool
+
+          swift build --product xtool
+          ./.build/debug/xtool sdk build /Applications/Xcode_16.3.app ./stage/sdks/
+
+          brew install --formula docker colima qemu
+          colima start --disk 20 --vm-type qemu
+
+          docker run --rm \
+            -v ./scripts:/scripts \
+            -v ./stage/bin:/usr/local/bin \
+            -v ./stage/sdks:/root/.swiftpm/swift-sdks \
+            swift:6.1.1 \
+            /scripts/test-linux.sh
