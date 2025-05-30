@@ -178,11 +178,17 @@ private extension BuildSettings {
             case .application: []
             case .appExtension: [
             // Link to Foundation framework which implements the entrypoint to _NSExtensionMain
-            "-Xlinker", "-framework", "-Xlinker", "Foundation", 
+            "-Xlinker", "-framework", "-Xlinker", "Foundation",
+            // Set the entry point to _NSExtensionMain
             "-Xlinker", "-e", "-Xlinker", "_NSExtensionMain",
+            // Include frameworks that the host app may use
             "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks",
             // Show compiler errors if it tries to access unsafe APIs
-            "-Xswiftc", "-Xfrontend", "-Xswiftc", "-application-extension"
+            "-Xswiftc", "-Xfrontend", "-Xswiftc", "-application-extension",
+            // Show compiler errors in Clang
+            "-Xcc", "-fapplication-extension",
+            // Link to libraries if it is safe
+            "-Xlinker", "-application_extension"
             ]
         }
         return try await swiftPMInvocation(
