@@ -27,7 +27,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build SDK
         run: |
-          swift run xtool sdk build /Applications/Xcode.app . --arch x86_64
+          swift build --product xtool
+          ./.build/debug/xtool sdk build /Applications/Xcode.app . --arch x86_64
       - name: Upload SDK
         uses: actions/upload-artifact@v4
         with:
