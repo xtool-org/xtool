@@ -1,0 +1,18 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  run-test:
+    runs-on: macos-15-arm64
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Docker
+        run: |
+          brew install docker colima
+          colima start --runtime docker
+          docker run hello-world:latest
