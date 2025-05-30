@@ -37,7 +37,7 @@ jobs:
           ./.build/debug/xtool sdk build /Applications/Xcode_16.3.app ./stage/sdks/
 
           brew install --formula docker colima qemu
-          colima start --disk 20 --vm-type qemu
+          colima start --disk 20 --vm-type qemu --arch arm64
 
           docker run --rm \
             -v ./scripts:/scripts \
