@@ -19,7 +19,8 @@ jobs:
         with:
           name: xtool-bin
           path: Linux/packages/xtool-aarch64.AppImage
-  build-sdk:
+  test:
+    needs: build-appimage
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
@@ -28,15 +29,19 @@ jobs:
         with:
           pattern: xtool-bin
           path: artifacts
-      - name: Run Docker
+      - name: Build SDK
         run: |
           mkdir -p stage/bin stage/sdks
           mv artifacts/xtool-aarch64.AppImage stage/bin/xtool
 
           swift build --product xtool
           ./.build/debug/xtool sdk build /Applications/Xcode_16.3.app ./stage/sdks/
-
+      - name: Run Docker
+        run: |
+          # https://github.com/abiosoft/colima/issues/970#issuecomment-2224011277
           brew install --formula docker colima qemu
+          LIMACTL_PATH=$(brew --prefix)/bin/limactl
+          sudo curl -L -o $LIMACTL_PATH https://github.com/mikekazakov/lima-nohvf/raw/master/limactl && sudo chmod +x $LIMACTL_PATH
           colima start --disk 20 --vm-type qemu --arch arm64
 
           docker run --rm \
