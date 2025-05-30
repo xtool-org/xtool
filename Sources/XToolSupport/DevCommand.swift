@@ -67,7 +67,7 @@ struct PackOperation {
         var allEntitlements = [URL: Entitlements]()
 
         for product in plan.allProducts {
-            if let entitlementsPath = plan.entitlementsPath {
+            if let entitlementsPath = product.entitlementsPath {
                 let data = try await Data(reading: URL(fileURLWithPath: entitlementsPath))
                 let decoder = PropertyListDecoder()
                 let entitlements = try decoder.decode(Entitlements.self, from: data)
