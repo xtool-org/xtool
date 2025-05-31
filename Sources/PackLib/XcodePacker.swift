@@ -13,6 +13,7 @@ public struct XcodePacker {
         self.plan = plan
     }
 
+    // swiftlint:disable:next function_body_length
     public func createProject() async throws -> URL {
         let targetName = "\(plan.product)-App"
 

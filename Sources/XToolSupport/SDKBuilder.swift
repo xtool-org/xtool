@@ -219,6 +219,7 @@ struct SDKBuilder {
         try await tarExit
     }
 
+    // swiftlint:disable:next cyclomatic_complexity
     private func installDeveloper(in output: URL) async throws -> URL {
         let dev = output.appendingPathComponent("Developer")
 

@@ -18,6 +18,7 @@ public struct Planner: Sendable {
         return decoder
     }()
 
+    // swiftlint:disable:next function_body_length cyclomatic_complexity
     public func createPlan() async throws -> Plan {
         // TODO: cache plan using (Package.swift+Package.resolved) as the key?
 

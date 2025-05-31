@@ -13,6 +13,7 @@ extension DeveloperAPIClient {
     ) {
         @Dependency(\.httpClient) var httpClient
         self.init(
+            // swiftlint:disable:next force_try
             serverURL: try! Servers.Server1.url(),
             configuration: .init(
                 dateTranscoder: .iso8601WithFractionalSeconds
