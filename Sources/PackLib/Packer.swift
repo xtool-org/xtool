@@ -104,6 +104,7 @@ public struct Packer: Sendable {
                         let bytes = try FileHandle(forReadingFrom: src).read(upToCount: magic.count)
                         // if the magic matches one of these it's a static archive; don't embed it.
                         // https://github.com/apple/llvm-project/blob/e716ff14c46490d2da6b240806c04e2beef01f40/llvm/include/llvm/Object/Archive.h#L33
+                        // swiftlint:disable:previous line_length
                         if bytes != magic && bytes != thinMagic {
                             try await packFile(srcName: "\(name).framework", dstName: "Frameworks/\(name).framework", sign: true)
                         }

@@ -111,7 +111,7 @@ struct SRPClient {
 
         let hashedPassword = Data(SHA256.hash(data: Data(password.utf8)))
         let pbkdfInput = if isLegacyProtocol {
-            Data(hashedPassword.map { String(format: "%02hhx", $0) }.joined(separator: "").utf8)
+            Data(hashedPassword.map { String(format: "%02hhx", $0) }.joined().utf8)
         } else {
             hashedPassword
         }

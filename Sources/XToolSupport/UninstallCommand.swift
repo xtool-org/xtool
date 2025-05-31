@@ -8,7 +8,7 @@ struct UninstallCommand: AsyncParsableCommand {
         commandName: "uninstall",
         abstract: "Uninstall an installed app"
     )
-    
+
     @OptionGroup var connectionOptions: ConnectionOptions
 
     @Argument(

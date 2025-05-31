@@ -21,7 +21,7 @@ struct AuthOperation {
     var password: String?
     var logoutFromExisting: Bool
 
-    var mode: AuthMode? = nil
+    var mode: AuthMode?
     var quiet = false
 
     func run() async throws {

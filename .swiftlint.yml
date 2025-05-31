@@ -1,0 +1,70 @@
+swiftlint_version: 0.59.1
+disabled_rules:
+  - trailing_comma
+  - nesting
+  - fallthrough
+  - shorthand_operator
+  - todo
+  - large_tuple
+  - identifier_name
+  - type_name
+  - unneeded_override
+  - optional_data_string_conversion
+  - for_where
+  - blanket_disable_command
+opt_in_rules:
+  - closure_end_indentation
+  - closure_spacing
+  - empty_count
+  - explicit_init
+  - fatal_error_message
+  - first_where
+  - implicit_return
+  - joined_default_parameter
+  - literal_expression_end_indentation
+  - overridden_super_call
+  - prohibited_super_call
+  - sorted_first_last
+  - unneeded_parentheses_in_closure_argument
+  - vertical_parameter_alignment_on_call
+  - yoda_condition
+  - nslocalizedstring_key
+  - unused_setter_value
+  - optional_enum_case_matching
+  - prefer_self_type_over_type_of_self
+  - contains_over_range_nil_comparison
+  - flatmap_over_map_reduce
+  - empty_collection_literal
+  - contains_over_first_not_nil
+  - contains_over_filter_count
+  - contains_over_filter_is_empty
+  - reduce_into
+analyzer_rules:
+  - unused_import
+custom_rules:
+  spaces_not_tabs:
+    name: "Spaces not Tabs"
+    regex: ^\t
+    message: "Use four spaces, not tabs"
+  point_zero:
+    name: "Point Zero"
+    regex: '(?<!iOS\s)(?<!macOS\s)(?<!\.)\b[\d_]+\.0\b'
+    match_kinds:
+      - number
+      - attribute.builtin
+    message: "Don't add a .0 to the end of floating point literals"
+force_try: warning
+force_cast: warning
+function_body_length: 100
+line_length: 135
+file_length: 1000
+type_body_length: 500
+cyclomatic_complexity: 12
+function_parameter_count: 7
+implicit_return:
+  included:
+    - closure
+excluded:
+  - .build
+  - macOS/Build
+  - Sources/DeveloperAPI/Generated
