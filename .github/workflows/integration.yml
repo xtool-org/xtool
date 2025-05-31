@@ -1,0 +1,65 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build-appimage:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build
+        run: docker compose run --build --rm xtool Linux/build.sh
+      - name: Upload xtool
+        uses: actions/upload-artifact@v4
+        with:
+          name: xtool-bin
+          path: Linux/packages/xtool-aarch64.AppImage
+  test:
+    needs: build-appimage
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download AppImage
+        uses: actions/download-artifact@v4
+        with:
+          name: xtool-bin
+          path: stage
+      - name: Fixup AppImage
+        run: chmod +x stage/xtool-aarch64.AppImage
+      - name: Build xtool
+        run: |
+          swift build --product xtool
+          ln -fs "$PWD/.build/debug/xtool" /usr/local/bin/xtool
+      # https://github.com/abiosoft/colima/issues/970#issuecomment-2224011277
+      - name: Setup Docker
+        run: |
+          brew install --formula docker colima qemu
+          LIMACTL_PATH=$(brew --prefix)/bin/limactl
+          sudo curl -fL -o $LIMACTL_PATH https://github.com/mikekazakov/lima-nohvf/raw/acd34e689a7186d8317116165101b1fa56083542/limactl
+          sudo chmod +x $LIMACTL_PATH
+          colima start --disk 20 --vm-type qemu --arch arm64
+      - name: Build SDK
+        run: |
+          xtool sdk build /Applications/Xcode_16.3.app stage
+      - name: Run test
+        run: |
+          docker run --rm -i \
+            -v ./stage:/stage \
+            swift:6.1.1 \
+            bash << EOF
+
+          mkdir -p ~/.swiftpm/swift-sdks
+          ln -fs /stage/darwin.artifactbundle ~/.swiftpm/swift-sdks/
+          export APPIMAGE_EXTRACT_AND_RUN=1
+          ln -fs /stage/xtool-aarch64.AppImage /usr/local/bin/xtool
+
+          xtool new Hello --skip-setup
+          cd Hello
+          xtool dev build
+
+          EOF
