@@ -29,10 +29,10 @@ jobs:
         with:
           name: xtool-bin
           path: stage
-      - name: Build SDK
+      - name: Build xtool
         run: |
           swift build --product xtool
-          ./.build/debug/xtool sdk build /Applications/Xcode_16.3.app stage
+          ln -fs "$PWD/.build/debug/xtool" /usr/local/bin/xtool
       # https://github.com/abiosoft/colima/issues/970#issuecomment-2224011277
       - name: Setup Docker
         run: |
@@ -41,15 +41,23 @@ jobs:
           sudo curl -fL -o $LIMACTL_PATH https://github.com/mikekazakov/lima-nohvf/raw/acd34e689a7186d8317116165101b1fa56083542/limactl
           sudo chmod +x $LIMACTL_PATH
           colima start --disk 20 --vm-type qemu --arch arm64
-      - name: Run test
-        shell: docker run --rm -i -v ./stage:/stage swift:6.1.1 bash < {0}
+      - name: Build SDK
         run: |
-          export APPIMAGE_EXTRACT_AND_RUN=1
+          xtool sdk build /Applications/Xcode_16.3.app stage
+      - name: Run test
+        run: |
+          docker run --rm -i \
+            -v ./stage:/stage \
+            swift:6.1.1 \
+            bash <<< EOF
 
           mkdir -p ~/.swiftpm/swift-sdks
           ln -fs /stage/darwin.artifactbundle ~/.swiftpm/swift-sdks/
+          export APPIMAGE_EXTRACT_AND_RUN=1
           ln -fs /stage/xtool-aarch64.AppImage /usr/local/bin/xtool
 
           xtool new Hello --skip-setup
           cd Hello
           xtool dev build
+
+          EOF
