@@ -49,7 +49,7 @@ jobs:
           docker run --rm -i \
             -v ./stage:/stage \
             swift:6.1.1 \
-            bash <<< EOF
+            bash << EOF
 
           mkdir -p ~/.swiftpm/swift-sdks
           ln -fs /stage/darwin.artifactbundle ~/.swiftpm/swift-sdks/
