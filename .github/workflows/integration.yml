@@ -29,6 +29,8 @@ jobs:
         with:
           name: xtool-bin
           path: stage
+      - name: Fixup AppImage
+        run: chmod +x stage/xtool-aarch64.AppImage
       - name: Build xtool
         run: |
           swift build --product xtool
