@@ -7,7 +7,7 @@ import Dependencies
 @main
 enum XToolMain {
     static func main() async throws {
-        prepareDependencies { dependencies in
+        prepareDependencies { _ in
             #warning("Improve persistence mechanism")
             // for Windows, we could use dpapi.h or wincred.h.
             // for Linux, maybe use libsecret?

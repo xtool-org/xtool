@@ -22,6 +22,7 @@ struct DSProfilesListCommand: AsyncParsableCommand {
 
     private static let encoder = JSONEncoder()
 
+    // swiftlint:disable:next cyclomatic_complexity
     func run() async throws {
         let client = DeveloperAPIClient(auth: try AuthToken.saved().authData())
 

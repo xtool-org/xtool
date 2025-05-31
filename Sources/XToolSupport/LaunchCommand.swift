@@ -8,7 +8,7 @@ struct LaunchCommand: AsyncParsableCommand {
         commandName: "launch",
         abstract: "Launch an installed app"
     )
-    
+
     @OptionGroup var connectionOptions: ConnectionOptions
 
     @Argument(

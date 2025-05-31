@@ -225,7 +225,11 @@ public struct ADIDataProvider: AnisetteDataProvider {
     ) async throws -> AnisetteData {
         let requestTime = Date()
         var routingInfo = routingInfo
-        let (mid, otp) = try await rawProvider.requestOTP(userID: localUserUID, routingInfo: &routingInfo, provisioningInfo: provisioningInfo)
+        let (mid, otp) = try await rawProvider.requestOTP(
+            userID: localUserUID,
+            routingInfo: &routingInfo,
+            provisioningInfo: provisioningInfo
+        )
         return AnisetteData(
             clientTime: requestTime,
             routingInfo: routingInfo,

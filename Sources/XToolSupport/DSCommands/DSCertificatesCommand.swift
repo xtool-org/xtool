@@ -20,6 +20,7 @@ struct DSCertificatesListCommand: AsyncParsableCommand {
         abstract: "List certificates"
     )
 
+    // swiftlint:disable:next cyclomatic_complexity
     func run() async throws {
         let client = DeveloperAPIClient(auth: try AuthToken.saved().authData())
 

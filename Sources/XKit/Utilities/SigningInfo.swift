@@ -47,7 +47,7 @@ private struct UnimplementedSigningInfoManager: SigningInfoManager {
     func info(forIdentityID identityID: String) throws -> SigningInfo? {
         unimplemented(placeholder: nil)
     }
-    
+
     func setInfo(_ info: SigningInfo?, forIdentityID identityID: String) throws {
         unimplemented()
     }
