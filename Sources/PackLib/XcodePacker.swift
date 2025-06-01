@@ -35,7 +35,7 @@ public struct XcodePacker {
 
             let infoPath = productDir + "Info.plist"
 
-            var plist = plan.infoPlist
+            var plist = product.infoPlist
             let families = (plist.removeValue(forKey: "UIDeviceFamily") as? [Int]) ?? [1, 2]
             plist["CFBundleExecutable"] = product.targetName
             plist["CFBundleName"] = product.targetName
@@ -45,7 +45,7 @@ public struct XcodePacker {
             try infoPath.write(encodedPlist)
 
             var buildSettings: [String: Any] = [
-                "PRODUCT_BUNDLE_IDENTIFIER": plan.bundleID,
+                "PRODUCT_BUNDLE_IDENTIFIER": product.bundleID,
                 "TARGETED_DEVICE_FAMILY": families.map { "\($0)" }.joined(separator: ","),
             ]
 
@@ -53,10 +53,24 @@ public struct XcodePacker {
                 plist["APPLICATION_EXTENSION_API_ONLY"] = true
             }
 
-            if let entitlementsPath = plan.entitlementsPath {
+            if let entitlementsPath = product.entitlementsPath {
                 buildSettings["CODE_SIGN_ENTITLEMENTS"] = fromProjectToRoot + Path(entitlementsPath)
             }
 
+            let additionalDependencies: [Dependency] = if product.type == .application {
+                plan.allProducts.filter { $0.type != .application }
+                    .compactMap {
+                        Dependency(
+                            type: .target,
+                            reference: $0.targetName,
+                            embed: true,
+                            codeSign: false,
+                            copyPhase: .plugins
+                        )
+                    }
+            } else {
+                []
+            }
             return Target(
                 name: product.targetName,
                 type: product.type == .application ? .application : .appExtension,
@@ -64,16 +78,19 @@ public struct XcodePacker {
                 deploymentTarget: deploymentTarget,
                 settings: Settings(buildSettings: buildSettings),
                 sources: [
-                    TargetSource(path: (fromProjectToRoot + emptyFile).string),
+                  TargetSource(
+                    path: try emptyFile.relativePath(from: projectDir).string,
+                    buildPhase: .sources
+                  ),
                 ],
                 dependencies: [
                     Dependency(
                         type: .package(products: [product.product]),
                         reference: "RootPackage"
                     ),
-                ],
+                ] + additionalDependencies,
                 info: Plist(
-                    path: (fromProjectToRoot + infoPath).string,
+                    path: try infoPath.relativePath(from: projectDir).string,
                     attributes: [:]
                 )
             )
@@ -110,18 +127,6 @@ public struct XcodePacker {
                     group.children.removeAll(where: { $0.uuid == packageRef.uuid })
                 }
                 xcodeProject.pbxproj.delete(object: packageRef)
-            }
-
-            if let emptyFileRef = xcodeProject.pbxproj.fileReferences.first(where: { $0.path == "empty.c" }),
-               let existingGroup = xcodeProject.pbxproj.groups.first(where: {
-                   $0.children.contains { $0.uuid == emptyFileRef.uuid }
-               }),
-               let existingGroupGroup = xcodeProject.pbxproj.groups.first(where: {
-                   $0.children.contains { $0.uuid == existingGroup.uuid }
-               }) {
-                existingGroupGroup.children.removeAll(where: { $0.uuid == existingGroup.uuid })
-                existingGroupGroup.children.insert(emptyFileRef, at: 0)
-                xcodeProject.pbxproj.delete(object: existingGroup)
             }
 
             try xcodeProject.write(path: Path(xcodeproj.lastComponent))
