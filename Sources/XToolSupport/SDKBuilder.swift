@@ -13,9 +13,9 @@ struct SDKBuilder {
 
     enum Input {
         case xip(String)
-        case app(String)
+        case app(String, update: Bool)
 
-        init(path: String) throws {
+        init(path: String, update: Bool = false) throws {
             var isDir: ObjCBool = false
             guard FileManager.default.fileExists(atPath: path, isDirectory: &isDir) else {
                 throw Console.Error("Could not read file or directory at path '\(path)'")
@@ -24,7 +24,7 @@ struct SDKBuilder {
             let url = URL(fileURLWithPath: path)
 
             if isDir.boolValue {
-                self = .app(path)
+                self = .app(path, update: update)
                 let devDir = url.appendingPathComponent("Contents/Developer")
                 guard devDir.dirExists else {
                     throw Console.Error("""
@@ -33,6 +33,9 @@ struct SDKBuilder {
                     """)
                 }
             } else {
+                guard !update else {
+                    throw Console.Error("Can't update with xip input")
+                }
                 self = .xip(path)
                 let handle = try FileHandle(forReadingFrom: url)
                 defer { try? handle.close() }
@@ -223,28 +226,32 @@ struct SDKBuilder {
     private func installDeveloper(in output: URL) async throws -> URL {
         let dev = output.appendingPathComponent("Developer")
 
+        // the location where `Xcode.app` is installed in the SDK,
+        // except when `update == true` (in which case we defer installing `Xcode.app`)
+        let expectedAppDir = output.appendingPathComponent("Xcode.app")
         let appDir: URL
-        let cleanupStageDir: URL?
         let wanted: Int?
 
         switch input {
         case .xip(let inputPath):
-            let devStage = output.appendingPathComponent("DeveloperStage")
-            try FileManager.default.createDirectory(at: devStage, withIntermediateDirectories: false)
             // unxip doesn't like cooperative cancellation atm so shield it.
             // if the user does a ^C during unxip, we'll just wait until extraction
             // is over before bailing
             wanted = try await Task {
-                try await extractXIP(inputPath: inputPath, outDir: devStage.path)
+                try await extractXIP(inputPath: inputPath, outDir: output.path)
             }.value
-            try Task.checkCancellation()
-            appDir = devStage.appendingPathComponent("Xcode.app")
-            cleanupStageDir = devStage
-        case .app(let appPath):
+            appDir = expectedAppDir
+        case .app(let appPath, let update):
+            let source = URL(fileURLWithPath: appPath)
+            if update {
+                appDir = source
+            } else {
+                try FileManager.default.copyItem(at: source, to: expectedAppDir)
+                appDir = expectedAppDir
+            }
             wanted = nil
-            appDir = URL(fileURLWithPath: appPath)
-            cleanupStageDir = nil
         }
+        try Task.checkCancellation()
 
         try FileManager.default.createDirectory(at: dev, withIntermediateDirectories: false)
 
@@ -267,7 +274,7 @@ struct SDKBuilder {
                 }
                 if count % 100 == 0 {
                     if wanted == nil {
-                        print("\r[Installing SDKs] Copied \(count) files", terminator: "")
+                        print("\r[Installing SDKs] Installed \(count) files", terminator: "")
                         fflush(stdoutSafe)
                     }
                     await Task.yield()
@@ -281,7 +288,13 @@ struct SDKBuilder {
                     toDoDirs.append(path)
                     try FileManager.default.createDirectory(at: dest, withIntermediateDirectories: false)
                 } else {
-                    try FileManager.default.copyItem(at: child, to: dest)
+                    // rather than copying files from Xcode, we keep an intact
+                    // Xcode.app in our darwin.artifactbundle. Hard-link to it from
+                    // the developer dir.
+                    try FileManager.default.linkItem(
+                        at: appDir.appendingPathComponent(path),
+                        to: dest
+                    )
                 }
             }
         }
@@ -291,11 +304,6 @@ struct SDKBuilder {
             print("\r[Installing SDKs] 100%", terminator: "")
         }
         print()
-
-        print("[Cleaning up]")
-        if let cleanupStageDir {
-            try? FileManager.default.removeItem(at: cleanupStageDir)
-        }
 
         print("[Finalizing SDKs]")
 
