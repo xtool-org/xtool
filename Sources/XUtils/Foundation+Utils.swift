@@ -34,11 +34,18 @@ extension FileManager {
 
         #if canImport(Subprocess)
         if !preserveOwner {
-            try await Subprocess.run(
+            let result = try await Subprocess.run(
                 .name("cp"),
                 arguments: ["-R", srcURL.path, dstURL.path],
                 output: .discarded,
-            ).checkSuccess()
+                error: .string(limit: .max, encoding: UTF8.self),
+            )
+            do {
+                try result.checkSuccess()
+            } catch {
+                print("Error copying \(srcURL.path) to \(dstURL.path): \(result.standardError ?? "unknown")")
+                throw error
+            }
             return
         }
         #endif
