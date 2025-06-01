@@ -1,10 +1,42 @@
 import Foundation
 import XUtils
 import Subprocess
+import Superutils
 
 public struct DarwinSDK {
+    public enum Flavor {
+        // can't be updated in place
+        case slim
+        // can be updated in place, includes a whole copy of Xcode.app
+        case normal
+        // from before the slim/normal split existed (version "develop")
+        case legacy
+    }
+
     public let bundle: URL
     public let version: String
+    public let flavor: Flavor
+
+    static func swiftPMDirectory(
+        environment: [String: String] = ProcessInfo.processInfo.environment,
+        homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
+    ) throws -> URL {
+        if let configurationDirectory = environment["XDG_CONFIG_HOME"] {
+            guard (configurationDirectory as NSString).isAbsolutePath else {
+                throw StringError("XDG_CONFIG_HOME must be an absolute path: '\(configurationDirectory)'")
+            }
+            return URL(fileURLWithPath: configurationDirectory, isDirectory: true)
+                .appendingPathComponent("swiftpm", isDirectory: true)
+        } else {
+            return homeDirectory.appendingPathComponent(".swiftpm", isDirectory: true)
+        }
+    }
+
+    private static var swiftSDKsDirectory: URL {
+        get throws {
+            try swiftPMDirectory().appendingPathComponent("swift-sdks", isDirectory: true)
+        }
+    }
 
     public init?(bundle: URL) {
         self.bundle = bundle
@@ -12,29 +44,59 @@ public struct DarwinSDK {
             self.version = String(decoding: version, as: UTF8.self)
                 .trimmingCharacters(in: .whitespacesAndNewlines)
         } else if ["darwin.xtoolsdk", "darwin.artifactbundle"].contains(bundle.lastPathComponent) {
-            self.version = "unknown"
+            self.version = "develop"
         } else {
             return nil
+        }
+
+        if version == "develop" {
+            self.flavor = .legacy
+        } else if bundle.appendingPathComponent("Xcode.app").dirExists {
+            self.flavor = .normal
+        } else {
+            self.flavor = .slim
         }
     }
 
     public static func install(from path: String) async throws {
-        // we can't just move into ~/.swiftpm/swift-sdks because the swiftpm directory
-        // location depends on factors like $XDG_CONFIG_HOME. Rather than replicating
-        // SwiftPM's logic, which may change, it's more reliable to directly invoke
-        // `swift sdk install`. See: https://github.com/xtool-org/xtool/pull/40
-
         let url = URL(fileURLWithPath: path)
         guard DarwinSDK(bundle: url) != nil else { throw StringError("Invalid Darwin SDK at '\(path)'")}
 
         try await addHostClangResourceDir(to: url)
 
+        let sdksDirectory = try swiftSDKsDirectory
+        try FileManager.default.createDirectory(
+            at: sdksDirectory,
+            withIntermediateDirectories: true
+        )
+        let destination = sdksDirectory.appendingPathComponent("darwin.artifactbundle", isDirectory: true)
+        try await movePreservingHardLinks(from: url, to: destination)
+    }
+
+    private static func copyPreservingHardLinks(from source: URL, to destination: URL) async throws {
         try await Subprocess.run(
-            .name("swift"),
-            arguments: ["sdk", "install", url.path],
+            .name("cp"),
+            arguments: ["-a", source.path, destination.path],
             output: .discarded
         )
         .checkSuccess()
+    }
+
+    private static func movePreservingHardLinks(from source: URL, to destination: URL) async throws {
+        let fileManager = FileManager.default
+        let sourceAttributes = try fileManager.attributesOfItem(atPath: source.path)
+        let destinationAttributes = try fileManager.attributesOfItem(
+            atPath: destination.deletingLastPathComponent().path
+        )
+        let sourceSystem = sourceAttributes[.systemNumber] as? NSNumber
+        let destinationSystem = destinationAttributes[.systemNumber] as? NSNumber
+
+        if let sourceSystem, let destinationSystem, sourceSystem == destinationSystem {
+            try fileManager.moveItem(at: source, to: destination)
+        } else {
+            try await copyPreservingHardLinks(from: source, to: destination)
+            try fileManager.removeItem(at: source)
+        }
     }
 
     private static func addHostClangResourceDir(to sdk: URL) async throws {
@@ -51,38 +113,10 @@ public struct DarwinSDK {
         try await FileManager.default.copyItem(at: hostInclude, to: sdkInclude, preserveOwner: false)
     }
 
-    public static func current() async throws -> DarwinSDK? {
-        let outputString: String
-        do {
-            outputString = try await Subprocess.run(
-                .name("swift"),
-                arguments: ["sdk", "configure", "darwin", "arm64-apple-ios", "--show-configuration"],
-                output: .string(limit: .max)
-            )
-            .checkSuccess()
-            .standardOutput
-            ?? ""
-        } catch SubprocessFailure.exited {
-            return nil
-        }
-
-        // should be something like
-        // swiftResourcesPath: /home/user/.swiftpm/swift-sdks/darwin.artifactbundle/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift
-        // swiftlint:disable:previous line_length
-        let resourcesPathPrefix = "swiftResourcesPath: "
-
-        guard let resourcesPath = outputString
-            .split(separator: "\n")
-            .first(where: { $0.hasPrefix(resourcesPathPrefix) })?
-            .dropFirst(resourcesPathPrefix.count)
-            else { return nil }
-
-        var resourcesURL = URL(fileURLWithPath: String(resourcesPath))
-        for _ in 0..<6 {
-            resourcesURL = resourcesURL.deletingLastPathComponent()
-        }
-
-        return DarwinSDK(bundle: resourcesURL)
+    public static func current() throws -> DarwinSDK? {
+        let bundle = try swiftSDKsDirectory.appendingPathComponent("darwin.artifactbundle", isDirectory: true)
+        guard bundle.dirExists else { return nil }
+        return DarwinSDK(bundle: bundle)
     }
 
     public func remove() throws {
