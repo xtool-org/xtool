@@ -64,7 +64,10 @@ function_parameter_count: 7
 implicit_return:
   included:
     - closure
+included:
+  - Package.swift
+  - Sources
+  - Tests
+  - macOS/XToolMac
 excluded:
-  - .build
-  - macOS/Build
   - Sources/DeveloperAPI/Generated
