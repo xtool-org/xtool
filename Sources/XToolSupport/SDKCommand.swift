@@ -11,6 +11,7 @@ struct SDKCommand: AsyncParsableCommand {
         abstract: "Manage the Darwin Swift SDK",
         subcommands: [
             DevSDKInstallCommand.self,
+            DevSDKUpdateCommand.self,
             DevSDKRemoveCommand.self,
             DevSDKBuildCommand.self,
             DevSDKStatusCommand.self,
@@ -92,6 +93,17 @@ struct DevSDKInstallCommand: AsyncParsableCommand {
     }
 }
 
+struct DevSDKUpdateCommand: AsyncParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "update",
+        abstract: "Update the installed Darwin Swift SDK"
+    )
+
+    func run() async throws {
+        try await UpdateSDKOperation().run()
+    }
+}
+
 struct DevSDKRemoveCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "remove",
@@ -99,7 +111,7 @@ struct DevSDKRemoveCommand: AsyncParsableCommand {
     )
 
     func run() async throws {
-        guard let sdk = try await DarwinSDK.current() else {
+        guard let sdk = DarwinSDK.current() else {
             throw Console.Error("Cannot remove SDK: no Darwin SDK installed")
         }
         try sdk.remove()
@@ -114,7 +126,7 @@ struct DevSDKStatusCommand: AsyncParsableCommand {
     )
 
     func run() async throws {
-        if let sdk = try await DarwinSDK.current() {
+        if let sdk = DarwinSDK.current() {
             print("Installed at \(sdk.bundle.path)")
         } else {
             print("Not installed")
@@ -123,8 +135,21 @@ struct DevSDKStatusCommand: AsyncParsableCommand {
 }
 
 struct DarwinSDK {
-    let bundle: URL
-    let version: String
+    var bundle: URL
+    var version: String
+
+    private static let swiftPMConfigDir: URL = {
+        // https://github.com/swiftlang/swift-package-manager/pull/7386
+        if let configHome = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"] {
+            URL(fileURLWithPath: configHome)
+                .appendingPathComponent("swiftpm")
+        } else {
+            URL(fileURLWithPath: NSHomeDirectory())
+                .appendingPathComponent(".swiftpm")
+        }
+    }()
+
+    private static let swiftSDKsDir = Self.swiftPMConfigDir.appendingPathComponent("swift-sdks")
 
     init?(bundle: URL) {
         self.bundle = bundle
@@ -138,56 +163,22 @@ struct DarwinSDK {
         }
     }
 
-    static func install(from path: String) async throws {
-        // we can't just move into ~/.swiftpm/swift-sdks because the swiftpm directory
-        // location depends on factors like $XDG_CONFIG_HOME. Rather than replicating
-        // SwiftPM's logic, which may change, it's more reliable to directly invoke
-        // `swift sdk install`. See: https://github.com/xtool-org/xtool/pull/40
+    mutating func install() throws {
+        let sdksDir = Self.swiftSDKsDir
+        try? FileManager.default.createDirectory(
+            at: sdksDir,
+            withIntermediateDirectories: true
+        )
 
-        let url = URL(fileURLWithPath: path)
-        guard DarwinSDK(bundle: url) != nil else { throw Console.Error("Invalid Darwin SDK at '\(path)'")}
-
-        let process = Process()
-        process.executableURL = try await ToolRegistry.locate("swift")
-        process.arguments = ["sdk", "install", url.path]
-        try await process.runUntilExit()
+        let destination = sdksDir.appendingPathComponent("darwin.artifactbundle")
+        try FileManager.default.moveItem(at: bundle, to: destination)
+        bundle = destination
     }
 
-    static func current() async throws -> DarwinSDK? {
-        let output = Pipe()
-
-        let process = Process()
-        process.executableURL = try await ToolRegistry.locate("swift")
-        process.arguments = ["sdk", "configure", "darwin", "arm64-apple-ios", "--show-configuration"]
-        process.standardOutput = output
-        process.standardError = FileHandle.nullDevice
-
-        async let outputData = Data(reading: output.fileHandleForReading)
-
-        do {
-            try await process.runUntilExit()
-        } catch Process.Failure.exit {
-            return nil
-        }
-
-        // should be something like
-        // swiftResourcesPath: /home/user/.swiftpm/swift-sdks/darwin.artifactbundle/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift
-        // swiftlint:disable:previous line_length
-        let resourcesPathPrefix = "swiftResourcesPath: "
-        let outputString = String(decoding: try await outputData, as: UTF8.self)
-
-        guard let resourcesPath = outputString
-            .split(separator: "\n")
-            .first(where: { $0.hasPrefix(resourcesPathPrefix) })?
-            .dropFirst(resourcesPathPrefix.count)
-            else { return nil }
-
-        var resourcesURL = URL(fileURLWithPath: String(resourcesPath))
-        for _ in 0..<6 {
-            resourcesURL = resourcesURL.deletingLastPathComponent()
-        }
-
-        return DarwinSDK(bundle: resourcesURL)
+    static func current() -> DarwinSDK? {
+        let bundle = swiftSDKsDir.appendingPathComponent("darwin.artifactbundle")
+        guard bundle.dirExists else { return nil }
+        return DarwinSDK(bundle: bundle)
     }
 
     func isUpToDate() -> Bool {
@@ -242,21 +233,63 @@ struct InstallSDKOperation {
         #if os(macOS)
         print("Skipping SDK install; the iOS SDK ships with Xcode on macOS")
         #else
-        if let sdk = try await DarwinSDK.current() {
+        let input = try SDKBuilder.Input(path: path)
+        let arch = try ArchSelection.auto.sdkBuilderArch
+
+        let tempDir = try TemporaryDirectory(name: "DarwinSDKBuild")
+
+        if let existing = DarwinSDK.current() {
             print("Removing existing SDK...")
-            try sdk.remove()
+            try existing.remove()
         }
 
-        let input = try SDKBuilder.Input(path: path)
+        let builder = SDKBuilder(input: input, outputPath: tempDir.url.path, arch: arch)
+        let sdkPath = try await builder.buildSDK()
+
+        guard var sdk = DarwinSDK(bundle: URL(fileURLWithPath: sdkPath)) else {
+            throw Console.Error("Invalid Darwin SDK at '\(sdkPath)'")
+        }
+        try sdk.install()
+
+        print("Installed SDK")
+
+        // don't destroy tempDir before this point
+        withExtendedLifetime(tempDir) {}
+        #endif
+    }
+}
+
+struct UpdateSDKOperation {
+    func run() async throws {
+        #if os(macOS)
+        print("Skipping SDK install; the iOS SDK ships with Xcode on macOS")
+        #else
+        guard let existing = DarwinSDK.current() else {
+            throw Console.Error("Could not locate existing SDK; cannot perform update.")
+        }
+        let xcode = existing.bundle.appendingPathComponent("Xcode.app")
+
+        let input = try SDKBuilder.Input(path: xcode.path, update: true)
         let arch = try ArchSelection.auto.sdkBuilderArch
 
         let tempDir = try TemporaryDirectory(name: "DarwinSDKBuild")
         let builder = SDKBuilder(input: input, outputPath: tempDir.url.path, arch: arch)
         let sdkPath = try await builder.buildSDK()
+        let sdkURL = URL(fileURLWithPath: sdkPath)
 
-        try await DarwinSDK.install(from: sdkPath)
+        guard var sdk = DarwinSDK(bundle: sdkURL) else {
+            throw Console.Error("Invalid Darwin SDK at '\(sdkPath)'")
+        }
 
-        // don't destroy tempDir before this point
+        try FileManager.default.moveItem(
+            at: xcode,
+            to: sdkURL.appendingPathComponent("Xcode.app")
+        )
+        try existing.remove()
+        try sdk.install()
+
+        print("Updated SDK")
+
         withExtendedLifetime(tempDir) {}
         #endif
     }
