@@ -52,13 +52,41 @@ struct SDKBuilder {
         }
     }
 
+    enum Mode {
+        /// Create a slim SDK with just the files that this version of xtool uses
+        case buildSlim
+        /// Create an SDK that retains a full copy of Xcode.app. Larger but allows in-place updates.
+        case buildNormal
+        /// Update a normal SDK in-place.
+        case update
+
+        var usesHardLinks: Bool {
+            switch self {
+            case .buildSlim: false
+            case .buildNormal, .update: true
+            }
+        }
+    }
+
     let input: Input
     let output: URL
     let arch: Arch
+    let mode: Mode
+
+    // bump this when the sdk builder logic changes
+    static let sdkEpoch = 1
+
+    // tag from https://github.com/xtool-org/darwin-tools-linux-llvm
+    static let darwinToolsVersion = "1.0.1"
+
+    static var currentSDKVersion: String {
+        """
+        epoch=\(sdkEpoch),darwinTools=\(darwinToolsVersion)
+        """
+    }
 
     func buildSDK() async throws {
-        // TODO: store relevant info for staleness check
-        let sdkVersion = "develop"
+        let sdkVersion = Self.currentSDKVersion
 
         try? FileManager.default.removeItem(at: output)
         try FileManager.default.createDirectory(
@@ -170,9 +198,6 @@ struct SDKBuilder {
     }
 
     private func installToolset(in output: URL) async throws {
-        // tag from https://github.com/xtool-org/darwin-tools-linux-llvm
-        let darwinToolsVersion = "1.0.1"
-
         let toolsetDir = output.appendingPathComponent("toolset")
 
         try FileManager.default.createDirectory(
@@ -183,7 +208,7 @@ struct SDKBuilder {
         @Dependency(\.httpClient) var httpClient
         let url = URL(string: """
         https://github.com/xtool-org/darwin-tools-linux-llvm/releases/download/\
-        v\(darwinToolsVersion)/toolset-\(arch.rawValue).tar.gz
+        v\(Self.darwinToolsVersion)/toolset-\(arch.rawValue).tar.gz
         """)!
         let (response, body) = try await httpClient.send(HTTPRequest(url: url))
         guard response.status == 200, let body else { throw Console.Error("Could not fetch toolset") }
@@ -224,23 +249,19 @@ struct SDKBuilder {
     private func installDeveloper(in output: URL) async throws -> URL {
         let dev = output.appendingPathComponent("Developer")
 
+        let expectedAppDir = output.appendingPathComponent("Xcode.app")
         let appDir: URL
         let cleanupStageDir: URL?
         let wanted: Int?
 
-        switch input {
-        case .xip(let inputPath):
-            let devStage = output.appendingPathComponent("DeveloperStage")
-            try FileManager.default.createDirectory(at: devStage, withIntermediateDirectories: false)
-            // unxip doesn't like cooperative cancellation atm so shield it.
-            // if the user does a ^C during unxip, we'll just wait until extraction
-            // is over before bailing
-            wanted = try await Task {
-                try await extractXIP(inputPath: inputPath, outDir: devStage.path)
-            }.value
+        switch (input, mode) {
+        case (.xip(let inputPath), .buildSlim):
+            let stage = output.appendingPathComponent("DeveloperStage")
+            try FileManager.default.createDirectory(at: stage, withIntermediateDirectories: false)
+            wanted = try await extractXIP(inputPath: inputPath, outDir: stage.path)
             try Task.checkCancellation()
             let contents = try FileManager.default.contentsOfDirectory(
-                at: devStage,
+                at: stage,
                 includingPropertiesForKeys: nil
             )
             let apps = contents.filter { $0.pathExtension == "app" }
@@ -252,12 +273,25 @@ struct SDKBuilder {
             default:
                 throw Console.Error("Unrecognized xip layout (multiple apps found)")
             }
-            cleanupStageDir = devStage
-        case .app(let appPath):
-            wanted = nil
+            cleanupStageDir = stage
+        case (.xip(let inputPath), .buildNormal):
+            wanted = try await extractXIP(inputPath: inputPath, outDir: output.path)
+            appDir = expectedAppDir
+            cleanupStageDir = nil
+        case (.xip, .update):
+            throw Console.Error("Can't update with xip input")
+        case (.app(let appPath), .buildSlim), (.app(let appPath), .update):
             appDir = URL(fileURLWithPath: appPath)
+            wanted = nil
+            cleanupStageDir = nil
+        case (.app(let appPath), .buildNormal):
+            let source = URL(fileURLWithPath: appPath)
+            try await FileManager.default.copyItem(at: source, to: expectedAppDir, preserveOwner: false)
+            appDir = expectedAppDir
+            wanted = nil
             cleanupStageDir = nil
         }
+        try Task.checkCancellation()
 
         try FileManager.default.createDirectory(at: dev, withIntermediateDirectories: false)
 
@@ -280,7 +314,7 @@ struct SDKBuilder {
                 }
                 if count % 100 == 0 {
                     if wanted == nil {
-                        print("\r[Installing SDKs] Copied \(count) files", terminator: "")
+                        print("\r[Installing SDKs] Installed \(count) files", terminator: "")
                         fflush(stdoutSafe)
                     }
                     await Task.yield()
@@ -293,7 +327,11 @@ struct SDKBuilder {
                 if try child.resourceValues(forKeys: [.isDirectoryKey]).isDirectory == true {
                     toDoDirs.append(path)
                     try FileManager.default.createDirectory(at: dest, withIntermediateDirectories: false)
+                } else if mode.usesHardLinks {
+                    // Installed SDKs retain Xcode.app, so avoid storing their developer files twice.
+                    try FileManager.default.linkItem(at: child, to: dest)
                 } else {
+                    // Slim SDKs omit Xcode.app and contain independent copies.
                     try FileManager.default.copyItem(at: child, to: dest)
                 }
             }
@@ -305,9 +343,9 @@ struct SDKBuilder {
         }
         print()
 
-        print("[Cleaning up]")
         if let cleanupStageDir {
-            try? FileManager.default.removeItem(at: cleanupStageDir)
+            print("[Cleaning up]")
+            try FileManager.default.removeItem(at: cleanupStageDir)
         }
 
         print("[Finalizing SDKs]")
@@ -357,9 +395,18 @@ struct SDKBuilder {
         return dev
     }
 
+    private func extractXIP(inputPath: String, outDir: String) async throws -> Int {
+        // unxip doesn't like cooperative cancellation atm so shield it.
+        // if the user does a ^C during unxip, we'll just wait until extraction
+        // is over before bailing
+        try await Task {
+            try await _extractXIP(inputPath: inputPath, outDir: outDir)
+        }.value
+    }
+
     // returns the number of files we actually want to keep,
     // useful for computing progress % during fs traversal
-    private func extractXIP(inputPath: String, outDir: String) async throws -> Int {
+    private func _extractXIP(inputPath: String, outDir: String) async throws -> Int {
         let fd = try FileDescriptor.open(inputPath, .readOnly)
         defer { try? fd.close() }
 

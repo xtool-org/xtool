@@ -27,6 +27,8 @@ struct PackOperation {
 
     @discardableResult
     func run() async throws -> URL {
+        try await EnsureSDKOperation(quiet: true).run()
+
         print("Planning...")
 
         let schema: PackSchema
