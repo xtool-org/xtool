@@ -101,7 +101,6 @@ struct DevXcodeCommand: AsyncParsableCommand {
     }
 }
 
-
 struct DevBuildCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "build",

@@ -6,11 +6,14 @@ import OpenAPIURLSession
 import Dependencies
 
 extension DeveloperAPIClient {
+    @TaskLocal fileprivate static var cursor: [URLQueryItem] = []
+
     public init(
         auth: DeveloperAPIAuthData
     ) {
         @Dependency(\.httpClient) var httpClient
         self.init(
+            // swiftlint:disable:next force_try
             serverURL: try! Servers.Server1.url(),
             configuration: .init(
                 dateTranscoder: .iso8601WithFractionalSeconds
@@ -21,6 +24,39 @@ extension DeveloperAPIClient {
                 LoggingMiddleware(),
             ]
         )
+    }
+
+    /// Perform a paginated request, starting at the page given by `link`.
+    ///
+    /// `link` should be a URL that contains a `cursor` query parameter. The
+    /// cursor will be applied to any requests made inside the closure.
+    public static func withNextLink<T>(
+        _ link: String?,
+        isolation: isolated (any Actor)? = #isolation,
+        perform action: () async throws -> T
+    ) async throws -> T {
+        let cursor: [URLQueryItem]
+
+        if let link {
+            guard let components = URLComponents(string: link),
+                  let newOffset = components.queryItems?.first(where: { $0.name == "cursor" }),
+                  let newLimit = components.queryItems?.first(where: { $0.name == "limit" })
+                  else { throw Errors.badNextLink(link) }
+            // the next value will contain a cursor (offset) *and* a limit even if we didn't
+            // provide a limit in our initial request. we need to include the limit in subsequent
+            // requests, otherwise the cursor isn't respected.
+            cursor = [newOffset, newLimit]
+        } else {
+            cursor = []
+        }
+
+        return try await $cursor.withValue(cursor) {
+            try await action()
+        }
+    }
+
+    public enum Errors: Error {
+        case badNextLink(String)
     }
 }
 
@@ -126,9 +162,13 @@ public struct DeveloperAPIXcodeAuthMiddleware: ClientMiddleware {
 
             let path = request.path ?? "/"
             var components = URLComponents(string: path) ?? .init()
-            components.queryItems = (components.queryItems ?? []) + [
+
+            var items = components.queryItems ?? []
+            items.upsertQueryItems(DeveloperAPIClient.cursor + [
                 URLQueryItem(name: "teamId", value: authData.teamID.rawValue)
-            ]
+            ])
+            components.queryItems = items
+
             let query = components.percentEncodedQuery ?? ""
 
             components.query = nil
@@ -214,69 +254,28 @@ public struct DeveloperAPIASCAuthMiddleware: ClientMiddleware {
             _ baseURL: URL
         ) async throws -> (HTTPResponse, HTTPBody?)
     ) async throws -> (HTTPResponse, HTTPBody?) {
-        let jwt = try await generator.generate()
         var request = request
+
+        let jwt = try await generator.generate()
         request.headerFields[.authorization] = "Bearer \(jwt)"
+
+        let cursor = DeveloperAPIClient.cursor
+        if !cursor.isEmpty {
+            var components = URLComponents(string: request.path ?? "") ?? .init()
+            var items = components.queryItems ?? []
+            items.upsertQueryItems(cursor)
+            components.queryItems = items
+            request.path = components.string
+        }
+
         return try await next(request, body, baseURL)
     }
 }
 
-struct LoggingMiddleware: ClientMiddleware {
-    static let regex: NSRegularExpression? = {
-        guard let pat = ProcessInfo.processInfo.environment["XTL_DEV_LOG"] else { return nil }
-        return try? NSRegularExpression(pattern: pat)
-    }()
-
-    func intercept(
-        _ request: HTTPRequest,
-        body: HTTPBody?,
-        baseURL: URL,
-        operationID: String,
-        next: (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
-    ) async throws -> (HTTPResponse, HTTPBody?) {
-        var (response, body) = try await next(request, body, baseURL)
-
-        guard Self.regex?.firstMatch(
-                  in: operationID,
-                  range: NSRange(operationID.startIndex..., in: operationID)
-              ) != nil
-              else { return (response, body) }
-
-        print("\n\(operationID) response status -> \(response.status)")
-
-        if let unwrapped = body {
-            let data = try await Data(collecting: unwrapped, upTo: .max)
-            // body may only be consumable once, replace it with the collected data
-            body = .init(data)
-
-            let text = String(decoding: data, as: UTF8.self)
-            print("\(operationID) response body -> \(text)")
-        }
-
-        return (response, body)
+extension [URLQueryItem] {
+    fileprivate mutating func upsertQueryItems(_ items: [URLQueryItem]) {
+        let newNames = Set(items.map(\.name))
+        removeAll { newNames.contains($0.name) }
+        append(contentsOf: items)
     }
 }
-
-// syntactic sugar to make it nicer to work with `anyOf:` types
-public protocol OpenAPIExtensibleEnum {
-    associatedtype Value1Payload: RawRepresentable<String>, Codable, Hashable, Sendable, CaseIterable
-    var value1: Value1Payload? { get set }
-    var value2: String? { get set }
-
-    init(value1: Value1Payload?, value2: String?)
-}
-
-extension OpenAPIExtensibleEnum {
-    public var rawValue: String {
-        value2!
-    }
-
-    public init(_ value: Value1Payload) {
-        self.init(value1: value, value2: nil)
-    }
-}
-
-extension Components.Schemas.BundleIdPlatform: OpenAPIExtensibleEnum {}
-extension Components.Schemas.CapabilityType: OpenAPIExtensibleEnum {}
-extension Components.Schemas.CertificateType: OpenAPIExtensibleEnum {}
-extension Components.Schemas.Device.AttributesPayload.DeviceClassPayload: OpenAPIExtensibleEnum {}

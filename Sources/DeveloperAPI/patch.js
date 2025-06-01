@@ -39,6 +39,29 @@ function makeOpen(enumSchema) {
   });
 }
 
+function openAll(schema, path = []) {
+  if (Array.isArray(schema)) {
+    schema.forEach((s, i) => openAll(s, [...path, i]))
+  } else if (typeof schema === 'object' && schema !== null) {
+    const keys = new Set(Object.keys(schema))
+    if (keys.size === 2 
+        && keys.has('type') 
+        && keys.has('enum') 
+        && schema.type === 'string'
+        && Array.isArray(schema.enum)) {
+      // several polymorphic schemas have a field literally named 'type', that always has a single case.
+      // skip that instance, but make all other enums open.
+      if (!(path[path.length - 1] === 'type' && schema.enum.length === 1)) {
+        makeOpen(schema);
+      }
+    } else {
+      for (const key in schema) {
+        openAll(schema[key], [...path, key]);
+      }
+    }
+  }
+}
+
 function patch(schema) {
   const schemas = schema.components.schemas;
   
@@ -71,12 +94,11 @@ function patch(schema) {
   schemas.App.properties.relationships.properties.inAppPurchases.deprecated = false;
   
   // openapi-generator expects response enums to be exhaustive. Apple's ASC OpenAPI spec
-  // misses some cases that they do, actually, return.
+  // misses some cases that they do, actually, return. So we make all bona fide enums in
+  // schema.components.schemas open. We don't do this on the schema.paths side because
+  // most (all?) of the enums in there are on the request side rather than the response.
   // https://swiftpackageindex.com/apple/swift-openapi-generator/1.7.2/documentation/swift-openapi-generator/useful-openapi-patterns#Open-enums-and-oneOfs
-  makeOpen(schemas.BundleIdPlatform);
-  makeOpen(schemas.CapabilityType);
-  makeOpen(schemas.CertificateType);
-  makeOpen(schemas.Device.properties.attributes.properties.deviceClass);
+  openAll(schemas);
   
   return schema;
 }

@@ -80,7 +80,7 @@ public struct DeveloperServicesFetchProfileOperation: DeveloperServicesOperation
                         _type: .profiles,
                         attributes: .init(
                             name: "XTL profile \(bundleID.id)",
-                            profileType: .iosAppDevelopment
+                            profileType: .init(.iosAppDevelopment)
                         ),
                         relationships: .init(
                             bundleId: .init(

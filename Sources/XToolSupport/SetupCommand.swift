@@ -42,11 +42,11 @@ struct SetupOperation {
         case nil:
             let path = try await Console.prompt("""
             Now generating the Darwin SDK.
-            
+
             Please download Xcode from http://developer.apple.com/download/all/?q=Xcode
             and enter the path to the downloaded Xcode.xip.
-            
-            Path to Xcode.xip: 
+
+            Path to Xcode.xip: \("" /* pacify swiftlint trailing_whitespace */)
             """)
 
             let expanded = (path as NSString).expandingTildeInPath

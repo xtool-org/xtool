@@ -22,9 +22,18 @@ struct DSProfilesListCommand: AsyncParsableCommand {
 
     private static let encoder = JSONEncoder()
 
+    // swiftlint:disable:next cyclomatic_complexity
     func run() async throws {
         let client = DeveloperAPIClient(auth: try AuthToken.saved().authData())
-        let profiles = try await client.profilesGetCollection().ok.body.json.data
+
+        let profiles = try await DeveloperAPIPages {
+            try await client.profilesGetCollection().ok.body.json
+        } next: {
+            $0.links.next
+        }
+        .map(\.data)
+        .reduce(into: [], +=)
+
         for profile in profiles {
             print("- id: \(profile.id)")
             guard let attributes = profile.attributes else {

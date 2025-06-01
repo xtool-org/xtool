@@ -41,14 +41,22 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
     private func upsertApp(
         bundleID: String,
         entitlements: Entitlements,
-        isFreeTeam: Bool,
-        appIDs: [String: Components.Schemas.BundleId]
+        isFreeTeam: Bool
     ) async throws -> Components.Schemas.BundleId {
+        let newBundleID = ProvisioningIdentifiers.identifier(fromSanitized: bundleID, context: self.context)
+
+        let existing = try await context.developerAPIClient
+            .bundleIdsGetCollection(query: .init(
+                filter_lbrack_identifier_rbrack_: [bundleID]
+            ))
+            .ok.body.json.data
+            // filter[identifier] is a prefix filter so we need to manually upgrade to equality
+            .first(where: { $0.attributes?.identifier == newBundleID })
+
         let appID: Components.Schemas.BundleId
-        if let existing = appIDs[bundleID] {
+        if let existing {
             appID = existing
         } else {
-            let newBundleID = ProvisioningIdentifiers.identifier(fromSanitized: bundleID, context: self.context)
             let name = ProvisioningIdentifiers.appName(fromSanitized: bundleID)
             let createResponse = try await context.developerAPIClient.bundleIdsCreateInstance(
                 body: .json(
@@ -150,8 +158,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
     /// that the app has).
     private func addApp(
         _ app: URL,
-        isFreeTeam: Bool,
-        appIDs: [String: Components.Schemas.BundleId]
+        isFreeTeam: Bool
     ) async throws -> ProvisioningInfo {
         let infoURL = app.appendingPathComponent("Info.plist")
         guard let data = try? Data(contentsOf: infoURL),
@@ -179,7 +186,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
             entitlements = try Entitlements(entitlements: [])
         }
 
-        let appID = try await upsertApp(bundleID: bundleID, entitlements: entitlements, isFreeTeam: isFreeTeam, appIDs: appIDs)
+        let appID = try await upsertApp(bundleID: bundleID, entitlements: entitlements, isFreeTeam: isFreeTeam)
         let newBundleID = appID.attributes!.identifier!
 
         let teamID = try signingInfo.certificate.teamID()
@@ -225,17 +232,6 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
         )
     }
 
-    // keyed by sanitized bundle ID
-    private func getCurrentAppIDs() async throws -> [String: Components.Schemas.BundleId] {
-        let bundleIDs = try await context.developerAPIClient.bundleIdsGetCollection().ok.body.json.data
-        let keyedIDs = bundleIDs
-            .compactMap { id -> (String, Components.Schemas.BundleId)? in
-                guard let bundleID = id.attributes?.identifier else { return nil }
-                return (ProvisioningIdentifiers.sanitize(identifier: bundleID), id)
-            }
-        return Dictionary(keyedIDs, uniquingKeysWith: { $1 })
-    }
-
     /// Registers the app + its extensions, returning the profile and entitlements of each
     public func perform() async throws -> [URL: ProvisioningInfo] {
         var apps: [URL] = [root]
@@ -244,9 +240,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
             apps += plugins.implicitContents.filter { $0.pathExtension.lowercased() == "appex" }
         }
 
-        async let isFreeTeamTask = context.auth.team()?.isFree == true
-        async let appIDsTask = getCurrentAppIDs()
-        let (isFreeTeam, appIDs) = try await (isFreeTeamTask, appIDsTask)
+        let isFreeTeam = try await context.auth.team()?.isFree == true
 
         return try await withThrowingTaskGroup(
             of: (URL, ProvisioningInfo).self,
@@ -254,7 +248,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
         ) { group in
             for app in apps {
                 group.addTask {
-                    let info = try await addApp(app, isFreeTeam: isFreeTeam, appIDs: appIDs)
+                    let info = try await addApp(app, isFreeTeam: isFreeTeam)
                     return (app, info)
                 }
             }

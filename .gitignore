@@ -12,3 +12,4 @@ DerivedData/
 .docc-build
 
 /openapi
+/.tmp

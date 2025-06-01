@@ -21,6 +21,7 @@ struct NewCommand: AsyncParsableCommand {
         )
     ) var skipSetup = false
 
+    // swiftlint:disable:next function_body_length
     func run() async throws {
         if !skipSetup {
             // perform any remaining setup steps first
@@ -114,7 +115,7 @@ struct NewCommand: AsyncParsableCommand {
                 .swiftpm/configuration/registries.json
                 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
                 .netrc
-                
+
                 /xtool
                 """
             ),
@@ -134,7 +135,7 @@ struct NewCommand: AsyncParsableCommand {
                 "Sources/\(moduleName)/\(moduleName)App.swift",
                 """
                 import SwiftUI
-                
+
                 @main
                 struct \(moduleName)App: App {
                     var body: some Scene {
@@ -150,7 +151,7 @@ struct NewCommand: AsyncParsableCommand {
                 "Sources/\(moduleName)/ContentView.swift",
                 """
                 import SwiftUI
-                
+
                 struct ContentView: View {
                     var body: some View {
                         VStack {

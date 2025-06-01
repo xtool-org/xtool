@@ -16,12 +16,35 @@ struct SDKBuilder {
         case app(String)
 
         init(path: String) throws {
-            if path.hasSuffix(".xip") {
-                self = .xip(path)
-            } else if path.hasSuffix(".app") || path.hasSuffix(".app/") {
+            var isDir: ObjCBool = false
+            guard FileManager.default.fileExists(atPath: path, isDirectory: &isDir) else {
+                throw Console.Error("Could not read file or directory at path '\(path)'")
+            }
+
+            let url = URL(fileURLWithPath: path)
+
+            if isDir.boolValue {
                 self = .app(path)
+                let devDir = url.appendingPathComponent("Contents/Developer")
+                guard devDir.dirExists else {
+                    throw Console.Error("""
+                    The provided directory at '\(path)' does not appear to be a version of Xcode: \
+                    could not read '\(devDir.path)'.
+                    """)
+                }
             } else {
-                throw Console.Error("Expected input path to end in .xip or .app")
+                self = .xip(path)
+                let handle = try FileHandle(forReadingFrom: url)
+                defer { try? handle.close() }
+
+                let expectedMagic = "xar!".utf8
+                let actualMagic = try handle.read(upToCount: expectedMagic.count) ?? Data()
+
+                guard actualMagic.elementsEqual(expectedMagic) else {
+                    throw Console.Error("""
+                    The file at '\(path)' does not appear to be a valid XIP file.
+                    """)
+                }
             }
         }
     }
@@ -196,6 +219,7 @@ struct SDKBuilder {
         try await tarExit
     }
 
+    // swiftlint:disable:next cyclomatic_complexity
     private func installDeveloper(in output: URL) async throws -> URL {
         let dev = output.appendingPathComponent("Developer")
 

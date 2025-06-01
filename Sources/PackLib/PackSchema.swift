@@ -73,6 +73,7 @@ public struct PackSchema: Sendable {
         }
     }
 
+    // swiftlint:disable:next force_try
     public static let `default` = try! PackSchema(validating: .init(
         version: .v1,
         orgID: "com.example"

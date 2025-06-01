@@ -10,7 +10,7 @@ import Foundation
 import SwiftyMobileDevice
 import ConcurrencyExtras
 
-public actor HeartbeatHandler: Sendable {
+public actor HeartbeatHandler {
     private struct Error: Swift.Error {}
 
     private struct ReceivedPacket: Decodable {

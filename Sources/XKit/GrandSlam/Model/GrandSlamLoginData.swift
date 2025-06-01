@@ -15,7 +15,7 @@ struct GrandSlamLoginData: Decodable {
     let cookie: Data
 
     var identityToken: String {
-        "\(adsid):\(idmsToken)".data(using: .utf8)!.base64EncodedString()
+        Data("\(adsid):\(idmsToken)".utf8).base64EncodedString()
     }
 
     private enum CodingKeys: String, CodingKey {
