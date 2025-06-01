@@ -24,36 +24,6 @@ struct SetupOperation {
 
     func run() async throws {
         try await AuthOperation(logoutFromExisting: false, quiet: quiet).run()
-
-        #if os(macOS)
-        if !quiet {
-            print("Skipping Darwin SDK setup since we're on macOS.")
-        }
-        #else
-        switch try await DarwinSDK.current()?.isUpToDate() {
-        case true?:
-            if !quiet {
-                print("Darwin SDK is up to date.")
-            }
-        case false?:
-            if !quiet {
-                print("Darwin SDK is outdated.")
-            }
-            fallthrough
-        case nil:
-            let path = try await Console.prompt("""
-            Now generating the Darwin SDK.
-
-            Please download Xcode from http://developer.apple.com/download/all/?q=Xcode
-            and enter the path to the downloaded Xcode.xip.
-
-            Path to Xcode.xip: \("" /* pacify swiftlint trailing_whitespace */)
-            """)
-
-            let expanded = (path as NSString).expandingTildeInPath
-
-            try await InstallSDKOperation(path: expanded).run()
-        }
-        #endif
+        try await EnsureSDKOperation(quiet: quiet).run()
     }
 }
