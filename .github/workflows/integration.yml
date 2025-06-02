@@ -13,7 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build
-        run: docker compose run --build --rm xtool Linux/build.sh
+        run: XTL_CONFIG=debug make linux-dist
       - name: Upload xtool
         uses: actions/upload-artifact@v4
         with:
