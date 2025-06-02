@@ -74,8 +74,8 @@ public struct Packer: Sendable {
         try await withThrowingTaskGroup(of: Void.self) { group in
             for product in plan.allProducts {
                 try Self._pack(
-                    product: product, 
-                    binDir: binDir, 
+                    product: product,
+                    binDir: binDir,
                     outputDir: product.resolveDir(outputDir),
                     &group
                 )
@@ -136,6 +136,7 @@ public struct Packer: Sendable {
                     let thinMagic = Data("!<thin>\n".utf8)
                     let bytes = try FileHandle(forReadingFrom: src).read(upToCount: magic.count)
                     // if the magic matches one of these it's a static archive; don't embed it.
+                    // swiftlint:disable line_length
                     // https://github.com/apple/llvm-project/blob/e716ff14c46490d2da6b240806c04e2beef01f40/llvm/include/llvm/Object/Archive.h#L33
                     if bytes != magic && bytes != thinMagic {
                         try await packFile(srcName: "\(name).framework", dstName: "Frameworks/\(name).framework", sign: true)
@@ -177,8 +178,9 @@ public struct Packer: Sendable {
 private extension BuildSettings {
     func swiftPMBuild(packageDir: String, product: Plan.Product) async throws -> Process {
         let additionalArgs: [String] = switch product.type {
-            case .application: []
-            case .appExtension: [
+        case .application: []
+        case .appExtension:
+          [
             // Link to Foundation framework which implements the entrypoint to _NSExtensionMain
             "-Xlinker", "-framework", "-Xlinker", "Foundation",
             // Set the entry point to _NSExtensionMain
@@ -191,7 +193,7 @@ private extension BuildSettings {
             "-Xcc", "-fapplication-extension",
             // Link to libraries if it is safe
             "-Xlinker", "-application_extension"
-            ]
+          ]
         }
         return try await swiftPMInvocation(
             forTool: "build",

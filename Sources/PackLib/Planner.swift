@@ -18,7 +18,6 @@ public struct Planner: Sendable {
         return decoder
     }()
 
-    // swiftlint:disable:next function_body_length cyclomatic_complexity
     public func createPlan() async throws -> Plan {
         // TODO: cache plan using (Package.swift+Package.resolved) as the key?
 
@@ -114,6 +113,7 @@ public struct Planner: Sendable {
         }
     }
 
+    // swiftlint:disable function_parameter_count cyclomatic_complexity
     private static func resolveProduct(
         from rootPackage: RootPackage,
         matching name: String?,
@@ -125,7 +125,7 @@ public struct Planner: Sendable {
         entitlementsPath: String?
     ) throws -> Plan.Product {
         let library = try selectLibrary(
-            from: rootPackage.products?.filter { $0.type == .autoLibrary } ?? [], 
+            from: rootPackage.products?.filter { $0.type == .autoLibrary } ?? [],
             matching: name
         )
         var resources: [Plan.Resource] = []

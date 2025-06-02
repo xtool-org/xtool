@@ -21,7 +21,7 @@ public struct XcodePacker {
         try? xtoolDir.delete()
         try projectDir.mkpath()
 
-        let fromProjectToRoot = try Path.init(".").relativePath(from: projectDir)
+        let fromProjectToRoot = try Path(".").relativePath(from: projectDir)
 
         guard let deploymentTarget = Version(tolerant: plan.deploymentTarget) else {
             throw StringError("Could not parse deployment target '\(plan.deploymentTarget)'")

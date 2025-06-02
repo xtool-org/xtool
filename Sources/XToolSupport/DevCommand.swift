@@ -74,7 +74,7 @@ struct PackOperation {
                 allEntitlements[product.resolveDir(bundle)] = entitlements
             }
         }
-        
+
         if !allEntitlements.isEmpty {
             print("Pseudo-signing...")
             try await Signer.first().sign(
