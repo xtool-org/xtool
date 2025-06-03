@@ -25,7 +25,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build
-        run: make mac DEVELOPMENT_TEAM='""'
+        run: |
+          brew install xcodegen
+          make mac DEVELOPMENT_TEAM='""'
       - name: Package
         run: (cd macOS/Build/XcodeInstall && zip -yqr xtool.app.zip xtool.app)
       - name: Upload
