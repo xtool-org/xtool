@@ -19,6 +19,20 @@ jobs:
         with:
           name: xtool-bin
           path: Linux/packages/xtool-aarch64.AppImage
+          compression-level: 0
+  build-mac:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: make mac DEVELOPMENT_TEAM='""'
+      - name: Package
+        run: (cd macOS/Build/XcodeInstall && zip -yqr xtool.app.zip xtool.app)
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: xtool-mac
+          path: macOS/Build/XcodeInstall/xtool.app
   test:
     needs: build-appimage
     runs-on: macos-15
@@ -27,14 +41,13 @@ jobs:
       - name: Download AppImage
         uses: actions/download-artifact@v4
         with:
-          name: xtool-bin
+          pattern: xtool-*
+          merge-multiple: true
           path: stage
-      - name: Fixup AppImage
-        run: chmod +x stage/xtool-aarch64.AppImage
-      - name: Build xtool
+      - name: Process artifacts
         run: |
-          swift build --product xtool
-          ln -fs "$PWD/.build/debug/xtool" /usr/local/bin/xtool
+          chmod +x stage/xtool-aarch64.AppImage
+          ln -fs "$PWD/stage/xtool.app/Contents/Resources/bin/xtool" /usr/local/bin/xtool
       # https://github.com/abiosoft/colima/issues/970#issuecomment-2224011277
       - name: Setup Docker
         run: |
