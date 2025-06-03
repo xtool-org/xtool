@@ -34,7 +34,7 @@ jobs:
           name: xtool-mac
           path: macOS/Build/XcodeInstall/xtool.app
   test:
-    needs: build-appimage
+    needs: [build-appimage, build-mac]
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
