@@ -28,11 +28,14 @@ jobs:
         run: |
           brew install xcodegen
           make mac DEVELOPMENT_TEAM='""'
+      - name: Package
+        run: (cd macOS/Build/XcodeInstall && zip -yqr xtool.app.zip xtool.app)
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: xtool-mac
-          path: macOS/Build/XcodeInstall/
+          path: macOS/Build/XcodeInstall/xtool.app.zip
+          compression-level: 0
   test:
     needs: [build-appimage, build-mac]
     runs-on: macos-15
@@ -47,6 +50,7 @@ jobs:
       - name: Process artifacts
         run: |
           chmod +x stage/xtool-aarch64.AppImage
+          unzip -q stage/xtool.app.zip -d stage
           ln -fs "$PWD/stage/xtool.app/Contents/Resources/bin/xtool" /usr/local/bin/xtool
       # https://github.com/abiosoft/colima/issues/970#issuecomment-2224011277
       - name: Setup Docker
