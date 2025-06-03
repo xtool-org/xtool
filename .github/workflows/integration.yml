@@ -28,13 +28,11 @@ jobs:
         run: |
           brew install xcodegen
           make mac DEVELOPMENT_TEAM='""'
-      - name: Package
-        run: (cd macOS/Build/XcodeInstall && zip -yqr xtool.app.zip xtool.app)
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: xtool-mac
-          path: macOS/Build/XcodeInstall/xtool.app
+          path: macOS/Build/XcodeInstall/
   test:
     needs: [build-appimage, build-mac]
     runs-on: macos-15
