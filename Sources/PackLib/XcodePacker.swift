@@ -23,8 +23,8 @@ public struct XcodePacker {
 
         let fromProjectToRoot = try Path(".").relativePath(from: projectDir)
 
-        guard let deploymentTarget = Version(tolerant: plan.deploymentTarget) else {
-            throw StringError("Could not parse deployment target '\(plan.deploymentTarget)'")
+        guard let deploymentTarget = Version(tolerant: plan.app.deploymentTarget) else {
+            throw StringError("Could not parse deployment target '\(plan.app.deploymentTarget)'")
         }
 
         let targets = try plan.allProducts.compactMap { product in
@@ -59,8 +59,9 @@ public struct XcodePacker {
             }
 
             let additionalDependencies: [Dependency] = if product.type == .application {
-                plan.allProducts.filter { $0.type != .application }
-                    .compactMap {
+                plan.allProducts
+                    .filter { $0.type != .application }
+                    .map {
                         Dependency(
                             type: .target,
                             reference: $0.targetName,
@@ -98,7 +99,7 @@ public struct XcodePacker {
         }
 
         let project = Project(
-            name: plan.targetName,
+            name: plan.app.targetName,
             targets: targets,
             packages: [
                 "RootPackage": .local(
@@ -116,8 +117,8 @@ public struct XcodePacker {
         // TODO: Handle plan.iconPath
 
         let generator = ProjectGenerator(project: project)
-        let xcodeproj = projectDir + "\(plan.product).xcodeproj"
-        let xcworkspace = xtoolDir + "\(plan.product).xcworkspace"
+        let xcodeproj = projectDir + "\(plan.app.product).xcodeproj"
+        let xcworkspace = xtoolDir + "\(plan.app.product).xcworkspace"
         do {
             let current = Path.current
             Path.current = xcodeproj.parent()

@@ -20,9 +20,9 @@ public struct Packer: Sendable {
             // swift-tools-version: 6.0
             import PackageDescription
             let package = Package(
-                name: "\(plan.product)-Builder",
+                name: "\(plan.app.product)-Builder",
                 platforms: [
-                    .iOS("\(plan.deploymentTarget)"),
+                    .iOS("\(plan.app.deploymentTarget)"),
                 ],
                 dependencies: [
                     .package(name: "RootPackage", path: "../.."),
@@ -74,9 +74,9 @@ public struct Packer: Sendable {
     public func pack() async throws -> URL {
         try await build()
 
-        let output = try TemporaryDirectory(name: plan.bundle)
+        let output = try TemporaryDirectory(name: "\(plan.app.product).app")
 
-        let outputDir = output.url
+        let outputURL = output.url
 
         let binDir = URL(
             fileURLWithPath: ".build/\(buildSettings.triple)/\(buildSettings.configuration.rawValue)",
@@ -88,7 +88,7 @@ public struct Packer: Sendable {
                 try Self._pack(
                     product: product,
                     binDir: binDir,
-                    outputDir: product.resolveDir(outputDir),
+                    outputURL: product.directory(inApp: outputURL),
                     &group
                 )
             }
@@ -105,7 +105,7 @@ public struct Packer: Sendable {
             }
         }
 
-        let dest = URL(fileURLWithPath: "xtool").appendingPathComponent(outputDir.lastPathComponent)
+        let dest = URL(fileURLWithPath: "xtool").appendingPathComponent(outputURL.lastPathComponent)
         try? FileManager.default.removeItem(at: dest)
         try output.persist(at: dest)
         return dest
@@ -114,12 +114,12 @@ public struct Packer: Sendable {
     @Sendable private static func _pack(
         product: Plan.Product,
         binDir: URL,
-        outputDir: URL,
+        outputURL: URL,
         _ group: inout ThrowingTaskGroup<Void, Error>
     ) throws {
         @Sendable func packFileToRoot(srcName: String) async throws {
             let srcURL = URL(fileURLWithPath: srcName)
-            let destURL = outputDir.appendingPathComponent(srcURL.lastPathComponent)
+            let destURL = outputURL.appendingPathComponent(srcURL.lastPathComponent)
             try FileManager.default.copyItem(at: srcURL, to: destURL)
 
             try Task.checkCancellation()
@@ -127,15 +127,15 @@ public struct Packer: Sendable {
 
         @Sendable func packFile(srcName: String, dstName: String? = nil, sign: Bool = false) async throws {
             let srcURL = URL(fileURLWithPath: srcName, relativeTo: binDir)
-            let dstURL = URL(fileURLWithPath: dstName ?? srcURL.lastPathComponent, relativeTo: outputDir)
-            try FileManager.default.createDirectory(at: dstURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+            let dstURL = URL(fileURLWithPath: dstName ?? srcURL.lastPathComponent, relativeTo: outputURL)
+            try? FileManager.default.createDirectory(at: dstURL.deletingLastPathComponent(), withIntermediateDirectories: true)
             try FileManager.default.copyItem(at: srcURL, to: dstURL)
 
             try Task.checkCancellation()
         }
 
         // Ensure output directory is available
-        try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: outputURL, withIntermediateDirectories: true)
 
         for command in product.resources {
             group.addTask {
@@ -148,8 +148,8 @@ public struct Packer: Sendable {
                     let thinMagic = Data("!<thin>\n".utf8)
                     let bytes = try FileHandle(forReadingFrom: src).read(upToCount: magic.count)
                     // if the magic matches one of these it's a static archive; don't embed it.
-                    // swiftlint:disable line_length
                     // https://github.com/apple/llvm-project/blob/e716ff14c46490d2da6b240806c04e2beef01f40/llvm/include/llvm/Object/Archive.h#L33
+                    // swiftlint:disable:previous line_length
                     if bytes != magic && bytes != thinMagic {
                         try await packFile(srcName: "\(name).framework", dstName: "Frameworks/\(name).framework", sign: true)
                     }
@@ -176,7 +176,7 @@ public struct Packer: Sendable {
                 info["CFBundleIconFile"] = iconName
             }
 
-            let infoPath = outputDir.appendingPathComponent("Info.plist")
+            let infoPath = outputURL.appendingPathComponent("Info.plist")
             let encodedPlist = try PropertyListSerialization.data(
                 fromPropertyList: info,
                 format: .xml,

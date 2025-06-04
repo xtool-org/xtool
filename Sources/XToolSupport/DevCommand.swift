@@ -71,7 +71,7 @@ struct PackOperation {
                 let data = try await Data(reading: URL(fileURLWithPath: entitlementsPath))
                 let decoder = PropertyListDecoder()
                 let entitlements = try decoder.decode(Entitlements.self, from: data)
-                allEntitlements[product.resolveDir(bundle)] = entitlements
+                allEntitlements[product.directory(inApp: bundle)] = entitlements
             }
         }
 

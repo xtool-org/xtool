@@ -26,7 +26,10 @@ public struct Planner: Sendable {
             path: buildSettings.packagePath
         )
 
-        let rootPackage = try await RootPackage(from: dependencyData, dumpPackage: self.dumpPackage)
+        let rootPackage = try await RootPackage(
+            from: dependencyData,
+            dumpPackage: self.dumpPackage
+        )
 
         let product = try Self.resolveProduct(
             from: rootPackage,
@@ -39,7 +42,7 @@ public struct Planner: Sendable {
             entitlementsPath: schema.entitlementsPath
         )
 
-        let extensions = try (schema.extensions ?? []).compactMap {
+        let extensions = try (schema.extensions ?? []).map {
             try Self.resolveProduct(
                 from: rootPackage,
                 matching: $0.product,
@@ -53,64 +56,9 @@ public struct Planner: Sendable {
         }
 
         return Plan(
-            base: product,
+            app: product,
             extensions: extensions
         )
-    }
-
-    private func dumpPackage(at path: String) async throws -> PackageDump {
-        let data = try await _dumpAction(arguments: ["describe", "--type", "json"], path: path)
-        try Task.checkCancellation()
-        return try Self.decoder.decode(PackageDump.self, from: data)
-    }
-
-    private func _dumpAction(arguments: [String], path: String) async throws -> Data {
-        let dump = try await buildSettings.swiftPMInvocation(
-            forTool: "package",
-            arguments: arguments,
-            packagePathOverride: path
-        )
-        let pipe = Pipe()
-        dump.standardOutput = pipe
-        async let task = Data(reading: pipe.fileHandleForReading)
-        try await dump.runUntilExit()
-        return try await task
-    }
-
-    private static func selectLibrary(
-        from products: [PackageDump.Product],
-        matching name: String?
-    ) throws -> PackageDump.Product {
-        switch products.count {
-        case 0:
-            throw StringError("No library products were found in the package")
-        case 1:
-            let product = products[0]
-            if let name, product.name != name {
-                throw StringError(
-                    """
-                    Product name ('\(product.name)') does not match the 'product' value in the schema ('\(name)')
-                    """)
-            }
-            return product
-        default:
-            guard let name else {
-                throw StringError(
-                    """
-                    Multiple library products were found (\(products.map(\.name))). Please either:
-                    1) Expose exactly one library product, or
-                    2) Specify the product you want via the 'product' key in xtool.yml.
-                    """)
-            }
-            guard let product = products.first(where: { $0.name == name }) else {
-                throw StringError(
-                    """
-                    Schema declares a 'product' name of '\(name)' but no matching product was found.
-                    Found: \(products.map(\.name)).
-                    """)
-            }
-            return product
-        }
     }
 
     // swiftlint:disable function_parameter_count cyclomatic_complexity
@@ -171,7 +119,7 @@ public struct Planner: Sendable {
             "CFBundleName": library.name,
             "CFBundleExecutable": library.name,
             "CFBundleDisplayName": library.name,
-            "CFBundlePackageType": type == .appExtension ? "XPC!" : "APPL"
+            "CFBundlePackageType": type.fourCharCode,
         ]
 
         switch type {
@@ -214,19 +162,69 @@ public struct Planner: Sendable {
             entitlementsPath: entitlementsPath
         )
     }
+
+    private func dumpPackage(at path: String) async throws -> PackageDump {
+        let data = try await _dumpAction(arguments: ["describe", "--type", "json"], path: path)
+        try Task.checkCancellation()
+        return try Self.decoder.decode(PackageDump.self, from: data)
+    }
+
+    private func _dumpAction(arguments: [String], path: String) async throws -> Data {
+        let dump = try await buildSettings.swiftPMInvocation(
+            forTool: "package",
+            arguments: arguments,
+            packagePathOverride: path
+        )
+        let pipe = Pipe()
+        dump.standardOutput = pipe
+        async let task = Data(reading: pipe.fileHandleForReading)
+        try await dump.runUntilExit()
+        return try await task
+    }
+
+    private static func selectLibrary(
+        from products: [PackageDump.Product],
+        matching name: String?
+    ) throws -> PackageDump.Product {
+        switch products.count {
+        case 0:
+            throw StringError("No library products were found in the package")
+        case 1:
+            let product = products[0]
+            if let name, product.name != name {
+                throw StringError(
+                    """
+                    Product name ('\(product.name)') does not match the 'product' value in the schema ('\(name)')
+                    """)
+            }
+            return product
+        default:
+            guard let name else {
+                throw StringError(
+                    """
+                    Multiple library products were found (\(products.map(\.name))). Please either:
+                    1) Expose exactly one library product, or
+                    2) Specify the product you want via the 'product' key in xtool.yml.
+                    """)
+            }
+            guard let product = products.first(where: { $0.name == name }) else {
+                throw StringError(
+                    """
+                    Schema declares a 'product' name of '\(name)' but no matching product was found.
+                    Found: \(products.map(\.name)).
+                    """)
+            }
+            return product
+        }
+    }
 }
 
-@dynamicMemberLookup
 public struct Plan: Sendable {
-    var base: Product
+    var app: Product
     public var extensions: [Product]
 
     public var allProducts: [Product] {
-        [base] + extensions
-    }
-
-    public subscript<Value>(dynamicMember keyPath: KeyPath<Product, Value>) -> Value {
-        self.base[keyPath: keyPath]
+        [app] + extensions
     }
 
     public enum Resource: Codable, Sendable {
@@ -246,30 +244,39 @@ public struct Plan: Sendable {
         public var iconPath: String?
         public var entitlementsPath: String?
 
-        public var bundleExt: String {
+        public var relativePath: String {
             switch type {
-            case .application: "app"
-            case .appExtension: "appex"
+            case .application: "."
+            case .appExtension: "./PlugIns/\(product).appex"
             }
         }
 
-        public var bundle: String { "\(self.product).\(self.bundleExt)" }
-
-        package var targetName: String {
-            "\(self.product)-\(self.type == .application ? "App" : "Extension")"
+        public var targetName: String {
+            "\(self.product)-\(self.type.targetSuffix)"
         }
 
-        package func resolveDir(_ baseDir: URL) -> URL {
-            switch self.type {
-            case .application: baseDir
-            case .appExtension: baseDir.appendingPathComponent("PlugIns/\(self.bundle)", isDirectory: true)
-            }
+        public func directory(inApp baseDir: URL) -> URL {
+            baseDir.appendingPathComponent(relativePath, isDirectory: true)
         }
     }
 
     public enum ProductType: Sendable {
         case application
         case appExtension
+
+        fileprivate var targetSuffix: String {
+            switch self {
+            case .application: "App"
+            case .appExtension: "Extension"
+            }
+        }
+
+        fileprivate var fourCharCode: String {
+            switch self {
+            case .application: "APPL"
+            case .appExtension: "XPC!"
+            }
+        }
     }
 }
 
@@ -353,7 +360,10 @@ private struct RootPackage {
     let packages: [String: PackageDump]
     let packagesByProductName: [String: String]
 
-    init(from data: Data, dumpPackage: @Sendable @escaping (_ path: String) async throws -> PackageDump) async throws {
+    init(
+        from data: Data,
+        dumpPackage: @Sendable @escaping (_ path: String) async throws -> PackageDump
+    ) async throws {
         let dependencyRoot = try Planner.decoder.decode(PackageDependency.self, from: data)
 
         self.packages = try await withThrowingTaskGroup(
