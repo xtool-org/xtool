@@ -35,7 +35,7 @@ public struct Packer: Sendable {
                                 name: "\($0.targetName)",
                                 dependencies: [
                                     .product(name: "\($0.product)", package: "RootPackage"),
-                                ]
+                                ]\($0.swiftPMFlags)
                             )
                             """
                         }
@@ -52,11 +52,23 @@ public struct Packer: Sendable {
             try Data().write(to: sources.appendingPathComponent("stub.c", isDirectory: false))
         }
 
-        for product in plan.allProducts {
-            let builder = try await buildSettings.swiftPMBuild(packageDir: packageDir.path, product: product)
-            builder.standardOutput = FileHandle.standardError
-            try await builder.runUntilExit()
-        }
+        let builder = try await buildSettings.swiftPMInvocation(
+            forTool: "build",
+            arguments: [
+                "--package-path", packageDir.path,
+                "--scratch-path", ".build",
+                // resolving can cause SwiftPM to overwrite the root package deps
+                // with just the deps needed for the builder package (which is to
+                // say, any "dev dependencies" of the root package may be removed.)
+                // fortunately we've already resolved the root package by this point
+                // in order to dump the plan, so we can skip resolution here to skirt
+                // the issue.
+                "--disable-automatic-resolution",
+                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
+            ]
+        )
+        builder.standardOutput = FileHandle.standardError
+        try await builder.runUntilExit()
     }
 
     public func pack() async throws -> URL {
@@ -175,41 +187,26 @@ public struct Packer: Sendable {
     }
 }
 
-private extension BuildSettings {
-    func swiftPMBuild(packageDir: String, product: Plan.Product) async throws -> Process {
-        let additionalArgs: [String] = switch product.type {
-        case .application: []
-        case .appExtension:
-          [
-            // Link to Foundation framework which implements the entrypoint to _NSExtensionMain
-            "-Xlinker", "-framework", "-Xlinker", "Foundation",
-            // Set the entry point to _NSExtensionMain
-            "-Xlinker", "-e", "-Xlinker", "_NSExtensionMain",
-            // Include frameworks that the host app may use
-            "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks",
-            // Show compiler errors if it tries to access unsafe APIs
-            "-Xswiftc", "-Xfrontend", "-Xswiftc", "-application-extension",
-            // Show compiler errors in Clang
-            "-Xcc", "-fapplication-extension",
-            // Link to libraries if it is safe
-            "-Xlinker", "-application_extension"
-          ]
+extension Plan.Product {
+    fileprivate var swiftPMFlags: String {
+        switch self.type {
+        case .application: ""
+        case .appExtension: """
+        ,
+        cSettings: [.unsafeFlags(["-fapplication-extension"])],
+        swiftSettings: [.unsafeFlags(["-application-extension"])],
+        linkerSettings: [
+            // Link to Foundation framework which implements the _NSExtensionMain entrypoint
+            .linkedFramework("Foundation"),
+            .unsafeFlags([
+                "-application-extension",
+                // Set the entry point to Foundation`_NSExtensionMain
+                "-Xlinker", "-e", "-Xlinker", "_NSExtensionMain",
+                // Include frameworks that the host app may use
+                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks",
+            ])
+        ]
+        """
         }
-        return try await swiftPMInvocation(
-            forTool: "build",
-            arguments: [
-                "--package-path", packageDir,
-                "--scratch-path", ".build",
-                "--product", product.targetName,
-                // resolving can cause SwiftPM to overwrite the root package deps
-                // with just the deps needed for the builder package (which is to
-                // say, any "dev dependencies" of the root package may be removed.)
-                // fortunately we've already resolved the root package by this point
-                // in order to dump the plan, so we can skip resolution here to skirt
-                // the issue.
-                "--disable-automatic-resolution",
-                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
-            ] + additionalArgs
-        )
     }
 }
