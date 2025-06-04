@@ -54,7 +54,7 @@ linux-clean:
 .PHONY: linux-dist
 # dist build for Linux
 linux-dist:
-	docker compose run --build --rm xtool Linux/build.sh
+	docker compose run --build -e XTL_CONFIG --rm xtool Linux/build.sh
 
 .PHONY: mac
 # dev build for macOS
