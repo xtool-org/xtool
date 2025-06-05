@@ -39,7 +39,7 @@ public struct Packer: Sendable {
                             )
                             """
                         }
-                        .joined(separator: ",\r\n")
+                        .joined(separator: ",\n")
                     )
                 ]
             )\n
