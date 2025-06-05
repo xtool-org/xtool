@@ -194,7 +194,7 @@ extension Plan.Product {
         case .appExtension: """
         ,
         cSettings: [.unsafeFlags(["-fapplication-extension"])],
-        swiftSettings: [.unsafeFlags(["-Xfrontend", "-application-extension"])],
+        swiftSettings: [.unsafeFlags(["-application-extension"])],
         linkerSettings: [
             // Link to Foundation framework which implements the _NSExtensionMain entrypoint
             .linkedFramework("Foundation"),
