@@ -194,16 +194,16 @@ extension Plan.Product {
         case .appExtension: """
         ,
         cSettings: [.unsafeFlags(["-fapplication-extension"])],
-        swiftSettings: [.unsafeFlags(["-application-extension"])],
+        swiftSettings: [.unsafeFlags(["-Xfrontend", "-application-extension"])],
         linkerSettings: [
             // Link to Foundation framework which implements the _NSExtensionMain entrypoint
             .linkedFramework("Foundation"),
             .unsafeFlags([
-                "-application-extension",
+                "-Xlinker", "-application_extension",
                 // Set the entry point to Foundation`_NSExtensionMain
                 "-Xlinker", "-e", "-Xlinker", "_NSExtensionMain",
                 // Include frameworks that the host app may use
-                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks",
+                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks"
             ])
         ]
         """
