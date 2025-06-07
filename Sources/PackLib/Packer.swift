@@ -35,7 +35,8 @@ public struct Packer: Sendable {
                                 name: "\($0.targetName)",
                                 dependencies: [
                                     .product(name: "\($0.product)", package: "RootPackage"),
-                                ]\($0.swiftPMFlags)
+                                ],
+                                linkerSettings: \($0.linkerSettings)
                             )
                             """
                         }
@@ -64,7 +65,6 @@ public struct Packer: Sendable {
                 // in order to dump the plan, so we can skip resolution here to skirt
                 // the issue.
                 "--disable-automatic-resolution",
-                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
             ]
         )
         builder.standardOutput = FileHandle.standardError
@@ -188,23 +188,27 @@ public struct Packer: Sendable {
 }
 
 extension Plan.Product {
-    fileprivate var swiftPMFlags: String {
+    fileprivate var linkerSettings: String {
         switch self.type {
-        case .application: ""
+        case .application: """
+        [
+            .unsafeFlags([
+                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
+            ]),
+        ]
+        """
         case .appExtension: """
-        ,
-        cSettings: [.unsafeFlags(["-fapplication-extension"])],
-        swiftSettings: [.unsafeFlags(["-application-extension"])],
-        linkerSettings: [
+        [
             // Link to Foundation framework which implements the _NSExtensionMain entrypoint
             .linkedFramework("Foundation"),
             .unsafeFlags([
-                "-Xlinker", "-application_extension",
                 // Set the entry point to Foundation`_NSExtensionMain
                 "-Xlinker", "-e", "-Xlinker", "_NSExtensionMain",
                 // Include frameworks that the host app may use
-                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks"
-            ])
+                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks",
+                // ...as well as our own
+                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
+            ]),
         ]
         """
         }
