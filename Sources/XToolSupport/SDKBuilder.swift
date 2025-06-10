@@ -238,7 +238,19 @@ struct SDKBuilder {
                 try await extractXIP(inputPath: inputPath, outDir: devStage.path)
             }.value
             try Task.checkCancellation()
-            appDir = devStage.appendingPathComponent("Xcode.app")
+            let contents = try FileManager.default.contentsOfDirectory(
+                at: devStage,
+                includingPropertiesForKeys: nil
+            )
+            let apps = contents.filter { $0.pathExtension == "app" }
+            switch apps.count {
+            case 0:
+                throw Console.Error("Unrecognized xip layout (Xcode.app not found)")
+            case 1:
+                appDir = apps[0]
+            default:
+                throw Console.Error("Unrecognized xip layout (multiple apps found)")
+            }
             cleanupStageDir = devStage
         case .app(let appPath):
             wanted = nil
