@@ -1,3 +1,5 @@
+require_relative "spaceship_patch"
+
 default_platform(:mac)
 
 ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "120"
