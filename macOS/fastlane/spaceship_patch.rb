@@ -6,11 +6,11 @@ require "spaceship"
 # c.f. https://github.com/fastlane/fastlane/pull/29588
 
 class << Spaceship::ConnectAPI::Certificate
-  alias_method :orig, :all
+  alias_method :all_orig, :all
 
   def all(**args)
     types = args[:filter]&.delete(:certificateType)&.split(",")
-    certs = orig(**args)
+    certs = all_orig(**args)
     types ? certs.select { |cert| types.include?(cert.certificate_type) } : certs
   end
 end
