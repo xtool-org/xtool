@@ -43,7 +43,10 @@ private struct XToolCommand: AsyncParsableCommand {
     )
 }
 
-extension ParsableCommand {
+// really we just need `Self: SendableMetatype` (and that too only in Swift >= 6.2)
+// but it's hard to write that in a way that still compiles in 6.1 since #if operates
+// at the AST level rather than as a preprocessor
+extension ParsableCommand where Self: Sendable {
     fileprivate static func cancellableMain(_ arguments: [String]? = nil) async {
         let (canStart, cont) = AsyncStream.makeStream(of: Never.self)
         let task = Task {
