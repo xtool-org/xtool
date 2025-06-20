@@ -11,7 +11,6 @@ class << Spaceship::ConnectAPI::Certificate
   def all(**args)
     types = args[:filter]&.delete(:certificateType)&.split(",")
     certs = orig(**args)
-    return certs unless types
-    certs.select { |cert| types.include?(cert.certificate_type) }
+    types ? certs.select { |cert| types.include?(cert.certificate_type) } : certs
   end
 end
