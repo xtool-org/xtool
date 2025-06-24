@@ -75,11 +75,11 @@ public struct Plan: Sendable {
 
         public func directory(inApp baseDir: URL) -> URL {
             switch type {
-                case .application: baseDir
-                    .appending(component: ".", directoryHint: .isDirectory)
-                case .appExtension: baseDir
-                    .appending(components: "Plugins", product, directoryHint: .isDirectory)
-                    .appendingPathExtension("appex")
+            case .application: baseDir
+                .appending(component: ".", directoryHint: .isDirectory)
+            case .appExtension: baseDir
+                .appending(components: "Plugins", product, directoryHint: .isDirectory)
+                .appendingPathExtension("appex")
             }
         }
     }
@@ -105,7 +105,7 @@ public struct Plan: Sendable {
 }
 
 private extension Plan.Product {
-    // swiftlint:disable function_parameter_count cyclomatic_complexity
+    // swiftlint:disable cyclomatic_complexity
     init(
         from rootPackage: RootPackage,
         matching name: String?,
@@ -391,7 +391,7 @@ private extension BuildSettings {
 
     func dumpDependencies(path: String? = nil) async throws -> PackageDependency {
         let tempFileName = "xtool." + UUID().uuidString.replacing("-", with: "").lowercased()
-        let tempFileURL = FileManager.default.temporaryDirectory.appending(path:  tempFileName, directoryHint: .notDirectory)
+        let tempFileURL = FileManager.default.temporaryDirectory.appending(path: tempFileName, directoryHint: .notDirectory)
         try? FileManager.default.createDirectory(at: tempFileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempFileURL) }
 
