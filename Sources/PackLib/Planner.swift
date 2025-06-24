@@ -12,12 +12,6 @@ public struct Planner: Sendable {
         self.schema = schema
     }
 
-    fileprivate static let decoder: JSONDecoder = {
-        let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        return decoder
-    }()
-
     public func createPlan() async throws -> Plan {
         // TODO: cache plan using (Package.swift+Package.resolved) as the key?
         let rootPackage = try await RootPackage(buildSettings: buildSettings)
@@ -331,13 +325,7 @@ private struct RootPackage {
     let packagesByProductName: [String: String]
 
     init(buildSettings: BuildSettings) async throws {
-        let dependencyRoot = try Planner.decoder.decode(
-            PackageDependency.self, 
-            from: try await buildSettings._dumpAction(
-                arguments: ["show-dependencies", "--format", "json"],
-                path: buildSettings.packagePath
-            )
-        )
+        let dependencyRoot = try await buildSettings.dumpDependencies()
 
         self.packages = try await withThrowingTaskGroup(
             of: (PackageDependency, PackageDump).self,
@@ -395,13 +383,44 @@ private struct RootPackage {
 }
 
 private extension BuildSettings {
-    func dumpPackage(at path: String) async throws -> PackageDump {
-        let data = try await _dumpAction(arguments: ["describe", "--type", "json"], path: path)
-        try Task.checkCancellation()
-        return try Planner.decoder.decode(PackageDump.self, from: data)
+    private static let decoder: JSONDecoder = {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return decoder
+    }()
+
+    func dumpDependencies(path: String? = nil) async throws -> PackageDependency {
+        let tempFileName = "xtool." + UUID().uuidString.replacing("-", with: "").lowercased()
+        let tempFileURL = FileManager.default.temporaryDirectory.appending(path:  tempFileName, directoryHint: .notDirectory)
+        try? FileManager.default.createDirectory(at: tempFileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempFileURL) }
+
+        // some verbose is included in stdout. we should ignore it and use "-o" to get the raw dump.
+        // This is better than finding the opening curly braces character "{"
+        _ = try await self._dumpAction(
+            arguments: ["-q", "show-dependencies", "--format", "json", "-o", tempFileURL.path(percentEncoded: false)],
+            path: path ?? self.packagePath
+        )
+
+        return try Self.decoder.decode(
+            PackageDependency.self,
+            from: Data(contentsOf: tempFileURL)
+        )
     }
 
-    func _dumpAction(arguments: [String], path: String) async throws -> Data {
+    func dumpPackage(at path: String) async throws -> PackageDump {
+        let data = try await _dumpAction(arguments: ["-q", "describe", "--type", "json"], path: path)
+        try Task.checkCancellation()
+
+        // See if SwiftPM allows exporting to a file without verbose/etc
+        if let openingBracesIdx = data.firstIndex(where: { $0 == Character("{").asciiValue }) {
+            return try Self.decoder.decode(PackageDump.self, from: data[openingBracesIdx...])
+        } else {
+            return try Self.decoder.decode(PackageDump.self, from: data)
+        }
+    }
+
+    private func _dumpAction(arguments: [String], path: String) async throws -> Data {
         let dump = try await self.swiftPMInvocation(
             forTool: "package",
             arguments: arguments,
