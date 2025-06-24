@@ -20,23 +20,14 @@ public struct Planner: Sendable {
 
     public func createPlan() async throws -> Plan {
         // TODO: cache plan using (Package.swift+Package.resolved) as the key?
-
-        let dependencyData = try await buildSettings._dumpAction(
-            arguments: ["show-dependencies", "--format", "json"],
-            path: buildSettings.packagePath
-        )
-
-        var rootPackage = try await RootPackage(
-            from: dependencyData,
-            buildSettings: buildSettings
-        )
+        let rootPackage = try await RootPackage(buildSettings: buildSettings)
 
         let app = try Plan.Product(
-            from: &rootPackage,
+            from: rootPackage,
             matching: schema.product,
             type: .application,
             plist: schema.infoPath,
-            baseBundleID: schema.idSpecifier,
+            idSpecifier: schema.idSpecifier,
             iconPath: schema.iconPath,
             rootResources: schema.resources,
             entitlementsPath: schema.entitlementsPath
@@ -44,11 +35,11 @@ public struct Planner: Sendable {
 
         let extensions = try (schema.extensions ?? []).map {
             try Plan.Product(
-                from: &rootPackage,
+                from: rootPackage,
                 matching: $0.product,
                 type: .appExtension,
                 plist: $0.infoPath,
-                baseBundleID: $0.bundleID.flatMap(PackSchema.IDSpecifier.bundleID) ?? .orgID(app.bundleID),
+                idSpecifier: $0.bundleID.flatMap(PackSchema.IDSpecifier.bundleID) ?? .orgID(app.bundleID),
                 iconPath: nil,
                 rootResources: $0.resources,
                 entitlementsPath: $0.entitlementsPath
@@ -84,19 +75,18 @@ public struct Plan: Sendable {
         public var iconPath: String?
         public var entitlementsPath: String?
 
-        public var relativePath: String {
-            switch type {
-            case .application: "."
-            case .appExtension: "./PlugIns/\(product).appex"
-            }
-        }
-
         public var targetName: String {
             "\(self.product)-\(self.type.targetSuffix)"
         }
 
         public func directory(inApp baseDir: URL) -> URL {
-            baseDir.appendingPathComponent(relativePath, isDirectory: true)
+            switch type {
+                case .application: baseDir
+                    .appending(component: ".", directoryHint: .isDirectory)
+                case .appExtension: baseDir
+                    .appending(components: "Plugins", product, directoryHint: .isDirectory)
+                    .appendingPathExtension("appex")
+            }
         }
     }
 
@@ -123,11 +113,11 @@ public struct Plan: Sendable {
 private extension Plan.Product {
     // swiftlint:disable function_parameter_count cyclomatic_complexity
     init(
-        from rootPackage: inout RootPackage,
+        from rootPackage: RootPackage,
         matching name: String?,
         type: Plan.ProductType,
         plist: String?,
-        baseBundleID: PackSchema.IDSpecifier,
+        idSpecifier: PackSchema.IDSpecifier,
         iconPath: String?,
         rootResources: [String]?,
         entitlementsPath: String?
@@ -166,7 +156,7 @@ private extension Plan.Product {
             resources += rootResources.compactMap(Plan.Resource.root)
         }
 
-        let bundleID = baseBundleID.formBundleID(product: library.name)
+        let bundleID = idSpecifier.formBundleID(product: library.name)
         let deploymentTarget = rootPackage.platforms?.first { $0.name == "ios" }?.version ?? "13.0"
 
         var infoPlist: [String: Sendable] = [
@@ -340,11 +330,14 @@ private struct RootPackage {
     let packages: [String: PackageDump]
     let packagesByProductName: [String: String]
 
-    init(
-        from data: Data,
-        buildSettings: BuildSettings
-    ) async throws {
-        let dependencyRoot = try Planner.decoder.decode(PackageDependency.self, from: data)
+    init(buildSettings: BuildSettings) async throws {
+        let dependencyRoot = try Planner.decoder.decode(
+            PackageDependency.self, 
+            from: try await buildSettings._dumpAction(
+                arguments: ["show-dependencies", "--format", "json"],
+                path: buildSettings.packagePath
+            )
+        )
 
         self.packages = try await withThrowingTaskGroup(
             of: (PackageDependency, PackageDump).self,
