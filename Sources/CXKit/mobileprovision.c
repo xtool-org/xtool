@@ -60,7 +60,7 @@ void *mobileprovision_copy_data(mobileprovision_t profile, size_t *len) {
     if (!ret) {
         OPENSSL_free(data);
         data = NULL;
-        data_len = NULL;
+        data_len = 0;
         return NULL;
     }
 
@@ -68,6 +68,7 @@ void *mobileprovision_copy_data(mobileprovision_t profile, size_t *len) {
     OPENSSL_free(data);
 
     data = NULL;
+    data_len = 0;
 
     return ret;
 }
