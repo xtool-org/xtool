@@ -76,9 +76,10 @@ public struct Plan: Sendable {
         public func directory(inApp baseDir: URL) -> URL {
             switch type {
             case .application: baseDir
-                .appending(component: ".", directoryHint: .isDirectory)
+                .appendingPathComponent(".", isDirectory: true)
             case .appExtension: baseDir
-                .appending(components: "Plugins", product, directoryHint: .isDirectory)
+                .appendingPathComponent("Plugins", isDirectory: true)
+                .appendingPathComponent(product, isDirectory: true)
                 .appendingPathExtension("appex")
             }
         }
@@ -390,15 +391,15 @@ private extension BuildSettings {
     }()
 
     func dumpDependencies(path: String? = nil) async throws -> PackageDependency {
-        let tempFileName = "xtool." + UUID().uuidString.replacing("-", with: "").lowercased()
-        let tempFileURL = FileManager.default.temporaryDirectory.appending(path: tempFileName, directoryHint: .notDirectory)
+        let tempFileName = "xtool." + UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
+        let tempFileURL = FileManager.default.temporaryDirectory.appendingPathComponent(tempFileName, isDirectory: false)
         try? FileManager.default.createDirectory(at: tempFileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempFileURL) }
 
         // some verbose is included in stdout. we should ignore it and use "-o" to get the raw dump.
         // This is better than finding the opening curly braces character "{"
         _ = try await self._dumpAction(
-            arguments: ["-q", "show-dependencies", "--format", "json", "-o", tempFileURL.path(percentEncoded: false)],
+            arguments: ["-q", "show-dependencies", "--format", "json", "-o", tempFileURL.path],
             path: path ?? self.packagePath
         )
 
