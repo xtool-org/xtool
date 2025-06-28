@@ -18,6 +18,8 @@ struct mobileprovision {
 
 static mobileprovision_t mobileprovision_create(PKCS7 *raw) {
     mobileprovision_t profile = malloc(sizeof(struct mobileprovision));
+    if (!profile) return NULL;
+
     profile->raw = raw;
     return profile;
 }
@@ -41,6 +43,12 @@ void *mobileprovision_copy_data(mobileprovision_t profile, size_t *len) {
     if (data_len < 0) return NULL;
     *len = data_len;
     void *ret = malloc(data_len);
+
+    if (!ret) {
+        OPENSSL_free(data);
+        return NULL;
+    }
+
     memcpy(ret, data, data_len);
     OPENSSL_free(data);
     return ret;
