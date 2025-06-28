@@ -139,7 +139,7 @@ public actor Connection {
 
 }
 
-private actor WeakPool<Key: Hashable, Value: AnyObject & Sendable, Failure: Error> {
+private actor WeakPool<Key: Hashable & Sendable, Value: AnyObject & Sendable, Failure: Error> {
     init() {}
 
     private var pendingValues: [Key: Task<Result<Value, Failure>, Never>] = [:]
