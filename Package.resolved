@@ -1,5 +1,5 @@
 {
-  "originHash" : "1b46c6acd6cd60580759ae9c62a3399b0db0496b5a6ac273bacbad3dea0aa82a",
+  "originHash" : "0b35a4b3bf5d1476f69f80fe16a87cc026885991c2f49fa5448ea96772af6bf0",
   "pins" : [
     {
       "identity" : "aexml",
@@ -346,10 +346,9 @@
     {
       "identity" : "unxip",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/kabiroberai/unxip",
+      "location" : "https://github.com/saagarjha/unxip",
       "state" : {
-        "branch" : "swift-6-2",
-        "revision" : "f3eef309aa577fd3776a1ae3c8c4a07fef7930d6"
+        "revision" : "9c076060527e4fef30fcda66ae6262983ba4e308"
       }
     },
     {
