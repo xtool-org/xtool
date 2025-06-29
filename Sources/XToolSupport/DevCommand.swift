@@ -64,15 +64,23 @@ struct PackOperation {
         )
         let bundle = try await packer.pack()
 
-        if let entitlementsPath = plan.entitlementsPath {
-            let data = try await Data(reading: URL(fileURLWithPath: entitlementsPath))
-            let decoder = PropertyListDecoder()
-            let entitlements = try decoder.decode(Entitlements.self, from: data)
+        var allEntitlements = [URL: Entitlements]()
+
+        for product in plan.allProducts {
+            if let entitlementsPath = product.entitlementsPath {
+                let data = try await Data(reading: URL(fileURLWithPath: entitlementsPath))
+                let decoder = PropertyListDecoder()
+                let entitlements = try decoder.decode(Entitlements.self, from: data)
+                allEntitlements[product.directory(inApp: bundle)] = entitlements
+            }
+        }
+
+        if !allEntitlements.isEmpty {
             print("Pseudo-signing...")
             try await Signer.first().sign(
                 app: bundle,
                 identity: .adhoc,
-                entitlementMapping: [bundle: entitlements],
+                entitlementMapping: allEntitlements,
                 progress: { _ in }
             )
         }
