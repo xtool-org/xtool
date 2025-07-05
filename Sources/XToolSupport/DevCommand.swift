@@ -62,9 +62,11 @@ struct PackOperation {
             buildSettings: buildSettings,
             plan: plan
         )
+
         let bundle = try await packer.pack()
 
-        // Sign all extensions first before signing app, we should probably use entitlement mapping once ``Signer/sign`` function is updated.
+        // Sign all extensions first before signing app
+        // We should probably use entitlement mapping once ``Signer/sign`` function is updated.
         for product in plan.extensions + [plan.app] {
             guard let entitlementsPath = product.entitlementsPath else {
                 continue
@@ -75,10 +77,10 @@ struct PackOperation {
             let entitlements = try decoder.decode(Entitlements.self, from: data)
             let bundlePath = product.directory(inApp: bundle)
             try await Signer.first().sign(
-                app: bundlePath, 
+                app: bundlePath,
                 identity: .adhoc,
-                entitlementMapping: [bundlePath : entitlements],
-                progress:  { _ in }
+                entitlementMapping: [bundlePath: entitlements],
+                progress: { _ in }
             )
         }
 
