@@ -65,7 +65,7 @@ let package = Package(
         .package(url: "https://github.com/attaswift/BigInt", from: "5.5.0"),
         .package(url: "https://github.com/mxcl/Version", from: "2.1.0"),
         .package(url: "https://github.com/jpsim/Yams", from: "5.1.3"),
-        .package(url: "https://github.com/saagarjha/unxip", revision: "9c076060527e4fef30fcda66ae6262983ba4e308"),
+        .package(url: "https://github.com/saagarjha/unxip", from: "3.2.0"),
 
         // TODO: just depend on tuist/XcodeProj instead
         .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.43.0"),
