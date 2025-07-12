@@ -43,7 +43,11 @@ private struct XToolCommand: AsyncParsableCommand {
     )
 }
 
-extension ParsableCommand {
+#if compiler(<6.2)
+private typealias SendableMetatype = Any
+#endif
+
+extension ParsableCommand where Self: SendableMetatype {
     fileprivate static func cancellableMain(_ arguments: [String]? = nil) async {
         let (canStart, cont) = AsyncStream.makeStream(of: Never.self)
         let task = Task {

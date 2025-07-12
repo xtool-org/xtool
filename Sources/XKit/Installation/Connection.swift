@@ -139,7 +139,11 @@ public actor Connection {
 
 }
 
-private actor WeakPool<Key: Hashable, Value: AnyObject & Sendable, Failure: Error> {
+#if compiler(<6.2)
+private typealias SendableMetatype = Any
+#endif
+
+private actor WeakPool<Key: Hashable & SendableMetatype, Value: AnyObject & Sendable, Failure: Error> {
     init() {}
 
     private var pendingValues: [Key: Task<Result<Value, Failure>, Never>] = [:]
