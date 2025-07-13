@@ -27,12 +27,16 @@ public struct XcodePacker {
             throw StringError("Could not parse deployment target '\(plan.app.deploymentTarget)'")
         }
 
-        let targets = try plan.allProducts.compactMap { product in
+        let emptyText = Data("""
+        // leave this file empty
+        """.utf8)
+
+        let targets = try plan.allProducts.map { product in
             let productDir = projectDir + product.product
             try productDir.mkpath()
 
             let emptyFile = productDir + "empty.c"
-            try emptyFile.write(Data("// leave this file empty".utf8))
+            try emptyFile.write(emptyText)
 
             let infoPath = productDir + "Info.plist"
 
@@ -59,17 +63,15 @@ public struct XcodePacker {
             }
 
             let additionalDependencies: [Dependency] = if product.type == .application {
-                plan.allProducts
-                    .filter { $0.type != .application }
-                    .map {
-                        Dependency(
-                            type: .target,
-                            reference: $0.targetName,
-                            embed: true,
-                            codeSign: false,
-                            copyPhase: .plugins
-                        )
-                    }
+                plan.extensions.map {
+                    Dependency(
+                        type: .target,
+                        reference: $0.targetName,
+                        embed: true,
+                        codeSign: false,
+                        copyPhase: .plugins
+                    )
+                }
             } else {
                 []
             }
@@ -80,10 +82,10 @@ public struct XcodePacker {
                 deploymentTarget: deploymentTarget,
                 settings: Settings(buildSettings: buildSettings),
                 sources: [
-                  TargetSource(
-                    path: try emptyFile.relativePath(from: projectDir).string,
-                    buildPhase: .sources
-                  ),
+                    TargetSource(
+                        path: try emptyFile.relativePath(from: projectDir).string,
+                        buildPhase: .sources
+                    ),
                 ],
                 dependencies: [
                     Dependency(
