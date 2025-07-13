@@ -85,7 +85,7 @@ public struct Packer: Sendable {
 
         try await withThrowingTaskGroup(of: Void.self) { group in
             for product in plan.allProducts {
-                try Self._pack(
+                try pack(
                     product: product,
                     binDir: binDir,
                     outputURL: product.directory(inApp: outputURL),
@@ -111,7 +111,7 @@ public struct Packer: Sendable {
         return dest
     }
 
-    @Sendable private static func _pack(
+    @Sendable private func pack(
         product: Plan.Product,
         binDir: URL,
         outputURL: URL,

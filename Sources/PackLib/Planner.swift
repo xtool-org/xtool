@@ -14,10 +14,11 @@ public struct Planner: Sendable {
 
     public func createPlan() async throws -> Plan {
         // TODO: cache plan using (Package.swift+Package.resolved) as the key?
-        let rootPackage = try await RootPackage(buildSettings: buildSettings)
 
-        let app = try Plan.Product(
-            from: rootPackage,
+        let graph = try await PackageGraph(buildSettings: buildSettings)
+
+        let app = try product(
+            from: graph,
             matching: schema.product,
             type: .application,
             plist: schema.infoPath,
@@ -28,8 +29,8 @@ public struct Planner: Sendable {
         )
 
         let extensions = try (schema.extensions ?? []).map {
-            try Plan.Product(
-                from: rootPackage,
+            try product(
+                from: graph,
                 matching: $0.product,
                 type: .appExtension,
                 plist: $0.infoPath,
@@ -42,73 +43,10 @@ public struct Planner: Sendable {
 
         return Plan(app: app, extensions: extensions)
     }
-}
 
-public struct Plan: Sendable {
-    public var app: Product
-    public var extensions: [Product]
-
-    public var allProducts: [Product] {
-        [app] + extensions
-    }
-
-    public enum Resource: Codable, Sendable, Hashable {
-        case bundle(package: String, target: String)
-        case binaryTarget(name: String)
-        case library(name: String)
-        case root(source: String)
-    }
-
-    public struct Product: Sendable {
-        public var type: ProductType
-        public var product: String
-        public var deploymentTarget: String
-        public var bundleID: String
-        public var infoPlist: [String: any Sendable]
-        public var resources: [Resource]
-        public var iconPath: String?
-        public var entitlementsPath: String?
-
-        public var targetName: String {
-            "\(self.product)-\(self.type.targetSuffix)"
-        }
-
-        public func directory(inApp baseDir: URL) -> URL {
-            switch type {
-            case .application: baseDir
-                .appendingPathComponent(".", isDirectory: true)
-            case .appExtension: baseDir
-                .appendingPathComponent("Plugins", isDirectory: true)
-                .appendingPathComponent(product, isDirectory: true)
-                .appendingPathExtension("appex")
-            }
-        }
-    }
-
-    public enum ProductType: Sendable {
-        case application
-        case appExtension
-
-        fileprivate var targetSuffix: String {
-            switch self {
-            case .application: "App"
-            case .appExtension: "Extension"
-            }
-        }
-
-        fileprivate var fourCharCode: String {
-            switch self {
-            case .application: "APPL"
-            case .appExtension: "XPC!"
-            }
-        }
-    }
-}
-
-extension Plan.Product {
     // swiftlint:disable cyclomatic_complexity
-    fileprivate init(
-        from rootPackage: RootPackage,
+    private func product(
+        from graph: PackageGraph,
         matching name: String?,
         type: Plan.ProductType,
         plist: String?,
@@ -116,14 +54,14 @@ extension Plan.Product {
         iconPath: String?,
         rootResources: [String]?,
         entitlementsPath: String?
-    ) throws {
-        let library = try Self.selectLibrary(
-            from: rootPackage.products?.filter { $0.type == .autoLibrary } ?? [],
+    ) throws -> Plan.Product {
+        let library = try selectLibrary(
+            from: graph.root.products?.filter { $0.type == .autoLibrary } ?? [],
             matching: name
         )
         var resources: [Plan.Resource] = []
         var visited: Set<String> = []
-        var targets = library.targets.map { (rootPackage.base, $0) }
+        var targets = library.targets.map { (graph.root, $0) }
         while let (targetPackage, targetName) = targets.popLast() {
             guard let target = targetPackage.targets?.first(where: { $0.name == targetName }) else {
                 throw StringError("Could not find target '\(targetName)' in package '\(targetPackage.name)'")
@@ -139,7 +77,7 @@ extension Plan.Product {
                 targets.append((targetPackage, targetName))
             }
             for productName in (target.productDependencies ?? []) {
-                let (package, product) = try rootPackage.product(name: productName)
+                let (package, product) = try graph.product(name: productName)
                 if product.type == .dynamicLibrary {
                     resources.append(.library(name: productName))
                 }
@@ -148,11 +86,11 @@ extension Plan.Product {
         }
 
         if let rootResources {
-            resources += rootResources.compactMap(Plan.Resource.root)
+            resources += rootResources.map { .root(source: $0) }
         }
 
         let bundleID = idSpecifier.formBundleID(product: library.name)
-        let deploymentTarget = rootPackage.platforms?.first { $0.name == "ios" }?.version ?? "13.0"
+        let deploymentTarget = graph.root.platforms?.first { $0.name == "ios" }?.version ?? "13.0"
 
         var infoPlist: [String: Sendable] = [
             "CFBundleInfoDictionaryVersion": "6.0",
@@ -196,7 +134,7 @@ extension Plan.Product {
             }
         }
 
-        self.init(
+        return Plan.Product(
             type: type,
             product: library.name,
             deploymentTarget: deploymentTarget,
@@ -208,7 +146,7 @@ extension Plan.Product {
         )
     }
 
-    private static func selectLibrary(
+    private func selectLibrary(
         from products: [PackageDump.Product],
         matching name: String?
     ) throws -> PackageDump.Product {
@@ -218,29 +156,89 @@ extension Plan.Product {
         case 1:
             let product = products[0]
             if let name, product.name != name {
-                throw StringError(
-                """
+                throw StringError("""
                 Product name ('\(product.name)') does not match the 'product' value in the schema ('\(name)')
                 """)
             }
             return product
         default:
             guard let name else {
-                throw StringError(
-                """
+                throw StringError("""
                 Multiple library products were found (\(products.map(\.name))). Please either:
                 1) Expose exactly one library product, or
                 2) Specify the product you want via the 'product' key in xtool.yml.
                 """)
             }
             guard let product = products.first(where: { $0.name == name }) else {
-                throw StringError(
-                """
+                throw StringError("""
                 Schema declares a 'product' name of '\(name)' but no matching product was found.
                 Found: \(products.map(\.name)).
                 """)
             }
             return product
+        }
+    }
+}
+
+public struct Plan: Sendable {
+    public var app: Product
+    public var extensions: [Product]
+
+    public var allProducts: [Product] {
+        [app] + extensions
+    }
+
+    public enum Resource: Codable, Sendable, Hashable {
+        case bundle(package: String, target: String)
+        case binaryTarget(name: String)
+        case library(name: String)
+        case root(source: String)
+    }
+
+    public struct Product: Sendable {
+        public var type: ProductType
+        public var product: String
+        public var deploymentTarget: String
+        public var bundleID: String
+        public var infoPlist: [String: any Sendable]
+        public var resources: [Resource]
+        public var iconPath: String?
+        public var entitlementsPath: String?
+
+        public var targetName: String {
+            "\(self.product)-\(self.type.targetSuffix)"
+        }
+
+        public func directory(inApp baseDir: URL) -> URL {
+            switch type {
+            case .application:
+                baseDir
+                    .appendingPathComponent(".", isDirectory: true)
+            case .appExtension:
+                baseDir
+                    .appendingPathComponent("Plugins", isDirectory: true)
+                    .appendingPathComponent(product, isDirectory: true)
+                    .appendingPathExtension("appex")
+            }
+        }
+    }
+
+    public enum ProductType: Sendable {
+        case application
+        case appExtension
+
+        fileprivate var targetSuffix: String {
+            switch self {
+            case .application: "App"
+            case .appExtension: "Extension"
+            }
+        }
+
+        fileprivate var fourCharCode: String {
+            switch self {
+            case .application: "APPL"
+            case .appExtension: "XPC!"
+            }
         }
     }
 }
@@ -319,9 +317,8 @@ private struct PackageDump: Decodable {
     let platforms: [Platform]?
 }
 
-@dynamicMemberLookup
-private struct RootPackage {
-    let base: PackageDump
+private struct PackageGraph {
+    let root: PackageDump
     let packages: [String: PackageDump]
     let packagesByProductName: [String: String]
 
@@ -357,16 +354,12 @@ private struct RootPackage {
             return packages
         }
 
-        self.base = packages[dependencyRoot.identity]!
+        self.root = packages[dependencyRoot.identity]!
         self.packagesByProductName = packages.reduce(into: [:]) { result, pair in
             for product in pair.value.products ?? [] {
                 result[product.name] = pair.key
             }
         }
-    }
-
-    subscript<Value>(dynamicMember keyPath: KeyPath<PackageDump, Value>) -> Value {
-        self.base[keyPath: keyPath]
     }
 
     func product(name productName: String) throws -> (PackageDump, PackageDump.Product) {
