@@ -18,6 +18,23 @@ public struct Planner: Sendable {
         return decoder
     }()
 
+    private func dumpDependencies() async throws -> PackageDependency {
+        let tempDir = try TemporaryDirectory(name: "xtool-dump-\(UUID().uuidString)")
+        let tempFileURL = tempDir.url.appendingPathComponent("dump.json")
+
+        // some verbose is included in stdout. we should ignore it and use "-o" to get the raw dump.
+        // This is better than finding the opening curly braces character "{"
+        _ = try await _dumpAction(
+            arguments: ["-q", "show-dependencies", "--format", "json", "-o", tempFileURL.path],
+            path: buildSettings.packagePath
+        )
+
+        return try Self.decoder.decode(
+            PackageDependency.self,
+            from: Data(contentsOf: tempFileURL)
+        )
+    }
+
     private func buildGraph() async throws -> PackageGraph {
         let dependencyRoot = try await dumpDependencies()
 
@@ -50,16 +67,17 @@ public struct Planner: Sendable {
             return packages
         }
 
-        let root = packages[dependencyRoot.identity]!
-
-        let packagesByProductName: [String: String] = packages.reduce(into: [:]) { result, pair in
-            for product in pair.value.products ?? [] {
-                result[product.name] = pair.key
+        var packagesByProductName: [String: String] = [:]
+        for (packageID, package) in packages {
+            for product in package.products ?? [] {
+                packagesByProductName[product.name] = packageID
             }
         }
 
+        let rootPackage = packages[dependencyRoot.identity]!
+
         return PackageGraph(
-            root: root,
+            root: rootPackage,
             packages: packages,
             packagesByProductName: packagesByProductName
         )
@@ -199,26 +217,7 @@ public struct Planner: Sendable {
         )
     }
 
-    private func dumpDependencies(path: String? = nil) async throws -> PackageDependency {
-        let tempFileName = "xtool." + UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
-        let tempFileURL = FileManager.default.temporaryDirectory.appendingPathComponent(tempFileName, isDirectory: false)
-        try? FileManager.default.createDirectory(at: tempFileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempFileURL) }
-
-        // some verbose is included in stdout. we should ignore it and use "-o" to get the raw dump.
-        // This is better than finding the opening curly braces character "{"
-        _ = try await self._dumpAction(
-            arguments: ["-q", "show-dependencies", "--format", "json", "-o", tempFileURL.path],
-            path: path ?? buildSettings.packagePath
-        )
-
-        return try Self.decoder.decode(
-            PackageDependency.self,
-            from: Data(contentsOf: tempFileURL)
-        )
-    }
-
-    fileprivate func dumpPackage(at path: String) async throws -> PackageDump {
+    private func dumpPackage(at path: String) async throws -> PackageDump {
         let data = try await _dumpAction(arguments: ["-q", "describe", "--type", "json"], path: path)
         try Task.checkCancellation()
 
