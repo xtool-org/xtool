@@ -105,9 +105,9 @@ public struct Plan: Sendable {
     }
 }
 
-private extension Plan.Product {
+extension Plan.Product {
     // swiftlint:disable cyclomatic_complexity
-    init(
+    fileprivate init(
         from rootPackage: RootPackage,
         matching name: String?,
         type: Plan.ProductType,
@@ -219,26 +219,26 @@ private extension Plan.Product {
             let product = products[0]
             if let name, product.name != name {
                 throw StringError(
-                    """
-                    Product name ('\(product.name)') does not match the 'product' value in the schema ('\(name)')
-                    """)
+                """
+                Product name ('\(product.name)') does not match the 'product' value in the schema ('\(name)')
+                """)
             }
             return product
         default:
             guard let name else {
                 throw StringError(
-                    """
-                    Multiple library products were found (\(products.map(\.name))). Please either:
-                    1) Expose exactly one library product, or
-                    2) Specify the product you want via the 'product' key in xtool.yml.
-                    """)
+                """
+                Multiple library products were found (\(products.map(\.name))). Please either:
+                1) Expose exactly one library product, or
+                2) Specify the product you want via the 'product' key in xtool.yml.
+                """)
             }
             guard let product = products.first(where: { $0.name == name }) else {
                 throw StringError(
-                    """
-                    Schema declares a 'product' name of '\(name)' but no matching product was found.
-                    Found: \(products.map(\.name)).
-                    """)
+                """
+                Schema declares a 'product' name of '\(name)' but no matching product was found.
+                Found: \(products.map(\.name)).
+                """)
             }
             return product
         }
@@ -248,7 +248,7 @@ private extension Plan.Product {
 private struct PackageDependency: Decodable {
     let identity: String
     let name: String
-    let path: String  // on disk
+    let path: String // on disk
     let dependencies: [PackageDependency]
 }
 
@@ -383,14 +383,14 @@ private struct RootPackage {
     }
 }
 
-private extension BuildSettings {
+extension BuildSettings {
     private static let decoder: JSONDecoder = {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         return decoder
     }()
 
-    func dumpDependencies(path: String? = nil) async throws -> PackageDependency {
+    fileprivate func dumpDependencies(path: String? = nil) async throws -> PackageDependency {
         let tempFileName = "xtool." + UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
         let tempFileURL = FileManager.default.temporaryDirectory.appendingPathComponent(tempFileName, isDirectory: false)
         try? FileManager.default.createDirectory(at: tempFileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
@@ -409,7 +409,7 @@ private extension BuildSettings {
         )
     }
 
-    func dumpPackage(at path: String) async throws -> PackageDump {
+    fileprivate func dumpPackage(at path: String) async throws -> PackageDump {
         let data = try await _dumpAction(arguments: ["-q", "describe", "--type", "json"], path: path)
         try Task.checkCancellation()
 

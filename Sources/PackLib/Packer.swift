@@ -17,34 +17,34 @@ public struct Packer: Sendable {
 
         let packageSwift = packageDir.appendingPathComponent("Package.swift")
         let contents = """
-            // swift-tools-version: 6.0
-            import PackageDescription
-            let package = Package(
-                name: "\(plan.app.product)-Builder",
-                platforms: [
-                    .iOS("\(plan.app.deploymentTarget)"),
-                ],
-                dependencies: [
-                    .package(name: "RootPackage", path: "../.."),
-                ],
-                targets: [
-                    \(
-                        plan.allProducts.map {
-                            """
-                            .executableTarget(
-                                name: "\($0.targetName)",
-                                dependencies: [
-                                    .product(name: "\($0.product)", package: "RootPackage"),
-                                ],
-                                linkerSettings: \($0.linkerSettings)
-                            )
-                            """
-                        }
-                        .joined(separator: ",\n")
-                    )
-                ]
-            )\n
-            """
+        // swift-tools-version: 6.0
+        import PackageDescription
+        let package = Package(
+            name: "\(plan.app.product)-Builder",
+            platforms: [
+                .iOS("\(plan.app.deploymentTarget)"),
+            ],
+            dependencies: [
+                .package(name: "RootPackage", path: "../.."),
+            ],
+            targets: [
+                \(
+                    plan.allProducts.map {
+                        """
+                        .executableTarget(
+                            name: "\($0.targetName)",
+                            dependencies: [
+                                .product(name: "\($0.product)", package: "RootPackage"),
+                            ],
+                            linkerSettings: \($0.linkerSettings)
+                        )
+                        """
+                    }
+                    .joined(separator: ",\n")
+                )
+            ]
+        )\n
+        """
         try Data(contents.utf8).write(to: packageSwift)
 
         for product in plan.allProducts {

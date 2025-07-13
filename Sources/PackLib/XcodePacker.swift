@@ -153,8 +153,8 @@ public struct XcodePacker {
     }
 }
 
-private extension Path {
-    func withName() -> Path {
+extension Path {
+    fileprivate func withName() -> Path {
         // eg if curr dir is Foo, this converts "." to "../Foo"
         // which includes the name in the path, and therefore
         // in the Xcode navigator
