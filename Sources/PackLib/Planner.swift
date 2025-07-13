@@ -324,7 +324,7 @@ public struct Plan: Sendable {
                     .appendingPathComponent(".", isDirectory: true)
             case .appExtension:
                 baseDir
-                    .appendingPathComponent("Plugins", isDirectory: true)
+                    .appendingPathComponent("PlugIns", isDirectory: true)
                     .appendingPathComponent(product, isDirectory: true)
                     .appendingPathExtension("appex")
             }
