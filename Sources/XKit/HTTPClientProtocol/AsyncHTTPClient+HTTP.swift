@@ -24,10 +24,11 @@ extension HTTPClientDependencyKey: DependencyKey {
         let appleRootCA = try! NIOSSLCertificate(bytes: Array(appleRootPEM.utf8), format: .pem)
         var tlsConfiguration: TLSConfiguration = .makeClientConfiguration()
         tlsConfiguration.additionalTrustRoots = [.certificates([appleRootCA])]
-        let config = HTTPClient.Configuration(
+        var config = HTTPClient.Configuration(
             tlsConfiguration: tlsConfiguration,
             decompression: .enabled(limit: .none)
         )
+        config.timeout.connect = .seconds(60)
         return HTTPClient(configuration: config)
     }()
 }
