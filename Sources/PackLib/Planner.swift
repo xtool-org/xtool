@@ -18,22 +18,9 @@ public struct Planner: Sendable {
         return decoder
     }()
 
-    private func dumpDependencies() async throws -> PackageDependency {
-        let tempDir = try TemporaryDirectory(name: "xtool-dump-\(UUID().uuidString)")
-        let tempFileURL = tempDir.url.appendingPathComponent("dump.json")
-
-        // some verbose is included in stdout. we should ignore it and use "-o" to get the raw dump.
-        // This is better than finding the opening curly braces character "{"
-        _ = try await _dumpAction(
-            arguments: ["-q", "show-dependencies", "--format", "json", "-o", tempFileURL.path],
-            path: buildSettings.packagePath
-        )
-
-        return try Self.decoder.decode(
-            PackageDependency.self,
-            from: Data(contentsOf: tempFileURL)
-        )
-    }
+    // anything older than this requires bundling the stdlib which
+    // is doable but probably not worth the effort
+    private static let minSupportedIOSVersion = "13.0"
 
     private func buildGraph() async throws -> PackageGraph {
         let dependencyRoot = try await dumpDependencies()
@@ -171,7 +158,8 @@ public struct Planner: Sendable {
         }
 
         let bundleID = idSpecifier.formBundleID(product: library.name)
-        let deploymentTarget = graph.root.platforms?.first { $0.name == "ios" }?.version ?? "13.0"
+        let deploymentTarget = graph.root.platforms?.first { $0.name == "ios" }?.version
+            ?? Self.minSupportedIOSVersion
 
         var infoPlist: [String: Sendable] = [
             "CFBundleInfoDictionaryVersion": "6.0",
@@ -224,6 +212,23 @@ public struct Planner: Sendable {
             resources: resources,
             iconPath: iconPath,
             entitlementsPath: entitlementsPath
+        )
+    }
+
+    private func dumpDependencies() async throws -> PackageDependency {
+        let tempDir = try TemporaryDirectory(name: "xtool-dump-\(UUID().uuidString)")
+        let tempFileURL = tempDir.url.appendingPathComponent("dump.json")
+
+        // some verbose is included in stdout. we should ignore it and use "-o" to get the raw dump.
+        // This is better than finding the opening curly braces character "{"
+        _ = try await _dumpAction(
+            arguments: ["-q", "show-dependencies", "--format", "json", "-o", tempFileURL.path],
+            path: buildSettings.packagePath
+        )
+
+        return try Self.decoder.decode(
+            PackageDependency.self,
+            from: Data(contentsOf: tempFileURL)
         )
     }
 
