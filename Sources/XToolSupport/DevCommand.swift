@@ -67,9 +67,15 @@ struct PackOperation {
 
         // Sign all extensions first before signing app
         // TODO: Update Zupersign to support entitlementMapping so that we can offload this looping logic
+        var hasPrinted = false
         for product in plan.extensions + [plan.app] {
             guard let entitlementsPath = product.entitlementsPath else {
                 continue
+            }
+
+            if !hasPrinted {
+                hasPrinted = true
+                print("Pseudo-signing...")
             }
 
             let data = try await Data(reading: URL(fileURLWithPath: entitlementsPath))
