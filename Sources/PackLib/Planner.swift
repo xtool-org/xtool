@@ -12,10 +12,63 @@ public struct Planner: Sendable {
         self.schema = schema
     }
 
+    private static let decoder: JSONDecoder = {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return decoder
+    }()
+
+    private func buildGraph() async throws -> PackageGraph {
+        let dependencyRoot = try await dumpDependencies()
+
+        let packages = try await withThrowingTaskGroup(
+            of: (PackageDependency, PackageDump).self,
+            returning: [String: PackageDump].self
+        ) { group in
+            var visited: Set<String> = []
+            var dependencies: [PackageDependency] = [dependencyRoot]
+            while let dependencyNode = dependencies.popLast() {
+                guard visited.insert(dependencyNode.identity).inserted else { continue }
+                dependencies.append(contentsOf: dependencyNode.dependencies)
+                group.addTask { (dependencyNode, try await dumpPackage(at: dependencyNode.path)) }
+            }
+
+            var packages: [String: PackageDump] = [:]
+            while let result = await group.nextResult() {
+                switch result {
+                case .success((let dependency, let dump)):
+                    packages[dependency.identity] = dump
+                case .failure(_ as CancellationError):
+                    // continue loop
+                    break
+                case .failure(let error):
+                    group.cancelAll()
+                    throw error
+                }
+            }
+
+            return packages
+        }
+
+        let root = packages[dependencyRoot.identity]!
+
+        let packagesByProductName: [String: String] = packages.reduce(into: [:]) { result, pair in
+            for product in pair.value.products ?? [] {
+                result[product.name] = pair.key
+            }
+        }
+
+        return PackageGraph(
+            root: root,
+            packages: packages,
+            packagesByProductName: packagesByProductName
+        )
+    }
+
     public func createPlan() async throws -> Plan {
         // TODO: cache plan using (Package.swift+Package.resolved) as the key?
 
-        let graph = try await PackageGraph(buildSettings: buildSettings)
+        let graph = try await buildGraph()
 
         let app = try product(
             from: graph,
@@ -44,7 +97,7 @@ public struct Planner: Sendable {
         return Plan(app: app, extensions: extensions)
     }
 
-    // swiftlint:disable cyclomatic_complexity
+    // swiftlint:disable cyclomatic_complexity function_parameter_count
     private func product(
         from graph: PackageGraph,
         matching name: String?,
@@ -144,6 +197,50 @@ public struct Planner: Sendable {
             iconPath: iconPath,
             entitlementsPath: entitlementsPath
         )
+    }
+
+    private func dumpDependencies(path: String? = nil) async throws -> PackageDependency {
+        let tempFileName = "xtool." + UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
+        let tempFileURL = FileManager.default.temporaryDirectory.appendingPathComponent(tempFileName, isDirectory: false)
+        try? FileManager.default.createDirectory(at: tempFileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempFileURL) }
+
+        // some verbose is included in stdout. we should ignore it and use "-o" to get the raw dump.
+        // This is better than finding the opening curly braces character "{"
+        _ = try await self._dumpAction(
+            arguments: ["-q", "show-dependencies", "--format", "json", "-o", tempFileURL.path],
+            path: path ?? buildSettings.packagePath
+        )
+
+        return try Self.decoder.decode(
+            PackageDependency.self,
+            from: Data(contentsOf: tempFileURL)
+        )
+    }
+
+    fileprivate func dumpPackage(at path: String) async throws -> PackageDump {
+        let data = try await _dumpAction(arguments: ["-q", "describe", "--type", "json"], path: path)
+        try Task.checkCancellation()
+
+        // See if SwiftPM allows exporting to a file without verbose/etc
+        if let openingBracesIdx = data.firstIndex(where: { $0 == Character("{").asciiValue }) {
+            return try Self.decoder.decode(PackageDump.self, from: data[openingBracesIdx...])
+        } else {
+            return try Self.decoder.decode(PackageDump.self, from: data)
+        }
+    }
+
+    private func _dumpAction(arguments: [String], path: String) async throws -> Data {
+        let dump = try await buildSettings.swiftPMInvocation(
+            forTool: "package",
+            arguments: arguments,
+            packagePathOverride: path
+        )
+        let pipe = Pipe()
+        dump.standardOutput = pipe
+        async let task = Data(reading: pipe.fileHandleForReading)
+        try await dump.runUntilExit()
+        return try await task
     }
 
     private func selectLibrary(
@@ -322,46 +419,6 @@ private struct PackageGraph {
     let packages: [String: PackageDump]
     let packagesByProductName: [String: String]
 
-    init(buildSettings: BuildSettings) async throws {
-        let dependencyRoot = try await buildSettings.dumpDependencies()
-
-        self.packages = try await withThrowingTaskGroup(
-            of: (PackageDependency, PackageDump).self,
-            returning: [String: PackageDump].self
-        ) { group in
-            var visited: Set<String> = []
-            var dependencies: [PackageDependency] = [dependencyRoot]
-            while let dependencyNode = dependencies.popLast() {
-                guard visited.insert(dependencyNode.identity).inserted else { continue }
-                dependencies.append(contentsOf: dependencyNode.dependencies)
-                group.addTask { (dependencyNode, try await buildSettings.dumpPackage(at: dependencyNode.path)) }
-            }
-
-            var packages: [String: PackageDump] = [:]
-            while let result = await group.nextResult() {
-                switch result {
-                case .success((let dependency, let dump)):
-                    packages[dependency.identity] = dump
-                case .failure(_ as CancellationError):
-                    // continue loop
-                    break
-                case .failure(let error):
-                    group.cancelAll()
-                    throw error
-                }
-            }
-
-            return packages
-        }
-
-        self.root = packages[dependencyRoot.identity]!
-        self.packagesByProductName = packages.reduce(into: [:]) { result, pair in
-            for product in pair.value.products ?? [] {
-                result[product.name] = pair.key
-            }
-        }
-    }
-
     func product(name productName: String) throws -> (PackageDump, PackageDump.Product) {
         guard let packageID = packagesByProductName[productName] else {
             throw StringError("Could not find package containing product '\(productName)'")
@@ -373,57 +430,5 @@ private struct PackageGraph {
             throw StringError("Could not find product '\(productName)' in package '\(packageID)'")
         }
         return (package, product)
-    }
-}
-
-extension BuildSettings {
-    private static let decoder: JSONDecoder = {
-        let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        return decoder
-    }()
-
-    fileprivate func dumpDependencies(path: String? = nil) async throws -> PackageDependency {
-        let tempFileName = "xtool." + UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
-        let tempFileURL = FileManager.default.temporaryDirectory.appendingPathComponent(tempFileName, isDirectory: false)
-        try? FileManager.default.createDirectory(at: tempFileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempFileURL) }
-
-        // some verbose is included in stdout. we should ignore it and use "-o" to get the raw dump.
-        // This is better than finding the opening curly braces character "{"
-        _ = try await self._dumpAction(
-            arguments: ["-q", "show-dependencies", "--format", "json", "-o", tempFileURL.path],
-            path: path ?? self.packagePath
-        )
-
-        return try Self.decoder.decode(
-            PackageDependency.self,
-            from: Data(contentsOf: tempFileURL)
-        )
-    }
-
-    fileprivate func dumpPackage(at path: String) async throws -> PackageDump {
-        let data = try await _dumpAction(arguments: ["-q", "describe", "--type", "json"], path: path)
-        try Task.checkCancellation()
-
-        // See if SwiftPM allows exporting to a file without verbose/etc
-        if let openingBracesIdx = data.firstIndex(where: { $0 == Character("{").asciiValue }) {
-            return try Self.decoder.decode(PackageDump.self, from: data[openingBracesIdx...])
-        } else {
-            return try Self.decoder.decode(PackageDump.self, from: data)
-        }
-    }
-
-    private func _dumpAction(arguments: [String], path: String) async throws -> Data {
-        let dump = try await self.swiftPMInvocation(
-            forTool: "package",
-            arguments: arguments,
-            packagePathOverride: path
-        )
-        let pipe = Pipe()
-        dump.standardOutput = pipe
-        async let task = Data(reading: pipe.fileHandleForReading)
-        try await dump.runUntilExit()
-        return try await task
     }
 }
