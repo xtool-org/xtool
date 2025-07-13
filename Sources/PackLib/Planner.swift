@@ -88,7 +88,7 @@ public struct Planner: Sendable {
 
         let graph = try await buildGraph()
 
-        let app = try product(
+        let app = try await product(
             from: graph,
             matching: schema.product,
             type: .application,
@@ -99,20 +99,30 @@ public struct Planner: Sendable {
             entitlementsPath: schema.entitlementsPath
         )
 
-        let extensions = try (schema.extensions ?? []).map {
-            try product(
-                from: graph,
-                matching: $0.product,
-                type: .appExtension,
-                plist: $0.infoPath,
-                idSpecifier: $0.bundleID.flatMap(PackSchema.IDSpecifier.bundleID) ?? .orgID(app.bundleID),
-                iconPath: nil,
-                rootResources: $0.resources,
-                entitlementsPath: $0.entitlementsPath
-            )
+        let extensionProducts: [Plan.Product]
+        if let extensions = schema.extensions, !extensions.isEmpty {
+            extensionProducts = try await withThrowingTaskGroup(of: Plan.Product.self) { group in
+                for ext in extensions {
+                    group.addTask {
+                        try await product(
+                            from: graph,
+                            matching: ext.product,
+                            type: .appExtension,
+                            plist: ext.infoPath,
+                            idSpecifier: ext.bundleID.flatMap(PackSchema.IDSpecifier.bundleID) ?? .orgID(app.bundleID),
+                            iconPath: nil,
+                            rootResources: ext.resources,
+                            entitlementsPath: ext.entitlementsPath
+                        )
+                    }
+                }
+                return try await group.reduce(into: []) { $0.append($1) }
+            }
+        } else {
+            extensionProducts = []
         }
 
-        return Plan(app: app, extensions: extensions)
+        return Plan(app: app, extensions: extensionProducts)
     }
 
     // swiftlint:disable cyclomatic_complexity function_parameter_count
@@ -125,7 +135,7 @@ public struct Planner: Sendable {
         iconPath: String?,
         rootResources: [String]?,
         entitlementsPath: String?
-    ) throws -> Plan.Product {
+    ) async throws -> Plan.Product {
         let library = try selectLibrary(
             from: graph.root.products?.filter { $0.type == .autoLibrary } ?? [],
             matching: name
@@ -196,7 +206,7 @@ public struct Planner: Sendable {
         }
 
         if let plist {
-            let data = try Data(contentsOf: URL(fileURLWithPath: plist))
+            let data = try await Data(reading: URL(fileURLWithPath: plist))
             let info = try PropertyListSerialization.propertyList(from: data, format: nil)
             if let info = info as? [String: Sendable] {
                 infoPlist.merge(info, uniquingKeysWith: { $1 })
@@ -222,11 +232,8 @@ public struct Planner: Sendable {
         try Task.checkCancellation()
 
         // See if SwiftPM allows exporting to a file without verbose/etc
-        if let openingBracesIdx = data.firstIndex(where: { $0 == Character("{").asciiValue }) {
-            return try Self.decoder.decode(PackageDump.self, from: data[openingBracesIdx...])
-        } else {
-            return try Self.decoder.decode(PackageDump.self, from: data)
-        }
+        let fromBrace = data.drop(while: { $0 != Character("{").asciiValue })
+        return try Self.decoder.decode(PackageDump.self, from: fromBrace)
     }
 
     private func _dumpAction(arguments: [String], path: String) async throws -> Data {
