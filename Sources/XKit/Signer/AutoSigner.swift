@@ -82,15 +82,22 @@ public struct AutoSigner {
             try info.mobileprovision.data().write(to: profURL)
         }
 
-        let entitlements = provisioningDict.mapValues(\.entitlements)
-
         status(NSLocalizedString("signer.signing", value: "Signing", comment: ""))
-        try await context.signer.sign(
-            app: app,
-            identity: .real(signingInfo.certificate, signingInfo.privateKey),
-            entitlementMapping: entitlements,
-            progress: progress
-        )
+
+        // sign inside-to-outside
+        let ordered = provisioningDict
+            .map { ($0, $0.key.pathComponents.count) }
+            .sorted(by: { $0.1 > $1.1 })
+            .map(\.0)
+        for (bundle, info) in ordered {
+            try await context.signer.sign(
+                app: bundle,
+                identity: .real(signingInfo.certificate, signingInfo.privateKey),
+                entitlementMapping: [bundle: info.entitlements],
+                progress: progress
+            )
+        }
+
         progress(1)
 
         return mainInfo.newBundleID
