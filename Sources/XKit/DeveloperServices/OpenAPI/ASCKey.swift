@@ -16,10 +16,7 @@ public struct ASCKey: Sendable {
 actor ASCJWTGenerator {
     // the duration for which we generate JWTs.
     // ASC allows a maximum of 20 minutes.
-    //
-    // Apple sometimes rounds up, causing the expiry to go over 20 seconds.
-    // This leads to an invalid token.
-    private static let ttl: TimeInterval = 60 * 19
+    private static let ttl: TimeInterval = 60 * 20
 
     // the minimum remaining ttl for us to consider reusing a previous key.
     // that is, we reuse the last JWT if it has at least [threshold] seconds
