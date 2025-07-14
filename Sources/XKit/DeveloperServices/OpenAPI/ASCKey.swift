@@ -15,13 +15,14 @@ public struct ASCKey: Sendable {
 
 actor ASCJWTGenerator {
     // the duration for which we generate JWTs.
-    // ASC allows a maximum of 20 minutes.
-    private static let ttl: TimeInterval = 60 * 20
+    // ASC allows a maximum of 20 minutes. We use
+    // 15 minutes to account for clock drift.
+    private static let ttl: TimeInterval = 60 * 15
 
     // the minimum remaining ttl for us to consider reusing a previous key.
     // that is, we reuse the last JWT if it has at least [threshold] seconds
     // left before it expires.
-    private static let tolerance: TimeInterval = 60
+    private static let tolerance: TimeInterval = 60 * 2
 
     private static let encoder: JSONEncoder = {
         let encoder = JSONEncoder()
