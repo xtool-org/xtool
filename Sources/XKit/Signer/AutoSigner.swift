@@ -85,6 +85,7 @@ public struct AutoSigner {
         status(NSLocalizedString("signer.signing", value: "Signing", comment: ""))
 
         // sign inside-to-outside
+        // TODO: #131: move these smarts to Zupersign
         let ordered = provisioningDict
             .map { ($0, $0.key.pathComponents.count) }
             .sorted(by: { $0.1 > $1.1 })

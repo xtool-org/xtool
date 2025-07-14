@@ -66,7 +66,7 @@ struct PackOperation {
         let bundle = try await packer.pack()
 
         // Sign all extensions first before signing app
-        // TODO: Update Zupersign to support entitlementMapping so that we can offload this looping logic
+        // TODO: #131: update Zupersign to support entitlementMapping, avoid looping here
         var hasPrinted = false
         for product in plan.extensions + [plan.app] {
             guard let entitlementsPath = product.entitlementsPath else {
