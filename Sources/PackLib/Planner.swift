@@ -176,9 +176,6 @@ public struct Planner: Sendable {
 
         switch type {
         case .application:
-            infoPlist["UIRequiredDeviceCapabilities"] = ["arm64"]
-            infoPlist["LSRequiresIPhoneOS"] = true
-            infoPlist["CFBundleSupportedPlatforms"] = ["iPhoneOS"]
             infoPlist["UIDeviceFamily"] = [1, 2]
             infoPlist["UISupportedInterfaceOrientations"] = ["UIInterfaceOrientationPortrait"]
             infoPlist["UISupportedInterfaceOrientations~ipad"] = [

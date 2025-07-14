@@ -55,7 +55,7 @@ public struct XcodePacker {
             ]
 
             if product.type == .appExtension {
-                plist["APPLICATION_EXTENSION_API_ONLY"] = true
+                buildSettings["APPLICATION_EXTENSION_API_ONLY"] = true
             }
 
             if let entitlementsPath = product.entitlementsPath {
@@ -66,10 +66,7 @@ public struct XcodePacker {
                 plan.extensions.map {
                     Dependency(
                         type: .target,
-                        reference: $0.targetName,
-                        embed: true,
-                        codeSign: false,
-                        copyPhase: .plugins
+                        reference: $0.targetName
                     )
                 }
             } else {

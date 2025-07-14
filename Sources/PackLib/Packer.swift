@@ -171,6 +171,12 @@ public struct Packer: Sendable {
         group.addTask {
             var info = product.infoPlist
 
+            if product.type == .application {
+                info["UIRequiredDeviceCapabilities"] = ["arm64"]
+                info["LSRequiresIPhoneOS"] = true
+                info["CFBundleSupportedPlatforms"] = ["iPhoneOS"]
+            }
+
             if let iconPath = product.iconPath {
                 let iconName = URL(fileURLWithPath: iconPath).deletingPathExtension().lastPathComponent
                 info["CFBundleIconFile"] = iconName
