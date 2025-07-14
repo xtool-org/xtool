@@ -18,15 +18,12 @@ public struct Planner: Sendable {
         return decoder
     }()
 
-    // swiftlint:disable:next function_body_length cyclomatic_complexity
-    public func createPlan() async throws -> Plan {
-        // TODO: cache plan using (Package.swift+Package.resolved) as the key?
+    // anything older than this requires bundling the stdlib which
+    // is doable but probably not worth the effort
+    private static let minSupportedIOSVersion = "13.0"
 
-        let dependencyData = try await _dumpAction(
-            arguments: ["show-dependencies", "--format", "json"],
-            path: buildSettings.packagePath
-        )
-        let dependencyRoot = try Self.decoder.decode(PackageDependency.self, from: dependencyData)
+    private func buildGraph() async throws -> PackageGraph {
+        let dependencyRoot = try await dumpDependencies()
 
         let packages = try await withThrowingTaskGroup(
             of: (PackageDependency, PackageDump).self,
@@ -65,18 +62,74 @@ public struct Planner: Sendable {
         }
 
         let rootPackage = packages[dependencyRoot.identity]!
-        let deploymentTarget = rootPackage.platforms?.first { $0.name == "ios" }?.version ?? "13.0"
 
-        let libraries = rootPackage.products?.filter { $0.type == .autoLibrary } ?? []
+        return PackageGraph(
+            root: rootPackage,
+            packages: packages,
+            packagesByProductName: packagesByProductName
+        )
+    }
 
-        let library = try selectLibrary(
-            from: libraries,
-            matching: schema.base.product
+    public func createPlan() async throws -> Plan {
+        // TODO: cache plan using (Package.swift+Package.resolved) as the key?
+
+        let graph = try await buildGraph()
+
+        let app = try await product(
+            from: graph,
+            matching: schema.product,
+            type: .application,
+            plist: schema.infoPath,
+            idSpecifier: schema.idSpecifier,
+            iconPath: schema.iconPath,
+            rootResources: schema.resources,
+            entitlementsPath: schema.entitlementsPath
         )
 
-        var resources: [Resource] = []
+        let extensionProducts: [Plan.Product]
+        if let extensions = schema.extensions, !extensions.isEmpty {
+            extensionProducts = try await withThrowingTaskGroup(of: Plan.Product.self) { group in
+                for ext in extensions {
+                    group.addTask {
+                        try await product(
+                            from: graph,
+                            matching: ext.product,
+                            type: .appExtension,
+                            plist: ext.infoPath,
+                            idSpecifier: ext.bundleID.flatMap(PackSchema.IDSpecifier.bundleID) ?? .orgID(app.bundleID),
+                            iconPath: nil,
+                            rootResources: ext.resources,
+                            entitlementsPath: ext.entitlementsPath
+                        )
+                    }
+                }
+                return try await group.reduce(into: []) { $0.append($1) }
+            }
+        } else {
+            extensionProducts = []
+        }
+
+        return Plan(app: app, extensions: extensionProducts)
+    }
+
+    // swiftlint:disable cyclomatic_complexity function_parameter_count
+    private func product(
+        from graph: PackageGraph,
+        matching name: String?,
+        type: Plan.ProductType,
+        plist: String?,
+        idSpecifier: PackSchema.IDSpecifier,
+        iconPath: String?,
+        rootResources: [String]?,
+        entitlementsPath: String?
+    ) async throws -> Plan.Product {
+        let library = try selectLibrary(
+            from: graph.root.products?.filter { $0.type == .autoLibrary } ?? [],
+            matching: name
+        )
+        var resources: [Plan.Resource] = []
         var visited: Set<String> = []
-        var targets = library.targets.map { (rootPackage, $0) }
+        var targets = library.targets.map { (graph.root, $0) }
         while let (targetPackage, targetName) = targets.popLast() {
             guard let target = targetPackage.targets?.first(where: { $0.name == targetName }) else {
                 throw StringError("Could not find target '\(targetName)' in package '\(targetPackage.name)'")
@@ -92,15 +145,7 @@ public struct Planner: Sendable {
                 targets.append((targetPackage, targetName))
             }
             for productName in (target.productDependencies ?? []) {
-                guard let packageID = packagesByProductName[productName] else {
-                    throw StringError("Could not find package containing product '\(productName)'")
-                }
-                guard let package = packages[packageID] else {
-                    throw StringError("Could not find package by id '\(packageID)'")
-                }
-                guard let product = package.products?.first(where: { $0.name == productName }) else {
-                    throw StringError("Could not find product '\(productName)' in package '\(packageID)'")
-                }
+                let (package, product) = try graph.product(name: productName)
                 if product.type == .dynamicLibrary {
                     resources.append(.library(name: productName))
                 }
@@ -108,37 +153,44 @@ public struct Planner: Sendable {
             }
         }
 
-        if let rootResources = schema.base.resources {
+        if let rootResources {
             resources += rootResources.map { .root(source: $0) }
         }
 
-        let bundleID = schema.idSpecifier.formBundleID(product: library.name)
+        let bundleID = idSpecifier.formBundleID(product: library.name)
+        let deploymentTarget = graph.root.platforms?.first { $0.name == "ios" }?.version
+            ?? Self.minSupportedIOSVersion
 
         var infoPlist: [String: Sendable] = [
             "CFBundleInfoDictionaryVersion": "6.0",
-            "UIRequiredDeviceCapabilities": ["arm64"],
-            "LSRequiresIPhoneOS": true,
-            "CFBundleSupportedPlatforms": ["iPhoneOS"],
-            "CFBundlePackageType": "APPL",
-            "UIDeviceFamily": [1, 2],
             "CFBundleDevelopmentRegion": "en",
-            "UISupportedInterfaceOrientations": ["UIInterfaceOrientationPortrait"],
-            "UISupportedInterfaceOrientations~ipad": [
-              "UIInterfaceOrientationPortrait",
-              "UIInterfaceOrientationPortraitUpsideDown",
-              "UIInterfaceOrientationLandscapeLeft",
-              "UIInterfaceOrientationLandscapeRight"
-            ],
-            "UILaunchScreen": [:] as [String: Sendable],
             "CFBundleVersion": "1",
             "CFBundleShortVersionString": "1.0.0",
             "MinimumOSVersion": deploymentTarget,
             "CFBundleIdentifier": bundleID,
-            "CFBundleName": "\(library.name)",
-            "CFBundleExecutable": "\(library.name)",
+            "CFBundleName": library.name,
+            "CFBundleExecutable": library.name,
+            "CFBundleDisplayName": library.name,
+            "CFBundlePackageType": type.fourCharCode,
         ]
 
-        if let plist = self.schema.base.infoPath {
+        switch type {
+        case .application:
+            infoPlist["UIDeviceFamily"] = [1, 2]
+            infoPlist["UISupportedInterfaceOrientations"] = ["UIInterfaceOrientationPortrait"]
+            infoPlist["UISupportedInterfaceOrientations~ipad"] = [
+                "UIInterfaceOrientationPortrait",
+                "UIInterfaceOrientationPortraitUpsideDown",
+                "UIInterfaceOrientationLandscapeLeft",
+                "UIInterfaceOrientationLandscapeRight",
+            ]
+            infoPlist["UILaunchScreen"] = [:] as [String: Sendable]
+        case .appExtension:
+            // Should set default parameters?
+            infoPlist["NSExtension"] = [:] as [String: Sendable]
+        }
+
+        if let plist {
             let data = try await Data(reading: URL(fileURLWithPath: plist))
             let info = try PropertyListSerialization.propertyList(from: data, format: nil)
             if let info = info as? [String: Sendable] {
@@ -148,21 +200,45 @@ public struct Planner: Sendable {
             }
         }
 
-        return Plan(
+        return Plan.Product(
+            type: type,
             product: library.name,
             deploymentTarget: deploymentTarget,
             bundleID: bundleID,
             infoPlist: infoPlist,
             resources: resources,
-            iconPath: self.schema.base.iconPath,
-            entitlementsPath: self.schema.base.entitlementsPath
+            iconPath: iconPath,
+            entitlementsPath: entitlementsPath
+        )
+    }
+
+    private func dumpDependencies() async throws -> PackageDependency {
+        let tempDir = try TemporaryDirectory(name: "xtool-dump-\(UUID().uuidString)")
+        let tempFileURL = tempDir.url.appendingPathComponent("dump.json")
+
+        // SwiftPM sometimes prints extraneous data to stdout, so ask
+        // it to write the JSON to a temp file instead. See:
+        // https://github.com/xtool-org/xtool/pull/97#discussion_r2203618825
+        _ = try await _dumpAction(
+            arguments: ["-q", "show-dependencies", "--format", "json", "-o", tempFileURL.path],
+            path: buildSettings.packagePath
+        )
+
+        return try Self.decoder.decode(
+            PackageDependency.self,
+            from: Data(contentsOf: tempFileURL)
         )
     }
 
     private func dumpPackage(at path: String) async throws -> PackageDump {
-        let data = try await _dumpAction(arguments: ["describe", "--type", "json"], path: path)
+        let data = try await _dumpAction(arguments: ["-q", "describe", "--type", "json"], path: path)
         try Task.checkCancellation()
-        return try Self.decoder.decode(PackageDump.self, from: data)
+
+        // As in dumpDependencies, we may end up with extraneous data, but `describe`
+        // doesn't have a `-o` flag for a clean workaround. Resort to a heuristic,
+        // looking for the opening brace.
+        let fromBrace = data.drop(while: { $0 != Character("{").asciiValue })
+        return try Self.decoder.decode(PackageDump.self, from: fromBrace)
     }
 
     private func _dumpAction(arguments: [String], path: String) async throws -> Data {
@@ -213,20 +289,66 @@ public struct Planner: Sendable {
 }
 
 public struct Plan: Sendable {
-    public var product: String
-    public var deploymentTarget: String
-    public var bundleID: String
-    public var infoPlist: [String: any Sendable]
-    public var resources: [Resource]
-    public var iconPath: String?
-    public var entitlementsPath: String?
-}
+    public var app: Product
+    public var extensions: [Product]
 
-public enum Resource: Codable, Sendable {
-    case bundle(package: String, target: String)
-    case binaryTarget(name: String)
-    case library(name: String)
-    case root(source: String)
+    public var allProducts: [Product] {
+        [app] + extensions
+    }
+
+    public enum Resource: Codable, Sendable, Hashable {
+        case bundle(package: String, target: String)
+        case binaryTarget(name: String)
+        case library(name: String)
+        case root(source: String)
+    }
+
+    public struct Product: Sendable {
+        public var type: ProductType
+        public var product: String
+        public var deploymentTarget: String
+        public var bundleID: String
+        public var infoPlist: [String: any Sendable]
+        public var resources: [Resource]
+        public var iconPath: String?
+        public var entitlementsPath: String?
+
+        public var targetName: String {
+            "\(self.product)-\(self.type.targetSuffix)"
+        }
+
+        public func directory(inApp baseDir: URL) -> URL {
+            switch type {
+            case .application:
+                baseDir
+                    .appendingPathComponent(".", isDirectory: true)
+            case .appExtension:
+                baseDir
+                    .appendingPathComponent("PlugIns", isDirectory: true)
+                    .appendingPathComponent(product, isDirectory: true)
+                    .appendingPathExtension("appex")
+            }
+        }
+    }
+
+    public enum ProductType: Sendable {
+        case application
+        case appExtension
+
+        fileprivate var targetSuffix: String {
+            switch self {
+            case .application: "App"
+            case .appExtension: "Extension"
+            }
+        }
+
+        fileprivate var fourCharCode: String {
+            switch self {
+            case .application: "APPL"
+            case .appExtension: "XPC!"
+            }
+        }
+    }
 }
 
 private struct PackageDependency: Decodable {
@@ -301,4 +423,23 @@ private struct PackageDump: Decodable {
     let products: [Product]?
     let targets: [Target]?
     let platforms: [Platform]?
+}
+
+private struct PackageGraph {
+    let root: PackageDump
+    let packages: [String: PackageDump]
+    let packagesByProductName: [String: String]
+
+    func product(name productName: String) throws -> (PackageDump, PackageDump.Product) {
+        guard let packageID = packagesByProductName[productName] else {
+            throw StringError("Could not find package containing product '\(productName)'")
+        }
+        guard let package = packages[packageID] else {
+            throw StringError("Could not find package by id '\(packageID)'")
+        }
+        guard let product = package.products?.first(where: { $0.name == productName }) else {
+            throw StringError("Could not find product '\(productName)' in package '\(packageID)'")
+        }
+        return (package, product)
+    }
 }

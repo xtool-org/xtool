@@ -235,8 +235,10 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
     /// Registers the app + its extensions, returning the profile and entitlements of each
     public func perform() async throws -> [URL: ProvisioningInfo] {
         var apps: [URL] = [root]
-        let plugins = root.appendingPathComponent("PlugIns")
-        if plugins.dirExists {
+
+        for pluginsDir in ["PlugIns", "Extensions"] {
+            let plugins = root.appendingPathComponent(pluginsDir)
+            guard plugins.dirExists else { continue }
             apps += plugins.implicitContents.filter { $0.pathExtension.lowercased() == "appex" }
         }
 

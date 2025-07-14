@@ -152,6 +152,9 @@ public actor Signer {
         entitlementMapping: [URL: Entitlements],
         progress: @escaping (Double?) -> Void
     ) async throws {
+        // TODO: #131: update Zupersign to handle multiple entitlements files
+        // this is a temp hack to just pass along the root app entitlements
+        let entitlementMapping = entitlementMapping.filter { $0.key.path == app.path }
         try self._sign(
             app: app,
             identity: identity,
