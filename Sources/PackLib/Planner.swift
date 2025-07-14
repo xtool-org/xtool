@@ -216,8 +216,9 @@ public struct Planner: Sendable {
         let tempDir = try TemporaryDirectory(name: "xtool-dump-\(UUID().uuidString)")
         let tempFileURL = tempDir.url.appendingPathComponent("dump.json")
 
-        // some verbose is included in stdout. we should ignore it and use "-o" to get the raw dump.
-        // This is better than finding the opening curly braces character "{"
+        // SwiftPM sometimes prints extraneous data to stdout, so ask
+        // it to write the JSON to a temp file instead. See:
+        // https://github.com/xtool-org/xtool/pull/97#discussion_r2203618825
         _ = try await _dumpAction(
             arguments: ["-q", "show-dependencies", "--format", "json", "-o", tempFileURL.path],
             path: buildSettings.packagePath
@@ -233,7 +234,9 @@ public struct Planner: Sendable {
         let data = try await _dumpAction(arguments: ["-q", "describe", "--type", "json"], path: path)
         try Task.checkCancellation()
 
-        // See if SwiftPM allows exporting to a file without verbose/etc
+        // As in dumpDependencies, we may end up with extraneous data, but `describe`
+        // doesn't have a `-o` flag for a clean workaround. Resort to a heuristic,
+        // looking for the opening brace.
         let fromBrace = data.drop(while: { $0 != Character("{").asciiValue })
         return try Self.decoder.decode(PackageDump.self, from: fromBrace)
     }
