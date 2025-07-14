@@ -62,30 +62,28 @@ struct PackOperation {
             buildSettings: buildSettings,
             plan: plan
         )
-
         let bundle = try await packer.pack()
 
-        // Sign all extensions first before signing app
-        // TODO: #131: update Zupersign to support entitlementMapping, avoid looping here
-        var hasPrinted = false
-        for product in plan.extensions + [plan.app] {
-            guard let entitlementsPath = product.entitlementsPath else {
-                continue
+        let productsWithEntitlements = plan
+            .allProducts
+            .compactMap { p in p.entitlementsPath.map { (p, $0) } }
+        if !productsWithEntitlements.isEmpty {
+            let mapping = try await withThrowingTaskGroup(of: (URL, Entitlements).self) { group in
+                for (product, path) in productsWithEntitlements {
+                    group.addTask {
+                        let data = try await Data(reading: URL(fileURLWithPath: path))
+                        let decoder = PropertyListDecoder()
+                        let entitlements = try decoder.decode(Entitlements.self, from: data)
+                        return (product.directory(inApp: bundle), entitlements)
+                    }
+                }
+                return try await group.reduce(into: [:]) { $0[$1.0] = $1.1 }
             }
-
-            if !hasPrinted {
-                hasPrinted = true
-                print("Pseudo-signing...")
-            }
-
-            let data = try await Data(reading: URL(fileURLWithPath: entitlementsPath))
-            let decoder = PropertyListDecoder()
-            let entitlements = try decoder.decode(Entitlements.self, from: data)
-            let bundlePath = product.directory(inApp: bundle)
+            print("Pseudo-signing...")
             try await Signer.first().sign(
-                app: bundlePath,
+                app: bundle,
                 identity: .adhoc,
-                entitlementMapping: [bundlePath: entitlements],
+                entitlementMapping: mapping,
                 progress: { _ in }
             )
         }
