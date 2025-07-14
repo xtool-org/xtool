@@ -85,14 +85,12 @@ public struct AutoSigner {
         let entitlements = provisioningDict.mapValues(\.entitlements)
 
         status(NSLocalizedString("signer.signing", value: "Signing", comment: ""))
-
         try await context.signer.sign(
             app: app,
             identity: .real(signingInfo.certificate, signingInfo.privateKey),
             entitlementMapping: entitlements,
             progress: progress
         )
-
         progress(1)
 
         return mainInfo.newBundleID
