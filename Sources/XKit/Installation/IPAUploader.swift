@@ -15,7 +15,7 @@ public final class IPAUploader: Sendable {
         case unexpectedSymlink(at: URL)
     }
 
-    private static let packagePath = URL(fileURLWithPath: "PublicStaging")
+    private static let packagePath = URL(fileURLWithPath: "/PublicStaging")
     private static let bufferSize = 1 << 20 // 1 MB
 
     public final class UploadedIPA: Sendable {
