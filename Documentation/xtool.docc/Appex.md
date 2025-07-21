@@ -39,13 +39,6 @@ Start by adding a new product declaration to your `Package.swift`.
   )
 ```
 
-Also create a new empty file at `Sources/HelloWidget/Widget.swift`.
-
-```bash
-mkdir Sources/HelloWidget
-touch Sources/HelloWidget/Widget.swift
-```
-
 ## Step 2: Update xtool.yml
 
 Now that we have two products, we'll need to tell xtool which one corresponds to the _application_ and which one corresponds to the _extension_.
@@ -89,7 +82,7 @@ App extensions require an `Info.plist` file that tells the system what kind of e
 
 ## Step 4: Code your widget 
 
-We can finally write the code for the widget! Let's open `Sources/HelloWidget/Widget.swift` and create a simple widget that displays the current date.
+We can finally write the code for the widget. Create a new file at `Sources/HelloWidget/Widget.swift` with these contents:
 
 ```swift
 import WidgetKit
@@ -145,6 +138,6 @@ struct HelloWidget: Widget {
 }
 ```
 
-> Note: Blindly refreshing once an hour isn't a great strategy in practice but it makes for a short snippet. I never said this was a tutorial on writing _good_ WidgetKit code: there's plenty of other resources online if that's your goal!
+> Note: Blindly refreshing once an hour isn't a great strategy in practice but it makes for a short snippet. I never said this was a tutorial on writing _good_ WidgetKit code; there's plenty of other resources online if that's your goal, including Apple's own [documentation](https://developer.apple.com/documentation/widgetkit).
 
-Finally, build and run with `xtool dev`. You should be able to find the widget in your widget library. 
+Finally, build and run with `xtool dev`. You should be able to locate the widget in your widget library and add it to your home screen!
