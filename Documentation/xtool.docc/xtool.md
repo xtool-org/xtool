@@ -31,3 +31,4 @@ xtool is a cross-platform (Linux/WSL/macOS) tool that replicates Xcode functiona
 ### Common tasks
 
 - <doc:Control>
+- <doc:Appex>
