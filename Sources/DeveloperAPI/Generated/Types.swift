@@ -74,21 +74,45 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `DELETE /v1/profiles/{id}`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/delete(profiles_deleteInstance)`.
     func profilesDeleteInstance(_ input: Operations.ProfilesDeleteInstance.Input) async throws -> Operations.ProfilesDeleteInstance.Output
+    /// - Remark: HTTP `GET /v1/bundleIds/{id}/relationships/app`.
+    /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/app/get(bundleIds_app_getToOneRelationship)`.
+    func bundleIdsAppGetToOneRelationship(_ input: Operations.BundleIdsAppGetToOneRelationship.Input) async throws -> Operations.BundleIdsAppGetToOneRelationship.Output
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/app`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/app/get(bundleIds_app_getToOneRelated)`.
     func bundleIdsAppGetToOneRelated(_ input: Operations.BundleIdsAppGetToOneRelated.Input) async throws -> Operations.BundleIdsAppGetToOneRelated.Output
+    /// - Remark: HTTP `GET /v1/bundleIds/{id}/relationships/bundleIdCapabilities`.
+    /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelationship)`.
+    func bundleIdsBundleIdCapabilitiesGetToManyRelationship(_ input: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Input) async throws -> Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/bundleIdCapabilities`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelated)`.
     func bundleIdsBundleIdCapabilitiesGetToManyRelated(_ input: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Input) async throws -> Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output
+    /// - Remark: HTTP `GET /v1/bundleIds/{id}/relationships/profiles`.
+    /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/profiles/get(bundleIds_profiles_getToManyRelationship)`.
+    func bundleIdsProfilesGetToManyRelationship(_ input: Operations.BundleIdsProfilesGetToManyRelationship.Input) async throws -> Operations.BundleIdsProfilesGetToManyRelationship.Output
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/profiles`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/profiles/get(bundleIds_profiles_getToManyRelated)`.
     func bundleIdsProfilesGetToManyRelated(_ input: Operations.BundleIdsProfilesGetToManyRelated.Input) async throws -> Operations.BundleIdsProfilesGetToManyRelated.Output
+    /// - Remark: HTTP `GET /v1/certificates/{id}/relationships/passTypeId`.
+    /// - Remark: Generated from `#/paths//v1/certificates/{id}/relationships/passTypeId/get(certificates_passTypeId_getToOneRelationship)`.
+    func certificatesPassTypeIdGetToOneRelationship(_ input: Operations.CertificatesPassTypeIdGetToOneRelationship.Input) async throws -> Operations.CertificatesPassTypeIdGetToOneRelationship.Output
+    /// - Remark: HTTP `GET /v1/certificates/{id}/passTypeId`.
+    /// - Remark: Generated from `#/paths//v1/certificates/{id}/passTypeId/get(certificates_passTypeId_getToOneRelated)`.
+    func certificatesPassTypeIdGetToOneRelated(_ input: Operations.CertificatesPassTypeIdGetToOneRelated.Input) async throws -> Operations.CertificatesPassTypeIdGetToOneRelated.Output
+    /// - Remark: HTTP `GET /v1/profiles/{id}/relationships/bundleId`.
+    /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/bundleId/get(profiles_bundleId_getToOneRelationship)`.
+    func profilesBundleIdGetToOneRelationship(_ input: Operations.ProfilesBundleIdGetToOneRelationship.Input) async throws -> Operations.ProfilesBundleIdGetToOneRelationship.Output
     /// - Remark: HTTP `GET /v1/profiles/{id}/bundleId`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/bundleId/get(profiles_bundleId_getToOneRelated)`.
     func profilesBundleIdGetToOneRelated(_ input: Operations.ProfilesBundleIdGetToOneRelated.Input) async throws -> Operations.ProfilesBundleIdGetToOneRelated.Output
+    /// - Remark: HTTP `GET /v1/profiles/{id}/relationships/certificates`.
+    /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/certificates/get(profiles_certificates_getToManyRelationship)`.
+    func profilesCertificatesGetToManyRelationship(_ input: Operations.ProfilesCertificatesGetToManyRelationship.Input) async throws -> Operations.ProfilesCertificatesGetToManyRelationship.Output
     /// - Remark: HTTP `GET /v1/profiles/{id}/certificates`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/certificates/get(profiles_certificates_getToManyRelated)`.
     func profilesCertificatesGetToManyRelated(_ input: Operations.ProfilesCertificatesGetToManyRelated.Input) async throws -> Operations.ProfilesCertificatesGetToManyRelated.Output
+    /// - Remark: HTTP `GET /v1/profiles/{id}/relationships/devices`.
+    /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/devices/get(profiles_devices_getToManyRelationship)`.
+    func profilesDevicesGetToManyRelationship(_ input: Operations.ProfilesDevicesGetToManyRelationship.Input) async throws -> Operations.ProfilesDevicesGetToManyRelationship.Output
     /// - Remark: HTTP `GET /v1/profiles/{id}/devices`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/devices/get(profiles_devices_getToManyRelated)`.
     func profilesDevicesGetToManyRelated(_ input: Operations.ProfilesDevicesGetToManyRelated.Input) async throws -> Operations.ProfilesDevicesGetToManyRelated.Output
@@ -343,6 +367,17 @@ extension APIProtocol {
             headers: headers
         ))
     }
+    /// - Remark: HTTP `GET /v1/bundleIds/{id}/relationships/app`.
+    /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/app/get(bundleIds_app_getToOneRelationship)`.
+    public func bundleIdsAppGetToOneRelationship(
+        path: Operations.BundleIdsAppGetToOneRelationship.Input.Path,
+        headers: Operations.BundleIdsAppGetToOneRelationship.Input.Headers = .init()
+    ) async throws -> Operations.BundleIdsAppGetToOneRelationship.Output {
+        try await bundleIdsAppGetToOneRelationship(Operations.BundleIdsAppGetToOneRelationship.Input(
+            path: path,
+            headers: headers
+        ))
+    }
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/app`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/app/get(bundleIds_app_getToOneRelated)`.
     public func bundleIdsAppGetToOneRelated(
@@ -351,6 +386,19 @@ extension APIProtocol {
         headers: Operations.BundleIdsAppGetToOneRelated.Input.Headers = .init()
     ) async throws -> Operations.BundleIdsAppGetToOneRelated.Output {
         try await bundleIdsAppGetToOneRelated(Operations.BundleIdsAppGetToOneRelated.Input(
+            path: path,
+            query: query,
+            headers: headers
+        ))
+    }
+    /// - Remark: HTTP `GET /v1/bundleIds/{id}/relationships/bundleIdCapabilities`.
+    /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelationship)`.
+    public func bundleIdsBundleIdCapabilitiesGetToManyRelationship(
+        path: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Input.Path,
+        query: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Input.Query = .init(),
+        headers: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Input.Headers = .init()
+    ) async throws -> Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output {
+        try await bundleIdsBundleIdCapabilitiesGetToManyRelationship(Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Input(
             path: path,
             query: query,
             headers: headers
@@ -369,6 +417,19 @@ extension APIProtocol {
             headers: headers
         ))
     }
+    /// - Remark: HTTP `GET /v1/bundleIds/{id}/relationships/profiles`.
+    /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/profiles/get(bundleIds_profiles_getToManyRelationship)`.
+    public func bundleIdsProfilesGetToManyRelationship(
+        path: Operations.BundleIdsProfilesGetToManyRelationship.Input.Path,
+        query: Operations.BundleIdsProfilesGetToManyRelationship.Input.Query = .init(),
+        headers: Operations.BundleIdsProfilesGetToManyRelationship.Input.Headers = .init()
+    ) async throws -> Operations.BundleIdsProfilesGetToManyRelationship.Output {
+        try await bundleIdsProfilesGetToManyRelationship(Operations.BundleIdsProfilesGetToManyRelationship.Input(
+            path: path,
+            query: query,
+            headers: headers
+        ))
+    }
     /// - Remark: HTTP `GET /v1/bundleIds/{id}/profiles`.
     /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/profiles/get(bundleIds_profiles_getToManyRelated)`.
     public func bundleIdsProfilesGetToManyRelated(
@@ -379,6 +440,41 @@ extension APIProtocol {
         try await bundleIdsProfilesGetToManyRelated(Operations.BundleIdsProfilesGetToManyRelated.Input(
             path: path,
             query: query,
+            headers: headers
+        ))
+    }
+    /// - Remark: HTTP `GET /v1/certificates/{id}/relationships/passTypeId`.
+    /// - Remark: Generated from `#/paths//v1/certificates/{id}/relationships/passTypeId/get(certificates_passTypeId_getToOneRelationship)`.
+    public func certificatesPassTypeIdGetToOneRelationship(
+        path: Operations.CertificatesPassTypeIdGetToOneRelationship.Input.Path,
+        headers: Operations.CertificatesPassTypeIdGetToOneRelationship.Input.Headers = .init()
+    ) async throws -> Operations.CertificatesPassTypeIdGetToOneRelationship.Output {
+        try await certificatesPassTypeIdGetToOneRelationship(Operations.CertificatesPassTypeIdGetToOneRelationship.Input(
+            path: path,
+            headers: headers
+        ))
+    }
+    /// - Remark: HTTP `GET /v1/certificates/{id}/passTypeId`.
+    /// - Remark: Generated from `#/paths//v1/certificates/{id}/passTypeId/get(certificates_passTypeId_getToOneRelated)`.
+    public func certificatesPassTypeIdGetToOneRelated(
+        path: Operations.CertificatesPassTypeIdGetToOneRelated.Input.Path,
+        query: Operations.CertificatesPassTypeIdGetToOneRelated.Input.Query = .init(),
+        headers: Operations.CertificatesPassTypeIdGetToOneRelated.Input.Headers = .init()
+    ) async throws -> Operations.CertificatesPassTypeIdGetToOneRelated.Output {
+        try await certificatesPassTypeIdGetToOneRelated(Operations.CertificatesPassTypeIdGetToOneRelated.Input(
+            path: path,
+            query: query,
+            headers: headers
+        ))
+    }
+    /// - Remark: HTTP `GET /v1/profiles/{id}/relationships/bundleId`.
+    /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/bundleId/get(profiles_bundleId_getToOneRelationship)`.
+    public func profilesBundleIdGetToOneRelationship(
+        path: Operations.ProfilesBundleIdGetToOneRelationship.Input.Path,
+        headers: Operations.ProfilesBundleIdGetToOneRelationship.Input.Headers = .init()
+    ) async throws -> Operations.ProfilesBundleIdGetToOneRelationship.Output {
+        try await profilesBundleIdGetToOneRelationship(Operations.ProfilesBundleIdGetToOneRelationship.Input(
+            path: path,
             headers: headers
         ))
     }
@@ -395,6 +491,19 @@ extension APIProtocol {
             headers: headers
         ))
     }
+    /// - Remark: HTTP `GET /v1/profiles/{id}/relationships/certificates`.
+    /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/certificates/get(profiles_certificates_getToManyRelationship)`.
+    public func profilesCertificatesGetToManyRelationship(
+        path: Operations.ProfilesCertificatesGetToManyRelationship.Input.Path,
+        query: Operations.ProfilesCertificatesGetToManyRelationship.Input.Query = .init(),
+        headers: Operations.ProfilesCertificatesGetToManyRelationship.Input.Headers = .init()
+    ) async throws -> Operations.ProfilesCertificatesGetToManyRelationship.Output {
+        try await profilesCertificatesGetToManyRelationship(Operations.ProfilesCertificatesGetToManyRelationship.Input(
+            path: path,
+            query: query,
+            headers: headers
+        ))
+    }
     /// - Remark: HTTP `GET /v1/profiles/{id}/certificates`.
     /// - Remark: Generated from `#/paths//v1/profiles/{id}/certificates/get(profiles_certificates_getToManyRelated)`.
     public func profilesCertificatesGetToManyRelated(
@@ -403,6 +512,19 @@ extension APIProtocol {
         headers: Operations.ProfilesCertificatesGetToManyRelated.Input.Headers = .init()
     ) async throws -> Operations.ProfilesCertificatesGetToManyRelated.Output {
         try await profilesCertificatesGetToManyRelated(Operations.ProfilesCertificatesGetToManyRelated.Input(
+            path: path,
+            query: query,
+            headers: headers
+        ))
+    }
+    /// - Remark: HTTP `GET /v1/profiles/{id}/relationships/devices`.
+    /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/devices/get(profiles_devices_getToManyRelationship)`.
+    public func profilesDevicesGetToManyRelationship(
+        path: Operations.ProfilesDevicesGetToManyRelationship.Input.Path,
+        query: Operations.ProfilesDevicesGetToManyRelationship.Input.Query = .init(),
+        headers: Operations.ProfilesDevicesGetToManyRelationship.Input.Headers = .init()
+    ) async throws -> Operations.ProfilesDevicesGetToManyRelationship.Output {
+        try await profilesDevicesGetToManyRelationship(Operations.ProfilesDevicesGetToManyRelationship.Input(
             path: path,
             query: query,
             headers: headers
@@ -458,6 +580,8 @@ public enum Components {
             public var id: Swift.String
             /// - Remark: Generated from `#/components/schemas/App/attributes`.
             public struct AttributesPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/App/attributes/accessibilityUrl`.
+                public var accessibilityUrl: Swift.String?
                 /// - Remark: Generated from `#/components/schemas/App/attributes/name`.
                 public var name: Swift.String?
                 /// - Remark: Generated from `#/components/schemas/App/attributes/bundleId`.
@@ -535,6 +659,7 @@ public enum Components {
                 /// Creates a new `AttributesPayload`.
                 ///
                 /// - Parameters:
+                ///   - accessibilityUrl:
                 ///   - name:
                 ///   - bundleId:
                 ///   - sku:
@@ -547,6 +672,7 @@ public enum Components {
                 ///   - contentRightsDeclaration:
                 ///   - streamlinedPurchasingEnabled:
                 public init(
+                    accessibilityUrl: Swift.String? = nil,
                     name: Swift.String? = nil,
                     bundleId: Swift.String? = nil,
                     sku: Swift.String? = nil,
@@ -559,6 +685,7 @@ public enum Components {
                     contentRightsDeclaration: Components.Schemas.App.AttributesPayload.ContentRightsDeclarationPayload? = nil,
                     streamlinedPurchasingEnabled: Swift.Bool? = nil
                 ) {
+                    self.accessibilityUrl = accessibilityUrl
                     self.name = name
                     self.bundleId = bundleId
                     self.sku = sku
@@ -572,6 +699,7 @@ public enum Components {
                     self.streamlinedPurchasingEnabled = streamlinedPurchasingEnabled
                 }
                 public enum CodingKeys: String, CodingKey {
+                    case accessibilityUrl
                     case name
                     case bundleId
                     case sku
@@ -589,6 +717,23 @@ public enum Components {
             public var attributes: Components.Schemas.App.AttributesPayload?
             /// - Remark: Generated from `#/components/schemas/App/relationships`.
             public struct RelationshipsPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/App/relationships/accessibilityDeclarations`.
+                public struct AccessibilityDeclarationsPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/accessibilityDeclarations/links`.
+                    public var links: Components.Schemas.RelationshipLinks?
+                    /// Creates a new `AccessibilityDeclarationsPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - links:
+                    public init(links: Components.Schemas.RelationshipLinks? = nil) {
+                        self.links = links
+                    }
+                    public enum CodingKeys: String, CodingKey {
+                        case links
+                    }
+                }
+                /// - Remark: Generated from `#/components/schemas/App/relationships/accessibilityDeclarations`.
+                public var accessibilityDeclarations: Components.Schemas.App.RelationshipsPayload.AccessibilityDeclarationsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appEncryptionDeclarations`.
                 public struct AppEncryptionDeclarationsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/appEncryptionDeclarations/links`.
@@ -1911,6 +2056,23 @@ public enum Components {
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/customerReviews`.
                 public var customerReviews: Components.Schemas.App.RelationshipsPayload.CustomerReviewsPayload?
+                /// - Remark: Generated from `#/components/schemas/App/relationships/customerReviewSummarizations`.
+                public struct CustomerReviewSummarizationsPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/customerReviewSummarizations/links`.
+                    public var links: Components.Schemas.RelationshipLinks?
+                    /// Creates a new `CustomerReviewSummarizationsPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - links:
+                    public init(links: Components.Schemas.RelationshipLinks? = nil) {
+                        self.links = links
+                    }
+                    public enum CodingKeys: String, CodingKey {
+                        case links
+                    }
+                }
+                /// - Remark: Generated from `#/components/schemas/App/relationships/customerReviewSummarizations`.
+                public var customerReviewSummarizations: Components.Schemas.App.RelationshipsPayload.CustomerReviewSummarizationsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterDetail`.
                 public struct GameCenterDetailPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/gameCenterDetail/links`.
@@ -2074,9 +2236,78 @@ public enum Components {
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/marketplaceSearchDetail`.
                 public var marketplaceSearchDetail: Components.Schemas.App.RelationshipsPayload.MarketplaceSearchDetailPayload?
+                /// - Remark: Generated from `#/components/schemas/App/relationships/backgroundAssets`.
+                public struct BackgroundAssetsPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/backgroundAssets/links`.
+                    public var links: Components.Schemas.RelationshipLinks?
+                    /// Creates a new `BackgroundAssetsPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - links:
+                    public init(links: Components.Schemas.RelationshipLinks? = nil) {
+                        self.links = links
+                    }
+                    public enum CodingKeys: String, CodingKey {
+                        case links
+                    }
+                }
+                /// - Remark: Generated from `#/components/schemas/App/relationships/backgroundAssets`.
+                public var backgroundAssets: Components.Schemas.App.RelationshipsPayload.BackgroundAssetsPayload?
+                /// - Remark: Generated from `#/components/schemas/App/relationships/betaFeedbackScreenshotSubmissions`.
+                public struct BetaFeedbackScreenshotSubmissionsPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/betaFeedbackScreenshotSubmissions/links`.
+                    public var links: Components.Schemas.RelationshipLinks?
+                    /// Creates a new `BetaFeedbackScreenshotSubmissionsPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - links:
+                    public init(links: Components.Schemas.RelationshipLinks? = nil) {
+                        self.links = links
+                    }
+                    public enum CodingKeys: String, CodingKey {
+                        case links
+                    }
+                }
+                /// - Remark: Generated from `#/components/schemas/App/relationships/betaFeedbackScreenshotSubmissions`.
+                public var betaFeedbackScreenshotSubmissions: Components.Schemas.App.RelationshipsPayload.BetaFeedbackScreenshotSubmissionsPayload?
+                /// - Remark: Generated from `#/components/schemas/App/relationships/betaFeedbackCrashSubmissions`.
+                public struct BetaFeedbackCrashSubmissionsPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/betaFeedbackCrashSubmissions/links`.
+                    public var links: Components.Schemas.RelationshipLinks?
+                    /// Creates a new `BetaFeedbackCrashSubmissionsPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - links:
+                    public init(links: Components.Schemas.RelationshipLinks? = nil) {
+                        self.links = links
+                    }
+                    public enum CodingKeys: String, CodingKey {
+                        case links
+                    }
+                }
+                /// - Remark: Generated from `#/components/schemas/App/relationships/betaFeedbackCrashSubmissions`.
+                public var betaFeedbackCrashSubmissions: Components.Schemas.App.RelationshipsPayload.BetaFeedbackCrashSubmissionsPayload?
+                /// - Remark: Generated from `#/components/schemas/App/relationships/webhooks`.
+                public struct WebhooksPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/webhooks/links`.
+                    public var links: Components.Schemas.RelationshipLinks?
+                    /// Creates a new `WebhooksPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - links:
+                    public init(links: Components.Schemas.RelationshipLinks? = nil) {
+                        self.links = links
+                    }
+                    public enum CodingKeys: String, CodingKey {
+                        case links
+                    }
+                }
+                /// - Remark: Generated from `#/components/schemas/App/relationships/webhooks`.
+                public var webhooks: Components.Schemas.App.RelationshipsPayload.WebhooksPayload?
                 /// Creates a new `RelationshipsPayload`.
                 ///
                 /// - Parameters:
+                ///   - accessibilityDeclarations:
                 ///   - appEncryptionDeclarations:
                 ///   - ciProduct:
                 ///   - betaTesters:
@@ -2104,12 +2335,18 @@ public enum Components {
                 ///   - reviewSubmissions:
                 ///   - subscriptionGracePeriod:
                 ///   - customerReviews:
+                ///   - customerReviewSummarizations:
                 ///   - gameCenterDetail:
                 ///   - appStoreVersionExperimentsV2:
                 ///   - alternativeDistributionKey:
                 ///   - analyticsReportRequests:
                 ///   - marketplaceSearchDetail:
+                ///   - backgroundAssets:
+                ///   - betaFeedbackScreenshotSubmissions:
+                ///   - betaFeedbackCrashSubmissions:
+                ///   - webhooks:
                 public init(
+                    accessibilityDeclarations: Components.Schemas.App.RelationshipsPayload.AccessibilityDeclarationsPayload? = nil,
                     appEncryptionDeclarations: Components.Schemas.App.RelationshipsPayload.AppEncryptionDeclarationsPayload? = nil,
                     ciProduct: Components.Schemas.App.RelationshipsPayload.CiProductPayload? = nil,
                     betaTesters: Components.Schemas.App.RelationshipsPayload.BetaTestersPayload? = nil,
@@ -2137,12 +2374,18 @@ public enum Components {
                     reviewSubmissions: Components.Schemas.App.RelationshipsPayload.ReviewSubmissionsPayload? = nil,
                     subscriptionGracePeriod: Components.Schemas.App.RelationshipsPayload.SubscriptionGracePeriodPayload? = nil,
                     customerReviews: Components.Schemas.App.RelationshipsPayload.CustomerReviewsPayload? = nil,
+                    customerReviewSummarizations: Components.Schemas.App.RelationshipsPayload.CustomerReviewSummarizationsPayload? = nil,
                     gameCenterDetail: Components.Schemas.App.RelationshipsPayload.GameCenterDetailPayload? = nil,
                     appStoreVersionExperimentsV2: Components.Schemas.App.RelationshipsPayload.AppStoreVersionExperimentsV2Payload? = nil,
                     alternativeDistributionKey: Components.Schemas.App.RelationshipsPayload.AlternativeDistributionKeyPayload? = nil,
                     analyticsReportRequests: Components.Schemas.App.RelationshipsPayload.AnalyticsReportRequestsPayload? = nil,
-                    marketplaceSearchDetail: Components.Schemas.App.RelationshipsPayload.MarketplaceSearchDetailPayload? = nil
+                    marketplaceSearchDetail: Components.Schemas.App.RelationshipsPayload.MarketplaceSearchDetailPayload? = nil,
+                    backgroundAssets: Components.Schemas.App.RelationshipsPayload.BackgroundAssetsPayload? = nil,
+                    betaFeedbackScreenshotSubmissions: Components.Schemas.App.RelationshipsPayload.BetaFeedbackScreenshotSubmissionsPayload? = nil,
+                    betaFeedbackCrashSubmissions: Components.Schemas.App.RelationshipsPayload.BetaFeedbackCrashSubmissionsPayload? = nil,
+                    webhooks: Components.Schemas.App.RelationshipsPayload.WebhooksPayload? = nil
                 ) {
+                    self.accessibilityDeclarations = accessibilityDeclarations
                     self.appEncryptionDeclarations = appEncryptionDeclarations
                     self.ciProduct = ciProduct
                     self.betaTesters = betaTesters
@@ -2170,13 +2413,19 @@ public enum Components {
                     self.reviewSubmissions = reviewSubmissions
                     self.subscriptionGracePeriod = subscriptionGracePeriod
                     self.customerReviews = customerReviews
+                    self.customerReviewSummarizations = customerReviewSummarizations
                     self.gameCenterDetail = gameCenterDetail
                     self.appStoreVersionExperimentsV2 = appStoreVersionExperimentsV2
                     self.alternativeDistributionKey = alternativeDistributionKey
                     self.analyticsReportRequests = analyticsReportRequests
                     self.marketplaceSearchDetail = marketplaceSearchDetail
+                    self.backgroundAssets = backgroundAssets
+                    self.betaFeedbackScreenshotSubmissions = betaFeedbackScreenshotSubmissions
+                    self.betaFeedbackCrashSubmissions = betaFeedbackCrashSubmissions
+                    self.webhooks = webhooks
                 }
                 public enum CodingKeys: String, CodingKey {
+                    case accessibilityDeclarations
                     case appEncryptionDeclarations
                     case ciProduct
                     case betaTesters
@@ -2204,11 +2453,16 @@ public enum Components {
                     case reviewSubmissions
                     case subscriptionGracePeriod
                     case customerReviews
+                    case customerReviewSummarizations
                     case gameCenterDetail
                     case appStoreVersionExperimentsV2
                     case alternativeDistributionKey
                     case analyticsReportRequests
                     case marketplaceSearchDetail
+                    case backgroundAssets
+                    case betaFeedbackScreenshotSubmissions
+                    case betaFeedbackCrashSubmissions
+                    case webhooks
                 }
             }
             /// - Remark: Generated from `#/components/schemas/App/relationships`.
@@ -3222,6 +3476,73 @@ public enum Components {
             }
             /// - Remark: Generated from `#/components/schemas/Certificate/attributes`.
             public var attributes: Components.Schemas.Certificate.AttributesPayload?
+            /// - Remark: Generated from `#/components/schemas/Certificate/relationships`.
+            public struct RelationshipsPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/Certificate/relationships/passTypeId`.
+                public struct PassTypeIdPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/Certificate/relationships/passTypeId/links`.
+                    public var links: Components.Schemas.RelationshipLinks?
+                    /// - Remark: Generated from `#/components/schemas/Certificate/relationships/passTypeId/data`.
+                    public struct DataPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/Certificate/relationships/passTypeId/data/type`.
+                        @frozen public enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                            case passTypeIds = "passTypeIds"
+                        }
+                        /// - Remark: Generated from `#/components/schemas/Certificate/relationships/passTypeId/data/type`.
+                        public var _type: Components.Schemas.Certificate.RelationshipsPayload.PassTypeIdPayload.DataPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/Certificate/relationships/passTypeId/data/id`.
+                        public var id: Swift.String
+                        /// Creates a new `DataPayload`.
+                        ///
+                        /// - Parameters:
+                        ///   - _type:
+                        ///   - id:
+                        public init(
+                            _type: Components.Schemas.Certificate.RelationshipsPayload.PassTypeIdPayload.DataPayload._TypePayload,
+                            id: Swift.String
+                        ) {
+                            self._type = _type
+                            self.id = id
+                        }
+                        public enum CodingKeys: String, CodingKey {
+                            case _type = "type"
+                            case id
+                        }
+                    }
+                    /// - Remark: Generated from `#/components/schemas/Certificate/relationships/passTypeId/data`.
+                    public var data: Components.Schemas.Certificate.RelationshipsPayload.PassTypeIdPayload.DataPayload?
+                    /// Creates a new `PassTypeIdPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - links:
+                    ///   - data:
+                    public init(
+                        links: Components.Schemas.RelationshipLinks? = nil,
+                        data: Components.Schemas.Certificate.RelationshipsPayload.PassTypeIdPayload.DataPayload? = nil
+                    ) {
+                        self.links = links
+                        self.data = data
+                    }
+                    public enum CodingKeys: String, CodingKey {
+                        case links
+                        case data
+                    }
+                }
+                /// - Remark: Generated from `#/components/schemas/Certificate/relationships/passTypeId`.
+                public var passTypeId: Components.Schemas.Certificate.RelationshipsPayload.PassTypeIdPayload?
+                /// Creates a new `RelationshipsPayload`.
+                ///
+                /// - Parameters:
+                ///   - passTypeId:
+                public init(passTypeId: Components.Schemas.Certificate.RelationshipsPayload.PassTypeIdPayload? = nil) {
+                    self.passTypeId = passTypeId
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case passTypeId
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/Certificate/relationships`.
+            public var relationships: Components.Schemas.Certificate.RelationshipsPayload?
             /// - Remark: Generated from `#/components/schemas/Certificate/links`.
             public var links: Components.Schemas.ResourceLinks?
             /// Creates a new `Certificate`.
@@ -3230,22 +3551,26 @@ public enum Components {
             ///   - _type:
             ///   - id:
             ///   - attributes:
+            ///   - relationships:
             ///   - links:
             public init(
                 _type: Components.Schemas.Certificate._TypePayload,
                 id: Swift.String,
                 attributes: Components.Schemas.Certificate.AttributesPayload? = nil,
+                relationships: Components.Schemas.Certificate.RelationshipsPayload? = nil,
                 links: Components.Schemas.ResourceLinks? = nil
             ) {
                 self._type = _type
                 self.id = id
                 self.attributes = attributes
+                self.relationships = relationships
                 self.links = links
             }
             public enum CodingKeys: String, CodingKey {
                 case _type = "type"
                 case id
                 case attributes
+                case relationships
                 case links
             }
         }
@@ -3253,6 +3578,8 @@ public enum Components {
         public struct CertificatesResponse: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/CertificatesResponse/data`.
             public var data: [Components.Schemas.Certificate]
+            /// - Remark: Generated from `#/components/schemas/CertificatesResponse/included`.
+            public var included: [Components.Schemas.PassTypeId]?
             /// - Remark: Generated from `#/components/schemas/CertificatesResponse/links`.
             public var links: Components.Schemas.PagedDocumentLinks
             /// - Remark: Generated from `#/components/schemas/CertificatesResponse/meta`.
@@ -3261,19 +3588,23 @@ public enum Components {
             ///
             /// - Parameters:
             ///   - data:
+            ///   - included:
             ///   - links:
             ///   - meta:
             public init(
                 data: [Components.Schemas.Certificate],
+                included: [Components.Schemas.PassTypeId]? = nil,
                 links: Components.Schemas.PagedDocumentLinks,
                 meta: Components.Schemas.PagingInformation? = nil
             ) {
                 self.data = data
+                self.included = included
                 self.links = links
                 self.meta = meta
             }
             public enum CodingKeys: String, CodingKey {
                 case data
+                case included
                 case links
                 case meta
             }
@@ -3282,22 +3613,28 @@ public enum Components {
         public struct CertificateResponse: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/CertificateResponse/data`.
             public var data: Components.Schemas.Certificate
+            /// - Remark: Generated from `#/components/schemas/CertificateResponse/included`.
+            public var included: [Components.Schemas.PassTypeId]?
             /// - Remark: Generated from `#/components/schemas/CertificateResponse/links`.
             public var links: Components.Schemas.DocumentLinks
             /// Creates a new `CertificateResponse`.
             ///
             /// - Parameters:
             ///   - data:
+            ///   - included:
             ///   - links:
             public init(
                 data: Components.Schemas.Certificate,
+                included: [Components.Schemas.PassTypeId]? = nil,
                 links: Components.Schemas.DocumentLinks
             ) {
                 self.data = data
+                self.included = included
                 self.links = links
             }
             public enum CodingKeys: String, CodingKey {
                 case data
+                case included
                 case links
             }
         }
@@ -3382,15 +3719,65 @@ public enum Components {
                     }
                     /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/relationships/merchantId`.
                     public var merchantId: Components.Schemas.CertificateCreateRequest.DataPayload.RelationshipsPayload.MerchantIdPayload?
+                    /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/relationships/passTypeId`.
+                    public struct PassTypeIdPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/relationships/passTypeId/data`.
+                        public struct DataPayload: Codable, Hashable, Sendable {
+                            /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/relationships/passTypeId/data/type`.
+                            @frozen public enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                                case passTypeIds = "passTypeIds"
+                            }
+                            /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/relationships/passTypeId/data/type`.
+                            public var _type: Components.Schemas.CertificateCreateRequest.DataPayload.RelationshipsPayload.PassTypeIdPayload.DataPayload._TypePayload
+                            /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/relationships/passTypeId/data/id`.
+                            public var id: Swift.String
+                            /// Creates a new `DataPayload`.
+                            ///
+                            /// - Parameters:
+                            ///   - _type:
+                            ///   - id:
+                            public init(
+                                _type: Components.Schemas.CertificateCreateRequest.DataPayload.RelationshipsPayload.PassTypeIdPayload.DataPayload._TypePayload,
+                                id: Swift.String
+                            ) {
+                                self._type = _type
+                                self.id = id
+                            }
+                            public enum CodingKeys: String, CodingKey {
+                                case _type = "type"
+                                case id
+                            }
+                        }
+                        /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/relationships/passTypeId/data`.
+                        public var data: Components.Schemas.CertificateCreateRequest.DataPayload.RelationshipsPayload.PassTypeIdPayload.DataPayload?
+                        /// Creates a new `PassTypeIdPayload`.
+                        ///
+                        /// - Parameters:
+                        ///   - data:
+                        public init(data: Components.Schemas.CertificateCreateRequest.DataPayload.RelationshipsPayload.PassTypeIdPayload.DataPayload? = nil) {
+                            self.data = data
+                        }
+                        public enum CodingKeys: String, CodingKey {
+                            case data
+                        }
+                    }
+                    /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/relationships/passTypeId`.
+                    public var passTypeId: Components.Schemas.CertificateCreateRequest.DataPayload.RelationshipsPayload.PassTypeIdPayload?
                     /// Creates a new `RelationshipsPayload`.
                     ///
                     /// - Parameters:
                     ///   - merchantId:
-                    public init(merchantId: Components.Schemas.CertificateCreateRequest.DataPayload.RelationshipsPayload.MerchantIdPayload? = nil) {
+                    ///   - passTypeId:
+                    public init(
+                        merchantId: Components.Schemas.CertificateCreateRequest.DataPayload.RelationshipsPayload.MerchantIdPayload? = nil,
+                        passTypeId: Components.Schemas.CertificateCreateRequest.DataPayload.RelationshipsPayload.PassTypeIdPayload? = nil
+                    ) {
                         self.merchantId = merchantId
+                        self.passTypeId = passTypeId
                     }
                     public enum CodingKeys: String, CodingKey {
                         case merchantId
+                        case passTypeId
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/CertificateCreateRequest/data/relationships`.
@@ -3514,6 +3901,7 @@ public enum Components {
                 public struct DeviceClassPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/Device/attributes/deviceClass/value1`.
                     @frozen public enum Value1Payload: String, Codable, Hashable, Sendable, CaseIterable {
+                        case appleVisionPro = "APPLE_VISION_PRO"
                         case appleWatch = "APPLE_WATCH"
                         case ipad = "IPAD"
                         case iphone = "IPHONE"
@@ -3936,6 +4324,176 @@ public enum Components {
             }
             public enum CodingKeys: String, CodingKey {
                 case data
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/PassTypeId`.
+        public struct PassTypeId: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/PassTypeId/type`.
+            @frozen public enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case passTypeIds = "passTypeIds"
+            }
+            /// - Remark: Generated from `#/components/schemas/PassTypeId/type`.
+            public var _type: Components.Schemas.PassTypeId._TypePayload
+            /// - Remark: Generated from `#/components/schemas/PassTypeId/id`.
+            public var id: Swift.String
+            /// - Remark: Generated from `#/components/schemas/PassTypeId/attributes`.
+            public struct AttributesPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/PassTypeId/attributes/name`.
+                public var name: Swift.String?
+                /// - Remark: Generated from `#/components/schemas/PassTypeId/attributes/identifier`.
+                public var identifier: Swift.String?
+                /// Creates a new `AttributesPayload`.
+                ///
+                /// - Parameters:
+                ///   - name:
+                ///   - identifier:
+                public init(
+                    name: Swift.String? = nil,
+                    identifier: Swift.String? = nil
+                ) {
+                    self.name = name
+                    self.identifier = identifier
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case name
+                    case identifier
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/PassTypeId/attributes`.
+            public var attributes: Components.Schemas.PassTypeId.AttributesPayload?
+            /// - Remark: Generated from `#/components/schemas/PassTypeId/relationships`.
+            public struct RelationshipsPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/PassTypeId/relationships/certificates`.
+                public struct CertificatesPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/PassTypeId/relationships/certificates/links`.
+                    public var links: Components.Schemas.RelationshipLinks?
+                    /// - Remark: Generated from `#/components/schemas/PassTypeId/relationships/certificates/meta`.
+                    public var meta: Components.Schemas.PagingInformation?
+                    /// - Remark: Generated from `#/components/schemas/PassTypeId/relationships/certificates/DataPayload`.
+                    public struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/PassTypeId/relationships/certificates/DataPayload/type`.
+                        @frozen public enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                            case certificates = "certificates"
+                        }
+                        /// - Remark: Generated from `#/components/schemas/PassTypeId/relationships/certificates/DataPayload/type`.
+                        public var _type: Components.Schemas.PassTypeId.RelationshipsPayload.CertificatesPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/PassTypeId/relationships/certificates/DataPayload/id`.
+                        public var id: Swift.String
+                        /// Creates a new `DataPayloadPayload`.
+                        ///
+                        /// - Parameters:
+                        ///   - _type:
+                        ///   - id:
+                        public init(
+                            _type: Components.Schemas.PassTypeId.RelationshipsPayload.CertificatesPayload.DataPayloadPayload._TypePayload,
+                            id: Swift.String
+                        ) {
+                            self._type = _type
+                            self.id = id
+                        }
+                        public enum CodingKeys: String, CodingKey {
+                            case _type = "type"
+                            case id
+                        }
+                    }
+                    /// - Remark: Generated from `#/components/schemas/PassTypeId/relationships/certificates/data`.
+                    public typealias DataPayload = [Components.Schemas.PassTypeId.RelationshipsPayload.CertificatesPayload.DataPayloadPayload]
+                    /// - Remark: Generated from `#/components/schemas/PassTypeId/relationships/certificates/data`.
+                    public var data: Components.Schemas.PassTypeId.RelationshipsPayload.CertificatesPayload.DataPayload?
+                    /// Creates a new `CertificatesPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - links:
+                    ///   - meta:
+                    ///   - data:
+                    public init(
+                        links: Components.Schemas.RelationshipLinks? = nil,
+                        meta: Components.Schemas.PagingInformation? = nil,
+                        data: Components.Schemas.PassTypeId.RelationshipsPayload.CertificatesPayload.DataPayload? = nil
+                    ) {
+                        self.links = links
+                        self.meta = meta
+                        self.data = data
+                    }
+                    public enum CodingKeys: String, CodingKey {
+                        case links
+                        case meta
+                        case data
+                    }
+                }
+                /// - Remark: Generated from `#/components/schemas/PassTypeId/relationships/certificates`.
+                public var certificates: Components.Schemas.PassTypeId.RelationshipsPayload.CertificatesPayload?
+                /// Creates a new `RelationshipsPayload`.
+                ///
+                /// - Parameters:
+                ///   - certificates:
+                public init(certificates: Components.Schemas.PassTypeId.RelationshipsPayload.CertificatesPayload? = nil) {
+                    self.certificates = certificates
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case certificates
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/PassTypeId/relationships`.
+            public var relationships: Components.Schemas.PassTypeId.RelationshipsPayload?
+            /// - Remark: Generated from `#/components/schemas/PassTypeId/links`.
+            public var links: Components.Schemas.ResourceLinks?
+            /// Creates a new `PassTypeId`.
+            ///
+            /// - Parameters:
+            ///   - _type:
+            ///   - id:
+            ///   - attributes:
+            ///   - relationships:
+            ///   - links:
+            public init(
+                _type: Components.Schemas.PassTypeId._TypePayload,
+                id: Swift.String,
+                attributes: Components.Schemas.PassTypeId.AttributesPayload? = nil,
+                relationships: Components.Schemas.PassTypeId.RelationshipsPayload? = nil,
+                links: Components.Schemas.ResourceLinks? = nil
+            ) {
+                self._type = _type
+                self.id = id
+                self.attributes = attributes
+                self.relationships = relationships
+                self.links = links
+            }
+            public enum CodingKeys: String, CodingKey {
+                case _type = "type"
+                case id
+                case attributes
+                case relationships
+                case links
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/PassTypeIdResponse`.
+        public struct PassTypeIdResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/PassTypeIdResponse/data`.
+            public var data: Components.Schemas.PassTypeId
+            /// - Remark: Generated from `#/components/schemas/PassTypeIdResponse/included`.
+            public var included: [Components.Schemas.Certificate]?
+            /// - Remark: Generated from `#/components/schemas/PassTypeIdResponse/links`.
+            public var links: Components.Schemas.DocumentLinks
+            /// Creates a new `PassTypeIdResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            ///   - included:
+            ///   - links:
+            public init(
+                data: Components.Schemas.PassTypeId,
+                included: [Components.Schemas.Certificate]? = nil,
+                links: Components.Schemas.DocumentLinks
+            ) {
+                self.data = data
+                self.included = included
+                self.links = links
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+                case included
+                case links
             }
         }
         /// - Remark: Generated from `#/components/schemas/Profile`.
@@ -4828,6 +5386,56 @@ public enum Components {
                 case links
             }
         }
+        /// - Remark: Generated from `#/components/schemas/BundleIdAppLinkageResponse`.
+        public struct BundleIdAppLinkageResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/BundleIdAppLinkageResponse/data`.
+            public struct DataPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/BundleIdAppLinkageResponse/data/type`.
+                @frozen public enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case apps = "apps"
+                }
+                /// - Remark: Generated from `#/components/schemas/BundleIdAppLinkageResponse/data/type`.
+                public var _type: Components.Schemas.BundleIdAppLinkageResponse.DataPayload._TypePayload
+                /// - Remark: Generated from `#/components/schemas/BundleIdAppLinkageResponse/data/id`.
+                public var id: Swift.String
+                /// Creates a new `DataPayload`.
+                ///
+                /// - Parameters:
+                ///   - _type:
+                ///   - id:
+                public init(
+                    _type: Components.Schemas.BundleIdAppLinkageResponse.DataPayload._TypePayload,
+                    id: Swift.String
+                ) {
+                    self._type = _type
+                    self.id = id
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case _type = "type"
+                    case id
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/BundleIdAppLinkageResponse/data`.
+            public var data: Components.Schemas.BundleIdAppLinkageResponse.DataPayload
+            /// - Remark: Generated from `#/components/schemas/BundleIdAppLinkageResponse/links`.
+            public var links: Components.Schemas.DocumentLinks
+            /// Creates a new `BundleIdAppLinkageResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            ///   - links:
+            public init(
+                data: Components.Schemas.BundleIdAppLinkageResponse.DataPayload,
+                links: Components.Schemas.DocumentLinks
+            ) {
+                self.data = data
+                self.links = links
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+                case links
+            }
+        }
         /// - Remark: Generated from `#/components/schemas/BundleIdCapabilitiesWithoutIncludesResponse`.
         public struct BundleIdCapabilitiesWithoutIncludesResponse: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/BundleIdCapabilitiesWithoutIncludesResponse/data`.
@@ -4844,6 +5452,64 @@ public enum Components {
             ///   - meta:
             public init(
                 data: [Components.Schemas.BundleIdCapability],
+                links: Components.Schemas.PagedDocumentLinks,
+                meta: Components.Schemas.PagingInformation? = nil
+            ) {
+                self.data = data
+                self.links = links
+                self.meta = meta
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+                case links
+                case meta
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/BundleIdBundleIdCapabilitiesLinkagesResponse`.
+        public struct BundleIdBundleIdCapabilitiesLinkagesResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/BundleIdBundleIdCapabilitiesLinkagesResponse/DataPayload`.
+            public struct DataPayloadPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/BundleIdBundleIdCapabilitiesLinkagesResponse/DataPayload/type`.
+                @frozen public enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case bundleIdCapabilities = "bundleIdCapabilities"
+                }
+                /// - Remark: Generated from `#/components/schemas/BundleIdBundleIdCapabilitiesLinkagesResponse/DataPayload/type`.
+                public var _type: Components.Schemas.BundleIdBundleIdCapabilitiesLinkagesResponse.DataPayloadPayload._TypePayload
+                /// - Remark: Generated from `#/components/schemas/BundleIdBundleIdCapabilitiesLinkagesResponse/DataPayload/id`.
+                public var id: Swift.String
+                /// Creates a new `DataPayloadPayload`.
+                ///
+                /// - Parameters:
+                ///   - _type:
+                ///   - id:
+                public init(
+                    _type: Components.Schemas.BundleIdBundleIdCapabilitiesLinkagesResponse.DataPayloadPayload._TypePayload,
+                    id: Swift.String
+                ) {
+                    self._type = _type
+                    self.id = id
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case _type = "type"
+                    case id
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/BundleIdBundleIdCapabilitiesLinkagesResponse/data`.
+            public typealias DataPayload = [Components.Schemas.BundleIdBundleIdCapabilitiesLinkagesResponse.DataPayloadPayload]
+            /// - Remark: Generated from `#/components/schemas/BundleIdBundleIdCapabilitiesLinkagesResponse/data`.
+            public var data: Components.Schemas.BundleIdBundleIdCapabilitiesLinkagesResponse.DataPayload
+            /// - Remark: Generated from `#/components/schemas/BundleIdBundleIdCapabilitiesLinkagesResponse/links`.
+            public var links: Components.Schemas.PagedDocumentLinks
+            /// - Remark: Generated from `#/components/schemas/BundleIdBundleIdCapabilitiesLinkagesResponse/meta`.
+            public var meta: Components.Schemas.PagingInformation?
+            /// Creates a new `BundleIdBundleIdCapabilitiesLinkagesResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            ///   - links:
+            ///   - meta:
+            public init(
+                data: Components.Schemas.BundleIdBundleIdCapabilitiesLinkagesResponse.DataPayload,
                 links: Components.Schemas.PagedDocumentLinks,
                 meta: Components.Schemas.PagingInformation? = nil
             ) {
@@ -4886,6 +5552,114 @@ public enum Components {
                 case meta
             }
         }
+        /// - Remark: Generated from `#/components/schemas/BundleIdProfilesLinkagesResponse`.
+        public struct BundleIdProfilesLinkagesResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/BundleIdProfilesLinkagesResponse/DataPayload`.
+            public struct DataPayloadPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/BundleIdProfilesLinkagesResponse/DataPayload/type`.
+                @frozen public enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case profiles = "profiles"
+                }
+                /// - Remark: Generated from `#/components/schemas/BundleIdProfilesLinkagesResponse/DataPayload/type`.
+                public var _type: Components.Schemas.BundleIdProfilesLinkagesResponse.DataPayloadPayload._TypePayload
+                /// - Remark: Generated from `#/components/schemas/BundleIdProfilesLinkagesResponse/DataPayload/id`.
+                public var id: Swift.String
+                /// Creates a new `DataPayloadPayload`.
+                ///
+                /// - Parameters:
+                ///   - _type:
+                ///   - id:
+                public init(
+                    _type: Components.Schemas.BundleIdProfilesLinkagesResponse.DataPayloadPayload._TypePayload,
+                    id: Swift.String
+                ) {
+                    self._type = _type
+                    self.id = id
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case _type = "type"
+                    case id
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/BundleIdProfilesLinkagesResponse/data`.
+            public typealias DataPayload = [Components.Schemas.BundleIdProfilesLinkagesResponse.DataPayloadPayload]
+            /// - Remark: Generated from `#/components/schemas/BundleIdProfilesLinkagesResponse/data`.
+            public var data: Components.Schemas.BundleIdProfilesLinkagesResponse.DataPayload
+            /// - Remark: Generated from `#/components/schemas/BundleIdProfilesLinkagesResponse/links`.
+            public var links: Components.Schemas.PagedDocumentLinks
+            /// - Remark: Generated from `#/components/schemas/BundleIdProfilesLinkagesResponse/meta`.
+            public var meta: Components.Schemas.PagingInformation?
+            /// Creates a new `BundleIdProfilesLinkagesResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            ///   - links:
+            ///   - meta:
+            public init(
+                data: Components.Schemas.BundleIdProfilesLinkagesResponse.DataPayload,
+                links: Components.Schemas.PagedDocumentLinks,
+                meta: Components.Schemas.PagingInformation? = nil
+            ) {
+                self.data = data
+                self.links = links
+                self.meta = meta
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+                case links
+                case meta
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/CertificatePassTypeIdLinkageResponse`.
+        public struct CertificatePassTypeIdLinkageResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/CertificatePassTypeIdLinkageResponse/data`.
+            public struct DataPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/CertificatePassTypeIdLinkageResponse/data/type`.
+                @frozen public enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case passTypeIds = "passTypeIds"
+                }
+                /// - Remark: Generated from `#/components/schemas/CertificatePassTypeIdLinkageResponse/data/type`.
+                public var _type: Components.Schemas.CertificatePassTypeIdLinkageResponse.DataPayload._TypePayload
+                /// - Remark: Generated from `#/components/schemas/CertificatePassTypeIdLinkageResponse/data/id`.
+                public var id: Swift.String
+                /// Creates a new `DataPayload`.
+                ///
+                /// - Parameters:
+                ///   - _type:
+                ///   - id:
+                public init(
+                    _type: Components.Schemas.CertificatePassTypeIdLinkageResponse.DataPayload._TypePayload,
+                    id: Swift.String
+                ) {
+                    self._type = _type
+                    self.id = id
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case _type = "type"
+                    case id
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/CertificatePassTypeIdLinkageResponse/data`.
+            public var data: Components.Schemas.CertificatePassTypeIdLinkageResponse.DataPayload
+            /// - Remark: Generated from `#/components/schemas/CertificatePassTypeIdLinkageResponse/links`.
+            public var links: Components.Schemas.DocumentLinks
+            /// Creates a new `CertificatePassTypeIdLinkageResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            ///   - links:
+            public init(
+                data: Components.Schemas.CertificatePassTypeIdLinkageResponse.DataPayload,
+                links: Components.Schemas.DocumentLinks
+            ) {
+                self.data = data
+                self.links = links
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+                case links
+            }
+        }
         /// - Remark: Generated from `#/components/schemas/BundleIdWithoutIncludesResponse`.
         public struct BundleIdWithoutIncludesResponse: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/BundleIdWithoutIncludesResponse/data`.
@@ -4899,6 +5673,56 @@ public enum Components {
             ///   - links:
             public init(
                 data: Components.Schemas.BundleId,
+                links: Components.Schemas.DocumentLinks
+            ) {
+                self.data = data
+                self.links = links
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+                case links
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/ProfileBundleIdLinkageResponse`.
+        public struct ProfileBundleIdLinkageResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ProfileBundleIdLinkageResponse/data`.
+            public struct DataPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/ProfileBundleIdLinkageResponse/data/type`.
+                @frozen public enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case bundleIds = "bundleIds"
+                }
+                /// - Remark: Generated from `#/components/schemas/ProfileBundleIdLinkageResponse/data/type`.
+                public var _type: Components.Schemas.ProfileBundleIdLinkageResponse.DataPayload._TypePayload
+                /// - Remark: Generated from `#/components/schemas/ProfileBundleIdLinkageResponse/data/id`.
+                public var id: Swift.String
+                /// Creates a new `DataPayload`.
+                ///
+                /// - Parameters:
+                ///   - _type:
+                ///   - id:
+                public init(
+                    _type: Components.Schemas.ProfileBundleIdLinkageResponse.DataPayload._TypePayload,
+                    id: Swift.String
+                ) {
+                    self._type = _type
+                    self.id = id
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case _type = "type"
+                    case id
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/ProfileBundleIdLinkageResponse/data`.
+            public var data: Components.Schemas.ProfileBundleIdLinkageResponse.DataPayload
+            /// - Remark: Generated from `#/components/schemas/ProfileBundleIdLinkageResponse/links`.
+            public var links: Components.Schemas.DocumentLinks
+            /// Creates a new `ProfileBundleIdLinkageResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            ///   - links:
+            public init(
+                data: Components.Schemas.ProfileBundleIdLinkageResponse.DataPayload,
                 links: Components.Schemas.DocumentLinks
             ) {
                 self.data = data
@@ -4938,6 +5762,64 @@ public enum Components {
                 case meta
             }
         }
+        /// - Remark: Generated from `#/components/schemas/ProfileCertificatesLinkagesResponse`.
+        public struct ProfileCertificatesLinkagesResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ProfileCertificatesLinkagesResponse/DataPayload`.
+            public struct DataPayloadPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/ProfileCertificatesLinkagesResponse/DataPayload/type`.
+                @frozen public enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case certificates = "certificates"
+                }
+                /// - Remark: Generated from `#/components/schemas/ProfileCertificatesLinkagesResponse/DataPayload/type`.
+                public var _type: Components.Schemas.ProfileCertificatesLinkagesResponse.DataPayloadPayload._TypePayload
+                /// - Remark: Generated from `#/components/schemas/ProfileCertificatesLinkagesResponse/DataPayload/id`.
+                public var id: Swift.String
+                /// Creates a new `DataPayloadPayload`.
+                ///
+                /// - Parameters:
+                ///   - _type:
+                ///   - id:
+                public init(
+                    _type: Components.Schemas.ProfileCertificatesLinkagesResponse.DataPayloadPayload._TypePayload,
+                    id: Swift.String
+                ) {
+                    self._type = _type
+                    self.id = id
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case _type = "type"
+                    case id
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/ProfileCertificatesLinkagesResponse/data`.
+            public typealias DataPayload = [Components.Schemas.ProfileCertificatesLinkagesResponse.DataPayloadPayload]
+            /// - Remark: Generated from `#/components/schemas/ProfileCertificatesLinkagesResponse/data`.
+            public var data: Components.Schemas.ProfileCertificatesLinkagesResponse.DataPayload
+            /// - Remark: Generated from `#/components/schemas/ProfileCertificatesLinkagesResponse/links`.
+            public var links: Components.Schemas.PagedDocumentLinks
+            /// - Remark: Generated from `#/components/schemas/ProfileCertificatesLinkagesResponse/meta`.
+            public var meta: Components.Schemas.PagingInformation?
+            /// Creates a new `ProfileCertificatesLinkagesResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            ///   - links:
+            ///   - meta:
+            public init(
+                data: Components.Schemas.ProfileCertificatesLinkagesResponse.DataPayload,
+                links: Components.Schemas.PagedDocumentLinks,
+                meta: Components.Schemas.PagingInformation? = nil
+            ) {
+                self.data = data
+                self.links = links
+                self.meta = meta
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+                case links
+                case meta
+            }
+        }
         /// - Remark: Generated from `#/components/schemas/DevicesWithoutIncludesResponse`.
         public struct DevicesWithoutIncludesResponse: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/DevicesWithoutIncludesResponse/data`.
@@ -4954,6 +5836,64 @@ public enum Components {
             ///   - meta:
             public init(
                 data: [Components.Schemas.Device],
+                links: Components.Schemas.PagedDocumentLinks,
+                meta: Components.Schemas.PagingInformation? = nil
+            ) {
+                self.data = data
+                self.links = links
+                self.meta = meta
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+                case links
+                case meta
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/ProfileDevicesLinkagesResponse`.
+        public struct ProfileDevicesLinkagesResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ProfileDevicesLinkagesResponse/DataPayload`.
+            public struct DataPayloadPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/ProfileDevicesLinkagesResponse/DataPayload/type`.
+                @frozen public enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case devices = "devices"
+                }
+                /// - Remark: Generated from `#/components/schemas/ProfileDevicesLinkagesResponse/DataPayload/type`.
+                public var _type: Components.Schemas.ProfileDevicesLinkagesResponse.DataPayloadPayload._TypePayload
+                /// - Remark: Generated from `#/components/schemas/ProfileDevicesLinkagesResponse/DataPayload/id`.
+                public var id: Swift.String
+                /// Creates a new `DataPayloadPayload`.
+                ///
+                /// - Parameters:
+                ///   - _type:
+                ///   - id:
+                public init(
+                    _type: Components.Schemas.ProfileDevicesLinkagesResponse.DataPayloadPayload._TypePayload,
+                    id: Swift.String
+                ) {
+                    self._type = _type
+                    self.id = id
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case _type = "type"
+                    case id
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/ProfileDevicesLinkagesResponse/data`.
+            public typealias DataPayload = [Components.Schemas.ProfileDevicesLinkagesResponse.DataPayloadPayload]
+            /// - Remark: Generated from `#/components/schemas/ProfileDevicesLinkagesResponse/data`.
+            public var data: Components.Schemas.ProfileDevicesLinkagesResponse.DataPayload
+            /// - Remark: Generated from `#/components/schemas/ProfileDevicesLinkagesResponse/links`.
+            public var links: Components.Schemas.PagedDocumentLinks
+            /// - Remark: Generated from `#/components/schemas/ProfileDevicesLinkagesResponse/meta`.
+            public var meta: Components.Schemas.PagingInformation?
+            /// Creates a new `ProfileDevicesLinkagesResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            ///   - links:
+            ///   - meta:
+            public init(
+                data: Components.Schemas.ProfileDevicesLinkagesResponse.DataPayload,
                 links: Components.Schemas.PagedDocumentLinks,
                 meta: Components.Schemas.PagingInformation? = nil
             ) {
@@ -5259,21 +6199,27 @@ public enum Components {
                 public var total: Swift.Int?
                 /// - Remark: Generated from `#/components/schemas/PagingInformation/paging/limit`.
                 public var limit: Swift.Int
+                /// - Remark: Generated from `#/components/schemas/PagingInformation/paging/nextCursor`.
+                public var nextCursor: Swift.String?
                 /// Creates a new `PagingPayload`.
                 ///
                 /// - Parameters:
                 ///   - total:
                 ///   - limit:
+                ///   - nextCursor:
                 public init(
                     total: Swift.Int? = nil,
-                    limit: Swift.Int
+                    limit: Swift.Int,
+                    nextCursor: Swift.String? = nil
                 ) {
                     self.total = total
                     self.limit = limit
+                    self.nextCursor = nextCursor
                 }
                 public enum CodingKeys: String, CodingKey {
                     case total
                     case limit
+                    case nextCursor
                 }
             }
             /// - Remark: Generated from `#/components/schemas/PagingInformation/paging`.
@@ -6217,6 +7163,57 @@ public enum Operations {
                     }
                 }
             }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIdCapabilities/POST/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIdCapabilities/POST/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdCapabilitiesCreateInstance.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdCapabilitiesCreateInstance.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/post(bundleIdCapabilities_createInstance)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.BundleIdCapabilitiesCreateInstance.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.BundleIdCapabilitiesCreateInstance.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -6660,6 +7657,57 @@ public enum Operations {
                     }
                 }
             }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIdCapabilities/{id}/PATCH/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIdCapabilities/{id}/PATCH/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdCapabilitiesUpdateInstance.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdCapabilitiesUpdateInstance.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/patch(bundleIdCapabilities_updateInstance)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.BundleIdCapabilitiesUpdateInstance.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.BundleIdCapabilitiesUpdateInstance.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -7027,6 +8075,57 @@ public enum Operations {
                     }
                 }
             }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIdCapabilities/{id}/DELETE/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIdCapabilities/{id}/DELETE/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdCapabilitiesDeleteInstance.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdCapabilitiesDeleteInstance.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/delete(bundleIdCapabilities_deleteInstance)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.BundleIdCapabilitiesDeleteInstance.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.BundleIdCapabilitiesDeleteInstance.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -7161,6 +8260,7 @@ public enum Operations {
                 public var fields_lbrack_bundleIdCapabilities_rbrack_: Operations.BundleIdsGetCollection.Input.Query.Fields_lbrack_bundleIdCapabilities_rbrack_Payload?
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/Fields_lbrack_apps_rbrack_Payload`.
                 @frozen public enum FieldsLbrackAppsRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case accessibilityUrl = "accessibilityUrl"
                     case name = "name"
                     case bundleId = "bundleId"
                     case sku = "sku"
@@ -7172,6 +8272,7 @@ public enum Operations {
                     case subscriptionStatusUrlVersionForSandbox = "subscriptionStatusUrlVersionForSandbox"
                     case contentRightsDeclaration = "contentRightsDeclaration"
                     case streamlinedPurchasingEnabled = "streamlinedPurchasingEnabled"
+                    case accessibilityDeclarations = "accessibilityDeclarations"
                     case appEncryptionDeclarations = "appEncryptionDeclarations"
                     case ciProduct = "ciProduct"
                     case betaTesters = "betaTesters"
@@ -7199,11 +8300,16 @@ public enum Operations {
                     case reviewSubmissions = "reviewSubmissions"
                     case subscriptionGracePeriod = "subscriptionGracePeriod"
                     case customerReviews = "customerReviews"
+                    case customerReviewSummarizations = "customerReviewSummarizations"
                     case gameCenterDetail = "gameCenterDetail"
                     case appStoreVersionExperimentsV2 = "appStoreVersionExperimentsV2"
                     case alternativeDistributionKey = "alternativeDistributionKey"
                     case analyticsReportRequests = "analyticsReportRequests"
                     case marketplaceSearchDetail = "marketplaceSearchDetail"
+                    case backgroundAssets = "backgroundAssets"
+                    case betaFeedbackScreenshotSubmissions = "betaFeedbackScreenshotSubmissions"
+                    case betaFeedbackCrashSubmissions = "betaFeedbackCrashSubmissions"
+                    case webhooks = "webhooks"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/fields[apps]`.
                 public typealias Fields_lbrack_apps_rbrack_Payload = [Operations.BundleIdsGetCollection.Input.Query.FieldsLbrackAppsRbrackPayloadPayload]
@@ -7510,6 +8616,57 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "forbidden",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsGetCollection.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsGetCollection.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/get(bundleIds_getCollection)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.BundleIdsGetCollection.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.BundleIdsGetCollection.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
                             response: self
                         )
                     }
@@ -7889,6 +9046,57 @@ public enum Operations {
                     }
                 }
             }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/POST/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/POST/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsCreateInstance.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsCreateInstance.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/post(bundleIds_createInstance)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.BundleIdsCreateInstance.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.BundleIdsCreateInstance.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -7991,6 +9199,7 @@ public enum Operations {
                 public var fields_lbrack_bundleIdCapabilities_rbrack_: Operations.BundleIdsGetInstance.Input.Query.Fields_lbrack_bundleIdCapabilities_rbrack_Payload?
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/Fields_lbrack_apps_rbrack_Payload`.
                 @frozen public enum FieldsLbrackAppsRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case accessibilityUrl = "accessibilityUrl"
                     case name = "name"
                     case bundleId = "bundleId"
                     case sku = "sku"
@@ -8002,6 +9211,7 @@ public enum Operations {
                     case subscriptionStatusUrlVersionForSandbox = "subscriptionStatusUrlVersionForSandbox"
                     case contentRightsDeclaration = "contentRightsDeclaration"
                     case streamlinedPurchasingEnabled = "streamlinedPurchasingEnabled"
+                    case accessibilityDeclarations = "accessibilityDeclarations"
                     case appEncryptionDeclarations = "appEncryptionDeclarations"
                     case ciProduct = "ciProduct"
                     case betaTesters = "betaTesters"
@@ -8029,11 +9239,16 @@ public enum Operations {
                     case reviewSubmissions = "reviewSubmissions"
                     case subscriptionGracePeriod = "subscriptionGracePeriod"
                     case customerReviews = "customerReviews"
+                    case customerReviewSummarizations = "customerReviewSummarizations"
                     case gameCenterDetail = "gameCenterDetail"
                     case appStoreVersionExperimentsV2 = "appStoreVersionExperimentsV2"
                     case alternativeDistributionKey = "alternativeDistributionKey"
                     case analyticsReportRequests = "analyticsReportRequests"
                     case marketplaceSearchDetail = "marketplaceSearchDetail"
+                    case backgroundAssets = "backgroundAssets"
+                    case betaFeedbackScreenshotSubmissions = "betaFeedbackScreenshotSubmissions"
+                    case betaFeedbackCrashSubmissions = "betaFeedbackCrashSubmissions"
+                    case webhooks = "webhooks"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/fields[apps]`.
                 public typealias Fields_lbrack_apps_rbrack_Payload = [Operations.BundleIdsGetInstance.Input.Query.FieldsLbrackAppsRbrackPayloadPayload]
@@ -8369,6 +9584,57 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsGetInstance.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsGetInstance.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/get(bundleIds_getInstance)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.BundleIdsGetInstance.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.BundleIdsGetInstance.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
                             response: self
                         )
                     }
@@ -8817,6 +10083,57 @@ public enum Operations {
                     }
                 }
             }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/PATCH/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/PATCH/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsUpdateInstance.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsUpdateInstance.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/patch(bundleIds_updateInstance)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.BundleIdsUpdateInstance.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.BundleIdsUpdateInstance.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -9184,6 +10501,57 @@ public enum Operations {
                     }
                 }
             }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/DELETE/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/DELETE/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsDeleteInstance.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsDeleteInstance.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/delete(bundleIds_deleteInstance)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.BundleIdsDeleteInstance.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.BundleIdsDeleteInstance.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -9288,6 +10656,7 @@ public enum Operations {
                     case expirationDate = "expirationDate"
                     case certificateContent = "certificateContent"
                     case activated = "activated"
+                    case passTypeId = "passTypeId"
                 }
                 /// - Remark: Generated from `#/paths/v1/certificates/GET/query/fields[certificates]`.
                 public typealias Fields_lbrack_certificates_rbrack_Payload = [Operations.CertificatesGetCollection.Input.Query.FieldsLbrackCertificatesRbrackPayloadPayload]
@@ -9295,10 +10664,32 @@ public enum Operations {
                 ///
                 /// - Remark: Generated from `#/paths/v1/certificates/GET/query/fields[certificates]`.
                 public var fields_lbrack_certificates_rbrack_: Operations.CertificatesGetCollection.Input.Query.Fields_lbrack_certificates_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/certificates/GET/query/Fields_lbrack_passTypeIds_rbrack_Payload`.
+                @frozen public enum FieldsLbrackPassTypeIdsRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case name = "name"
+                    case identifier = "identifier"
+                    case certificates = "certificates"
+                }
+                /// - Remark: Generated from `#/paths/v1/certificates/GET/query/fields[passTypeIds]`.
+                public typealias Fields_lbrack_passTypeIds_rbrack_Payload = [Operations.CertificatesGetCollection.Input.Query.FieldsLbrackPassTypeIdsRbrackPayloadPayload]
+                /// the fields to include for returned resources of type passTypeIds
+                ///
+                /// - Remark: Generated from `#/paths/v1/certificates/GET/query/fields[passTypeIds]`.
+                public var fields_lbrack_passTypeIds_rbrack_: Operations.CertificatesGetCollection.Input.Query.Fields_lbrack_passTypeIds_rbrack_Payload?
                 /// maximum resources per page
                 ///
                 /// - Remark: Generated from `#/paths/v1/certificates/GET/query/limit`.
                 public var limit: Swift.Int?
+                /// - Remark: Generated from `#/paths/v1/certificates/GET/query/IncludePayload`.
+                @frozen public enum IncludePayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case passTypeId = "passTypeId"
+                }
+                /// - Remark: Generated from `#/paths/v1/certificates/GET/query/include`.
+                public typealias IncludePayload = [Operations.CertificatesGetCollection.Input.Query.IncludePayloadPayload]
+                /// comma-separated list of relationships to include
+                ///
+                /// - Remark: Generated from `#/paths/v1/certificates/GET/query/include`.
+                public var include: Operations.CertificatesGetCollection.Input.Query.IncludePayload?
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
@@ -9308,7 +10699,9 @@ public enum Operations {
                 ///   - filter_lbrack_id_rbrack_: filter by id(s)
                 ///   - sort: comma-separated list of sort expressions; resources will be sorted as specified
                 ///   - fields_lbrack_certificates_rbrack_: the fields to include for returned resources of type certificates
+                ///   - fields_lbrack_passTypeIds_rbrack_: the fields to include for returned resources of type passTypeIds
                 ///   - limit: maximum resources per page
+                ///   - include: comma-separated list of relationships to include
                 public init(
                     filter_lbrack_displayName_rbrack_: [Swift.String]? = nil,
                     filter_lbrack_certificateType_rbrack_: Operations.CertificatesGetCollection.Input.Query.Filter_lbrack_certificateType_rbrack_Payload? = nil,
@@ -9316,7 +10709,9 @@ public enum Operations {
                     filter_lbrack_id_rbrack_: [Swift.String]? = nil,
                     sort: Operations.CertificatesGetCollection.Input.Query.SortPayload? = nil,
                     fields_lbrack_certificates_rbrack_: Operations.CertificatesGetCollection.Input.Query.Fields_lbrack_certificates_rbrack_Payload? = nil,
-                    limit: Swift.Int? = nil
+                    fields_lbrack_passTypeIds_rbrack_: Operations.CertificatesGetCollection.Input.Query.Fields_lbrack_passTypeIds_rbrack_Payload? = nil,
+                    limit: Swift.Int? = nil,
+                    include: Operations.CertificatesGetCollection.Input.Query.IncludePayload? = nil
                 ) {
                     self.filter_lbrack_displayName_rbrack_ = filter_lbrack_displayName_rbrack_
                     self.filter_lbrack_certificateType_rbrack_ = filter_lbrack_certificateType_rbrack_
@@ -9324,7 +10719,9 @@ public enum Operations {
                     self.filter_lbrack_id_rbrack_ = filter_lbrack_id_rbrack_
                     self.sort = sort
                     self.fields_lbrack_certificates_rbrack_ = fields_lbrack_certificates_rbrack_
+                    self.fields_lbrack_passTypeIds_rbrack_ = fields_lbrack_passTypeIds_rbrack_
                     self.limit = limit
+                    self.include = include
                 }
             }
             public var query: Operations.CertificatesGetCollection.Input.Query
@@ -9553,6 +10950,57 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "forbidden",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesGetCollection.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesGetCollection.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/get(certificates_getCollection)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.CertificatesGetCollection.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.CertificatesGetCollection.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
                             response: self
                         )
                     }
@@ -9932,6 +11380,57 @@ public enum Operations {
                     }
                 }
             }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/POST/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/POST/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesCreateInstance.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesCreateInstance.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/post(certificates_createInstance)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.CertificatesCreateInstance.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.CertificatesCreateInstance.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -9995,6 +11494,7 @@ public enum Operations {
                     case expirationDate = "expirationDate"
                     case certificateContent = "certificateContent"
                     case activated = "activated"
+                    case passTypeId = "passTypeId"
                 }
                 /// - Remark: Generated from `#/paths/v1/certificates/{id}/GET/query/fields[certificates]`.
                 public typealias Fields_lbrack_certificates_rbrack_Payload = [Operations.CertificatesGetInstance.Input.Query.FieldsLbrackCertificatesRbrackPayloadPayload]
@@ -10002,12 +11502,42 @@ public enum Operations {
                 ///
                 /// - Remark: Generated from `#/paths/v1/certificates/{id}/GET/query/fields[certificates]`.
                 public var fields_lbrack_certificates_rbrack_: Operations.CertificatesGetInstance.Input.Query.Fields_lbrack_certificates_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/GET/query/Fields_lbrack_passTypeIds_rbrack_Payload`.
+                @frozen public enum FieldsLbrackPassTypeIdsRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case name = "name"
+                    case identifier = "identifier"
+                    case certificates = "certificates"
+                }
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/GET/query/fields[passTypeIds]`.
+                public typealias Fields_lbrack_passTypeIds_rbrack_Payload = [Operations.CertificatesGetInstance.Input.Query.FieldsLbrackPassTypeIdsRbrackPayloadPayload]
+                /// the fields to include for returned resources of type passTypeIds
+                ///
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/GET/query/fields[passTypeIds]`.
+                public var fields_lbrack_passTypeIds_rbrack_: Operations.CertificatesGetInstance.Input.Query.Fields_lbrack_passTypeIds_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/GET/query/IncludePayload`.
+                @frozen public enum IncludePayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case passTypeId = "passTypeId"
+                }
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/GET/query/include`.
+                public typealias IncludePayload = [Operations.CertificatesGetInstance.Input.Query.IncludePayloadPayload]
+                /// comma-separated list of relationships to include
+                ///
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/GET/query/include`.
+                public var include: Operations.CertificatesGetInstance.Input.Query.IncludePayload?
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
                 ///   - fields_lbrack_certificates_rbrack_: the fields to include for returned resources of type certificates
-                public init(fields_lbrack_certificates_rbrack_: Operations.CertificatesGetInstance.Input.Query.Fields_lbrack_certificates_rbrack_Payload? = nil) {
+                ///   - fields_lbrack_passTypeIds_rbrack_: the fields to include for returned resources of type passTypeIds
+                ///   - include: comma-separated list of relationships to include
+                public init(
+                    fields_lbrack_certificates_rbrack_: Operations.CertificatesGetInstance.Input.Query.Fields_lbrack_certificates_rbrack_Payload? = nil,
+                    fields_lbrack_passTypeIds_rbrack_: Operations.CertificatesGetInstance.Input.Query.Fields_lbrack_passTypeIds_rbrack_Payload? = nil,
+                    include: Operations.CertificatesGetInstance.Input.Query.IncludePayload? = nil
+                ) {
                     self.fields_lbrack_certificates_rbrack_ = fields_lbrack_certificates_rbrack_
+                    self.fields_lbrack_passTypeIds_rbrack_ = fields_lbrack_passTypeIds_rbrack_
+                    self.include = include
                 }
             }
             public var query: Operations.CertificatesGetInstance.Input.Query
@@ -10290,6 +11820,57 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesGetInstance.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesGetInstance.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/get(certificates_getInstance)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.CertificatesGetInstance.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.CertificatesGetInstance.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
                             response: self
                         )
                     }
@@ -10738,6 +12319,57 @@ public enum Operations {
                     }
                 }
             }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/PATCH/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesUpdateInstance.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesUpdateInstance.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/patch(certificates_updateInstance)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.CertificatesUpdateInstance.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.CertificatesUpdateInstance.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -11100,6 +12732,57 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "conflict",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/DELETE/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/DELETE/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesDeleteInstance.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesDeleteInstance.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/delete(certificates_deleteInstance)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.CertificatesDeleteInstance.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.CertificatesDeleteInstance.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
                             response: self
                         )
                     }
@@ -11479,6 +13162,57 @@ public enum Operations {
                     }
                 }
             }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/devices/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/devices/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.DevicesGetCollection.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.DevicesGetCollection.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/devices/get(devices_getCollection)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.DevicesGetCollection.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.DevicesGetCollection.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -11853,6 +13587,57 @@ public enum Operations {
                     }
                 }
             }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/devices/POST/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/devices/POST/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.DevicesCreateInstance.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.DevicesCreateInstance.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/devices/post(devices_createInstance)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.DevicesCreateInstance.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.DevicesCreateInstance.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -12210,6 +13995,57 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/devices/{id}/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/devices/{id}/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.DevicesGetInstance.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.DevicesGetInstance.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/devices/{id}/get(devices_getInstance)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.DevicesGetInstance.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.DevicesGetInstance.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
                             response: self
                         )
                     }
@@ -12658,6 +14494,57 @@ public enum Operations {
                     }
                 }
             }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/devices/{id}/PATCH/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/devices/{id}/PATCH/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.DevicesUpdateInstance.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.DevicesUpdateInstance.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/devices/{id}/patch(devices_updateInstance)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.DevicesUpdateInstance.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.DevicesUpdateInstance.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -12817,6 +14704,7 @@ public enum Operations {
                     case expirationDate = "expirationDate"
                     case certificateContent = "certificateContent"
                     case activated = "activated"
+                    case passTypeId = "passTypeId"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/GET/query/fields[certificates]`.
                 public typealias Fields_lbrack_certificates_rbrack_Payload = [Operations.ProfilesGetCollection.Input.Query.FieldsLbrackCertificatesRbrackPayloadPayload]
@@ -13120,6 +15008,57 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "forbidden",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesGetCollection.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesGetCollection.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/get(profiles_getCollection)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.ProfilesGetCollection.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.ProfilesGetCollection.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
                             response: self
                         )
                     }
@@ -13499,6 +15438,57 @@ public enum Operations {
                     }
                 }
             }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/POST/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/POST/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesCreateInstance.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesCreateInstance.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/post(profiles_createInstance)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.ProfilesCreateInstance.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.ProfilesCreateInstance.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -13614,6 +15604,7 @@ public enum Operations {
                     case expirationDate = "expirationDate"
                     case certificateContent = "certificateContent"
                     case activated = "activated"
+                    case passTypeId = "passTypeId"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/query/fields[certificates]`.
                 public typealias Fields_lbrack_certificates_rbrack_Payload = [Operations.ProfilesGetInstance.Input.Query.FieldsLbrackCertificatesRbrackPayloadPayload]
@@ -13949,6 +15940,57 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesGetInstance.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesGetInstance.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/get(profiles_getInstance)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.ProfilesGetInstance.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.ProfilesGetInstance.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
                             response: self
                         )
                     }
@@ -14321,6 +16363,440 @@ public enum Operations {
                     }
                 }
             }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/DELETE/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/DELETE/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesDeleteInstance.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesDeleteInstance.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/delete(profiles_deleteInstance)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.ProfilesDeleteInstance.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.ProfilesDeleteInstance.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// - Remark: HTTP `GET /v1/bundleIds/{id}/relationships/app`.
+    /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/app/get(bundleIds_app_getToOneRelationship)`.
+    public enum BundleIdsAppGetToOneRelationship {
+        public static let id: Swift.String = "bundleIds_app_getToOneRelationship"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/app/GET/path`.
+            public struct Path: Sendable, Hashable {
+                /// the id of the requested resource
+                ///
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/app/GET/path/id`.
+                public var id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - id: the id of the requested resource
+                public init(id: Swift.String) {
+                    self.id = id
+                }
+            }
+            public var path: Operations.BundleIdsAppGetToOneRelationship.Input.Path
+            /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/app/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsAppGetToOneRelationship.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsAppGetToOneRelationship.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.BundleIdsAppGetToOneRelationship.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            public init(
+                path: Operations.BundleIdsAppGetToOneRelationship.Input.Path,
+                headers: Operations.BundleIdsAppGetToOneRelationship.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/app/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/app/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.BundleIdAppLinkageResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.BundleIdAppLinkageResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsAppGetToOneRelationship.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsAppGetToOneRelationship.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Related linkage
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/app/get(bundleIds_app_getToOneRelationship)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.BundleIdsAppGetToOneRelationship.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.BundleIdsAppGetToOneRelationship.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/app/GET/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/app/GET/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsAppGetToOneRelationship.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsAppGetToOneRelationship.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Parameter error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/app/get(bundleIds_app_getToOneRelationship)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.BundleIdsAppGetToOneRelationship.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.BundleIdsAppGetToOneRelationship.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/app/GET/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/app/GET/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsAppGetToOneRelationship.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsAppGetToOneRelationship.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Unauthorized error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/app/get(bundleIds_app_getToOneRelationship)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.BundleIdsAppGetToOneRelationship.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.BundleIdsAppGetToOneRelationship.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Forbidden: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/app/GET/responses/403/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/app/GET/responses/403/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsAppGetToOneRelationship.Output.Forbidden.Body
+                /// Creates a new `Forbidden`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsAppGetToOneRelationship.Output.Forbidden.Body) {
+                    self.body = body
+                }
+            }
+            /// Forbidden error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/app/get(bundleIds_app_getToOneRelationship)/responses/403`.
+            ///
+            /// HTTP response code: `403 forbidden`.
+            case forbidden(Operations.BundleIdsAppGetToOneRelationship.Output.Forbidden)
+            /// The associated value of the enum case if `self` is `.forbidden`.
+            ///
+            /// - Throws: An error if `self` is not `.forbidden`.
+            /// - SeeAlso: `.forbidden`.
+            public var forbidden: Operations.BundleIdsAppGetToOneRelationship.Output.Forbidden {
+                get throws {
+                    switch self {
+                    case let .forbidden(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "forbidden",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/app/GET/responses/404/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/app/GET/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsAppGetToOneRelationship.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsAppGetToOneRelationship.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// Not found error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/app/get(bundleIds_app_getToOneRelationship)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.BundleIdsAppGetToOneRelationship.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            public var notFound: Operations.BundleIdsAppGetToOneRelationship.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/app/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/app/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsAppGetToOneRelationship.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsAppGetToOneRelationship.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/app/get(bundleIds_app_getToOneRelationship)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.BundleIdsAppGetToOneRelationship.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.BundleIdsAppGetToOneRelationship.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -14376,6 +16852,7 @@ public enum Operations {
             public struct Query: Sendable, Hashable {
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/app/GET/query/Fields_lbrack_apps_rbrack_Payload`.
                 @frozen public enum FieldsLbrackAppsRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case accessibilityUrl = "accessibilityUrl"
                     case name = "name"
                     case bundleId = "bundleId"
                     case sku = "sku"
@@ -14387,6 +16864,7 @@ public enum Operations {
                     case subscriptionStatusUrlVersionForSandbox = "subscriptionStatusUrlVersionForSandbox"
                     case contentRightsDeclaration = "contentRightsDeclaration"
                     case streamlinedPurchasingEnabled = "streamlinedPurchasingEnabled"
+                    case accessibilityDeclarations = "accessibilityDeclarations"
                     case appEncryptionDeclarations = "appEncryptionDeclarations"
                     case ciProduct = "ciProduct"
                     case betaTesters = "betaTesters"
@@ -14414,11 +16892,16 @@ public enum Operations {
                     case reviewSubmissions = "reviewSubmissions"
                     case subscriptionGracePeriod = "subscriptionGracePeriod"
                     case customerReviews = "customerReviews"
+                    case customerReviewSummarizations = "customerReviewSummarizations"
                     case gameCenterDetail = "gameCenterDetail"
                     case appStoreVersionExperimentsV2 = "appStoreVersionExperimentsV2"
                     case alternativeDistributionKey = "alternativeDistributionKey"
                     case analyticsReportRequests = "analyticsReportRequests"
                     case marketplaceSearchDetail = "marketplaceSearchDetail"
+                    case backgroundAssets = "backgroundAssets"
+                    case betaFeedbackScreenshotSubmissions = "betaFeedbackScreenshotSubmissions"
+                    case betaFeedbackCrashSubmissions = "betaFeedbackCrashSubmissions"
+                    case webhooks = "webhooks"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/app/GET/query/fields[apps]`.
                 public typealias Fields_lbrack_apps_rbrack_Payload = [Operations.BundleIdsAppGetToOneRelated.Input.Query.FieldsLbrackAppsRbrackPayloadPayload]
@@ -14714,6 +17197,458 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/app/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/app/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsAppGetToOneRelated.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsAppGetToOneRelated.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/app/get(bundleIds_app_getToOneRelated)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.BundleIdsAppGetToOneRelated.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.BundleIdsAppGetToOneRelated.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// - Remark: HTTP `GET /v1/bundleIds/{id}/relationships/bundleIdCapabilities`.
+    /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelationship)`.
+    public enum BundleIdsBundleIdCapabilitiesGetToManyRelationship {
+        public static let id: Swift.String = "bundleIds_bundleIdCapabilities_getToManyRelationship"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/bundleIdCapabilities/GET/path`.
+            public struct Path: Sendable, Hashable {
+                /// the id of the requested resource
+                ///
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/bundleIdCapabilities/GET/path/id`.
+                public var id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - id: the id of the requested resource
+                public init(id: Swift.String) {
+                    self.id = id
+                }
+            }
+            public var path: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Input.Path
+            /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/bundleIdCapabilities/GET/query`.
+            public struct Query: Sendable, Hashable {
+                /// maximum resources per page
+                ///
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/bundleIdCapabilities/GET/query/limit`.
+                public var limit: Swift.Int?
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - limit: maximum resources per page
+                public init(limit: Swift.Int? = nil) {
+                    self.limit = limit
+                }
+            }
+            public var query: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Input.Query
+            /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/bundleIdCapabilities/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - query:
+            ///   - headers:
+            public init(
+                path: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Input.Path,
+                query: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Input.Query = .init(),
+                headers: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/bundleIdCapabilities/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/bundleIdCapabilities/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.BundleIdBundleIdCapabilitiesLinkagesResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.BundleIdBundleIdCapabilitiesLinkagesResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// List of related linkages
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelationship)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/bundleIdCapabilities/GET/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/bundleIdCapabilities/GET/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Parameter error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelationship)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/bundleIdCapabilities/GET/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/bundleIdCapabilities/GET/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Unauthorized error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelationship)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Forbidden: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/bundleIdCapabilities/GET/responses/403/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/bundleIdCapabilities/GET/responses/403/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.Forbidden.Body
+                /// Creates a new `Forbidden`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.Forbidden.Body) {
+                    self.body = body
+                }
+            }
+            /// Forbidden error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelationship)/responses/403`.
+            ///
+            /// HTTP response code: `403 forbidden`.
+            case forbidden(Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.Forbidden)
+            /// The associated value of the enum case if `self` is `.forbidden`.
+            ///
+            /// - Throws: An error if `self` is not `.forbidden`.
+            /// - SeeAlso: `.forbidden`.
+            public var forbidden: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.Forbidden {
+                get throws {
+                    switch self {
+                    case let .forbidden(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "forbidden",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/bundleIdCapabilities/GET/responses/404/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/bundleIdCapabilities/GET/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// Not found error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelationship)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            public var notFound: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/bundleIdCapabilities/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/bundleIdCapabilities/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelationship)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelationship.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
                             response: self
                         )
                     }
@@ -15080,6 +18015,458 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/bundleIdCapabilities/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/bundleIdCapabilities/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/bundleIdCapabilities/get(bundleIds_bundleIdCapabilities_getToManyRelated)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.BundleIdsBundleIdCapabilitiesGetToManyRelated.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// - Remark: HTTP `GET /v1/bundleIds/{id}/relationships/profiles`.
+    /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/profiles/get(bundleIds_profiles_getToManyRelationship)`.
+    public enum BundleIdsProfilesGetToManyRelationship {
+        public static let id: Swift.String = "bundleIds_profiles_getToManyRelationship"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/profiles/GET/path`.
+            public struct Path: Sendable, Hashable {
+                /// the id of the requested resource
+                ///
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/profiles/GET/path/id`.
+                public var id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - id: the id of the requested resource
+                public init(id: Swift.String) {
+                    self.id = id
+                }
+            }
+            public var path: Operations.BundleIdsProfilesGetToManyRelationship.Input.Path
+            /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/profiles/GET/query`.
+            public struct Query: Sendable, Hashable {
+                /// maximum resources per page
+                ///
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/profiles/GET/query/limit`.
+                public var limit: Swift.Int?
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - limit: maximum resources per page
+                public init(limit: Swift.Int? = nil) {
+                    self.limit = limit
+                }
+            }
+            public var query: Operations.BundleIdsProfilesGetToManyRelationship.Input.Query
+            /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/profiles/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsProfilesGetToManyRelationship.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.BundleIdsProfilesGetToManyRelationship.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.BundleIdsProfilesGetToManyRelationship.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - query:
+            ///   - headers:
+            public init(
+                path: Operations.BundleIdsProfilesGetToManyRelationship.Input.Path,
+                query: Operations.BundleIdsProfilesGetToManyRelationship.Input.Query = .init(),
+                headers: Operations.BundleIdsProfilesGetToManyRelationship.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/profiles/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/profiles/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.BundleIdProfilesLinkagesResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.BundleIdProfilesLinkagesResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsProfilesGetToManyRelationship.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsProfilesGetToManyRelationship.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// List of related linkages
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/profiles/get(bundleIds_profiles_getToManyRelationship)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.BundleIdsProfilesGetToManyRelationship.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.BundleIdsProfilesGetToManyRelationship.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/profiles/GET/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/profiles/GET/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsProfilesGetToManyRelationship.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsProfilesGetToManyRelationship.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Parameter error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/profiles/get(bundleIds_profiles_getToManyRelationship)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.BundleIdsProfilesGetToManyRelationship.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.BundleIdsProfilesGetToManyRelationship.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/profiles/GET/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/profiles/GET/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsProfilesGetToManyRelationship.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsProfilesGetToManyRelationship.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Unauthorized error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/profiles/get(bundleIds_profiles_getToManyRelationship)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.BundleIdsProfilesGetToManyRelationship.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.BundleIdsProfilesGetToManyRelationship.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Forbidden: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/profiles/GET/responses/403/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/profiles/GET/responses/403/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsProfilesGetToManyRelationship.Output.Forbidden.Body
+                /// Creates a new `Forbidden`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsProfilesGetToManyRelationship.Output.Forbidden.Body) {
+                    self.body = body
+                }
+            }
+            /// Forbidden error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/profiles/get(bundleIds_profiles_getToManyRelationship)/responses/403`.
+            ///
+            /// HTTP response code: `403 forbidden`.
+            case forbidden(Operations.BundleIdsProfilesGetToManyRelationship.Output.Forbidden)
+            /// The associated value of the enum case if `self` is `.forbidden`.
+            ///
+            /// - Throws: An error if `self` is not `.forbidden`.
+            /// - SeeAlso: `.forbidden`.
+            public var forbidden: Operations.BundleIdsProfilesGetToManyRelationship.Output.Forbidden {
+                get throws {
+                    switch self {
+                    case let .forbidden(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "forbidden",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/profiles/GET/responses/404/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/profiles/GET/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsProfilesGetToManyRelationship.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsProfilesGetToManyRelationship.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// Not found error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/profiles/get(bundleIds_profiles_getToManyRelationship)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.BundleIdsProfilesGetToManyRelationship.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            public var notFound: Operations.BundleIdsProfilesGetToManyRelationship.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/profiles/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/relationships/profiles/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsProfilesGetToManyRelationship.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsProfilesGetToManyRelationship.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/relationships/profiles/get(bundleIds_profiles_getToManyRelationship)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.BundleIdsProfilesGetToManyRelationship.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.BundleIdsProfilesGetToManyRelationship.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
                             response: self
                         )
                     }
@@ -15460,6 +18847,1275 @@ public enum Operations {
                     }
                 }
             }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/profiles/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/profiles/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.BundleIdsProfilesGetToManyRelated.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.BundleIdsProfilesGetToManyRelated.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/profiles/get(bundleIds_profiles_getToManyRelated)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.BundleIdsProfilesGetToManyRelated.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.BundleIdsProfilesGetToManyRelated.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// - Remark: HTTP `GET /v1/certificates/{id}/relationships/passTypeId`.
+    /// - Remark: Generated from `#/paths//v1/certificates/{id}/relationships/passTypeId/get(certificates_passTypeId_getToOneRelationship)`.
+    public enum CertificatesPassTypeIdGetToOneRelationship {
+        public static let id: Swift.String = "certificates_passTypeId_getToOneRelationship"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/v1/certificates/{id}/relationships/passTypeId/GET/path`.
+            public struct Path: Sendable, Hashable {
+                /// the id of the requested resource
+                ///
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/relationships/passTypeId/GET/path/id`.
+                public var id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - id: the id of the requested resource
+                public init(id: Swift.String) {
+                    self.id = id
+                }
+            }
+            public var path: Operations.CertificatesPassTypeIdGetToOneRelationship.Input.Path
+            /// - Remark: Generated from `#/paths/v1/certificates/{id}/relationships/passTypeId/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.CertificatesPassTypeIdGetToOneRelationship.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.CertificatesPassTypeIdGetToOneRelationship.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.CertificatesPassTypeIdGetToOneRelationship.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            public init(
+                path: Operations.CertificatesPassTypeIdGetToOneRelationship.Input.Path,
+                headers: Operations.CertificatesPassTypeIdGetToOneRelationship.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/relationships/passTypeId/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/relationships/passTypeId/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.CertificatePassTypeIdLinkageResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.CertificatePassTypeIdLinkageResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesPassTypeIdGetToOneRelationship.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesPassTypeIdGetToOneRelationship.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Related linkage
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/relationships/passTypeId/get(certificates_passTypeId_getToOneRelationship)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.CertificatesPassTypeIdGetToOneRelationship.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.CertificatesPassTypeIdGetToOneRelationship.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/relationships/passTypeId/GET/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/relationships/passTypeId/GET/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesPassTypeIdGetToOneRelationship.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesPassTypeIdGetToOneRelationship.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Parameter error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/relationships/passTypeId/get(certificates_passTypeId_getToOneRelationship)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.CertificatesPassTypeIdGetToOneRelationship.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.CertificatesPassTypeIdGetToOneRelationship.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/relationships/passTypeId/GET/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/relationships/passTypeId/GET/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesPassTypeIdGetToOneRelationship.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesPassTypeIdGetToOneRelationship.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Unauthorized error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/relationships/passTypeId/get(certificates_passTypeId_getToOneRelationship)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.CertificatesPassTypeIdGetToOneRelationship.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.CertificatesPassTypeIdGetToOneRelationship.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Forbidden: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/relationships/passTypeId/GET/responses/403/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/relationships/passTypeId/GET/responses/403/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesPassTypeIdGetToOneRelationship.Output.Forbidden.Body
+                /// Creates a new `Forbidden`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesPassTypeIdGetToOneRelationship.Output.Forbidden.Body) {
+                    self.body = body
+                }
+            }
+            /// Forbidden error
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/relationships/passTypeId/get(certificates_passTypeId_getToOneRelationship)/responses/403`.
+            ///
+            /// HTTP response code: `403 forbidden`.
+            case forbidden(Operations.CertificatesPassTypeIdGetToOneRelationship.Output.Forbidden)
+            /// The associated value of the enum case if `self` is `.forbidden`.
+            ///
+            /// - Throws: An error if `self` is not `.forbidden`.
+            /// - SeeAlso: `.forbidden`.
+            public var forbidden: Operations.CertificatesPassTypeIdGetToOneRelationship.Output.Forbidden {
+                get throws {
+                    switch self {
+                    case let .forbidden(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "forbidden",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/relationships/passTypeId/GET/responses/404/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/relationships/passTypeId/GET/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesPassTypeIdGetToOneRelationship.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesPassTypeIdGetToOneRelationship.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// Not found error
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/relationships/passTypeId/get(certificates_passTypeId_getToOneRelationship)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.CertificatesPassTypeIdGetToOneRelationship.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            public var notFound: Operations.CertificatesPassTypeIdGetToOneRelationship.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/relationships/passTypeId/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/relationships/passTypeId/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesPassTypeIdGetToOneRelationship.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesPassTypeIdGetToOneRelationship.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/relationships/passTypeId/get(certificates_passTypeId_getToOneRelationship)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.CertificatesPassTypeIdGetToOneRelationship.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.CertificatesPassTypeIdGetToOneRelationship.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// - Remark: HTTP `GET /v1/certificates/{id}/passTypeId`.
+    /// - Remark: Generated from `#/paths//v1/certificates/{id}/passTypeId/get(certificates_passTypeId_getToOneRelated)`.
+    public enum CertificatesPassTypeIdGetToOneRelated {
+        public static let id: Swift.String = "certificates_passTypeId_getToOneRelated"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/path`.
+            public struct Path: Sendable, Hashable {
+                /// the id of the requested resource
+                ///
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/path/id`.
+                public var id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - id: the id of the requested resource
+                public init(id: Swift.String) {
+                    self.id = id
+                }
+            }
+            public var path: Operations.CertificatesPassTypeIdGetToOneRelated.Input.Path
+            /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/query`.
+            public struct Query: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/query/Fields_lbrack_passTypeIds_rbrack_Payload`.
+                @frozen public enum FieldsLbrackPassTypeIdsRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case name = "name"
+                    case identifier = "identifier"
+                    case certificates = "certificates"
+                }
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/query/fields[passTypeIds]`.
+                public typealias Fields_lbrack_passTypeIds_rbrack_Payload = [Operations.CertificatesPassTypeIdGetToOneRelated.Input.Query.FieldsLbrackPassTypeIdsRbrackPayloadPayload]
+                /// the fields to include for returned resources of type passTypeIds
+                ///
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/query/fields[passTypeIds]`.
+                public var fields_lbrack_passTypeIds_rbrack_: Operations.CertificatesPassTypeIdGetToOneRelated.Input.Query.Fields_lbrack_passTypeIds_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/query/Fields_lbrack_certificates_rbrack_Payload`.
+                @frozen public enum FieldsLbrackCertificatesRbrackPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case name = "name"
+                    case certificateType = "certificateType"
+                    case displayName = "displayName"
+                    case serialNumber = "serialNumber"
+                    case platform = "platform"
+                    case expirationDate = "expirationDate"
+                    case certificateContent = "certificateContent"
+                    case activated = "activated"
+                    case passTypeId = "passTypeId"
+                }
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/query/fields[certificates]`.
+                public typealias Fields_lbrack_certificates_rbrack_Payload = [Operations.CertificatesPassTypeIdGetToOneRelated.Input.Query.FieldsLbrackCertificatesRbrackPayloadPayload]
+                /// the fields to include for returned resources of type certificates
+                ///
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/query/fields[certificates]`.
+                public var fields_lbrack_certificates_rbrack_: Operations.CertificatesPassTypeIdGetToOneRelated.Input.Query.Fields_lbrack_certificates_rbrack_Payload?
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/query/IncludePayload`.
+                @frozen public enum IncludePayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case certificates = "certificates"
+                }
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/query/include`.
+                public typealias IncludePayload = [Operations.CertificatesPassTypeIdGetToOneRelated.Input.Query.IncludePayloadPayload]
+                /// comma-separated list of relationships to include
+                ///
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/query/include`.
+                public var include: Operations.CertificatesPassTypeIdGetToOneRelated.Input.Query.IncludePayload?
+                /// maximum number of related certificates returned (when they are included)
+                ///
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/query/limit[certificates]`.
+                public var limit_lbrack_certificates_rbrack_: Swift.Int?
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - fields_lbrack_passTypeIds_rbrack_: the fields to include for returned resources of type passTypeIds
+                ///   - fields_lbrack_certificates_rbrack_: the fields to include for returned resources of type certificates
+                ///   - include: comma-separated list of relationships to include
+                ///   - limit_lbrack_certificates_rbrack_: maximum number of related certificates returned (when they are included)
+                public init(
+                    fields_lbrack_passTypeIds_rbrack_: Operations.CertificatesPassTypeIdGetToOneRelated.Input.Query.Fields_lbrack_passTypeIds_rbrack_Payload? = nil,
+                    fields_lbrack_certificates_rbrack_: Operations.CertificatesPassTypeIdGetToOneRelated.Input.Query.Fields_lbrack_certificates_rbrack_Payload? = nil,
+                    include: Operations.CertificatesPassTypeIdGetToOneRelated.Input.Query.IncludePayload? = nil,
+                    limit_lbrack_certificates_rbrack_: Swift.Int? = nil
+                ) {
+                    self.fields_lbrack_passTypeIds_rbrack_ = fields_lbrack_passTypeIds_rbrack_
+                    self.fields_lbrack_certificates_rbrack_ = fields_lbrack_certificates_rbrack_
+                    self.include = include
+                    self.limit_lbrack_certificates_rbrack_ = limit_lbrack_certificates_rbrack_
+                }
+            }
+            public var query: Operations.CertificatesPassTypeIdGetToOneRelated.Input.Query
+            /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.CertificatesPassTypeIdGetToOneRelated.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.CertificatesPassTypeIdGetToOneRelated.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.CertificatesPassTypeIdGetToOneRelated.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - query:
+            ///   - headers:
+            public init(
+                path: Operations.CertificatesPassTypeIdGetToOneRelated.Input.Path,
+                query: Operations.CertificatesPassTypeIdGetToOneRelated.Input.Query = .init(),
+                headers: Operations.CertificatesPassTypeIdGetToOneRelated.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.PassTypeIdResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.PassTypeIdResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesPassTypeIdGetToOneRelated.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesPassTypeIdGetToOneRelated.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Single PassTypeId
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/passTypeId/get(certificates_passTypeId_getToOneRelated)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.CertificatesPassTypeIdGetToOneRelated.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.CertificatesPassTypeIdGetToOneRelated.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesPassTypeIdGetToOneRelated.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesPassTypeIdGetToOneRelated.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Parameter error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/passTypeId/get(certificates_passTypeId_getToOneRelated)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.CertificatesPassTypeIdGetToOneRelated.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.CertificatesPassTypeIdGetToOneRelated.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesPassTypeIdGetToOneRelated.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesPassTypeIdGetToOneRelated.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Unauthorized error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/passTypeId/get(certificates_passTypeId_getToOneRelated)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.CertificatesPassTypeIdGetToOneRelated.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.CertificatesPassTypeIdGetToOneRelated.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Forbidden: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/responses/403/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/responses/403/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesPassTypeIdGetToOneRelated.Output.Forbidden.Body
+                /// Creates a new `Forbidden`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesPassTypeIdGetToOneRelated.Output.Forbidden.Body) {
+                    self.body = body
+                }
+            }
+            /// Forbidden error
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/passTypeId/get(certificates_passTypeId_getToOneRelated)/responses/403`.
+            ///
+            /// HTTP response code: `403 forbidden`.
+            case forbidden(Operations.CertificatesPassTypeIdGetToOneRelated.Output.Forbidden)
+            /// The associated value of the enum case if `self` is `.forbidden`.
+            ///
+            /// - Throws: An error if `self` is not `.forbidden`.
+            /// - SeeAlso: `.forbidden`.
+            public var forbidden: Operations.CertificatesPassTypeIdGetToOneRelated.Output.Forbidden {
+                get throws {
+                    switch self {
+                    case let .forbidden(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "forbidden",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/responses/404/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesPassTypeIdGetToOneRelated.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesPassTypeIdGetToOneRelated.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// Not found error
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/passTypeId/get(certificates_passTypeId_getToOneRelated)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.CertificatesPassTypeIdGetToOneRelated.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            public var notFound: Operations.CertificatesPassTypeIdGetToOneRelated.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/passTypeId/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.CertificatesPassTypeIdGetToOneRelated.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.CertificatesPassTypeIdGetToOneRelated.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/certificates/{id}/passTypeId/get(certificates_passTypeId_getToOneRelated)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.CertificatesPassTypeIdGetToOneRelated.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.CertificatesPassTypeIdGetToOneRelated.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// - Remark: HTTP `GET /v1/profiles/{id}/relationships/bundleId`.
+    /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/bundleId/get(profiles_bundleId_getToOneRelationship)`.
+    public enum ProfilesBundleIdGetToOneRelationship {
+        public static let id: Swift.String = "profiles_bundleId_getToOneRelationship"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/bundleId/GET/path`.
+            public struct Path: Sendable, Hashable {
+                /// the id of the requested resource
+                ///
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/bundleId/GET/path/id`.
+                public var id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - id: the id of the requested resource
+                public init(id: Swift.String) {
+                    self.id = id
+                }
+            }
+            public var path: Operations.ProfilesBundleIdGetToOneRelationship.Input.Path
+            /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/bundleId/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesBundleIdGetToOneRelationship.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesBundleIdGetToOneRelationship.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.ProfilesBundleIdGetToOneRelationship.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            public init(
+                path: Operations.ProfilesBundleIdGetToOneRelationship.Input.Path,
+                headers: Operations.ProfilesBundleIdGetToOneRelationship.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/bundleId/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/bundleId/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.ProfileBundleIdLinkageResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ProfileBundleIdLinkageResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesBundleIdGetToOneRelationship.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesBundleIdGetToOneRelationship.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Related linkage
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/bundleId/get(profiles_bundleId_getToOneRelationship)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.ProfilesBundleIdGetToOneRelationship.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.ProfilesBundleIdGetToOneRelationship.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/bundleId/GET/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/bundleId/GET/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesBundleIdGetToOneRelationship.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesBundleIdGetToOneRelationship.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Parameter error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/bundleId/get(profiles_bundleId_getToOneRelationship)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.ProfilesBundleIdGetToOneRelationship.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.ProfilesBundleIdGetToOneRelationship.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/bundleId/GET/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/bundleId/GET/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesBundleIdGetToOneRelationship.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesBundleIdGetToOneRelationship.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Unauthorized error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/bundleId/get(profiles_bundleId_getToOneRelationship)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.ProfilesBundleIdGetToOneRelationship.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.ProfilesBundleIdGetToOneRelationship.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Forbidden: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/bundleId/GET/responses/403/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/bundleId/GET/responses/403/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesBundleIdGetToOneRelationship.Output.Forbidden.Body
+                /// Creates a new `Forbidden`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesBundleIdGetToOneRelationship.Output.Forbidden.Body) {
+                    self.body = body
+                }
+            }
+            /// Forbidden error
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/bundleId/get(profiles_bundleId_getToOneRelationship)/responses/403`.
+            ///
+            /// HTTP response code: `403 forbidden`.
+            case forbidden(Operations.ProfilesBundleIdGetToOneRelationship.Output.Forbidden)
+            /// The associated value of the enum case if `self` is `.forbidden`.
+            ///
+            /// - Throws: An error if `self` is not `.forbidden`.
+            /// - SeeAlso: `.forbidden`.
+            public var forbidden: Operations.ProfilesBundleIdGetToOneRelationship.Output.Forbidden {
+                get throws {
+                    switch self {
+                    case let .forbidden(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "forbidden",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/bundleId/GET/responses/404/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/bundleId/GET/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesBundleIdGetToOneRelationship.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesBundleIdGetToOneRelationship.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// Not found error
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/bundleId/get(profiles_bundleId_getToOneRelationship)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.ProfilesBundleIdGetToOneRelationship.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            public var notFound: Operations.ProfilesBundleIdGetToOneRelationship.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/bundleId/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/bundleId/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesBundleIdGetToOneRelationship.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesBundleIdGetToOneRelationship.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/bundleId/get(profiles_bundleId_getToOneRelationship)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.ProfilesBundleIdGetToOneRelationship.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.ProfilesBundleIdGetToOneRelationship.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -15822,6 +20478,458 @@ public enum Operations {
                     }
                 }
             }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/bundleId/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/bundleId/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesBundleIdGetToOneRelated.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesBundleIdGetToOneRelated.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/bundleId/get(profiles_bundleId_getToOneRelated)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.ProfilesBundleIdGetToOneRelated.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.ProfilesBundleIdGetToOneRelated.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// - Remark: HTTP `GET /v1/profiles/{id}/relationships/certificates`.
+    /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/certificates/get(profiles_certificates_getToManyRelationship)`.
+    public enum ProfilesCertificatesGetToManyRelationship {
+        public static let id: Swift.String = "profiles_certificates_getToManyRelationship"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/certificates/GET/path`.
+            public struct Path: Sendable, Hashable {
+                /// the id of the requested resource
+                ///
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/certificates/GET/path/id`.
+                public var id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - id: the id of the requested resource
+                public init(id: Swift.String) {
+                    self.id = id
+                }
+            }
+            public var path: Operations.ProfilesCertificatesGetToManyRelationship.Input.Path
+            /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/certificates/GET/query`.
+            public struct Query: Sendable, Hashable {
+                /// maximum resources per page
+                ///
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/certificates/GET/query/limit`.
+                public var limit: Swift.Int?
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - limit: maximum resources per page
+                public init(limit: Swift.Int? = nil) {
+                    self.limit = limit
+                }
+            }
+            public var query: Operations.ProfilesCertificatesGetToManyRelationship.Input.Query
+            /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/certificates/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesCertificatesGetToManyRelationship.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesCertificatesGetToManyRelationship.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.ProfilesCertificatesGetToManyRelationship.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - query:
+            ///   - headers:
+            public init(
+                path: Operations.ProfilesCertificatesGetToManyRelationship.Input.Path,
+                query: Operations.ProfilesCertificatesGetToManyRelationship.Input.Query = .init(),
+                headers: Operations.ProfilesCertificatesGetToManyRelationship.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/certificates/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/certificates/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.ProfileCertificatesLinkagesResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ProfileCertificatesLinkagesResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesCertificatesGetToManyRelationship.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesCertificatesGetToManyRelationship.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// List of related linkages
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/certificates/get(profiles_certificates_getToManyRelationship)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.ProfilesCertificatesGetToManyRelationship.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.ProfilesCertificatesGetToManyRelationship.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/certificates/GET/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/certificates/GET/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesCertificatesGetToManyRelationship.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesCertificatesGetToManyRelationship.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Parameter error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/certificates/get(profiles_certificates_getToManyRelationship)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.ProfilesCertificatesGetToManyRelationship.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.ProfilesCertificatesGetToManyRelationship.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/certificates/GET/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/certificates/GET/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesCertificatesGetToManyRelationship.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesCertificatesGetToManyRelationship.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Unauthorized error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/certificates/get(profiles_certificates_getToManyRelationship)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.ProfilesCertificatesGetToManyRelationship.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.ProfilesCertificatesGetToManyRelationship.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Forbidden: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/certificates/GET/responses/403/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/certificates/GET/responses/403/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesCertificatesGetToManyRelationship.Output.Forbidden.Body
+                /// Creates a new `Forbidden`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesCertificatesGetToManyRelationship.Output.Forbidden.Body) {
+                    self.body = body
+                }
+            }
+            /// Forbidden error
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/certificates/get(profiles_certificates_getToManyRelationship)/responses/403`.
+            ///
+            /// HTTP response code: `403 forbidden`.
+            case forbidden(Operations.ProfilesCertificatesGetToManyRelationship.Output.Forbidden)
+            /// The associated value of the enum case if `self` is `.forbidden`.
+            ///
+            /// - Throws: An error if `self` is not `.forbidden`.
+            /// - SeeAlso: `.forbidden`.
+            public var forbidden: Operations.ProfilesCertificatesGetToManyRelationship.Output.Forbidden {
+                get throws {
+                    switch self {
+                    case let .forbidden(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "forbidden",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/certificates/GET/responses/404/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/certificates/GET/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesCertificatesGetToManyRelationship.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesCertificatesGetToManyRelationship.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// Not found error
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/certificates/get(profiles_certificates_getToManyRelationship)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.ProfilesCertificatesGetToManyRelationship.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            public var notFound: Operations.ProfilesCertificatesGetToManyRelationship.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/certificates/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/certificates/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesCertificatesGetToManyRelationship.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesCertificatesGetToManyRelationship.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/certificates/get(profiles_certificates_getToManyRelationship)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.ProfilesCertificatesGetToManyRelationship.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.ProfilesCertificatesGetToManyRelationship.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -15885,6 +20993,7 @@ public enum Operations {
                     case expirationDate = "expirationDate"
                     case certificateContent = "certificateContent"
                     case activated = "activated"
+                    case passTypeId = "passTypeId"
                 }
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/certificates/GET/query/fields[certificates]`.
                 public typealias Fields_lbrack_certificates_rbrack_Payload = [Operations.ProfilesCertificatesGetToManyRelated.Input.Query.FieldsLbrackCertificatesRbrackPayloadPayload]
@@ -16189,6 +21298,458 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/certificates/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/certificates/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesCertificatesGetToManyRelated.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesCertificatesGetToManyRelated.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/certificates/get(profiles_certificates_getToManyRelated)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.ProfilesCertificatesGetToManyRelated.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.ProfilesCertificatesGetToManyRelated.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// - Remark: HTTP `GET /v1/profiles/{id}/relationships/devices`.
+    /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/devices/get(profiles_devices_getToManyRelationship)`.
+    public enum ProfilesDevicesGetToManyRelationship {
+        public static let id: Swift.String = "profiles_devices_getToManyRelationship"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/devices/GET/path`.
+            public struct Path: Sendable, Hashable {
+                /// the id of the requested resource
+                ///
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/devices/GET/path/id`.
+                public var id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - id: the id of the requested resource
+                public init(id: Swift.String) {
+                    self.id = id
+                }
+            }
+            public var path: Operations.ProfilesDevicesGetToManyRelationship.Input.Path
+            /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/devices/GET/query`.
+            public struct Query: Sendable, Hashable {
+                /// maximum resources per page
+                ///
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/devices/GET/query/limit`.
+                public var limit: Swift.Int?
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - limit: maximum resources per page
+                public init(limit: Swift.Int? = nil) {
+                    self.limit = limit
+                }
+            }
+            public var query: Operations.ProfilesDevicesGetToManyRelationship.Input.Query
+            /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/devices/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesDevicesGetToManyRelationship.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ProfilesDevicesGetToManyRelationship.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.ProfilesDevicesGetToManyRelationship.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - query:
+            ///   - headers:
+            public init(
+                path: Operations.ProfilesDevicesGetToManyRelationship.Input.Path,
+                query: Operations.ProfilesDevicesGetToManyRelationship.Input.Query = .init(),
+                headers: Operations.ProfilesDevicesGetToManyRelationship.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/devices/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/devices/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.ProfileDevicesLinkagesResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ProfileDevicesLinkagesResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesDevicesGetToManyRelationship.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesDevicesGetToManyRelationship.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// List of related linkages
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/devices/get(profiles_devices_getToManyRelationship)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.ProfilesDevicesGetToManyRelationship.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.ProfilesDevicesGetToManyRelationship.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/devices/GET/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/devices/GET/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesDevicesGetToManyRelationship.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesDevicesGetToManyRelationship.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Parameter error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/devices/get(profiles_devices_getToManyRelationship)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.ProfilesDevicesGetToManyRelationship.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.ProfilesDevicesGetToManyRelationship.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/devices/GET/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/devices/GET/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesDevicesGetToManyRelationship.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesDevicesGetToManyRelationship.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Unauthorized error(s)
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/devices/get(profiles_devices_getToManyRelationship)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.ProfilesDevicesGetToManyRelationship.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.ProfilesDevicesGetToManyRelationship.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Forbidden: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/devices/GET/responses/403/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/devices/GET/responses/403/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesDevicesGetToManyRelationship.Output.Forbidden.Body
+                /// Creates a new `Forbidden`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesDevicesGetToManyRelationship.Output.Forbidden.Body) {
+                    self.body = body
+                }
+            }
+            /// Forbidden error
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/devices/get(profiles_devices_getToManyRelationship)/responses/403`.
+            ///
+            /// HTTP response code: `403 forbidden`.
+            case forbidden(Operations.ProfilesDevicesGetToManyRelationship.Output.Forbidden)
+            /// The associated value of the enum case if `self` is `.forbidden`.
+            ///
+            /// - Throws: An error if `self` is not `.forbidden`.
+            /// - SeeAlso: `.forbidden`.
+            public var forbidden: Operations.ProfilesDevicesGetToManyRelationship.Output.Forbidden {
+                get throws {
+                    switch self {
+                    case let .forbidden(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "forbidden",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/devices/GET/responses/404/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/devices/GET/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesDevicesGetToManyRelationship.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesDevicesGetToManyRelationship.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// Not found error
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/devices/get(profiles_devices_getToManyRelationship)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.ProfilesDevicesGetToManyRelationship.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            public var notFound: Operations.ProfilesDevicesGetToManyRelationship.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/devices/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/relationships/devices/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesDevicesGetToManyRelationship.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesDevicesGetToManyRelationship.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/relationships/devices/get(profiles_devices_getToManyRelationship)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.ProfilesDevicesGetToManyRelationship.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.ProfilesDevicesGetToManyRelationship.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
                             response: self
                         )
                     }
@@ -16560,6 +22121,57 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/v1/profiles/{id}/devices/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/devices/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.ProfilesDevicesGetToManyRelated.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.ProfilesDevicesGetToManyRelated.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded error
+            ///
+            /// - Remark: Generated from `#/paths//v1/profiles/{id}/devices/get(profiles_devices_getToManyRelated)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.ProfilesDevicesGetToManyRelated.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.ProfilesDevicesGetToManyRelated.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
                             response: self
                         )
                     }
