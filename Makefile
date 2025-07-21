@@ -166,4 +166,7 @@ openapi/openapi.json: openapi/base.json Sources/DeveloperAPI/patch.js
 
 openapi/base.json:
 	@mkdir -p openapi
-	curl -fsSL "$(SPEC_URL)" | bsdtar -xOf- > openapi/base.json
+# piping curl|bsdtar concatenates xattrs into the JSON :thonk:
+	curl -fsSL "$(SPEC_URL)" -o openapi/spec.zip
+	bsdtar -xO -f openapi/spec.zip > openapi/base.json
+	rm -f openapi/spec.zip
