@@ -143,10 +143,11 @@ $(SWIFTLINT_BIN):
 	@mv .tmp/swiftlint/swiftlint $@
 	@ln -s swiftlint-$(SWIFTLINT_VERSION) .tmp/swiftlint/swiftlint
 
-SPEC_STRING = $(shell cat Sources/DeveloperAPI/spec-version.txt)
+SPEC_STRING := $(shell cat Sources/DeveloperAPI/spec-version.txt)
 SPEC_COMMIT = $(word 1,$(SPEC_STRING))
 SPEC_VERSION = $(word 2,$(SPEC_STRING))
-SPEC_URL = https://raw.githubusercontent.com/EvanBacon/App-Store-Connect-OpenAPI-Spec/$(SPEC_COMMIT)/specs/$(SPEC_VERSION).json
+SPEC_URL_BASE = https://raw.githubusercontent.com/EvanBacon/App-Store-Connect-OpenAPI-Spec
+SPEC_URL = $(SPEC_URL_BASE)/$(SPEC_COMMIT)/specs/$(SPEC_VERSION).json
 SPEC_BASE = openapi/base-$(SPEC_VERSION).json
 
 .PHONY: api
@@ -169,10 +170,11 @@ update-api:
 .PHONY: update-api-version
 # Just update the OpenAPI spec version
 update-api-version:
-	latest_commit=$$(curl -fsSL 'https://api.github.com/repos/EvanBacon/App-Store-Connect-OpenAPI-Spec/commits?per_page=1' \
+	latest_commit=$$(curl -fsSL \
+		'https://api.github.com/repos/EvanBacon/App-Store-Connect-OpenAPI-Spec/commits?per_page=1' \
 		| jq -r '.[0].sha'); \
 	echo "$$latest_commit" > Sources/DeveloperAPI/spec-version.txt; \
-	curl -fsSL "https://raw.githubusercontent.com/EvanBacon/App-Store-Connect-OpenAPI-Spec/$$latest_commit/specs/latest.json" \
+	curl -fsSL "$(SPEC_URL_BASE)/$$latest_commit/specs/latest.json" \
 		| jq -r '.info.version' >> Sources/DeveloperAPI/spec-version.txt
 
 openapi/openapi.json: $(SPEC_BASE) Sources/DeveloperAPI/patch.js
