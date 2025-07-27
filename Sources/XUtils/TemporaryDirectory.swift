@@ -13,6 +13,10 @@ package struct TemporaryDirectory: ~Copyable {
         _ = TemporaryDirectoryRoot.shared
     }
 
+    /// Creates a temporary directory where `lastPathComponent` is exactly `name`.
+    ///
+    /// The directory is deleted on deinit or (if the object never deinits) on next launch.
+    /// To save the contents, move them elsewhere with ``persist(at:)``.
     package init(name: String) throws {
         do {
             let basename = name.replacingOccurrences(of: ".", with: "_")
