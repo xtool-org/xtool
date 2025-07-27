@@ -6,6 +6,13 @@ package struct TemporaryDirectory: ~Copyable {
     private var shouldDelete: Bool
     package let url: URL
 
+    /// Prepares a fresh tmpdir root.
+    ///
+    /// Optional, but try calling this at launch to clean up old resources.
+    package static func prepare() {
+        _ = TemporaryDirectoryRoot.shared
+    }
+
     package init(name: String) throws {
         do {
             let basename = name.replacingOccurrences(of: ".", with: "_")

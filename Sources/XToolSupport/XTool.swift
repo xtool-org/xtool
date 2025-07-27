@@ -1,9 +1,11 @@
 import Foundation
 import XKit
 import ArgumentParser
+import XUtils
 
 public enum XTool {
     public static func run(arguments: [String]? = nil) async throws {
+        TemporaryDirectory.prepare()
         await XToolCommand.cancellableMain(arguments)
     }
 }
