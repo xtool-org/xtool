@@ -1,4 +1,5 @@
 import Foundation
+import XUtils
 
 public struct Packer: Sendable {
     public let buildSettings: BuildSettings

@@ -3,6 +3,7 @@ import ArgumentParser
 import PackLib
 import XKit
 import Dependencies
+import XUtils
 
 struct PackOperation {
     struct BuildOptions: ParsableArguments {
