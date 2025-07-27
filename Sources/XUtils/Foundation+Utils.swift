@@ -1,36 +1,5 @@
 import Foundation
 
-package struct TemporaryDirectory: ~Copyable {
-    private var shouldDelete = true
-
-    package let url: URL
-
-    package init(name: String) throws {
-        self.url = FileManager.default.temporaryDirectory.appendingPathComponent(name, isDirectory: true)
-        _delete()
-        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
-    }
-
-    private func _delete() {
-        try? FileManager.default.removeItem(at: url)
-    }
-
-    package consuming func persist() -> URL {
-        shouldDelete = false
-        return url
-    }
-
-    package consuming func persist(at location: URL) throws {
-        try FileManager.default.moveItem(at: url, to: location)
-        // we do this after moving, so that if the move fails we clean up
-        shouldDelete = false
-    }
-
-    deinit {
-        if shouldDelete { _delete() }
-    }
-}
-
 extension Data {
     // AsyncBytes is Darwin-only :/
 

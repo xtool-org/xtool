@@ -214,7 +214,7 @@ public struct Planner: Sendable {
     }
 
     private func dumpDependencies() async throws -> PackageDependency {
-        let tempDir = try TemporaryDirectory(name: "xtool-dump-\(UUID().uuidString)")
+        let tempDir = try TemporaryDirectory(name: "xtool-dump")
         let tempFileURL = tempDir.url.appendingPathComponent("dump.json")
 
         // SwiftPM sometimes prints extraneous data to stdout, so ask
