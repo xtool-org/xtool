@@ -139,6 +139,7 @@ struct SDKBuilder {
             },
             "swiftCompiler": {
                 "extraCLIOptions": [
+                    "-Xfrontend", "-enable-cross-import-overlays",
                     "-use-ld=lld"
                 ]
             }
