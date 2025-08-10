@@ -90,11 +90,14 @@ let package = Package(
             ],
             exclude: ["openapi-generator-config.yaml", "patch.js"]
         ),
+        // common utilities shared across xtool targets
+        .target(name: "XUtils"),
         .target(
             name: "XKit",
             dependencies: [
                 "DeveloperAPI",
                 "CXKit",
+                "XUtils",
                 .byName(name: "XADI", condition: .when(platforms: [.linux])),
                 .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
@@ -165,6 +168,7 @@ let package = Package(
         .target(
             name: "PackLib",
             dependencies: [
+                "XUtils",
                 .product(name: "Yams", package: "Yams"),
                 .product(name: "XcodeGenKit", package: "XcodeGen", condition: .when(platforms: [.macOS])),
             ]

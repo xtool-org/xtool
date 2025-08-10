@@ -4,6 +4,7 @@ import Version
 import ArgumentParser
 import Dependencies
 import PackLib
+import XUtils
 
 struct SDKCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(

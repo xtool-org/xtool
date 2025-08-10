@@ -2,6 +2,7 @@ import Foundation
 import SwiftyMobileDevice
 import ConcurrencyExtras
 import Dependencies
+import XUtils
 
 extension LockdownClient {
     static let installerLabel = "xtool"
@@ -53,9 +54,6 @@ public actor IntegratedInstaller {
     @Dependency(\.zipCompressor) private var compressor
 
     private var appInstaller: AppInstaller?
-
-    private let tempDir = FileManager.default.temporaryDirectoryShim
-        .appendingPathComponent("sh.xtool.Staging")
 
     private var stage: String?
 
@@ -206,12 +204,9 @@ public actor IntegratedInstaller {
     public func install(app: URL) async throws -> String {
         try await self.updateStage(to: "Unpacking app", initialProgress: nil)
 
-        if FileManager.default.fileExists(atPath: tempDir.path) {
-            try? FileManager.default.removeItem(at: tempDir)
-        }
-
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
+        let _tempDir = try TemporaryDirectory(name: "staging")
+        let tempDir = _tempDir.url
+        defer { withExtendedLifetime(_tempDir) {} }
 
         switch app.pathExtension {
         case "ipa":
@@ -235,7 +230,7 @@ public actor IntegratedInstaller {
 
         try await self.updateProgress(to: 1)
 
-        let payload = self.tempDir.appendingPathComponent("Payload")
+        let payload = tempDir.appendingPathComponent("Payload")
         guard let appDir = payload.implicitContents.first(where: { $0.pathExtension == "app" })
             else { throw Error.appExtractionFailed }
 
