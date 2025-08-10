@@ -66,6 +66,10 @@ extension ParsableCommand where Self: SendableMetatype {
                 print("Cancelled.")
                 self.exit()
             } catch {
+                if ProcessInfo.processInfo.environment["XTL_DEBUG_ERRORS"] != nil {
+                    print("ERROR DETAILS:")
+                    print(String(reflecting: error))
+                }
                 self.exit(withError: error)
             }
         }
