@@ -147,7 +147,11 @@ public struct Packer: Sendable {
                     let src = URL(fileURLWithPath: "\(name).framework/\(name)", relativeTo: binDir)
                     let magic = Data("!<arch>\n".utf8)
                     let thinMagic = Data("!<thin>\n".utf8)
-                    let bytes = try FileHandle(forReadingFrom: src).read(upToCount: magic.count)
+                    guard let bytes = try? FileHandle(forReadingFrom: src).read(upToCount: magic.count) else {
+                        // if we can't find the binary, it might be a static framework that SwiftPM
+                        // did not copy into the .build directory. we don't need to pack it anyway.
+                        break
+                    }
                     // if the magic matches one of these it's a static archive; don't embed it.
                     // https://github.com/apple/llvm-project/blob/e716ff14c46490d2da6b240806c04e2beef01f40/llvm/include/llvm/Object/Archive.h#L33
                     // swiftlint:disable:previous line_length
