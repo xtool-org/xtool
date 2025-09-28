@@ -1,4 +1,8 @@
-/XToolMac.xcodeproj
+/XToolMac.xcodeproj/*
+!/XToolMac.xcodeproj/project.xcworkspace
+/XToolMac.xcodeproj/project.xcworkspace/*
+!/XToolMac.xcodeproj/project.xcworkspace/xcshareddata
+
 Private*.xcconfig
 
 /fastlane/README.md
