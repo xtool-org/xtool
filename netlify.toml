@@ -5,7 +5,7 @@
   base = "Documentation/"
   publish = "xtool.docc/.docc-build"
   command = "./build.sh"
-  environment = { SWIFT_VERSION = "6.1" }
+  environment = { SWIFT_VERSION = "6.2" }
   ignore = "git -C .. diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- Documentation netlify.toml"
 
 [[redirects]]

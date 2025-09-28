@@ -16,14 +16,14 @@ Once you install WSL, you'll also need to set up USB passthrough. See Microsoft'
 
 ### Swift
 
-Install the Swift 6.1 toolchain for your Linux distribution from <https://swift.org/install/linux>.
+Install the Swift 6.2 toolchain for your Linux distribution from <https://swift.org/install/linux>.
 
 After following the steps there, confirm that Swift is installed correctly:
 
 ```bash
 swift --version
 # should say something like:
-# Swift version 6.1 (swift-6.1-RELEASE)
+# Swift version 6.2 (swift-6.2-RELEASE)
 ```
 
 ### usbmuxd
