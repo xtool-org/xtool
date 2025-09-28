@@ -17,8 +17,8 @@ public struct DeviceInfo: Codable, Sendable {
     public static let xcodeVersion = "14.2 (14C18)"
 
     public struct ClientInfo: Codable {
-        public static let macOSVersion = "10.14.6"
-        public static let macOSBuild = "18G103"
+        public static let macOSVersion = "14.3.1"
+        public static let macOSBuild = "23D60"
 
         public static let authKitVersion = "1"
         public static let akdVersion = "1.0"

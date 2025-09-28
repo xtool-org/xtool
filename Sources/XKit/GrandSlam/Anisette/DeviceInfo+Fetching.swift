@@ -91,7 +91,7 @@ extension DeviceInfo {
             romAddress: "94f6a300e9a0",
             mlbSerialNumber: "C02520301W0GF2D1U",
             serialNumber: "C02PQKRJG8WP",
-            modelID: "MacBookPro11,5"
+            modelID: "Mac16,1"
         )
     }
 }
