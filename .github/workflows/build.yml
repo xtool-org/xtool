@@ -22,7 +22,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Build
         run: |
-          docker compose run --build --rm xtool swift build --product xtool
+          docker compose run --build --rm xtool bash -c \
+            "swift build --product xtool && .build/debug/xtool --help"
   build-macos:
     runs-on: macos-26
     steps:
@@ -30,7 +31,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Build
         run: |
-          swift build --product xtool
+          swift build --product xtool && .build/debug/xtool --help
   build-ios:
     runs-on: macos-26
     steps:
