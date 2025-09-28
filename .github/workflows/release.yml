@@ -32,7 +32,7 @@ jobs:
             Linux/packages/xtool-${{ matrix.host.arch }}.AppImage
             Linux/packages/xtool-${{ matrix.host.arch }}.AppImage.zsync
   build-mac:
-    runs-on: macos-15
+    runs-on: macos-26
     permissions:
       contents: write
     steps:
