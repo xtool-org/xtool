@@ -45,7 +45,7 @@ actor GrandSlamLookupManager {
             .init(AnisetteData.timeZoneKey)!: TimeZone.current.identifier,
             .init("X-Apple-I-TimeZone-Offset")!: "\(TimeZone.current.secondsFromGMT())"
         ]
-        request.headerFields[.init("X-MMe-Country")!] = Locale.current.regionCode
+        request.headerFields[.init("X-MMe-Country")!] = Locale.current.region?.identifier
 
         let (_, body) = try await httpClient.makeRequest(request)
 

@@ -11,7 +11,7 @@ targets:
   XToolMac:
     type: application
     platform: macOS
-    deploymentTarget: "12.0"
+    deploymentTarget: "13.0"
     sources:
       - path: XToolMac
       - path: Resources/xtool
