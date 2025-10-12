@@ -23,6 +23,16 @@ public struct DeveloperServicesCapability: Sendable, Hashable {
         self.isFree = isFree
         self.settings = settings
     }
+
+    public init(
+        rawName: String,
+        isFree: Bool,
+        settings: [Components.Schemas.CapabilitySetting]? = nil
+    ) {
+        self.capabilityType = .init(value2: rawName)
+        self.isFree = isFree
+        self.settings = settings
+    }
 }
 
 protocol EntitlementWithCapability: Entitlement {

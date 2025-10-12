@@ -16,14 +16,14 @@ Once you install WSL, you'll also need to set up USB passthrough. See Microsoft'
 
 ### Swift
 
-Install the Swift 6.1 toolchain for your Linux distribution from <https://swift.org/install/linux>.
+Install the Swift 6.2 toolchain for your Linux distribution from <https://swift.org/install/linux>.
 
 After following the steps there, confirm that Swift is installed correctly:
 
 ```bash
 swift --version
 # should say something like:
-# Swift version 6.1 (swift-6.1-RELEASE)
+# Swift version 6.2 (swift-6.2-RELEASE)
 ```
 
 ### usbmuxd
@@ -62,7 +62,7 @@ sudo apt-get install usbmuxd
 
 ### Xcode.xip
 
-Download **Xcode 16.3** from <https://developer.apple.com/services-account/download?path=/Developer_Tools/Xcode_16.3/Xcode_16.3.xip>. Note the path where `Xcode_16.3.xip` is saved.
+Download **Xcode 26** from <https://download.developer.apple.com/Developer_Tools/Xcode_26.0.1/Xcode_26.0.1_Apple_silicon.xip>. Note the path where `Xcode_26.0.1_Apple_silicon.xip` is saved.
 
 > Note:
 >
