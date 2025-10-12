@@ -54,7 +54,8 @@ public struct AnisetteData {
 
     var dictionary: [String: String] {
         // GSA doesn't like "en_US@rg=..."; it has to be just "en_US".
-        let localeIdentifier = if let language = locale.languageCode, let region = locale.regionCode {
+        let localeIdentifier = if let language = locale.language.languageCode?.identifier,
+                                  let region = locale.region?.identifier {
             "\(language)_\(region)"
         } else {
             "en_US"

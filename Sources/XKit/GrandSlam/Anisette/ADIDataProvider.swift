@@ -174,7 +174,7 @@ public struct ADIDataProvider: AnisetteDataProvider {
             .acceptLanguage: "en_US",
             .init(AnisetteData.localUserIDKey)!: self.localUserID,
         ]
-        request.headerFields[.init("X-MMe-Country")!] = Locale.current.regionCode
+        request.headerFields[.init("X-MMe-Country")!] = Locale.current.region?.identifier
 
         request.headerFields[.init(DeviceInfo.clientInfoKey)!] = try await clientInfo()
         request.headerFields[.init(DeviceInfo.deviceIDKey)!] = self.localUserUID.uuidString

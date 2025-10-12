@@ -56,13 +56,14 @@ extension DeviceInfo {
 
     private static func fetchHardwareModel() -> String? {
         var modelSize = 0
-        guard sysctlbyname("hw.model", nil, &modelSize, nil, 0) == 0 else { return nil }
-        guard let rawString = malloc(modelSize) else { return nil }
-        guard sysctlbyname("hw.model", rawString, &modelSize, nil, 0) == 0 else {
-            free(rawString)
-            return nil
+        guard sysctlbyname("hw.model", nil, &modelSize, nil, 0) == 0,
+              modelSize > 0 else { return nil }
+        return String(unsafeUninitializedCapacity: modelSize) { buf in
+            var len = modelSize
+            guard sysctlbyname("hw.model", buf.baseAddress, &len, nil, 0) == 0,
+                  len == modelSize else { return 0 }
+            return len - 1 // exclude NUL
         }
-        return String(bytesNoCopy: rawString, length: modelSize - 1, encoding: .utf8, freeWhenDone: true)
     }
 
     public static func current() -> DeviceInfo? {

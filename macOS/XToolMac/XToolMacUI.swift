@@ -5,7 +5,7 @@ struct XToolMacUI: App {
         WindowGroup {
             ContentView()
         }
-        .disableWindowResizingIfPossible()
+        .windowResizability(.contentSize)
     }
 }
 
@@ -60,16 +60,6 @@ private struct StepView<Content: View>: View {
                 .background(.secondary, in: .circle)
 
             content
-        }
-    }
-}
-
-extension Scene {
-    fileprivate func disableWindowResizingIfPossible() -> some Scene {
-        if #available(macOS 13, *) {
-            return self.windowResizability(.contentSize)
-        } else {
-            return self
         }
     }
 }

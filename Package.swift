@@ -22,8 +22,8 @@ let cSettings: [CSetting] = [
 let package = Package(
     name: "xtool",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12),
+        .iOS(.v16),
+        .macOS(.v13),
     ],
     products: [
         .library(
@@ -53,7 +53,8 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-openapi-urlsession", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-nio", from: "2.77.0"),
-        .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"),
+
+        .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.0.0"),
 
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.0"),
         .package(url: "https://github.com/swift-server/swift-openapi-async-http-client", from: "1.0.0"),

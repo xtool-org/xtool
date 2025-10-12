@@ -138,11 +138,9 @@ public struct KeychainStorage: KeyValueStorage {
     private func makeQuery(forKey key: String, _ parameters: [CFString: Any]) -> CFDictionary {
         var query: [CFString: Any] = [
             kSecClass: kSecClassGenericPassword,
-            kSecAttrAccount: key
+            kSecAttrAccount: key,
+            kSecUseDataProtectionKeychain: true,
         ]
-        if #available(macOS 10.15, *) {
-            query[kSecUseDataProtectionKeychain] = true
-        }
         query[kSecAttrService] = service
         query.merge(parameters) { _, b in b }
         return query as CFDictionary
