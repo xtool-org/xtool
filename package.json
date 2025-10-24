@@ -1,0 +1,71 @@
+{
+  "name": "xtool-studio",
+  "version": "0.1.0",
+  "description": "Cross-platform desktop wrapper for the xtool CLI",
+  "main": "dist/main/main.js",
+  "author": "",
+  "license": "MIT",
+  "scripts": {
+    "clean": "rimraf dist",
+    "dev": "cross-env NODE_ENV=development concurrently \"npm:dev:renderer\" \"npm:dev:main\" \"npm:dev:preload\" \"npm:dev:electron\"",
+    "dev:renderer": "vite",
+    "dev:main": "tsc -p tsconfig.main.json --watch",
+    "build": "npm run clean && npm run build:main && npm run build:preload && npm run build:renderer",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:preload": "tsc -p tsconfig.preload.json",
+    "build:renderer": "vite build",
+    "make:linux": "npm run build && electron-builder --linux AppImage deb",
+    "make:win": "npm run build && electron-builder --win nsis",
+    "dev:preload": "tsc -p tsconfig.preload.json --watch",
+    "dev:electron": "wait-on dist/main/main.js && wait-on tcp:5173 && electron ."
+  },
+  "dependencies": {
+    "@types/node-pty": "^0.11.7",
+    "electron-store": "^9.0.0",
+    "keytar": "^7.9.0",
+    "node-pty": "^1.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "ansi_up": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "concurrently": "^8.0.0",
+    "cross-env": "^7.0.3",
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.0",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
+    "wait-on": "^7.0.1"
+  },
+  "build": {
+    "appId": "com.example.xtoolstudio",
+    "productName": "Xtool Studio",
+    "files": [
+      "dist/main/**/*",
+      "dist/preload/**/*",
+      "dist/renderer/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Development"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "extraMetadata": {
+      "main": "dist/main/main.js"
+    }
+  }
+}
