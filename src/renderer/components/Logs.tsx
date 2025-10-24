@@ -30,17 +30,19 @@ type Props = {
   onOpenProblem: (problem: Problem) => void;
 };
 
-const ansi = new AnsiUp();
+
 
 const LogsPanel: React.FC<Props> = ({ logs, filter, search, onFilterChange, onSearchChange, onClear, problems, onOpenProblem }) => {
   const [showProblems, setShowProblems] = useState(true);
+
+  const ansi = useMemo(() => new AnsiUp(), []);
 
   const renderedLogs = useMemo(() => {
     return logs.map(entry => ({
       ...entry,
       html: ansi.ansi_to_html(entry.message)
     }));
-  }, [logs]);
+  }, [logs, ansi]);
 
   return (
     <div className="panel">
