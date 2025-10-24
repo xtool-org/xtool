@@ -225,7 +225,7 @@ const App: React.FC = () => {
         await loadProjectSettings(selected);
       } else {
         setProjectMeta(null);
-        setProjectSettings({ ...defaultProjectSettings, simulator: { ...defaultProjectSettings.simulator } });
+        setProjectSettings({ ...defaultProjectSettings });
         setDefaultDevice('');
         setStatus(prev => ({ ...prev, cwd: '', device: '', lastExitCode: null }));
       }
