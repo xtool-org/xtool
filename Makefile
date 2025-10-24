@@ -152,7 +152,7 @@ api: openapi/openapi.json
 		openapi/openapi.json \
 		--config Sources/DeveloperAPI/openapi-generator-config.yaml \
 		--output-directory Sources/DeveloperAPI/Generated
-        python3 scripts/rename-generated-client.py Sources/DeveloperAPI/Generated/*.swift
+	python3 scripts/rename-generated-client.py Sources/DeveloperAPI/Generated/*.swift
 
 .PHONY: update-api
 # Update OpenAPI spec and regenerate the client code
