@@ -152,9 +152,7 @@ api: openapi/openapi.json
 		openapi/openapi.json \
 		--config Sources/DeveloperAPI/openapi-generator-config.yaml \
 		--output-directory Sources/DeveloperAPI/Generated
-	for file in Sources/DeveloperAPI/Generated/*.swift; do \
-		sed -i '' -e 's/[[:<:]]Client[[:>:]]/DeveloperAPIClient/g' $$file; \
-	done
+        python3 scripts/rename-generated-client.py Sources/DeveloperAPI/Generated/*.swift
 
 .PHONY: update-api
 # Update OpenAPI spec and regenerate the client code
