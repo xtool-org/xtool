@@ -5,6 +5,7 @@ import ArgumentParser
 import Dependencies
 import PackLib
 import XUtils
+import Subprocess
 
 struct SDKCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -151,50 +152,40 @@ struct DarwinSDK {
 
         try await addHostClangResourceDir(to: url)
 
-        let process = Process()
-        process.executableURL = try await ToolRegistry.locate("swift")
-        process.arguments = ["sdk", "install", url.path]
-        try await process.runUntilExit()
+        try await Subprocess.run(
+            .name("swift"),
+            arguments: ["sdk", "install", url.path],
+            output: .discarded
+        )
+        .checkSuccess()f6b84ce (wip: use swift-subprocess)
     }
 
     private static func addHostClangResourceDir(to sdk: URL) async throws {
-        let outPipe = Pipe()
-        let clang = Process()
-        clang.executableURL = try await ToolRegistry.locate("clang")
-        clang.arguments = ["-print-resource-dir"]
-        clang.standardOutput = outPipe
-        clang.standardError = FileHandle.standardError
-        async let outputData = Data(reading: outPipe.fileHandleForReading)
-        do {
-            try await clang.runUntilExit()
-        } catch is Process.Failure {
-            throw Console.Error("Failed to query host clang -print-resource-dir")
-        }
-        let path = String(decoding: try await outputData, as: UTF8.self)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !path.isEmpty else {
-            throw Console.Error("Host clang returned an empty resource directory")
-        }
-        let hostClangResources = URL(fileURLWithPath: path, isDirectory: true)
+        let clangURL = try await ToolRegistry.locate("clang")
+        let process = try await Subprocess.run(
+            .path(FilePath(clangURL.path)),
+            arguments: ["-print-resource-dir"],
+            output: .string(limit: .max)
+        ).checkSuccess()
+        let output = process.standardOutput ?? ""
+        let hostClangResources = URL(filePath: output.trimmingCharacters(in: .whitespacesAndNewlines))
         let hostInclude = hostClangResources.appending(path: "include")
         let sdkInclude = sdk.appending(path: "Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/clang/include")
         try FileManager.default.copyItem(at: hostInclude, to: sdkInclude)
     }
 
     static func current() async throws -> DarwinSDK? {
-        let output = Pipe()
-
-        let process = Process()
-        process.executableURL = try await ToolRegistry.locate("swift")
-        process.arguments = ["sdk", "configure", "darwin", "arm64-apple-ios", "--show-configuration"]
-        process.standardOutput = output
-        process.standardError = FileHandle.nullDevice
-
-        async let outputData = Data(reading: output.fileHandleForReading)
-
+        let outputString: String
         do {
-            try await process.runUntilExit()
-        } catch Process.Failure.exit {
+            outputString = try await Subprocess.run(
+                .name("swift"),
+                arguments: ["sdk", "configure", "darwin", "arm64-apple-ios", "--show-configuration"],
+                output: .string(limit: .max)
+            )
+            .checkSuccess()
+            .standardOutput
+            ?? ""
+        } catch SubprocessFailure.exited {
             return nil
         }
 
@@ -202,7 +193,6 @@ struct DarwinSDK {
         // swiftResourcesPath: /home/user/.swiftpm/swift-sdks/darwin.artifactbundle/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift
         // swiftlint:disable:previous line_length
         let resourcesPathPrefix = "swiftResourcesPath: "
-        let outputString = String(decoding: try await outputData, as: UTF8.self)
 
         guard let resourcesPath = outputString
             .split(separator: "\n")
@@ -230,21 +220,19 @@ struct DarwinSDK {
 private enum SwiftVersion {}
 extension SwiftVersion {
     static func current() async throws -> Version {
-        let outPipe = Pipe()
-        let errPipe = Pipe()
-        let swift = Process()
-        swift.executableURL = try await ToolRegistry.locate("swift")
-        swift.arguments = ["--version"]
-        swift.standardOutput = outPipe
-        swift.standardError = errPipe
-        async let outputTask = outPipe.fileHandleForReading.readToEnd()
+        let outputString: String?
         do {
-            try await swift.runUntilExit()
-        } catch is Process.Failure {
+            outputString = try await Subprocess.run(
+                .name("swift"),
+                arguments: ["--version"],
+                output: .string(limit: .max)
+            )
+            .checkSuccess()
+            .standardOutput
+        } catch {
             throw Console.Error("Failed to obtain Swift version")
         }
-        let outputData = try await outputTask
-        var output = String(decoding: outputData ?? Data(), as: UTF8.self)[...]
+        var output = outputString?[...] ?? ""
         if output.hasPrefix("Apple ") {
             output = output.dropFirst("Apple ".count)
         }
