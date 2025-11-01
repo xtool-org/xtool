@@ -282,6 +282,8 @@ struct DevCommand: AsyncParsableCommand {
 extension BuildConfiguration: ExpressibleByArgument {}
 
 #if os(macOS)
+import Subprocess
+
 struct SimInstallOperation {
     var path: URL
 
@@ -289,10 +291,12 @@ struct SimInstallOperation {
     var simulator = "booted"
 
     func run() async throws {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        process.arguments = ["simctl", "install", simulator, path.path]
-        try await process.runUntilExit()
+        try await Subprocess.run(
+            .path("/usr/bin/xcrun"),
+            arguments: ["simctl", "install", simulator, path.path],
+            output: .discarded
+        )
+        .checkSuccess()
         print("Installed to simulator")
     }
 }
