@@ -1,9 +1,11 @@
 import Foundation
+import Subprocess
+import XUtils
 
 public struct BuildSettings: Sendable {
     private static let customBinDir =
         // this is the same option used by SwiftPM itself for dev builds
-        ProcessInfo.processInfo.environment["SWIFTPM_CUSTOM_BIN_DIR"].map { URL(fileURLWithPath: $0) }
+        ProcessInfo.processInfo.environment["SWIFTPM_CUSTOM_BIN_DIR"].map { FilePath($0) }
 
     private static let envURL = URL(fileURLWithPath: "/usr/bin/env")
 
@@ -34,18 +36,16 @@ public struct BuildSettings: Sendable {
 
     #if os(macOS)
     private static func xcrun(_ arguments: [String]) async throws -> String {
-        let xcrun = Process()
-        let pipe = Pipe()
-        xcrun.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        xcrun.arguments = arguments
-        xcrun.standardOutput = pipe
-        try await xcrun.runUntilExit()
-        return String(decoding: pipe.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let result = try await Subprocess.run(
+            .path("/usr/bin/xcrun"),
+            arguments: .init(arguments),
+            output: .string(limit: .max)
+        ).checkSuccess()
+        return result.standardOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     }
 
     private static let swiftURL = Task {
-        try await URL(fileURLWithPath: xcrun(["-f", "swift"]))
+        try await FilePath(xcrun(["-f", "swift"]))
     }
     #endif
 
@@ -53,12 +53,11 @@ public struct BuildSettings: Sendable {
         forTool tool: String,
         arguments: [String],
         packagePathOverride: String? = nil
-    ) async throws -> Process {
-        let process = Process()
-
+    ) async throws -> Subprocess.Configuration {
+        let executable: Executable
         let baseArguments: [String]
         if let customBinDir = Self.customBinDir {
-            process.executableURL = customBinDir.appendingPathComponent("swift-\(tool)")
+            executable = .path(customBinDir.appending("swift-\(tool)"))
             baseArguments = []
         } else {
             #if os(macOS)
@@ -67,9 +66,9 @@ public struct BuildSettings: Sendable {
             // 1) invoking the real swift executable (located with `xcrun -f`) and
             // 2) explicitly removing SDKROOT from the env, as it may be inherited
             // through the `swift run pack` invocation.
-            process.executableURL = try await Self.swiftURL.value
+            executable = .path(try await Self.swiftURL.value)
             #else
-            process.executableURL = try await ToolRegistry.locate("swift")
+            executable = .name("swift")
             #endif
             baseArguments = [tool]
         }
@@ -79,11 +78,18 @@ public struct BuildSettings: Sendable {
             "--configuration", configuration.rawValue,
         ]
 
-        var env = ProcessInfo.processInfo.environment
-        env.removeValue(forKey: "SDKROOT")
-        process.environment = env
-        process.arguments = baseArguments + extraArguments + sdkOptions + options + arguments
-        return process
+        var rawEnv = ProcessInfo.processInfo.environment
+        rawEnv.removeValue(forKey: "SDKROOT")
+        let env = Dictionary(uniqueKeysWithValues: rawEnv.map {
+            (Environment.Key(rawValue: $0)!, $1)
+        })
+
+        return Configuration(
+            executable,
+            arguments: .init(baseArguments + extraArguments + sdkOptions + options + arguments),
+            environment: .custom(env),
+            platformOptions: .withGracefulShutDown,
+        )
     }
 }
 

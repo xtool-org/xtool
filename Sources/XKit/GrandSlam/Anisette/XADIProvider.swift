@@ -3,6 +3,7 @@
 import Foundation
 import XADI
 import Dependencies
+import Subprocess
 
 public actor XADIProvider: RawADIProvider {
     @MainActor private static var loadTask: Task<Void, Error>?
@@ -45,17 +46,17 @@ public actor XADIProvider: RawADIProvider {
             let archDir = "lib/\(arch)"
 
             // TODO: Use ZIPFoundation
-            let proc = Process()
-            proc.executableURL = URL(filePath: "/usr/bin/env")
-            proc.arguments = [
-                "unzip", "-q",
-                applemusic.path(),
-                "\(archDir)/libCoreADI.so",
-                "\(archDir)/libstoreservicescore.so",
-                "-d", tmp.path()
-            ]
-            try proc.run()
-            proc.waitUntilExit()
+            try await Subprocess.run(
+                .name("unzip"),
+                arguments: [
+                    "-q",
+                    applemusic.path,
+                    "\(archDir)/libCoreADI.so",
+                    "\(archDir)/libstoreservicescore.so",
+                    "-d", tmp.path
+                ],
+                output: .discarded
+            ).checkSuccess()
             try FileManager.default.moveItem(
                 at: tmp.appending(path: archDir),
                 to: libDir

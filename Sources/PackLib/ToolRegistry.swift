@@ -1,4 +1,5 @@
 import Foundation
+import Subprocess
 
 package enum ToolRegistry {
     package enum Errors: Error, CustomStringConvertible {
@@ -16,11 +17,6 @@ package enum ToolRegistry {
 
     /// Obtain the full path to a tool in the user's `PATH`.
     ///
-    /// This effectively invokes `/bin/sh -c "command -v '$tool'"`.
-    ///
-    /// - Warning: Make sure you trust/sanitize the `tool` parameter. If it
-    /// contains a single quote, it can be used in a shell escape.
-    ///
     /// - Throws: `Errors.toolNotFound` if the tool could not be located.
     package static func locate(_ tool: String) async throws -> URL {
         try await cache.locate(tool: tool)
@@ -30,20 +26,10 @@ package enum ToolRegistry {
         private var cache: [String: Task<URL, Error>] = [:]
 
         private func _locate(tool: String) async throws -> URL {
-            let pipe = Pipe()
-            let proc = Process()
-            proc.executableURL = URL(fileURLWithPath: "/bin/sh")
-            proc.arguments = ["-c", "command -v '\(tool)'"]
-            proc.standardOutput = pipe
-            async let bytes = pipe.fileHandleForReading.readToEnd()
-            do {
-                try await proc.runUntilExit()
-            } catch is Process.Failure {
-                throw Errors.toolNotFound(tool)
-            }
-            let path = String(decoding: try await bytes ?? Data(), as: UTF8.self)
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            return URL(fileURLWithPath: path)
+            guard let path = try? Executable.name(tool).resolveExecutablePath(in: .inherit),
+                  let url = URL(filePath: path)
+                  else { throw Errors.toolNotFound(tool) }
+            return url
         }
 
         func locate(tool: String) async throws -> URL {

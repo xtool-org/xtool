@@ -55,6 +55,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-nio", from: "2.77.0"),
 
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.0.0"),
+        .package(url: "https://github.com/swiftlang/swift-subprocess", .upToNextMinor(from: "0.1.0")),
 
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.0"),
         .package(url: "https://github.com/swift-server/swift-openapi-async-http-client", from: "1.0.0"),
@@ -92,7 +93,16 @@ let package = Package(
             exclude: ["openapi-generator-config.yaml", "patch.js"]
         ),
         // common utilities shared across xtool targets
-        .target(name: "XUtils"),
+        .target(
+            name: "XUtils",
+            dependencies: [
+                .product(
+                    name: "Subprocess",
+                    package: "swift-subprocess",
+                    condition: .when(platforms: [.linux, .macOS])
+                ),
+            ]
+        ),
         .target(
             name: "XKit",
             dependencies: [

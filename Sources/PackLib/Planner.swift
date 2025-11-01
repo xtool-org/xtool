@@ -1,5 +1,6 @@
 import Foundation
 import XUtils
+import Subprocess
 
 public struct Planner: Sendable {
     public var buildSettings: BuildSettings
@@ -243,16 +244,17 @@ public struct Planner: Sendable {
     }
 
     private func _dumpAction(arguments: [String], path: String) async throws -> Data {
-        let dump = try await buildSettings.swiftPMInvocation(
+        let dumpConfig = try await buildSettings.swiftPMInvocation(
             forTool: "package",
             arguments: arguments,
             packagePathOverride: path
         )
-        let pipe = Pipe()
-        dump.standardOutput = pipe
-        async let task = Data(reading: pipe.fileHandleForReading)
-        try await dump.runUntilExit()
-        return try await task
+        return try await Subprocess.run(
+            dumpConfig,
+            output: .data(limit: .max)
+        )
+        .checkSuccess()
+        .standardOutput
     }
 
     private func selectLibrary(

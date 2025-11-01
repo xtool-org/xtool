@@ -1,9 +1,9 @@
 import Foundation
 import Dependencies
-import SystemPackage
 import libunxip
+import Subprocess
 import XKit // HTTPClient, stdoutSafe
-import PackLib // ToolRegistry
+import XUtils // System.File{Path,Descriptor}
 
 struct SDKBuilder {
     enum Arch: String {
@@ -183,14 +183,6 @@ struct SDKBuilder {
             withIntermediateDirectories: false
         )
 
-        let pipe = Pipe()
-        let untar = Process()
-        untar.currentDirectoryURL = toolsetDir
-        untar.executableURL = try await ToolRegistry.locate("tar")
-        untar.arguments = ["xzf", "-"]
-        untar.standardInput = pipe.fileHandleForReading
-        async let tarExit: Void = untar.runUntilExit()
-
         @Dependency(\.httpClient) var httpClient
         let url = URL(string: """
         https://github.com/xtool-org/darwin-tools-linux-llvm/releases/download/\
@@ -202,22 +194,29 @@ struct SDKBuilder {
         case .known(let known): known
         case .unknown: nil
         }
-        let writer = pipe.fileHandleForWriting
-        var written: Int64 = 0
-        do {
-            defer { try? writer.close() }
+
+        defer { print() }
+        try await Subprocess.run(
+            .name("tar"),
+            arguments: ["xzf", "-"],
+            workingDirectory: FilePath(toolsetDir),
+        ) { _, input, _ in
+            var totalWritten: Int64 = 0
             for try await chunk in body {
-                try writer.write(contentsOf: chunk)
-                written += Int64(chunk.count)
-                if let length {
-                    let progress = Int(Double(written) / Double(length) * 100)
+                var remaining = chunk
+                while !remaining.isEmpty {
+                    let written = try await input.write(Array(remaining))
+                    remaining = remaining.dropFirst(written)
+                    totalWritten += Int64(written)
+
+                    guard let length else { continue }
+                    let progress = Int(Double(totalWritten) / Double(length) * 100)
                     print("\r[Downloading toolset] \(progress)%", terminator: "")
                     fflush(stdoutSafe)
                 }
             }
         }
-        print()
-        try await tarExit
+        .checkSuccess()
     }
 
     // swiftlint:disable:next cyclomatic_complexity

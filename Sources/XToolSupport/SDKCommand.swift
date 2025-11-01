@@ -5,6 +5,7 @@ import ArgumentParser
 import Dependencies
 import PackLib
 import XUtils
+import Subprocess
 
 struct SDKCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -148,26 +149,26 @@ struct DarwinSDK {
         let url = URL(fileURLWithPath: path)
         guard DarwinSDK(bundle: url) != nil else { throw Console.Error("Invalid Darwin SDK at '\(path)'")}
 
-        let process = Process()
-        process.executableURL = try await ToolRegistry.locate("swift")
-        process.arguments = ["sdk", "install", url.path]
-        try await process.runUntilExit()
+        try await Subprocess.run(
+            .name("swift"),
+            arguments: ["sdk", "install", url.path],
+            output: .discarded
+        )
+        .checkSuccess()
     }
 
     static func current() async throws -> DarwinSDK? {
-        let output = Pipe()
-
-        let process = Process()
-        process.executableURL = try await ToolRegistry.locate("swift")
-        process.arguments = ["sdk", "configure", "darwin", "arm64-apple-ios", "--show-configuration"]
-        process.standardOutput = output
-        process.standardError = FileHandle.nullDevice
-
-        async let outputData = Data(reading: output.fileHandleForReading)
-
+        let outputString: String
         do {
-            try await process.runUntilExit()
-        } catch Process.Failure.exit {
+            outputString = try await Subprocess.run(
+                .name("swift"),
+                arguments: ["sdk", "configure", "darwin", "arm64-apple-ios", "--show-configuration"],
+                output: .string(limit: .max)
+            )
+            .checkSuccess()
+            .standardOutput
+            ?? ""
+        } catch SubprocessFailure.exited {
             return nil
         }
 
@@ -175,7 +176,6 @@ struct DarwinSDK {
         // swiftResourcesPath: /home/user/.swiftpm/swift-sdks/darwin.artifactbundle/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift
         // swiftlint:disable:previous line_length
         let resourcesPathPrefix = "swiftResourcesPath: "
-        let outputString = String(decoding: try await outputData, as: UTF8.self)
 
         guard let resourcesPath = outputString
             .split(separator: "\n")
@@ -203,21 +203,19 @@ struct DarwinSDK {
 private enum SwiftVersion {}
 extension SwiftVersion {
     static func current() async throws -> Version {
-        let outPipe = Pipe()
-        let errPipe = Pipe()
-        let swift = Process()
-        swift.executableURL = try await ToolRegistry.locate("swift")
-        swift.arguments = ["--version"]
-        swift.standardOutput = outPipe
-        swift.standardError = errPipe
-        async let outputTask = outPipe.fileHandleForReading.readToEnd()
+        let outputString: String?
         do {
-            try await swift.runUntilExit()
-        } catch is Process.Failure {
+            outputString = try await Subprocess.run(
+                .name("swift"),
+                arguments: ["--version"],
+                output: .string(limit: .max)
+            )
+            .checkSuccess()
+            .standardOutput
+        } catch {
             throw Console.Error("Failed to obtain Swift version")
         }
-        let outputData = try await outputTask
-        var output = String(decoding: outputData ?? Data(), as: UTF8.self)[...]
+        var output = outputString?[...] ?? ""
         if output.hasPrefix("Apple ") {
             output = output.dropFirst("Apple ".count)
         }
