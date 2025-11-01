@@ -42,7 +42,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/xtool-org/xtool-core", .upToNextMinor(from: "1.4.0")),
         .package(url: "https://github.com/xtool-org/SwiftyMobileDevice", .upToNextMinor(from: "1.5.0")),
-        .package(url: "https://github.com/xtool-org/zsign", .upToNextMinor(from: "1.6.0")),
+        .package(url: "https://github.com/xtool-org/zsign", .upToNextMinor(from: "1.7.0")),
 
         .package(url: "https://github.com/apple/swift-system", from: "1.4.0"),
         .package(url: "https://github.com/apple/swift-http-types", from: "1.3.1"),
