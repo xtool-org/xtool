@@ -4,6 +4,4 @@ gem 'fastlane'
 gem 'fastlane-plugin-xcodegen'
 
 # https://github.com/fastlane/fastlane/issues/29183#issuecomment-2567093826
-gem "abbrev"
-gem "mutex_m"
-gem "ostruct"
+gem 'ostruct'
