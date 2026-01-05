@@ -143,7 +143,12 @@ $(SWIFTLINT_BIN):
 	@mv .tmp/swiftlint/swiftlint $@
 	@ln -s swiftlint-$(SWIFTLINT_VERSION) .tmp/swiftlint/swiftlint
 
-SPEC_URL = https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip
+SPEC_STRING := $(shell cat Sources/DeveloperAPI/spec-version.txt)
+SPEC_COMMIT = $(word 1,$(SPEC_STRING))
+SPEC_VERSION = $(word 2,$(SPEC_STRING))
+SPEC_URL_BASE = https://raw.githubusercontent.com/EvanBacon/App-Store-Connect-OpenAPI-Spec
+SPEC_URL = $(SPEC_URL_BASE)/$(SPEC_COMMIT)/specs/$(SPEC_VERSION).json
+SPEC_BASE = openapi/base-$(SPEC_VERSION).json
 
 .PHONY: api
 # Regenerate the OpenAPI client code
@@ -159,14 +164,23 @@ api: openapi/openapi.json
 .PHONY: update-api
 # Update OpenAPI spec and regenerate the client code
 update-api:
-	@+$(MAKE) -B api
+	@+$(MAKE) update-api-version
+	@+$(MAKE) api
 
-openapi/openapi.json: openapi/base.json Sources/DeveloperAPI/patch.js
-	node Sources/DeveloperAPI/patch.js < openapi/base.json > openapi/openapi.json
+.PHONY: update-api-version
+# Just update the OpenAPI spec version
+update-api-version:
+	latest_commit=$$(curl -fsSL \
+		'https://api.github.com/repos/EvanBacon/App-Store-Connect-OpenAPI-Spec/commits?per_page=1' \
+		| jq -r '.[0].sha'); \
+	echo "$$latest_commit" > Sources/DeveloperAPI/spec-version.txt; \
+	curl -fsSL "$(SPEC_URL_BASE)/$$latest_commit/specs/latest.json" \
+		| jq -r '.info.version' >> Sources/DeveloperAPI/spec-version.txt
 
-openapi/base.json:
+openapi/openapi.json: $(SPEC_BASE) Sources/DeveloperAPI/patch.js
+	node Sources/DeveloperAPI/patch.js < $(SPEC_BASE) > openapi/openapi.json
+
+$(SPEC_BASE):
 	@mkdir -p openapi
-# piping curl|bsdtar concatenates xattrs into the JSON :thonk:
-	curl -fsSL "$(SPEC_URL)" -o openapi/spec.zip
-	bsdtar -xO -f openapi/spec.zip > openapi/base.json
-	rm -f openapi/spec.zip
+	@rm -f openapi/base*.json
+	curl -fsSL "$(SPEC_URL)" -o "$@"
