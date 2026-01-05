@@ -18,7 +18,10 @@ struct SDKBuilder {
         init(path: String) throws {
             var isDir: ObjCBool = false
             guard FileManager.default.fileExists(atPath: path, isDirectory: &isDir) else {
-                throw Console.Error("Could not read file or directory at path '\(path)'")
+                throw Console.Error("""
+                Could not read file or directory at path '\(path)'.
+                  See 'xtool help sdk' for usage.
+                """)
             }
 
             let url = URL(fileURLWithPath: path)

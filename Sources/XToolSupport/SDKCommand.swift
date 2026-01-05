@@ -243,13 +243,14 @@ struct InstallSDKOperation {
         #if os(macOS)
         print("Skipping SDK install; the iOS SDK ships with Xcode on macOS")
         #else
+        // validate input before removing existing SDK
+        let input = try SDKBuilder.Input(path: path)
+        let arch = try ArchSelection.auto.sdkBuilderArch
+
         if let sdk = try await DarwinSDK.current() {
             print("Removing existing SDK...")
             try sdk.remove()
         }
-
-        let input = try SDKBuilder.Input(path: path)
-        let arch = try ArchSelection.auto.sdkBuilderArch
 
         let tempDir = try TemporaryDirectory(name: "DarwinSDKBuild")
         let builder = SDKBuilder(input: input, outputPath: tempDir.url.path, arch: arch)
