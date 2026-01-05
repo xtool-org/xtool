@@ -13,8 +13,10 @@ fi
 rm -rf staging/tmp
 mkdir -p staging/tmp staging/linuxdeploy
 
-swift build --package-path .. -c release --product xtool --static-swift-stdlib
-bin="$(swift build --package-path .. -c release --show-bin-path)"
+RESOLVED_CONFIG="${XTL_CONFIG:-release}"
+
+swift build --package-path .. -c "${RESOLVED_CONFIG}" --product xtool --static-swift-stdlib
+bin="$(swift build --package-path .. -c "${RESOLVED_CONFIG}" --show-bin-path)"
 strip "${bin}/xtool"
 
 curr_git_info="$(curl -fsSL https://api.github.com/repos/linuxdeploy/linuxdeploy/git/refs/tags/continuous)"
