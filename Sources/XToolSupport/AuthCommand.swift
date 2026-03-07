@@ -62,10 +62,7 @@ struct AuthOperation {
     }
 
     private func saveSigningCertificateIfProvided() async throws {
-        let env = ProcessInfo.processInfo.environment
         let rawPath = signingP12
-            ?? env["XTOOL_SIGNING_P12"]
-            ?? env["XTOOL_CERT_P12"]
         guard let rawPath else {
             return
         }
@@ -77,10 +74,7 @@ struct AuthOperation {
         }
 
         let password: String
-        if let explicit = signingP12Password
-            ?? env["XTOOL_SIGNING_P12_PASSWORD"]
-            ?? env["XTOOL_CERT_P12_PASSWORD"]
-        {
+        if let explicit = signingP12Password {
             password = explicit
         } else {
             password = try await Console.getPassword("Signing certificate password: ")

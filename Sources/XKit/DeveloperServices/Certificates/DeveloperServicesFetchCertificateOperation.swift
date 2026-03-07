@@ -203,7 +203,7 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
             "-in", p12URL.path,
             "-nocerts",
             "-nodes",
-            "-passin", "env:XTOOL_P12_PASS",
+            "-passin", "pass:\(password)",
         ]
         let attempts = [
             ["pkcs12", "-legacy"] + base.dropFirst(),
@@ -214,10 +214,6 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
             let process = Process()
             process.executableURL = URL(fileURLWithPath: opensslPath)
             process.arguments = args
-
-            var env = ProcessInfo.processInfo.environment
-            env["XTOOL_P12_PASS"] = password
-            process.environment = env
 
             let output = Pipe()
             process.standardOutput = output
