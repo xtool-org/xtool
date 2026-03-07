@@ -46,6 +46,8 @@ extension AuthToken {
 
     private static let encoder = JSONEncoder()
     private static let decoder = JSONDecoder()
+    static let signingP12PathKey = "XTLSavedSigningP12Path"
+    static let signingP12PasswordKey = "XTLSavedSigningP12Password"
 
     static func saved() throws -> Self {
         guard let data = try storage.data(forKey: "XTLAuthToken") else {
@@ -56,6 +58,7 @@ extension AuthToken {
 
     static func clear() throws {
         try Self.storage.setData(nil, forKey: "XTLAuthToken")
+        try clearSigningCertificate()
     }
 
     func save() throws {
@@ -77,6 +80,27 @@ extension AuthToken {
                 teamID: .init(rawValue: data.teamID)
             ))
         }
+    }
+
+    static func saveSigningCertificate(path: String, password: String) throws {
+        try storage.setString(path, forKey: Self.signingP12PathKey)
+        try storage.setString(password, forKey: Self.signingP12PasswordKey)
+    }
+
+    static func savedSigningCertificatePath() throws -> String? {
+        try storage.string(forKey: Self.signingP12PathKey)
+    }
+
+    static func savedSigningCertificatePassword() throws -> String? {
+        try storage.string(forKey: Self.signingP12PasswordKey)
+    }
+
+    static func clearSigningCertificate() throws {
+        if let path = try savedSigningCertificatePath() {
+            try? FileManager.default.removeItem(atPath: path)
+        }
+        try storage.setData(nil, forKey: Self.signingP12PathKey)
+        try storage.setData(nil, forKey: Self.signingP12PasswordKey)
     }
 
 }

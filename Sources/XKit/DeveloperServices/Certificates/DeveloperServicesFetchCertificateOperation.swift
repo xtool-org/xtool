@@ -9,6 +9,9 @@
 import Foundation
 import DeveloperAPI
 import Dependencies
+#if canImport(Security)
+import Security
+#endif
 
 public typealias DeveloperServicesCertificate = Components.Schemas.Certificate
 
@@ -33,6 +36,7 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
     }
 
     @Dependency(\.signingInfoManager) var signingInfoManager
+    @Dependency(\.keyValueStorage) var keyValueStorage
 
     public let context: SigningContext
     public let confirmRevocation: @Sendable ([DeveloperServicesCertificate]) async -> Bool
@@ -93,15 +97,191 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
         return signingInfo
     }
 
+    private func loadLocalSigningInfo(
+        matching certificates: [DeveloperServicesCertificate]
+    ) -> SigningInfo? {
+#if canImport(Security)
+        let storedPath = try? keyValueStorage.string(forKey: "XTLSavedSigningP12Path")
+        let candidates = [storedPath]
+            .compactMap { $0 }
+            .map { URL(fileURLWithPath: $0) }
+            .filter { FileManager.default.fileExists(atPath: $0.path) }
+
+        guard let p12URL = candidates.first,
+              let p12Data = try? Data(contentsOf: p12URL)
+        else {
+            return nil
+        }
+
+        let password = (try? keyValueStorage.string(forKey: "XTLSavedSigningP12Password"))
+            ?? ""
+
+        let options: [String: Any] = [kSecImportExportPassphrase as String: password]
+        var importedItems: CFArray?
+        let importStatus = SecPKCS12Import(p12Data as CFData, options as CFDictionary, &importedItems)
+        guard importStatus == errSecSuccess,
+              let importedItems,
+              let firstItem = (importedItems as NSArray).firstObject as? NSDictionary,
+              let identityAny = firstItem[kSecImportItemIdentity as String]
+        else {
+            return nil
+        }
+        let identity = identityAny as! SecIdentity
+
+        var certificateRef: SecCertificate?
+        guard SecIdentityCopyCertificate(identity, &certificateRef) == errSecSuccess,
+              let certificateRef
+        else {
+            return nil
+        }
+
+        var privateKeyRef: SecKey?
+        let privateKeyPEM: String
+        if SecIdentityCopyPrivateKey(identity, &privateKeyRef) == errSecSuccess,
+           let privateKeyRef,
+           let privateKeyBytes = SecKeyCopyExternalRepresentation(privateKeyRef, nil) as Data?
+        {
+            privateKeyPEM = Self.pem(body: privateKeyBytes, header: "RSA PRIVATE KEY")
+        } else if let pem = Self.extractPrivateKeyPEMWithOpenSSL(p12URL: p12URL, password: password) {
+            privateKeyPEM = pem
+        } else {
+            return nil
+        }
+
+        let certData = SecCertificateCopyData(certificateRef) as Data
+        guard let certificate = try? Certificate(data: certData) else {
+            return nil
+        }
+
+        let serial = certificate.serialNumber()
+        let normalizedSerial = Self.normalizeSerialNumber(serial)
+        guard let matchingCertificate = certificates.first(where: {
+            Self.normalizeSerialNumber($0.attributes?.serialNumber) == normalizedSerial
+        }),
+              let expirationDate = matchingCertificate.attributes?.expirationDate,
+              expirationDate > Date()
+        else {
+            return nil
+        }
+
+        let signingInfo = SigningInfo(
+            privateKey: .init(data: Data(privateKeyPEM.utf8)),
+            certificate: certificate
+        )
+        return signingInfo
+#else
+        _ = certificates
+        return nil
+#endif
+    }
+
+    private static func pem(body: Data, header: String) -> String {
+        let base64 = body.base64EncodedString()
+        var lines: [String] = []
+        lines.reserveCapacity((base64.count / 64) + 2)
+        var index = base64.startIndex
+        while index < base64.endIndex {
+            let nextIndex = base64.index(index, offsetBy: 64, limitedBy: base64.endIndex) ?? base64.endIndex
+            lines.append(String(base64[index..<nextIndex]))
+            index = nextIndex
+        }
+        return "-----BEGIN \(header)-----\n\(lines.joined(separator: "\\n"))\n-----END \(header)-----\n"
+    }
+
+    private static func extractPrivateKeyPEMWithOpenSSL(p12URL: URL, password: String) -> String? {
+        let fileManager = FileManager.default
+        let executableCandidates = [
+            "/opt/homebrew/bin/openssl",
+            "/usr/local/bin/openssl",
+            "/usr/bin/openssl",
+        ]
+        guard let opensslPath = executableCandidates.first(where: { fileManager.fileExists(atPath: $0) }) else {
+            return nil
+        }
+        let base = [
+            "pkcs12",
+            "-in", p12URL.path,
+            "-nocerts",
+            "-nodes",
+            "-passin", "env:XTOOL_P12_PASS",
+        ]
+        let attempts = [
+            ["pkcs12", "-legacy"] + base.dropFirst(),
+            base,
+        ]
+
+        for args in attempts {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: opensslPath)
+            process.arguments = args
+
+            var env = ProcessInfo.processInfo.environment
+            env["XTOOL_P12_PASS"] = password
+            process.environment = env
+
+            let output = Pipe()
+            process.standardOutput = output
+            process.standardError = output
+
+            do {
+                try process.run()
+            } catch {
+                continue
+            }
+            process.waitUntilExit()
+            let data = output.fileHandleForReading.readDataToEndOfFile()
+            let text = String(data: data, encoding: .utf8) ?? ""
+
+            guard process.terminationStatus == 0 else {
+                continue
+            }
+
+            if text.isEmpty {
+                continue
+            }
+
+            if let pem = Self.extractPEMBlock(from: text, begin: "-----BEGIN PRIVATE KEY-----", end: "-----END PRIVATE KEY-----") {
+                return pem
+            }
+            if let pem = Self.extractPEMBlock(from: text, begin: "-----BEGIN RSA PRIVATE KEY-----", end: "-----END RSA PRIVATE KEY-----") {
+                return pem
+            }
+        }
+        return nil
+    }
+
+    private static func extractPEMBlock(from text: String, begin: String, end: String) -> String? {
+        guard let startRange = text.range(of: begin),
+              let endRange = text.range(of: end, range: startRange.lowerBound..<text.endIndex)
+        else {
+            return nil
+        }
+        return String(text[startRange.lowerBound..<endRange.upperBound]).appending("\n")
+    }
+
+    private static func normalizeSerialNumber(_ serial: String?) -> String {
+        let upper = (serial ?? "").uppercased()
+        let trimmed = upper.drop { $0 == "0" }
+        return String(trimmed)
+    }
+
     public func perform() async throws -> SigningInfo {
         let certificates = try await context.developerAPIClient.certificatesGetCollection().ok.body.json.data
 
         guard let signingInfo = signingInfoManager[self.context.auth.identityID] else {
+            if let signingInfo = loadLocalSigningInfo(matching: certificates) {
+                signingInfoManager[self.context.auth.identityID] = signingInfo
+                return signingInfo
+            }
             return try await self.replaceCertificates(certificates, requireConfirmation: true)
         }
 
         let knownSerialNumber = signingInfo.certificate.serialNumber()
         guard let certificate = certificates.first(where: { $0.attributes?.serialNumber == knownSerialNumber }) else {
+            if let signingInfo = loadLocalSigningInfo(matching: certificates) {
+                signingInfoManager[self.context.auth.identityID] = signingInfo
+                return signingInfo
+            }
             // we need to revoke existing certs, otherwise it doesn't always let us make a new one
             return try await self.replaceCertificates(certificates, requireConfirmation: true)
         }
@@ -109,6 +289,10 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
         if let date = certificate.attributes?.expirationDate, date > Date() {
             return signingInfo
         } else {
+            if let signingInfo = loadLocalSigningInfo(matching: certificates) {
+                signingInfoManager[self.context.auth.identityID] = signingInfo
+                return signingInfo
+            }
             // we have a certificate for this machine but it's not usable
             return try await self.replaceCertificates(
                 [certificate],
