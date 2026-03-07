@@ -9,9 +9,18 @@
 import Foundation
 import DeveloperAPI
 import Dependencies
+import CXKit
 #if canImport(Security)
 import Security
 #endif
+
+@_silgen_name("xtl_pkcs12_copy_private_key_pem")
+private func xtl_pkcs12_copy_private_key_pem_native(
+    _ p12Data: UnsafeRawPointer,
+    _ p12Length: Int,
+    _ password: UnsafePointer<CChar>?,
+    _ pemLength: UnsafeMutablePointer<Int>
+) -> UnsafeMutableRawPointer?
 
 public typealias DeveloperServicesCertificate = Components.Schemas.Certificate
 
@@ -142,7 +151,7 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
            let privateKeyBytes = SecKeyCopyExternalRepresentation(privateKeyRef, nil) as Data?
         {
             privateKeyPEM = Self.pem(body: privateKeyBytes, header: "RSA PRIVATE KEY")
-        } else if let pem = Self.extractPrivateKeyPEMWithOpenSSL(p12URL: p12URL, password: password) {
+        } else if let pem = Self.extractPrivateKeyPEMWithNativePKCS12(p12Data: p12Data, password: password) {
             privateKeyPEM = pem
         } else {
             return nil
@@ -188,71 +197,28 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
         return "-----BEGIN \(header)-----\n\(lines.joined(separator: "\\n"))\n-----END \(header)-----\n"
     }
 
-    private static func extractPrivateKeyPEMWithOpenSSL(p12URL: URL, password: String) -> String? {
-        let fileManager = FileManager.default
-        let executableCandidates = [
-            "/opt/homebrew/bin/openssl",
-            "/usr/local/bin/openssl",
-            "/usr/bin/openssl",
-        ]
-        guard let opensslPath = executableCandidates.first(where: { fileManager.fileExists(atPath: $0) }) else {
-            return nil
-        }
-        let base = [
-            "pkcs12",
-            "-in", p12URL.path,
-            "-nocerts",
-            "-nodes",
-            "-passin", "pass:\(password)",
-        ]
-        let attempts = [
-            ["pkcs12", "-legacy"] + base.dropFirst(),
-            base,
-        ]
-
-        for args in attempts {
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: opensslPath)
-            process.arguments = args
-
-            let output = Pipe()
-            process.standardOutput = output
-            process.standardError = output
-
-            do {
-                try process.run()
-            } catch {
-                continue
-            }
-            process.waitUntilExit()
-            let data = output.fileHandleForReading.readDataToEndOfFile()
-            let text = String(data: data, encoding: .utf8) ?? ""
-
-            guard process.terminationStatus == 0 else {
-                continue
+    private static func extractPrivateKeyPEMWithNativePKCS12(p12Data: Data, password: String) -> String? {
+        let passwordCString = password.cString(using: .utf8) ?? [0]
+        return p12Data.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) -> String? in
+            guard let base = bytes.baseAddress else {
+                return nil
             }
 
-            if text.isEmpty {
-                continue
-            }
+            return passwordCString.withUnsafeBufferPointer { passwordBuffer in
+                var pemLength = 0
+                guard let pemPointer = xtl_pkcs12_copy_private_key_pem_native(
+                    base,
+                    bytes.count,
+                    passwordBuffer.baseAddress,
+                    &pemLength
+                ), pemLength > 0 else {
+                    return nil
+                }
 
-            if let pem = Self.extractPEMBlock(from: text, begin: "-----BEGIN PRIVATE KEY-----", end: "-----END PRIVATE KEY-----") {
-                return pem
-            }
-            if let pem = Self.extractPEMBlock(from: text, begin: "-----BEGIN RSA PRIVATE KEY-----", end: "-----END RSA PRIVATE KEY-----") {
-                return pem
+                let pemData = Data(bytesNoCopy: pemPointer, count: pemLength, deallocator: .free)
+                return String(data: pemData, encoding: .utf8)
             }
         }
-        return nil
-    }
-
-    private static func extractPEMBlock(from text: String, begin: String, end: String) -> String? {
-        guard let startRange = text.range(of: begin),
-              let endRange = text.range(of: end, range: startRange.lowerBound..<text.endIndex)
-        else {
-            return nil
-        }
-        return String(text[startRange.lowerBound..<endRange.upperBound]).appending("\n")
     }
 
     private static func normalizeSerialNumber(_ serial: String?) -> String {
