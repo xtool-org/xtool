@@ -68,7 +68,7 @@ private struct TemporaryDirectoryRoot {
         let base: URL
         let env = ProcessInfo.processInfo.environment
         if let tmpdir = env["XTL_TMPDIR"] ?? env["TMPDIR"] {
-            base = URL(fileURLWithPath: tmpdir)
+            base = URL(fileURLWithPath: tmpdir).appendingPathComponent("sh.xtool")
         } else {
             #if os(Linux)
             // On Linux, /tmp is commonly a tmpfs mount while ~/.swiftpm lives on ext4.
@@ -80,11 +80,11 @@ private struct TemporaryDirectoryRoot {
                 ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".cache")
             base = xdgCache.appendingPathComponent("xtool")
             #else
-            base = FileManager.default.temporaryDirectory
+            base = FileManager.default.temporaryDirectory.appendingPathComponent("sh.xtool")
             #endif
         }
 
-        let url = base.appendingPathComponent("sh.xtool")
+        let url = base
         try? FileManager.default.removeItem(at: url)
         do {
             try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
