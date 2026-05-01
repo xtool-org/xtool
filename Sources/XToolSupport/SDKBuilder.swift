@@ -77,6 +77,8 @@ struct SDKBuilder {
 
         let dev = try await installDeveloper(in: output)
 
+        try await patchClangHeaders(in: dev)
+
         func sdk(platform: String, prefix: String) throws -> String {
             let regex = try NSRegularExpression(pattern: #"^\#(prefix)\d+\.\d+\.sdk$"#)
             let dir = dev.appendingPathComponent("Platforms/\(platform).platform/Developer/SDKs")
@@ -421,6 +423,78 @@ struct SDKBuilder {
         print()
 
         return wanted
+    }
+
+    // Apple's bundled Clang resource headers (arm_neon.h, x86 intrinsics, etc.) are
+    // auto-generated to match the version of Clang that built them. On Linux the
+    // host Clang (e.g. from swiftly) does the actual C compilation against this SDK,
+    // so Apple's intrinsics use __builtin_neon_* signatures upstream Clang doesn't
+    // recognize ("incompatible constant for this __builtin_neon function"). Replace
+    // them with the host Clang's matching headers.
+    //
+    // Safe because Apple frameworks are precompiled binaries that don't go through
+    // these headers, and intrinsic names lower to fixed ARM64/x86 hardware ISA
+    // regardless of which Clang emits them.
+    private func patchClangHeaders(in dev: URL) async throws {
+        print("[Patching Clang resource headers]")
+
+        let hostInclude = try await hostClangResourceDir()
+            .appendingPathComponent("include")
+        guard hostInclude.dirExists else {
+            throw Console.Error("Host clang include not found at '\(hostInclude.path)'")
+        }
+
+        var targets: [URL] = []
+
+        let swiftClangInclude = dev.appendingPathComponent(
+            "Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/clang/include"
+        )
+        if swiftClangInclude.dirExists {
+            targets.append(swiftClangInclude)
+        }
+
+        let clangBase = dev.appendingPathComponent(
+            "Toolchains/XcodeDefault.xctoolchain/usr/lib/clang"
+        )
+        if clangBase.dirExists {
+            let versions = try FileManager.default.contentsOfDirectory(
+                at: clangBase,
+                includingPropertiesForKeys: [.isDirectoryKey]
+            )
+            for ver in versions {
+                let inc = ver.appendingPathComponent("include")
+                if inc.dirExists {
+                    targets.append(inc)
+                }
+            }
+        }
+
+        for target in targets {
+            try FileManager.default.removeItem(at: target)
+            try FileManager.default.copyItem(at: hostInclude, to: target)
+        }
+    }
+
+    private func hostClangResourceDir() async throws -> URL {
+        let outPipe = Pipe()
+        let errPipe = Pipe()
+        let clang = Process()
+        clang.executableURL = try await ToolRegistry.locate("clang")
+        clang.arguments = ["-print-resource-dir"]
+        clang.standardOutput = outPipe
+        clang.standardError = errPipe
+        async let outputData = Data(reading: outPipe.fileHandleForReading)
+        do {
+            try await clang.runUntilExit()
+        } catch is Process.Failure {
+            throw Console.Error("Failed to query host clang -print-resource-dir")
+        }
+        let path = String(decoding: try await outputData, as: UTF8.self)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !path.isEmpty else {
+            throw Console.Error("Host clang returned an empty resource directory")
+        }
+        return URL(fileURLWithPath: path, isDirectory: true)
     }
 
     private static func isWanted(_ path: Substring) -> Bool {
