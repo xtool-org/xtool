@@ -2664,65 +2664,17 @@ public enum Components {
                     }
                     /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/relationships/bundleId`.
                     public var bundleId: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.BundleIdPayload
-                    /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/relationships/capability`.
-                    public struct CapabilityPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/relationships/capability/data`.
-                        public struct DataPayload: Codable, Hashable, Sendable {
-                            /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/relationships/capability/data/type`.
-                            @frozen public enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
-                                case capabilities = "capabilities"
-                            }
-                            /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/relationships/capability/data/type`.
-                            public var _type: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.CapabilityPayload.DataPayload._TypePayload
-                            /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/relationships/capability/data/id`.
-                            public var id: Components.Schemas.CapabilityType
-                            /// Creates a new `DataPayload`.
-                            ///
-                            /// - Parameters:
-                            ///   - _type:
-                            ///   - id:
-                            public init(
-                                _type: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.CapabilityPayload.DataPayload._TypePayload,
-                                id: Components.Schemas.CapabilityType
-                            ) {
-                                self._type = _type
-                                self.id = id
-                            }
-                            public enum CodingKeys: String, CodingKey {
-                                case _type = "type"
-                                case id
-                            }
-                        }
-                        /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/relationships/capability/data`.
-                        public var data: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.CapabilityPayload.DataPayload
-                        /// Creates a new `CapabilityPayload`.
-                        ///
-                        /// - Parameters:
-                        ///   - data:
-                        public init(data: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.CapabilityPayload.DataPayload) {
-                            self.data = data
-                        }
-                        public enum CodingKeys: String, CodingKey {
-                            case data
-                        }
-                    }
-                    /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/relationships/capability`.
-                    public var capability: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.CapabilityPayload
                     /// Creates a new `RelationshipsPayload`.
                     ///
                     /// - Parameters:
                     ///   - bundleId:
-                    ///   - capability:
                     public init(
-                        bundleId: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.BundleIdPayload,
-                        capability: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.CapabilityPayload
+                        bundleId: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.BundleIdPayload
                     ) {
                         self.bundleId = bundleId
-                        self.capability = capability
                     }
                     public enum CodingKeys: String, CodingKey {
                         case bundleId
-                        case capability
                     }
                 }
                 /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/relationships`.

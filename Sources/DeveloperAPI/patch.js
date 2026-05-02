@@ -64,31 +64,13 @@ function openAll(schema, path = []) {
 
 function patch(schema) {
   const schemas = schema.components.schemas;
-  
-  // this field is required when using the private Xcode API
-  update(schemas.BundleIdCapabilityCreateRequest.properties.data.properties.relationships, {
-    properties: {
-      capability: {
-        type: 'object',
-        properties: {
-          data: {
-            type: 'object',
-            properties: {
-              type: {
-                type: 'string',
-                enum: ['capabilities'],
-              },
-              id: { $ref: '#/components/schemas/CapabilityType' },
-            },
-            required: ['id', 'type'],
-          },
-        },
-        required: ['data'],
-      }
-    },
-    required: ['capability'],
-  })
-  
+
+  // The private Xcode/ds2 API used to require an extra `capability` relationship
+  // on BundleIdCapabilityCreateRequest. As of 2026 it now rejects that field with
+  // ENTITY_ERROR.RELATIONSHIP.UNKNOWN ("'capability' is not a relationship on
+  // the resource 'bundleIdCapabilities'"), so we no longer add it — the public
+  // ASC schema with only `bundleId` is now what ds2 expects.
+
   // we don't use this but it triggers a deprecation warning. see:
   // https://github.com/apple/swift-openapi-generator/issues/715
   schemas.App.properties.relationships.properties.inAppPurchases.deprecated = false;

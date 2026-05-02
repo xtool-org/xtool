@@ -136,13 +136,6 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
                                 _type: .bundleIds,
                                 id: appID.id
                             )
-                        ),
-                        // not public but required when using ds2 API
-                        capability: .init(
-                            data: .init(
-                                _type: .capabilities,
-                                id: typ
-                            )
                         )
                     )
                 )))
