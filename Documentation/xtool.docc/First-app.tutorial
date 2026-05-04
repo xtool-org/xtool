@@ -70,8 +70,8 @@
             }
             
             @Step {
-                xtool will now connect to Apple Developer Services, register your device with your Apple ID, generate a Certificate + App ID + Provisioning Profile, sign the app, and then install it.
-                
+                xtool will now connect to Apple Developer Services, register your device with your Apple ID, create an App ID + Provisioning Profile, sign the app, and then install it. If you configured `xtool auth login --signing-p12`, xtool reuses that saved certificate; otherwise it may create a new development certificate.
+                 
                 @Code(name: "Terminal", file: "build-3.sh", reset: true) {}
             }
             
