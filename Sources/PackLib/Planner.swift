@@ -129,6 +129,7 @@ public struct Planner: Sendable {
             matching: name
         )
         var resources: [Plan.Resource] = []
+        var sourceRoots: [Plan.SourceRoot] = []
         var visited: Set<String> = []
         var targets = library.targets.map { (graph.root, $0) }
         while let (targetPackage, targetName) = targets.popLast() {
@@ -141,6 +142,14 @@ public struct Planner: Sendable {
             }
             if target.resources?.isEmpty == false {
                 resources.append(.bundle(package: targetPackage.name, target: targetName))
+            }
+            // AppIntents declarations live in the root package's first-party
+            // targets. Skip third-party deps to keep the SwiftSyntax scan
+            // narrow and avoid surfacing unrelated intents from libraries.
+            if targetPackage.name == graph.root.name,
+               let targetPath = target.path,
+               target.moduleType.contains("Swift") {
+                sourceRoots.append(Plan.SourceRoot(module: target.name, path: targetPath))
             }
             for targetName in (target.targetDependencies ?? []) {
                 targets.append((targetPackage, targetName))
@@ -209,7 +218,8 @@ public struct Planner: Sendable {
             infoPlist: infoPlist,
             resources: resources,
             iconPath: iconPath,
-            entitlementsPath: entitlementsPath
+            entitlementsPath: entitlementsPath,
+            sourceRoots: sourceRoots
         )
     }
 
@@ -304,6 +314,20 @@ public struct Plan: Sendable {
         case root(source: String)
     }
 
+    /// A SwiftPM target's source directory paired with the target's name
+    /// (which is also its Swift module name). Used by the AppIntents native
+    /// generator to attribute each scanned declaration to its declaring
+    /// module so the emitter produces correct cross-module mangled names.
+    public struct SourceRoot: Sendable, Equatable {
+        public var module: String
+        public var path: String
+
+        public init(module: String, path: String) {
+            self.module = module
+            self.path = path
+        }
+    }
+
     public struct Product: Sendable {
         public var type: ProductType
         public var product: String
@@ -313,6 +337,13 @@ public struct Plan: Sendable {
         public var resources: [Resource]
         public var iconPath: String?
         public var entitlementsPath: String?
+
+        /// Absolute paths to every source target that contributes to this
+        /// product. Consumed by the AppIntents Linux-native generator so
+        /// it can scan the actual user code rather than the synthetic
+        /// `xtool/.xtool-tmp/.../Sources/<name>/stub.c` shims that the
+        /// builder package assembles.
+        public var sourceRoots: [SourceRoot]
 
         public var targetName: String {
             "\(self.product)-\(self.type.targetSuffix)"
@@ -406,6 +437,7 @@ private struct PackageDump: Decodable {
     struct Target: Decodable {
         let name: String
         let moduleType: String
+        let path: String?
         let productDependencies: [String]?
         let targetDependencies: [String]?
         let resources: [Resource]?
@@ -421,6 +453,7 @@ private struct PackageDump: Decodable {
     }
 
     let name: String
+    let path: String?
     let products: [Product]?
     let targets: [Target]?
     let platforms: [Platform]?

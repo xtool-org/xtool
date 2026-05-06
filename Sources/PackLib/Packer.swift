@@ -84,14 +84,55 @@ public struct Packer: Sendable {
             isDirectory: true
         )
 
+        let appIntentsProcessor = await AppIntentsMetadata.locateProcessor()
+
         try await withThrowingTaskGroup(of: Void.self) { group in
             for product in plan.allProducts {
+                let productURL = product.directory(inApp: outputURL)
                 try pack(
                     product: product,
                     binDir: binDir,
-                    outputURL: product.directory(inApp: outputURL),
+                    outputURL: productURL,
                     &group
                 )
+                let sourceRoots = product.sourceRoots.map {
+                    AppIntentsMetadata.SourceRoot(
+                        module: $0.module,
+                        url: URL(fileURLWithPath: $0.path)
+                    )
+                }
+                // `product.product` is the user-visible SPM library name
+                // (used to namespace intent identifiers); `product.targetName`
+                // is the synthetic builder target (`<name>-App` /
+                // `<name>-Extension`) where swiftc emits
+                // `*.appintentsmetadata` files.
+                let inputs = AppIntentsMetadata.Inputs(
+                    moduleName: product.product,
+                    buildModuleName: product.targetName,
+                    bundleIdentifier: product.bundleID,
+                    deploymentTarget: product.deploymentTarget,
+                    executableURL: productURL.appendingPathComponent(product.product),
+                    bundleURL: productURL,
+                    buildDir: binDir,
+                    sourceRoots: sourceRoots,
+                    isAppExtension: product.type == .appExtension
+                )
+                let triple = buildSettings.triple
+                if let processor = appIntentsProcessor {
+                    group.addTask {
+                        try await AppIntentsMetadata.generate(
+                            inputs: inputs,
+                            triple: triple,
+                            processor: processor
+                        )
+                    }
+                } else if !sourceRoots.isEmpty {
+                    group.addTask {
+                        try AppIntentsMetadata.generateNative(inputs: inputs)
+                    }
+                } else {
+                    AppIntentsMetadata.warnMissingOnce()
+                }
             }
 
             while !group.isEmpty {
