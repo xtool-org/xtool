@@ -70,6 +70,11 @@ let package = Package(
 
         // TODO: just depend on tuist/XcodeProj instead
         .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.43.0"),
+
+        // SwiftSyntax powers the Linux-native AppIntents metadata generator.
+        // Pin to the same major as the Swift toolchain xtool currently
+        // requires (swift-tools-version 6.0); 600.x tracks Swift 6 syntax.
+        .package(url: "https://github.com/swiftlang/swift-syntax", from: "600.0.0"),
     ],
     targets: [
         .systemLibrary(name: "XADI"),
@@ -170,8 +175,30 @@ let package = Package(
             name: "PackLib",
             dependencies: [
                 "XUtils",
+                "AppIntentsGen",
                 .product(name: "Yams", package: "Yams"),
                 .product(name: "XcodeGenKit", package: "XcodeGen", condition: .when(platforms: [.macOS])),
+            ]
+        ),
+        .target(
+            name: "AppIntentsGen",
+            dependencies: [
+                "XUtils",
+                .product(name: "SwiftSyntax", package: "swift-syntax"),
+                .product(name: "SwiftParser", package: "swift-syntax"),
+            ]
+        ),
+        .executableTarget(
+            name: "xtool-appintents-gen",
+            dependencies: [
+                "AppIntentsGen",
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+            ]
+        ),
+        .testTarget(
+            name: "AppIntentsGenTests",
+            dependencies: [
+                "AppIntentsGen",
             ]
         ),
         .executableTarget(
