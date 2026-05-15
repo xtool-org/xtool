@@ -32,6 +32,9 @@ jobs:
       - name: Build
         run: |
           swift build --product xtool && .build/debug/xtool --help
+      - name: Asset catalog compiler tests
+        run: |
+          swift test --filter XCAssetCompilerTests
   build-ios:
     runs-on: macos-26
     steps:

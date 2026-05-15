@@ -188,6 +188,9 @@ let package = Package(
             name: "XCAssetCompilerTests",
             dependencies: [
                 "XCAssetCompiler",
+            ],
+            resources: [
+                .copy("Fixtures"),
             ]
         ),
         .executableTarget(
