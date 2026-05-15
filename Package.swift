@@ -70,6 +70,8 @@ let package = Package(
 
         // TODO: just depend on tuist/XcodeProj instead
         .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.43.0"),
+
+        .package(url: "https://github.com/tayloraswift/swift-png", .upToNextMinor(from: "4.5.0")),
     ],
     targets: [
         .systemLibrary(name: "XADI"),
@@ -170,8 +172,22 @@ let package = Package(
             name: "PackLib",
             dependencies: [
                 "XUtils",
+                "XCAssetCompiler",
                 .product(name: "Yams", package: "Yams"),
                 .product(name: "XcodeGenKit", package: "XcodeGen", condition: .when(platforms: [.macOS])),
+            ]
+        ),
+        .target(
+            name: "XCAssetCompiler",
+            dependencies: [
+                "XUtils",
+                .product(name: "PNG", package: "swift-png"),
+            ]
+        ),
+        .testTarget(
+            name: "XCAssetCompilerTests",
+            dependencies: [
+                "XCAssetCompiler",
             ]
         ),
         .executableTarget(

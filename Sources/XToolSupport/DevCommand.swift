@@ -47,11 +47,21 @@ struct PackOperation {
             options: []
         )
 
+        let diagnostics = Diagnostics()
         let planner = Planner(
             buildSettings: buildSettings,
-            schema: schema
+            schema: schema,
+            diagnostics: diagnostics
         )
         let plan = try await planner.createPlan()
+        for entry in await diagnostics.drain() {
+            let prefix: String
+            switch entry.severity {
+            case .warning: prefix = "warning"
+            case .note: prefix = "note"
+            }
+            FileHandle.standardError.write(Data("\(prefix): \(entry.message)\n".utf8))
+        }
 
         #if os(macOS)
         if xcode {

@@ -170,6 +170,21 @@ public struct Packer: Sendable {
                 try await packFileToRoot(srcName: iconPath)
             }
         }
+        for compiledAsset in product.compiledAssets {
+            let bytes = compiledAsset.carData
+            group.addTask {
+                let destURL = outputURL.appendingPathComponent("Assets.car")
+                try bytes.write(to: destURL)
+                try Task.checkCancellation()
+            }
+            for emittedFile in compiledAsset.emittedFiles {
+                group.addTask {
+                    let destURL = outputURL.appendingPathComponent(emittedFile.name)
+                    try emittedFile.data.write(to: destURL)
+                    try Task.checkCancellation()
+                }
+            }
+        }
         group.addTask {
             try await packFile(srcName: product.targetName, dstName: product.product)
         }
