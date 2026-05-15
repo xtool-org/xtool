@@ -28,10 +28,9 @@ enum CSIWriter {
         let tvl = bitmapTVL(width: body.width, height: body.height)
         let payload = bitmapBody(width: body.width, height: body.height, pixels: body.pixelsBGRA)
         // actool sets bit 4 of renditionFlags for `.image` (generic) bitmaps
-        // and leaves it cleared for `.appIcon`. We mirror this for structural
-        // parity with the reference output, but it is not on its own
-        // sufficient to make UIImage(named:) resolve `.image` renditions on
-        // device -- see the note in `bitmapBody` re: deepmap2.
+        // and leaves it cleared for `.appIcon`. We mirror this; the bit is
+        // structural and on-device UIImage(named:) resolution does work
+        // through the LZFSE+KCBC path verified end-to-end.
         let renditionFlags: UInt32 = (body.kind == .image) ? 0x10 : 0x00
         var w = ByteWriter()
         writeHeader(
@@ -184,21 +183,25 @@ enum CSIWriter {
     }
 
     private static func bitmapBody(width: UInt32, height: UInt32, pixels: [UInt8]) -> Data {
-        // Reference actool splits appicon bitmaps into 3 KCBC chunks of
-        // equal row height (120 -> 3x40, 180 -> 3x60). We mirror that
-        // layout. For `.image` (generic imageset) renditions actool instead
-        // uses compressionType=2 (deepmap2), an Apple-proprietary format
-        // that stores a dominant color plus an LZFSE-compressed delta;
-        // CoreUI's UIImage(named:) path appears to require deepmap2 for
-        // imageset assets and returns nil when handed an LZFSE+KCBC body.
-        // Implementing deepmap2 is a separate piece of work; until it
-        // lands, imageset assets won't resolve at runtime even though the
-        // rest of the catalog (BITMAPKEYS, FACETKEYS, RENDITIONS,
-        // EXTENDED_METADATA) is structurally correct.
-        let chunkCount: UInt32 = 3
-        let rowsPerChunk = height / chunkCount
+        // actool splits appicon bitmaps into 3 KCBC chunks of equal row
+        // height (120 -> 3x40, 180 -> 3x60). We mirror that when the height
+        // divides evenly by 3; otherwise we fall back to a single chunk
+        // covering the whole image. The 3-chunk split is mimicry rather than
+        // a correctness requirement: CoreUI accepts both layouts.
+        //
+        // The MLEC wrapper always advertises compressionType=3 (LZFSE) and
+        // each chunk payload is a valid LZFSE stream. On macOS we let
+        // Apple's Compression framework actually compress. On Linux we emit
+        // a single LZFSE "uncompressed block" envelope (`bvx-` + size +
+        // raw bytes + `bvx$` end-of-stream); CoreUI's LZFSE decoder reads
+        // this as a passthrough and ends up with the raw pixels intact.
+        // Size cost on Linux: roughly the raw bitmap size + 12 bytes per
+        // chunk. Avoiding the alternative (compressionType=0 raw, which
+        // CoreUI's runtime quietly fails to materialise) is worth it.
         let bytesPerRow = Int(width) * 4
-        precondition(height % chunkCount == 0, "v1 only supports heights divisible by 3 (got \(height))")
+        let canChunkInThree = height % 3 == 0
+        let chunkCount: UInt32 = canChunkInThree ? 3 : 1
+        let rowsPerChunk = height / chunkCount
 
         var chunks: [(rows: UInt32, payload: [UInt8])] = []
         for i in 0..<Int(chunkCount) {
@@ -224,17 +227,30 @@ enum CSIWriter {
         return w.data
     }
 
-    /// LZFSE-compress `input` using Apple's Compression framework.
+    /// Produce a valid LZFSE stream from `input`.
     ///
-    /// CoreUI's bitmap path expects each KCBC chunk's payload to start with
-    /// the LZFSE block magic ('bvx2') and end with the terminator ('bvx$').
-    /// On platforms without Compression (Linux), this falls back to writing
-    /// the raw bytes -- the resulting .car will not parse on device but the
-    /// build can still produce something to inspect.
+    /// On macOS, uses Apple's Compression framework for actual LZFSE
+    /// compression. On Linux, where `Compression` is not part of the Swift
+    /// SDK (it's a Darwin-only system framework, closed source, not
+    /// redistributed), hand-emits the LZFSE "uncompressed block" envelope.
+    /// CoreUI's LZFSE decoder reads it as a passthrough and ends up with
+    /// the raw pixels intact -- verified rendering on a real iOS device
+    /// from a Linux-built `Assets.car`.
+    ///
+    /// LZFSE uncompressed block layout (from lzfse_internal.h):
+    ///
+    ///   magic        u32  ('bvx-' = LZFSE_UNCOMPRESSED_BLOCK_MAGIC)
+    ///   n_raw_bytes  u32  (size of the raw payload that follows)
+    ///   payload      raw bytes
+    ///   end magic    u32  ('bvx$' = LZFSE_ENDOFSTREAM_BLOCK_MAGIC)
+    ///
+    /// **Future option:** vendor an LZFSE implementation so Linux gets
+    /// real compression instead of passthrough. That would close the
+    /// bundle-size gap and remove our dependency on CoreUI continuing to
+    /// accept the uncompressed-block path. It is purely an optimisation;
+    /// the passthrough is structurally valid LZFSE per Apple's own spec.
     private static func lzfseEncode(_ input: [UInt8]) -> [UInt8] {
         #if canImport(Compression)
-        // compression_encode_buffer returns the encoded size, or 0 on failure.
-        // Worst case the encoded size is roughly input.count + a small overhead.
         let bound = input.count + 256
         var output = [UInt8](repeating: 0, count: bound)
         let encoded = input.withUnsafeBufferPointer { inBuf -> Int in
@@ -250,7 +266,12 @@ enum CSIWriter {
         precondition(encoded > 0, "LZFSE encoding failed for \(input.count)-byte buffer")
         return Array(output.prefix(encoded))
         #else
-        return input
+        var w = ByteWriter()
+        w.writeFourCC("bvx-")                   // uncompressed block magic
+        w.writeLE(UInt32(input.count))          // n_raw_bytes
+        w.write(input)                          // raw payload
+        w.writeFourCC("bvx$")                   // end-of-stream magic
+        return Array(w.data)
         #endif
     }
 
