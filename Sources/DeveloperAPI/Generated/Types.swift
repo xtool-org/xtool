@@ -794,6 +794,50 @@ public enum Components {
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appEncryptionDeclarations`.
                 public var appEncryptionDeclarations: Components.Schemas.App.RelationshipsPayload.AppEncryptionDeclarationsPayload?
+                /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreIcon`.
+                public struct AppStoreIconPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreIcon/data`.
+                    public struct DataPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreIcon/data/type`.
+                        @frozen public enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                            case buildIcons = "buildIcons"
+                        }
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreIcon/data/type`.
+                        public var _type: Components.Schemas.App.RelationshipsPayload.AppStoreIconPayload.DataPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreIcon/data/id`.
+                        public var id: Swift.String
+                        /// Creates a new `DataPayload`.
+                        ///
+                        /// - Parameters:
+                        ///   - _type:
+                        ///   - id:
+                        public init(
+                            _type: Components.Schemas.App.RelationshipsPayload.AppStoreIconPayload.DataPayload._TypePayload,
+                            id: Swift.String
+                        ) {
+                            self._type = _type
+                            self.id = id
+                        }
+                        public enum CodingKeys: String, CodingKey {
+                            case _type = "type"
+                            case id
+                        }
+                    }
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreIcon/data`.
+                    public var data: Components.Schemas.App.RelationshipsPayload.AppStoreIconPayload.DataPayload?
+                    /// Creates a new `AppStoreIconPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - data:
+                    public init(data: Components.Schemas.App.RelationshipsPayload.AppStoreIconPayload.DataPayload? = nil) {
+                        self.data = data
+                    }
+                    public enum CodingKeys: String, CodingKey {
+                        case data
+                    }
+                }
+                /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreIcon`.
+                public var appStoreIcon: Components.Schemas.App.RelationshipsPayload.AppStoreIconPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/ciProduct`.
                 public struct CiProductPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/ciProduct/links`.
@@ -983,6 +1027,23 @@ public enum Components {
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/appStoreVersions`.
                 public var appStoreVersions: Components.Schemas.App.RelationshipsPayload.AppStoreVersionsPayload?
+                /// - Remark: Generated from `#/components/schemas/App/relationships/appTags`.
+                public struct AppTagsPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/appTags/links`.
+                    public var links: Components.Schemas.RelationshipLinks?
+                    /// Creates a new `AppTagsPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - links:
+                    public init(links: Components.Schemas.RelationshipLinks? = nil) {
+                        self.links = links
+                    }
+                    public enum CodingKeys: String, CodingKey {
+                        case links
+                    }
+                }
+                /// - Remark: Generated from `#/components/schemas/App/relationships/appTags`.
+                public var appTags: Components.Schemas.App.RelationshipsPayload.AppTagsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/preReleaseVersions`.
                 public struct PreReleaseVersionsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/preReleaseVersions/links`.
@@ -2236,6 +2297,23 @@ public enum Components {
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/marketplaceSearchDetail`.
                 public var marketplaceSearchDetail: Components.Schemas.App.RelationshipsPayload.MarketplaceSearchDetailPayload?
+                /// - Remark: Generated from `#/components/schemas/App/relationships/buildUploads`.
+                public struct BuildUploadsPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/buildUploads/links`.
+                    public var links: Components.Schemas.RelationshipLinks?
+                    /// Creates a new `BuildUploadsPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - links:
+                    public init(links: Components.Schemas.RelationshipLinks? = nil) {
+                        self.links = links
+                    }
+                    public enum CodingKeys: String, CodingKey {
+                        case links
+                    }
+                }
+                /// - Remark: Generated from `#/components/schemas/App/relationships/buildUploads`.
+                public var buildUploads: Components.Schemas.App.RelationshipsPayload.BuildUploadsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/backgroundAssets`.
                 public struct BackgroundAssetsPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/backgroundAssets/links`.
@@ -2287,6 +2365,23 @@ public enum Components {
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/betaFeedbackCrashSubmissions`.
                 public var betaFeedbackCrashSubmissions: Components.Schemas.App.RelationshipsPayload.BetaFeedbackCrashSubmissionsPayload?
+                /// - Remark: Generated from `#/components/schemas/App/relationships/searchKeywords`.
+                public struct SearchKeywordsPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/searchKeywords/links`.
+                    public var links: Components.Schemas.RelationshipLinks?
+                    /// Creates a new `SearchKeywordsPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - links:
+                    public init(links: Components.Schemas.RelationshipLinks? = nil) {
+                        self.links = links
+                    }
+                    public enum CodingKeys: String, CodingKey {
+                        case links
+                    }
+                }
+                /// - Remark: Generated from `#/components/schemas/App/relationships/searchKeywords`.
+                public var searchKeywords: Components.Schemas.App.RelationshipsPayload.SearchKeywordsPayload?
                 /// - Remark: Generated from `#/components/schemas/App/relationships/webhooks`.
                 public struct WebhooksPayload: Codable, Hashable, Sendable {
                     /// - Remark: Generated from `#/components/schemas/App/relationships/webhooks/links`.
@@ -2304,15 +2399,77 @@ public enum Components {
                 }
                 /// - Remark: Generated from `#/components/schemas/App/relationships/webhooks`.
                 public var webhooks: Components.Schemas.App.RelationshipsPayload.WebhooksPayload?
+                /// - Remark: Generated from `#/components/schemas/App/relationships/androidToIosAppMappingDetails`.
+                public struct AndroidToIosAppMappingDetailsPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/androidToIosAppMappingDetails/links`.
+                    public var links: Components.Schemas.RelationshipLinks?
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/androidToIosAppMappingDetails/meta`.
+                    public var meta: Components.Schemas.PagingInformation?
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/androidToIosAppMappingDetails/DataPayload`.
+                    public struct DataPayloadPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/androidToIosAppMappingDetails/DataPayload/type`.
+                        @frozen public enum _TypePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                            case androidToIosAppMappingDetails = "androidToIosAppMappingDetails"
+                        }
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/androidToIosAppMappingDetails/DataPayload/type`.
+                        public var _type: Components.Schemas.App.RelationshipsPayload.AndroidToIosAppMappingDetailsPayload.DataPayloadPayload._TypePayload
+                        /// - Remark: Generated from `#/components/schemas/App/relationships/androidToIosAppMappingDetails/DataPayload/id`.
+                        public var id: Swift.String
+                        /// Creates a new `DataPayloadPayload`.
+                        ///
+                        /// - Parameters:
+                        ///   - _type:
+                        ///   - id:
+                        public init(
+                            _type: Components.Schemas.App.RelationshipsPayload.AndroidToIosAppMappingDetailsPayload.DataPayloadPayload._TypePayload,
+                            id: Swift.String
+                        ) {
+                            self._type = _type
+                            self.id = id
+                        }
+                        public enum CodingKeys: String, CodingKey {
+                            case _type = "type"
+                            case id
+                        }
+                    }
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/androidToIosAppMappingDetails/data`.
+                    public typealias DataPayload = [Components.Schemas.App.RelationshipsPayload.AndroidToIosAppMappingDetailsPayload.DataPayloadPayload]
+                    /// - Remark: Generated from `#/components/schemas/App/relationships/androidToIosAppMappingDetails/data`.
+                    public var data: Components.Schemas.App.RelationshipsPayload.AndroidToIosAppMappingDetailsPayload.DataPayload?
+                    /// Creates a new `AndroidToIosAppMappingDetailsPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - links:
+                    ///   - meta:
+                    ///   - data:
+                    public init(
+                        links: Components.Schemas.RelationshipLinks? = nil,
+                        meta: Components.Schemas.PagingInformation? = nil,
+                        data: Components.Schemas.App.RelationshipsPayload.AndroidToIosAppMappingDetailsPayload.DataPayload? = nil
+                    ) {
+                        self.links = links
+                        self.meta = meta
+                        self.data = data
+                    }
+                    public enum CodingKeys: String, CodingKey {
+                        case links
+                        case meta
+                        case data
+                    }
+                }
+                /// - Remark: Generated from `#/components/schemas/App/relationships/androidToIosAppMappingDetails`.
+                public var androidToIosAppMappingDetails: Components.Schemas.App.RelationshipsPayload.AndroidToIosAppMappingDetailsPayload?
                 /// Creates a new `RelationshipsPayload`.
                 ///
                 /// - Parameters:
                 ///   - accessibilityDeclarations:
                 ///   - appEncryptionDeclarations:
+                ///   - appStoreIcon:
                 ///   - ciProduct:
                 ///   - betaTesters:
                 ///   - betaGroups:
                 ///   - appStoreVersions:
+                ///   - appTags:
                 ///   - preReleaseVersions:
                 ///   - betaAppLocalizations:
                 ///   - builds:
@@ -2341,17 +2498,22 @@ public enum Components {
                 ///   - alternativeDistributionKey:
                 ///   - analyticsReportRequests:
                 ///   - marketplaceSearchDetail:
+                ///   - buildUploads:
                 ///   - backgroundAssets:
                 ///   - betaFeedbackScreenshotSubmissions:
                 ///   - betaFeedbackCrashSubmissions:
+                ///   - searchKeywords:
                 ///   - webhooks:
+                ///   - androidToIosAppMappingDetails:
                 public init(
                     accessibilityDeclarations: Components.Schemas.App.RelationshipsPayload.AccessibilityDeclarationsPayload? = nil,
                     appEncryptionDeclarations: Components.Schemas.App.RelationshipsPayload.AppEncryptionDeclarationsPayload? = nil,
+                    appStoreIcon: Components.Schemas.App.RelationshipsPayload.AppStoreIconPayload? = nil,
                     ciProduct: Components.Schemas.App.RelationshipsPayload.CiProductPayload? = nil,
                     betaTesters: Components.Schemas.App.RelationshipsPayload.BetaTestersPayload? = nil,
                     betaGroups: Components.Schemas.App.RelationshipsPayload.BetaGroupsPayload? = nil,
                     appStoreVersions: Components.Schemas.App.RelationshipsPayload.AppStoreVersionsPayload? = nil,
+                    appTags: Components.Schemas.App.RelationshipsPayload.AppTagsPayload? = nil,
                     preReleaseVersions: Components.Schemas.App.RelationshipsPayload.PreReleaseVersionsPayload? = nil,
                     betaAppLocalizations: Components.Schemas.App.RelationshipsPayload.BetaAppLocalizationsPayload? = nil,
                     builds: Components.Schemas.App.RelationshipsPayload.BuildsPayload? = nil,
@@ -2380,17 +2542,22 @@ public enum Components {
                     alternativeDistributionKey: Components.Schemas.App.RelationshipsPayload.AlternativeDistributionKeyPayload? = nil,
                     analyticsReportRequests: Components.Schemas.App.RelationshipsPayload.AnalyticsReportRequestsPayload? = nil,
                     marketplaceSearchDetail: Components.Schemas.App.RelationshipsPayload.MarketplaceSearchDetailPayload? = nil,
+                    buildUploads: Components.Schemas.App.RelationshipsPayload.BuildUploadsPayload? = nil,
                     backgroundAssets: Components.Schemas.App.RelationshipsPayload.BackgroundAssetsPayload? = nil,
                     betaFeedbackScreenshotSubmissions: Components.Schemas.App.RelationshipsPayload.BetaFeedbackScreenshotSubmissionsPayload? = nil,
                     betaFeedbackCrashSubmissions: Components.Schemas.App.RelationshipsPayload.BetaFeedbackCrashSubmissionsPayload? = nil,
-                    webhooks: Components.Schemas.App.RelationshipsPayload.WebhooksPayload? = nil
+                    searchKeywords: Components.Schemas.App.RelationshipsPayload.SearchKeywordsPayload? = nil,
+                    webhooks: Components.Schemas.App.RelationshipsPayload.WebhooksPayload? = nil,
+                    androidToIosAppMappingDetails: Components.Schemas.App.RelationshipsPayload.AndroidToIosAppMappingDetailsPayload? = nil
                 ) {
                     self.accessibilityDeclarations = accessibilityDeclarations
                     self.appEncryptionDeclarations = appEncryptionDeclarations
+                    self.appStoreIcon = appStoreIcon
                     self.ciProduct = ciProduct
                     self.betaTesters = betaTesters
                     self.betaGroups = betaGroups
                     self.appStoreVersions = appStoreVersions
+                    self.appTags = appTags
                     self.preReleaseVersions = preReleaseVersions
                     self.betaAppLocalizations = betaAppLocalizations
                     self.builds = builds
@@ -2419,18 +2586,23 @@ public enum Components {
                     self.alternativeDistributionKey = alternativeDistributionKey
                     self.analyticsReportRequests = analyticsReportRequests
                     self.marketplaceSearchDetail = marketplaceSearchDetail
+                    self.buildUploads = buildUploads
                     self.backgroundAssets = backgroundAssets
                     self.betaFeedbackScreenshotSubmissions = betaFeedbackScreenshotSubmissions
                     self.betaFeedbackCrashSubmissions = betaFeedbackCrashSubmissions
+                    self.searchKeywords = searchKeywords
                     self.webhooks = webhooks
+                    self.androidToIosAppMappingDetails = androidToIosAppMappingDetails
                 }
                 public enum CodingKeys: String, CodingKey {
                     case accessibilityDeclarations
                     case appEncryptionDeclarations
+                    case appStoreIcon
                     case ciProduct
                     case betaTesters
                     case betaGroups
                     case appStoreVersions
+                    case appTags
                     case preReleaseVersions
                     case betaAppLocalizations
                     case builds
@@ -2459,10 +2631,13 @@ public enum Components {
                     case alternativeDistributionKey
                     case analyticsReportRequests
                     case marketplaceSearchDetail
+                    case buildUploads
                     case backgroundAssets
                     case betaFeedbackScreenshotSubmissions
                     case betaFeedbackCrashSubmissions
+                    case searchKeywords
                     case webhooks
+                    case androidToIosAppMappingDetails
                 }
             }
             /// - Remark: Generated from `#/components/schemas/App/relationships`.
@@ -2707,7 +2882,7 @@ public enum Components {
                         }
                     }
                     /// - Remark: Generated from `#/components/schemas/BundleIdCapabilityCreateRequest/data/relationships/capability`.
-                    public var capability: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.CapabilityPayload
+                    public var capability: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.CapabilityPayload?
                     /// Creates a new `RelationshipsPayload`.
                     ///
                     /// - Parameters:
@@ -2715,7 +2890,7 @@ public enum Components {
                     ///   - capability:
                     public init(
                         bundleId: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.BundleIdPayload,
-                        capability: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.CapabilityPayload
+                        capability: Components.Schemas.BundleIdCapabilityCreateRequest.DataPayload.RelationshipsPayload.CapabilityPayload? = nil
                     ) {
                         self.bundleId = bundleId
                         self.capability = capability
@@ -3113,45 +3288,43 @@ public enum Components {
             public var data: [Components.Schemas.BundleId]
             /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/IncludedPayload`.
             @frozen public enum IncludedPayloadPayload: Codable, Hashable, Sendable {
-                /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/IncludedPayload/case1`.
-                case Profile(Components.Schemas.Profile)
-                /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/IncludedPayload/case2`.
-                case BundleIdCapability(Components.Schemas.BundleIdCapability)
-                /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/IncludedPayload/case3`.
-                case App(Components.Schemas.App)
+                /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/IncludedPayload/App`.
+                case apps(Components.Schemas.App)
+                /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/IncludedPayload/BundleIdCapability`.
+                case bundleIdCapabilities(Components.Schemas.BundleIdCapability)
+                /// - Remark: Generated from `#/components/schemas/BundleIdsResponse/IncludedPayload/Profile`.
+                case profiles(Components.Schemas.Profile)
+                public enum CodingKeys: String, CodingKey {
+                    case _type = "type"
+                }
                 public init(from decoder: any Decoder) throws {
-                    var errors: [any Error] = []
-                    do {
-                        self = .Profile(try .init(from: decoder))
-                        return
-                    } catch {
-                        errors.append(error)
-                    }
-                    do {
-                        self = .BundleIdCapability(try .init(from: decoder))
-                        return
-                    } catch {
-                        errors.append(error)
-                    }
-                    do {
-                        self = .App(try .init(from: decoder))
-                        return
-                    } catch {
-                        errors.append(error)
-                    }
-                    throw Swift.DecodingError.failedToDecodeOneOfSchema(
-                        type: Self.self,
-                        codingPath: decoder.codingPath,
-                        errors: errors
+                    let container = try decoder.container(keyedBy: CodingKeys.self)
+                    let discriminator = try container.decode(
+                        Swift.String.self,
+                        forKey: ._type
                     )
+                    switch discriminator {
+                    case "apps":
+                        self = .apps(try .init(from: decoder))
+                    case "bundleIdCapabilities":
+                        self = .bundleIdCapabilities(try .init(from: decoder))
+                    case "profiles":
+                        self = .profiles(try .init(from: decoder))
+                    default:
+                        throw Swift.DecodingError.unknownOneOfDiscriminator(
+                            discriminatorKey: CodingKeys._type,
+                            discriminatorValue: discriminator,
+                            codingPath: decoder.codingPath
+                        )
+                    }
                 }
                 public func encode(to encoder: any Encoder) throws {
                     switch self {
-                    case let .Profile(value):
+                    case let .apps(value):
                         try value.encode(to: encoder)
-                    case let .BundleIdCapability(value):
+                    case let .bundleIdCapabilities(value):
                         try value.encode(to: encoder)
-                    case let .App(value):
+                    case let .profiles(value):
                         try value.encode(to: encoder)
                     }
                 }
@@ -3195,45 +3368,43 @@ public enum Components {
             public var data: Components.Schemas.BundleId
             /// - Remark: Generated from `#/components/schemas/BundleIdResponse/IncludedPayload`.
             @frozen public enum IncludedPayloadPayload: Codable, Hashable, Sendable {
-                /// - Remark: Generated from `#/components/schemas/BundleIdResponse/IncludedPayload/case1`.
-                case Profile(Components.Schemas.Profile)
-                /// - Remark: Generated from `#/components/schemas/BundleIdResponse/IncludedPayload/case2`.
-                case BundleIdCapability(Components.Schemas.BundleIdCapability)
-                /// - Remark: Generated from `#/components/schemas/BundleIdResponse/IncludedPayload/case3`.
-                case App(Components.Schemas.App)
+                /// - Remark: Generated from `#/components/schemas/BundleIdResponse/IncludedPayload/App`.
+                case apps(Components.Schemas.App)
+                /// - Remark: Generated from `#/components/schemas/BundleIdResponse/IncludedPayload/BundleIdCapability`.
+                case bundleIdCapabilities(Components.Schemas.BundleIdCapability)
+                /// - Remark: Generated from `#/components/schemas/BundleIdResponse/IncludedPayload/Profile`.
+                case profiles(Components.Schemas.Profile)
+                public enum CodingKeys: String, CodingKey {
+                    case _type = "type"
+                }
                 public init(from decoder: any Decoder) throws {
-                    var errors: [any Error] = []
-                    do {
-                        self = .Profile(try .init(from: decoder))
-                        return
-                    } catch {
-                        errors.append(error)
-                    }
-                    do {
-                        self = .BundleIdCapability(try .init(from: decoder))
-                        return
-                    } catch {
-                        errors.append(error)
-                    }
-                    do {
-                        self = .App(try .init(from: decoder))
-                        return
-                    } catch {
-                        errors.append(error)
-                    }
-                    throw Swift.DecodingError.failedToDecodeOneOfSchema(
-                        type: Self.self,
-                        codingPath: decoder.codingPath,
-                        errors: errors
+                    let container = try decoder.container(keyedBy: CodingKeys.self)
+                    let discriminator = try container.decode(
+                        Swift.String.self,
+                        forKey: ._type
                     )
+                    switch discriminator {
+                    case "apps":
+                        self = .apps(try .init(from: decoder))
+                    case "bundleIdCapabilities":
+                        self = .bundleIdCapabilities(try .init(from: decoder))
+                    case "profiles":
+                        self = .profiles(try .init(from: decoder))
+                    default:
+                        throw Swift.DecodingError.unknownOneOfDiscriminator(
+                            discriminatorKey: CodingKeys._type,
+                            discriminatorValue: discriminator,
+                            codingPath: decoder.codingPath
+                        )
+                    }
                 }
                 public func encode(to encoder: any Encoder) throws {
                     switch self {
-                    case let .Profile(value):
+                    case let .apps(value):
                         try value.encode(to: encoder)
-                    case let .BundleIdCapability(value):
+                    case let .bundleIdCapabilities(value):
                         try value.encode(to: encoder)
-                    case let .App(value):
+                    case let .profiles(value):
                         try value.encode(to: encoder)
                     }
                 }
@@ -4220,56 +4391,9 @@ public enum Components {
                     /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/attributes/name`.
                     public var name: Swift.String?
                     /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/attributes/status`.
-                    public struct StatusPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/attributes/status/value1`.
-                        @frozen public enum Value1Payload: String, Codable, Hashable, Sendable, CaseIterable {
-                            case enabled = "ENABLED"
-                            case disabled = "DISABLED"
-                        }
-                        /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/attributes/status/value1`.
-                        public var value1: Components.Schemas.DeviceUpdateRequest.DataPayload.AttributesPayload.StatusPayload.Value1Payload?
-                        /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/attributes/status/value2`.
-                        public var value2: Swift.String?
-                        /// Creates a new `StatusPayload`.
-                        ///
-                        /// - Parameters:
-                        ///   - value1:
-                        ///   - value2:
-                        public init(
-                            value1: Components.Schemas.DeviceUpdateRequest.DataPayload.AttributesPayload.StatusPayload.Value1Payload? = nil,
-                            value2: Swift.String? = nil
-                        ) {
-                            self.value1 = value1
-                            self.value2 = value2
-                        }
-                        public init(from decoder: any Decoder) throws {
-                            var errors: [any Error] = []
-                            do {
-                                self.value1 = try decoder.decodeFromSingleValueContainer()
-                            } catch {
-                                errors.append(error)
-                            }
-                            do {
-                                self.value2 = try decoder.decodeFromSingleValueContainer()
-                            } catch {
-                                errors.append(error)
-                            }
-                            try Swift.DecodingError.verifyAtLeastOneSchemaIsNotNil(
-                                [
-                                    self.value1,
-                                    self.value2
-                                ],
-                                type: Self.self,
-                                codingPath: decoder.codingPath,
-                                errors: errors
-                            )
-                        }
-                        public func encode(to encoder: any Encoder) throws {
-                            try encoder.encodeFirstNonNilValueToSingleValueContainer([
-                                self.value1,
-                                self.value2
-                            ])
-                        }
+                    @frozen public enum StatusPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                        case enabled = "ENABLED"
+                        case disabled = "DISABLED"
                     }
                     /// - Remark: Generated from `#/components/schemas/DeviceUpdateRequest/data/attributes/status`.
                     public var status: Components.Schemas.DeviceUpdateRequest.DataPayload.AttributesPayload.StatusPayload?
@@ -4917,45 +5041,43 @@ public enum Components {
             public var data: [Components.Schemas.Profile]
             /// - Remark: Generated from `#/components/schemas/ProfilesResponse/IncludedPayload`.
             @frozen public enum IncludedPayloadPayload: Codable, Hashable, Sendable {
-                /// - Remark: Generated from `#/components/schemas/ProfilesResponse/IncludedPayload/case1`.
-                case BundleId(Components.Schemas.BundleId)
-                /// - Remark: Generated from `#/components/schemas/ProfilesResponse/IncludedPayload/case2`.
-                case Device(Components.Schemas.Device)
-                /// - Remark: Generated from `#/components/schemas/ProfilesResponse/IncludedPayload/case3`.
-                case Certificate(Components.Schemas.Certificate)
+                /// - Remark: Generated from `#/components/schemas/ProfilesResponse/IncludedPayload/BundleId`.
+                case bundleIds(Components.Schemas.BundleId)
+                /// - Remark: Generated from `#/components/schemas/ProfilesResponse/IncludedPayload/Certificate`.
+                case certificates(Components.Schemas.Certificate)
+                /// - Remark: Generated from `#/components/schemas/ProfilesResponse/IncludedPayload/Device`.
+                case devices(Components.Schemas.Device)
+                public enum CodingKeys: String, CodingKey {
+                    case _type = "type"
+                }
                 public init(from decoder: any Decoder) throws {
-                    var errors: [any Error] = []
-                    do {
-                        self = .BundleId(try .init(from: decoder))
-                        return
-                    } catch {
-                        errors.append(error)
-                    }
-                    do {
-                        self = .Device(try .init(from: decoder))
-                        return
-                    } catch {
-                        errors.append(error)
-                    }
-                    do {
-                        self = .Certificate(try .init(from: decoder))
-                        return
-                    } catch {
-                        errors.append(error)
-                    }
-                    throw Swift.DecodingError.failedToDecodeOneOfSchema(
-                        type: Self.self,
-                        codingPath: decoder.codingPath,
-                        errors: errors
+                    let container = try decoder.container(keyedBy: CodingKeys.self)
+                    let discriminator = try container.decode(
+                        Swift.String.self,
+                        forKey: ._type
                     )
+                    switch discriminator {
+                    case "bundleIds":
+                        self = .bundleIds(try .init(from: decoder))
+                    case "certificates":
+                        self = .certificates(try .init(from: decoder))
+                    case "devices":
+                        self = .devices(try .init(from: decoder))
+                    default:
+                        throw Swift.DecodingError.unknownOneOfDiscriminator(
+                            discriminatorKey: CodingKeys._type,
+                            discriminatorValue: discriminator,
+                            codingPath: decoder.codingPath
+                        )
+                    }
                 }
                 public func encode(to encoder: any Encoder) throws {
                     switch self {
-                    case let .BundleId(value):
+                    case let .bundleIds(value):
                         try value.encode(to: encoder)
-                    case let .Device(value):
+                    case let .certificates(value):
                         try value.encode(to: encoder)
-                    case let .Certificate(value):
+                    case let .devices(value):
                         try value.encode(to: encoder)
                     }
                 }
@@ -4999,45 +5121,43 @@ public enum Components {
             public var data: Components.Schemas.Profile
             /// - Remark: Generated from `#/components/schemas/ProfileResponse/IncludedPayload`.
             @frozen public enum IncludedPayloadPayload: Codable, Hashable, Sendable {
-                /// - Remark: Generated from `#/components/schemas/ProfileResponse/IncludedPayload/case1`.
-                case BundleId(Components.Schemas.BundleId)
-                /// - Remark: Generated from `#/components/schemas/ProfileResponse/IncludedPayload/case2`.
-                case Device(Components.Schemas.Device)
-                /// - Remark: Generated from `#/components/schemas/ProfileResponse/IncludedPayload/case3`.
-                case Certificate(Components.Schemas.Certificate)
+                /// - Remark: Generated from `#/components/schemas/ProfileResponse/IncludedPayload/BundleId`.
+                case bundleIds(Components.Schemas.BundleId)
+                /// - Remark: Generated from `#/components/schemas/ProfileResponse/IncludedPayload/Certificate`.
+                case certificates(Components.Schemas.Certificate)
+                /// - Remark: Generated from `#/components/schemas/ProfileResponse/IncludedPayload/Device`.
+                case devices(Components.Schemas.Device)
+                public enum CodingKeys: String, CodingKey {
+                    case _type = "type"
+                }
                 public init(from decoder: any Decoder) throws {
-                    var errors: [any Error] = []
-                    do {
-                        self = .BundleId(try .init(from: decoder))
-                        return
-                    } catch {
-                        errors.append(error)
-                    }
-                    do {
-                        self = .Device(try .init(from: decoder))
-                        return
-                    } catch {
-                        errors.append(error)
-                    }
-                    do {
-                        self = .Certificate(try .init(from: decoder))
-                        return
-                    } catch {
-                        errors.append(error)
-                    }
-                    throw Swift.DecodingError.failedToDecodeOneOfSchema(
-                        type: Self.self,
-                        codingPath: decoder.codingPath,
-                        errors: errors
+                    let container = try decoder.container(keyedBy: CodingKeys.self)
+                    let discriminator = try container.decode(
+                        Swift.String.self,
+                        forKey: ._type
                     )
+                    switch discriminator {
+                    case "bundleIds":
+                        self = .bundleIds(try .init(from: decoder))
+                    case "certificates":
+                        self = .certificates(try .init(from: decoder))
+                    case "devices":
+                        self = .devices(try .init(from: decoder))
+                    default:
+                        throw Swift.DecodingError.unknownOneOfDiscriminator(
+                            discriminatorKey: CodingKeys._type,
+                            discriminatorValue: discriminator,
+                            codingPath: decoder.codingPath
+                        )
+                    }
                 }
                 public func encode(to encoder: any Encoder) throws {
                     switch self {
-                    case let .BundleId(value):
+                    case let .bundleIds(value):
                         try value.encode(to: encoder)
-                    case let .Device(value):
+                    case let .certificates(value):
                         try value.encode(to: encoder)
-                    case let .Certificate(value):
+                    case let .devices(value):
                         try value.encode(to: encoder)
                     }
                 }
@@ -8024,57 +8144,6 @@ public enum Operations {
                     }
                 }
             }
-            public struct Conflict: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/v1/bundleIdCapabilities/{id}/DELETE/responses/409/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/v1/bundleIdCapabilities/{id}/DELETE/responses/409/content/application\/json`.
-                    case json(Components.Schemas.ErrorResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.ErrorResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.BundleIdCapabilitiesDeleteInstance.Output.Conflict.Body
-                /// Creates a new `Conflict`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.BundleIdCapabilitiesDeleteInstance.Output.Conflict.Body) {
-                    self.body = body
-                }
-            }
-            /// Request entity error(s)
-            ///
-            /// - Remark: Generated from `#/paths//v1/bundleIdCapabilities/{id}/delete(bundleIdCapabilities_deleteInstance)/responses/409`.
-            ///
-            /// HTTP response code: `409 conflict`.
-            case conflict(Operations.BundleIdCapabilitiesDeleteInstance.Output.Conflict)
-            /// The associated value of the enum case if `self` is `.conflict`.
-            ///
-            /// - Throws: An error if `self` is not `.conflict`.
-            /// - SeeAlso: `.conflict`.
-            public var conflict: Operations.BundleIdCapabilitiesDeleteInstance.Output.Conflict {
-                get throws {
-                    switch self {
-                    case let .conflict(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "conflict",
-                            response: self
-                        )
-                    }
-                }
-            }
             public struct TooManyRequests: Sendable, Hashable {
                 /// - Remark: Generated from `#/paths/v1/bundleIdCapabilities/{id}/DELETE/responses/429/content`.
                 @frozen public enum Body: Sendable, Hashable {
@@ -8274,10 +8343,12 @@ public enum Operations {
                     case streamlinedPurchasingEnabled = "streamlinedPurchasingEnabled"
                     case accessibilityDeclarations = "accessibilityDeclarations"
                     case appEncryptionDeclarations = "appEncryptionDeclarations"
+                    case appStoreIcon = "appStoreIcon"
                     case ciProduct = "ciProduct"
                     case betaTesters = "betaTesters"
                     case betaGroups = "betaGroups"
                     case appStoreVersions = "appStoreVersions"
+                    case appTags = "appTags"
                     case preReleaseVersions = "preReleaseVersions"
                     case betaAppLocalizations = "betaAppLocalizations"
                     case builds = "builds"
@@ -8306,10 +8377,13 @@ public enum Operations {
                     case alternativeDistributionKey = "alternativeDistributionKey"
                     case analyticsReportRequests = "analyticsReportRequests"
                     case marketplaceSearchDetail = "marketplaceSearchDetail"
+                    case buildUploads = "buildUploads"
                     case backgroundAssets = "backgroundAssets"
                     case betaFeedbackScreenshotSubmissions = "betaFeedbackScreenshotSubmissions"
                     case betaFeedbackCrashSubmissions = "betaFeedbackCrashSubmissions"
+                    case searchKeywords = "searchKeywords"
                     case webhooks = "webhooks"
+                    case androidToIosAppMappingDetails = "androidToIosAppMappingDetails"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/GET/query/fields[apps]`.
                 public typealias Fields_lbrack_apps_rbrack_Payload = [Operations.BundleIdsGetCollection.Input.Query.FieldsLbrackAppsRbrackPayloadPayload]
@@ -9213,10 +9287,12 @@ public enum Operations {
                     case streamlinedPurchasingEnabled = "streamlinedPurchasingEnabled"
                     case accessibilityDeclarations = "accessibilityDeclarations"
                     case appEncryptionDeclarations = "appEncryptionDeclarations"
+                    case appStoreIcon = "appStoreIcon"
                     case ciProduct = "ciProduct"
                     case betaTesters = "betaTesters"
                     case betaGroups = "betaGroups"
                     case appStoreVersions = "appStoreVersions"
+                    case appTags = "appTags"
                     case preReleaseVersions = "preReleaseVersions"
                     case betaAppLocalizations = "betaAppLocalizations"
                     case builds = "builds"
@@ -9245,10 +9321,13 @@ public enum Operations {
                     case alternativeDistributionKey = "alternativeDistributionKey"
                     case analyticsReportRequests = "analyticsReportRequests"
                     case marketplaceSearchDetail = "marketplaceSearchDetail"
+                    case buildUploads = "buildUploads"
                     case backgroundAssets = "backgroundAssets"
                     case betaFeedbackScreenshotSubmissions = "betaFeedbackScreenshotSubmissions"
                     case betaFeedbackCrashSubmissions = "betaFeedbackCrashSubmissions"
+                    case searchKeywords = "searchKeywords"
                     case webhooks = "webhooks"
+                    case androidToIosAppMappingDetails = "androidToIosAppMappingDetails"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/GET/query/fields[apps]`.
                 public typealias Fields_lbrack_apps_rbrack_Payload = [Operations.BundleIdsGetInstance.Input.Query.FieldsLbrackAppsRbrackPayloadPayload]
@@ -10445,57 +10524,6 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "notFound",
-                            response: self
-                        )
-                    }
-                }
-            }
-            public struct Conflict: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/DELETE/responses/409/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/DELETE/responses/409/content/application\/json`.
-                    case json(Components.Schemas.ErrorResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.ErrorResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.BundleIdsDeleteInstance.Output.Conflict.Body
-                /// Creates a new `Conflict`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.BundleIdsDeleteInstance.Output.Conflict.Body) {
-                    self.body = body
-                }
-            }
-            /// Request entity error(s)
-            ///
-            /// - Remark: Generated from `#/paths//v1/bundleIds/{id}/delete(bundleIds_deleteInstance)/responses/409`.
-            ///
-            /// HTTP response code: `409 conflict`.
-            case conflict(Operations.BundleIdsDeleteInstance.Output.Conflict)
-            /// The associated value of the enum case if `self` is `.conflict`.
-            ///
-            /// - Throws: An error if `self` is not `.conflict`.
-            /// - SeeAlso: `.conflict`.
-            public var conflict: Operations.BundleIdsDeleteInstance.Output.Conflict {
-                get throws {
-                    switch self {
-                    case let .conflict(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "conflict",
                             response: self
                         )
                     }
@@ -12681,57 +12709,6 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "notFound",
-                            response: self
-                        )
-                    }
-                }
-            }
-            public struct Conflict: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/v1/certificates/{id}/DELETE/responses/409/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/v1/certificates/{id}/DELETE/responses/409/content/application\/json`.
-                    case json(Components.Schemas.ErrorResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.ErrorResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.CertificatesDeleteInstance.Output.Conflict.Body
-                /// Creates a new `Conflict`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.CertificatesDeleteInstance.Output.Conflict.Body) {
-                    self.body = body
-                }
-            }
-            /// Request entity error(s)
-            ///
-            /// - Remark: Generated from `#/paths//v1/certificates/{id}/delete(certificates_deleteInstance)/responses/409`.
-            ///
-            /// HTTP response code: `409 conflict`.
-            case conflict(Operations.CertificatesDeleteInstance.Output.Conflict)
-            /// The associated value of the enum case if `self` is `.conflict`.
-            ///
-            /// - Throws: An error if `self` is not `.conflict`.
-            /// - SeeAlso: `.conflict`.
-            public var conflict: Operations.CertificatesDeleteInstance.Output.Conflict {
-                get throws {
-                    switch self {
-                    case let .conflict(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "conflict",
                             response: self
                         )
                     }
@@ -16312,57 +16289,6 @@ public enum Operations {
                     }
                 }
             }
-            public struct Conflict: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/v1/profiles/{id}/DELETE/responses/409/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/v1/profiles/{id}/DELETE/responses/409/content/application\/json`.
-                    case json(Components.Schemas.ErrorResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.ErrorResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.ProfilesDeleteInstance.Output.Conflict.Body
-                /// Creates a new `Conflict`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.ProfilesDeleteInstance.Output.Conflict.Body) {
-                    self.body = body
-                }
-            }
-            /// Request entity error(s)
-            ///
-            /// - Remark: Generated from `#/paths//v1/profiles/{id}/delete(profiles_deleteInstance)/responses/409`.
-            ///
-            /// HTTP response code: `409 conflict`.
-            case conflict(Operations.ProfilesDeleteInstance.Output.Conflict)
-            /// The associated value of the enum case if `self` is `.conflict`.
-            ///
-            /// - Throws: An error if `self` is not `.conflict`.
-            /// - SeeAlso: `.conflict`.
-            public var conflict: Operations.ProfilesDeleteInstance.Output.Conflict {
-                get throws {
-                    switch self {
-                    case let .conflict(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "conflict",
-                            response: self
-                        )
-                    }
-                }
-            }
             public struct TooManyRequests: Sendable, Hashable {
                 /// - Remark: Generated from `#/paths/v1/profiles/{id}/DELETE/responses/429/content`.
                 @frozen public enum Body: Sendable, Hashable {
@@ -16866,10 +16792,12 @@ public enum Operations {
                     case streamlinedPurchasingEnabled = "streamlinedPurchasingEnabled"
                     case accessibilityDeclarations = "accessibilityDeclarations"
                     case appEncryptionDeclarations = "appEncryptionDeclarations"
+                    case appStoreIcon = "appStoreIcon"
                     case ciProduct = "ciProduct"
                     case betaTesters = "betaTesters"
                     case betaGroups = "betaGroups"
                     case appStoreVersions = "appStoreVersions"
+                    case appTags = "appTags"
                     case preReleaseVersions = "preReleaseVersions"
                     case betaAppLocalizations = "betaAppLocalizations"
                     case builds = "builds"
@@ -16898,10 +16826,13 @@ public enum Operations {
                     case alternativeDistributionKey = "alternativeDistributionKey"
                     case analyticsReportRequests = "analyticsReportRequests"
                     case marketplaceSearchDetail = "marketplaceSearchDetail"
+                    case buildUploads = "buildUploads"
                     case backgroundAssets = "backgroundAssets"
                     case betaFeedbackScreenshotSubmissions = "betaFeedbackScreenshotSubmissions"
                     case betaFeedbackCrashSubmissions = "betaFeedbackCrashSubmissions"
+                    case searchKeywords = "searchKeywords"
                     case webhooks = "webhooks"
+                    case androidToIosAppMappingDetails = "androidToIosAppMappingDetails"
                 }
                 /// - Remark: Generated from `#/paths/v1/bundleIds/{id}/app/GET/query/fields[apps]`.
                 public typealias Fields_lbrack_apps_rbrack_Payload = [Operations.BundleIdsAppGetToOneRelated.Input.Query.FieldsLbrackAppsRbrackPayloadPayload]
