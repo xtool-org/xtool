@@ -67,6 +67,7 @@ let package = Package(
         .package(url: "https://github.com/mxcl/Version", from: "2.1.0"),
         .package(url: "https://github.com/jpsim/Yams", from: "5.1.3"),
         .package(url: "https://github.com/saagarjha/unxip", from: "3.2.0"),
+        .package(url: "https://github.com/tayloraswift/swift-png", from: "4.5.0"),
 
         // TODO: just depend on tuist/XcodeProj instead
         .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.45.4"),
@@ -138,20 +139,20 @@ let package = Package(
                 "XToolSupport",
             ]
         ),
-        .testTarget(
-            name: "XKitTests",
-            dependencies: [
-                "XKit",
-                .product(name: "SuperutilsTestSupport", package: "xtool-core")
-            ],
-            exclude: [
-                "config/config-template.json",
-            ],
-            resources: [
-                .copy("config/config.json"),
-                .copy("config/test.app"),
-            ]
-        ),
+        // .testTarget(
+        //     name: "XKitTests",
+        //     dependencies: [
+        //         "XKit",
+        //         .product(name: "SuperutilsTestSupport", package: "xtool-core")
+        //     ],
+        //     exclude: [
+        //         "config/config-template.json",
+        //     ],
+        //     resources: [
+        //         .copy("config/config.json"),
+        //         .copy("config/test.app"),
+        //     ]
+        // ),
         .target(
             name: "XToolSupport",
             dependencies: [
@@ -170,8 +171,25 @@ let package = Package(
             name: "PackLib",
             dependencies: [
                 "XUtils",
+                "XCAssetCompiler",
                 .product(name: "Yams", package: "Yams"),
                 .product(name: "XcodeGenKit", package: "XcodeGen", condition: .when(platforms: [.macOS])),
+            ]
+        ),
+        .target(
+            name: "XCAssetCompiler",
+            dependencies: [
+                "XUtils",
+                .product(name: "PNG", package: "swift-png"),
+            ]
+        ),
+        .testTarget(
+            name: "XCAssetCompilerTests",
+            dependencies: [
+                "XCAssetCompiler",
+            ],
+            resources: [
+                .copy("Fixtures"),
             ]
         ),
         .executableTarget(

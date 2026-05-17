@@ -1,16 +1,20 @@
 import Foundation
 import XUtils
+import XCAssetCompiler
 
 public struct Planner: Sendable {
     public var buildSettings: BuildSettings
     public var schema: PackSchema
+    public var diagnostics: Diagnostics
 
     public init(
         buildSettings: BuildSettings,
-        schema: PackSchema
+        schema: PackSchema,
+        diagnostics: Diagnostics = Diagnostics()
     ) {
         self.buildSettings = buildSettings
         self.schema = schema
+        self.diagnostics = diagnostics
     }
 
     private static let decoder: JSONDecoder = {
@@ -84,6 +88,7 @@ public struct Planner: Sendable {
             idSpecifier: schema.idSpecifier,
             iconPath: schema.iconPath,
             rootResources: schema.resources,
+            assetCatalogPath: schema.assetCatalogs?.first,
             entitlementsPath: schema.entitlementsPath
         )
 
@@ -100,6 +105,7 @@ public struct Planner: Sendable {
                             idSpecifier: ext.bundleID.flatMap(PackSchema.IDSpecifier.bundleID) ?? .orgID(app.bundleID),
                             iconPath: nil,
                             rootResources: ext.resources,
+                            assetCatalogPath: nil,
                             entitlementsPath: ext.entitlementsPath
                         )
                     }
@@ -113,7 +119,7 @@ public struct Planner: Sendable {
         return Plan(app: app, extensions: extensionProducts)
     }
 
-    // swiftlint:disable cyclomatic_complexity function_parameter_count
+    // swiftlint:disable cyclomatic_complexity function_parameter_count function_body_length
     private func product(
         from graph: PackageGraph,
         matching name: String?,
@@ -122,6 +128,7 @@ public struct Planner: Sendable {
         idSpecifier: PackSchema.IDSpecifier,
         iconPath: String?,
         rootResources: [String]?,
+        assetCatalogPath: String?,
         entitlementsPath: String?
     ) async throws -> Plan.Product {
         let library = try selectLibrary(
@@ -201,6 +208,28 @@ public struct Planner: Sendable {
             }
         }
 
+        var compiledAssets: [Plan.CompiledAsset] = []
+        var effectiveIconPath = iconPath
+        if let catalogPath = assetCatalogPath {
+            let compiler = XCAssetCompiler(deploymentTarget: deploymentTarget, diagnostics: diagnostics)
+            let result = try await compiler.compile(catalog: URL(fileURLWithPath: catalogPath))
+            infoPlist.merge(result.infoPlistAdditions, uniquingKeysWith: { _, new in new })
+            if result.primaryIconName != nil, effectiveIconPath != nil {
+                await diagnostics.warn(
+                    "xtool.yml: iconPath is ignored because the asset catalog supplies an AppIcon."
+                )
+                effectiveIconPath = nil
+            } else if result.primaryIconName != nil {
+                effectiveIconPath = nil
+            }
+            compiledAssets.append(Plan.CompiledAsset(
+                carData: result.carData,
+                emittedFiles: result.emittedFiles.map {
+                    Plan.CompiledAsset.EmittedFile(name: $0.name, data: $0.data)
+                }
+            ))
+        }
+
         return Plan.Product(
             type: type,
             product: library.name,
@@ -208,8 +237,9 @@ public struct Planner: Sendable {
             bundleID: bundleID,
             infoPlist: infoPlist,
             resources: resources,
-            iconPath: iconPath,
-            entitlementsPath: entitlementsPath
+            iconPath: effectiveIconPath,
+            entitlementsPath: entitlementsPath,
+            compiledAssets: compiledAssets
         )
     }
 
@@ -304,6 +334,28 @@ public struct Plan: Sendable {
         case root(source: String)
     }
 
+    public struct CompiledAsset: Sendable {
+        public struct EmittedFile: Sendable {
+            public var name: String
+            public var data: Data
+
+            public init(name: String, data: Data) {
+                self.name = name
+                self.data = data
+            }
+        }
+
+        public var carData: Data
+        /// Loose files to drop into the bundle root alongside Assets.car
+        /// (e.g. appicon source PNGs that SpringBoard reads as fallbacks).
+        public var emittedFiles: [EmittedFile]
+
+        public init(carData: Data, emittedFiles: [EmittedFile] = []) {
+            self.carData = carData
+            self.emittedFiles = emittedFiles
+        }
+    }
+
     public struct Product: Sendable {
         public var type: ProductType
         public var product: String
@@ -313,6 +365,29 @@ public struct Plan: Sendable {
         public var resources: [Resource]
         public var iconPath: String?
         public var entitlementsPath: String?
+        public var compiledAssets: [CompiledAsset]
+
+        public init(
+            type: ProductType,
+            product: String,
+            deploymentTarget: String,
+            bundleID: String,
+            infoPlist: [String: any Sendable],
+            resources: [Resource],
+            iconPath: String?,
+            entitlementsPath: String?,
+            compiledAssets: [CompiledAsset] = []
+        ) {
+            self.type = type
+            self.product = product
+            self.deploymentTarget = deploymentTarget
+            self.bundleID = bundleID
+            self.infoPlist = infoPlist
+            self.resources = resources
+            self.iconPath = iconPath
+            self.entitlementsPath = entitlementsPath
+            self.compiledAssets = compiledAssets
+        }
 
         public var targetName: String {
             "\(self.product)-\(self.type.targetSuffix)"
