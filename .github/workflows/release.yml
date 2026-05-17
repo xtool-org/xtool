@@ -18,14 +18,14 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Build
         run: |
           docker compose run --build \
             -e XTOOL_VERSION=${{ github.ref_name }} \
             --rm xtool Linux/build.sh
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: xtool-${{ matrix.host.arch }}
           path: |
@@ -37,7 +37,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/configure-xcode
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -56,7 +56,7 @@ jobs:
           cd macOS
           bundle exec fastlane package
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: xtool-mac
           path: |
@@ -70,9 +70,9 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: xtool-*
           path: output

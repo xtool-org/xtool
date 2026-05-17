@@ -19,7 +19,7 @@ jobs:
     runs-on: ${{ matrix.host.runner }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Build
         run: |
           docker compose run --build --rm xtool bash -c \
@@ -28,7 +28,7 @@ jobs:
     runs-on: macos-26
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/configure-xcode
       - name: Build
         run: |
@@ -37,7 +37,7 @@ jobs:
     runs-on: macos-26
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/configure-xcode
       - name: Build
         run: |
