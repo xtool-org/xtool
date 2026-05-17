@@ -29,6 +29,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - uses: ./.github/actions/configure-xcode
       - name: Build
         run: |
           swift build --product xtool && .build/debug/xtool --help
@@ -37,6 +38,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - uses: ./.github/actions/configure-xcode
       - name: Build
         run: |
           set -o pipefail \
