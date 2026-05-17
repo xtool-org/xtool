@@ -48,8 +48,15 @@ extension AuthToken {
     private static let decoder = JSONDecoder()
 
     static func saved() throws -> Self {
-        guard let data = try storage.data(forKey: "XTLAuthToken") else {
+        guard let token = try savedIfPresent() else {
             throw Console.Error("Please log in with `xtool auth` before running this command.")
+        }
+        return token
+    }
+
+    static func savedIfPresent() throws -> Self? {
+        guard let data = try storage.data(forKey: "XTLAuthToken") else {
+            return nil
         }
         return try decoder.decode(AuthToken.self, from: data)
     }
@@ -63,7 +70,7 @@ extension AuthToken {
         try Self.storage.setData(data, forKey: "XTLAuthToken")
     }
 
-    func authData() throws -> DeveloperAPIAuthData {
+    func authData() -> DeveloperAPIAuthData {
         switch self {
         case .appStoreConnect(let data):
             return .appStoreConnect(.init(id: data.id, issuerID: data.issuerID, pem: data.pem))

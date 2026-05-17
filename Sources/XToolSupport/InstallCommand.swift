@@ -24,15 +24,17 @@ struct InstallCommand: AsyncParsableCommand {
 
         let installDelegate = XToolInstallerDelegate()
         let installer = IntegratedInstaller(
-            udid: client.udid,
-            lookupMode: .only(client.connectionType),
-            auth: try token.authData(),
-            configureDevice: false,
+            auth: token.authData(),
             delegate: installDelegate
         )
 
         do {
-            try await installer.install(app: URL(fileURLWithPath: path))
+            try await installer.install(
+                app: URL(fileURLWithPath: path),
+                udid: client.udid,
+                lookupMode: .only(client.connectionType),
+                configureDevice: false,
+            )
             print("\nSuccessfully installed!")
         } catch let error as CancellationError {
             throw error
