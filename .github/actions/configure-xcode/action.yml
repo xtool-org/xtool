@@ -1,0 +1,9 @@
+name: 'Configure Xcode'
+description: 'Set up Xcode version'
+runs:
+  using: composite
+  steps:
+    - name: Set up Xcode
+      shell: bash
+      run: |
+        sudo xcode-select -s /Applications/Xcode_26.4.app
