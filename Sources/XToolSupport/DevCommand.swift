@@ -80,7 +80,7 @@ struct PackOperation {
                 }
                 return try await group.reduce(into: [:]) { $0[$1.0] = $1.1 }
             }
-            print("Pseudo-signing...")
+            print("Applying entitlements...")
             try await Signer.first().sign(
                 app: bundle,
                 identity: .adhoc,
@@ -117,6 +117,12 @@ struct DevBuildCommand: AsyncParsableCommand {
     @OptionGroup var packOptions: PackOperation.BuildOptions
 
     @Flag(
+        name: .shortAndLong,
+        help: "Codesign the built app",
+    ) var sign = false
+
+    @Flag(
+        name: .shortAndLong,
         help: "Output a .ipa file instead of a .app"
     ) var ipa = false
 
@@ -128,10 +134,37 @@ struct DevBuildCommand: AsyncParsableCommand {
     ) var triple: String?
 
     func run() async throws {
+        let signingAuthToken: AuthToken?
+        if sign {
+            guard let token = try AuthToken.savedIfPresent() else {
+                throw Console.Error("`build --sign` requires logging in with `xtool auth`")
+            }
+            signingAuthToken = token
+        } else {
+            signingAuthToken = nil
+        }
+
         let url = try await PackOperation(
             triple: triple,
             buildOptions: packOptions
         ).run()
+
+        if let signingAuthToken {
+            let installDelegate = XToolInstallerDelegate()
+            let installer = IntegratedInstaller(
+                auth: signingAuthToken.authData(),
+                delegate: installDelegate
+            )
+            do {
+                defer { print() }
+                try await installer.signInPlace(app: url)
+            } catch let error as CancellationError {
+                throw error
+            } catch {
+                print("Error: \(error)")
+                throw ExitCode.failure
+            }
+        }
 
         let finalURL: URL
         if ipa {
@@ -211,17 +244,19 @@ struct DevRunCommand: AsyncParsableCommand {
 
         let installDelegate = XToolInstallerDelegate()
         let installer = IntegratedInstaller(
-            udid: client.udid,
-            lookupMode: .only(client.connectionType),
-            auth: try token.authData(),
-            configureDevice: false,
+            auth: token.authData(),
             delegate: installDelegate
         )
 
         defer { print() }
 
         do {
-            try await installer.install(app: output)
+            try await installer.install(
+                app: output,
+                udid: client.udid,
+                lookupMode: .only(client.connectionType),
+                configureDevice: false,
+            )
         } catch let error as CancellationError {
             throw error
         } catch {
