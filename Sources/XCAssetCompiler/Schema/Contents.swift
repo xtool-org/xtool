@@ -158,12 +158,12 @@ struct ColorSetContents: Codable, Sendable {
                         guard let n = UInt8(hex, radix: 16) else {
                             throw XCAssetCompilerError.invalidColorComponent(s)
                         }
-                        return Double(n) / 255.0
+                        return Double(n) / 255
                     }
                     guard let n = Double(s) else {
                         throw XCAssetCompilerError.invalidColorComponent(s)
                     }
-                    return n > 1 ? n / 255.0 : n
+                    return n > 1 ? n / 255 : n
                 }
                 return (try parse(red), try parse(green), try parse(blue), try parse(alpha))
             }

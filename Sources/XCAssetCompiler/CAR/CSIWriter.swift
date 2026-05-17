@@ -73,6 +73,7 @@ enum CSIWriter {
         return w.data
     }
 
+    // swiftlint:disable:next function_parameter_count
     private static func writeHeader(
         into w: inout ByteWriter,
         renditionFlags: UInt32,
@@ -163,7 +164,7 @@ enum CSIWriter {
         w.writeLE(UInt32(1004))
         w.writeLE(UInt32(8))
         w.writeLE(UInt32(0))
-        w.writeLE(UInt32(Float(1.0).bitPattern))
+        w.writeLE(UInt32(Float(1).bitPattern))
 
         // Type 1006 (4-byte value): always 1 in the reference. Likely a
         // bitmap-count/has-mipmap-stages flag.

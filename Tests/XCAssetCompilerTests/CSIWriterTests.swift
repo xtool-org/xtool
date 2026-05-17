@@ -52,7 +52,7 @@ struct CSIWriterTests {
 
     @Test("Color CSI body starts with COLR magic and four IEEE-754 doubles")
     func colorBody() {
-        let body = ColorBody(red: 1.0, green: 0.0, blue: 0.5, alpha: 1.0, colorSpaceID: 0)
+        let body = ColorBody(red: 1, green: 0, blue: 0.5, alpha: 1, colorSpaceID: 0)
         let data = CSIWriter.color(name: "Accent", body: body)
         // CSI header is 184 bytes; body starts at offset 184
         #expect(data.count >= 184 + 4 + 4 + 4 + 4 + 8 * 4)

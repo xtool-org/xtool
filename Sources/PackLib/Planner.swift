@@ -119,7 +119,7 @@ public struct Planner: Sendable {
         return Plan(app: app, extensions: extensionProducts)
     }
 
-    // swiftlint:disable cyclomatic_complexity function_parameter_count
+    // swiftlint:disable cyclomatic_complexity function_parameter_count function_body_length
     private func product(
         from graph: PackageGraph,
         matching name: String?,

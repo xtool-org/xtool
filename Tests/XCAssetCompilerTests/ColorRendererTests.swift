@@ -37,7 +37,7 @@ struct ColorRendererTests {
         #expect(abs(body.red - 0.5) < 1e-9)
         #expect(abs(body.green - 0.25) < 1e-9)
         #expect(abs(body.blue - 0.75) < 1e-9)
-        #expect(abs(body.alpha - 1.0) < 1e-9)
+        #expect(abs(body.alpha - 1) < 1e-9)
         #expect(body.colorSpaceID == 1)
     }
 
@@ -97,8 +97,8 @@ struct ColorRendererTests {
             Issue.record("expected color body")
             return
         }
-        #expect(abs(body.red - 1.0) < 1e-9)
-        #expect(abs(body.green - 0.0) < 1e-9)
-        #expect(abs(body.blue - 128.0 / 255.0) < 1e-9)
+        #expect(abs(body.red - 1) < 1e-9)
+        #expect(abs(body.green - 0) < 1e-9)
+        #expect(abs(body.blue - 128 / 255) < 1e-9)
     }
 }
