@@ -73,6 +73,13 @@ public enum DeveloperAPIAuthData: Sendable {
         }
     }
 
+    public var isPublicAPI: Bool {
+        switch self {
+        case .appStoreConnect: true
+        case .xcode: false
+        }
+    }
+
     // A unique ID tied to this token
     public var identityID: String {
         switch self {

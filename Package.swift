@@ -47,7 +47,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-system", from: "1.4.0"),
         .package(url: "https://github.com/apple/swift-http-types", from: "1.3.1"),
         .package(url: "https://github.com/apple/swift-certificates", from: "1.0.0"),
-        .package(url: "https://github.com/apple/swift-crypto", from: "3.9.1"),
+        .package(url: "https://github.com/apple/swift-crypto", from: "4.5.0"),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.5.0"),
         .package(url: "https://github.com/apple/swift-openapi-generator", from: "1.6.0"),
         .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.0.0"),
@@ -67,11 +67,10 @@ let package = Package(
         .package(url: "https://github.com/mxcl/Version", from: "2.1.0"),
         .package(url: "https://github.com/jpsim/Yams", from: "5.1.3"),
         .package(url: "https://github.com/saagarjha/unxip", from: "3.2.0"),
+        .package(url: "https://github.com/tayloraswift/swift-png", from: "4.5.0"),
 
         // TODO: just depend on tuist/XcodeProj instead
-        .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.43.0"),
-
-        .package(url: "https://github.com/tayloraswift/swift-png", .upToNextMinor(from: "4.5.0")),
+        .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.45.4"),
     ],
     targets: [
         .systemLibrary(name: "XADI"),
