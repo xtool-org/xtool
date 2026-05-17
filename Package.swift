@@ -55,7 +55,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-nio", from: "2.77.0"),
 
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.0.0"),
-        .package(url: "https://github.com/swiftlang/swift-subprocess", .upToNextMinor(from: "0.1.0")),
+        .package(url: "https://github.com/swiftlang/swift-subprocess", .upToNextMinor(from: "0.4.0")),
 
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.0"),
         .package(url: "https://github.com/swift-server/swift-openapi-async-http-client", from: "1.0.0"),

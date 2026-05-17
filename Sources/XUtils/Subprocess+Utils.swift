@@ -2,7 +2,7 @@
 import Subprocess
 import Foundation
 
-extension CollectedResult {
+extension ExecutionRecord {
     @discardableResult
     public func checkSuccess() throws(SubprocessFailure) -> Self {
         try terminationStatus.checkSuccess()
@@ -10,7 +10,7 @@ extension CollectedResult {
     }
 }
 
-extension ExecutionResult {
+extension ExecutionOutcome {
     @discardableResult
     public func checkSuccess() throws(SubprocessFailure) -> Self {
         try terminationStatus.checkSuccess()
@@ -27,14 +27,14 @@ extension TerminationStatus {
         if isSuccess { return nil }
         switch self {
         case .exited(let code): return .exited(code)
-        case .unhandledException(let code): return .unhandledException(code)
+        case .signaled(let code): return .signaled(code)
         }
     }
 }
 
 public enum SubprocessFailure: Error {
     case exited(TerminationStatus.Code)
-    case unhandledException(TerminationStatus.Code)
+    case signaled(TerminationStatus.Code)
 }
 
 extension PlatformOptions {
