@@ -70,8 +70,10 @@ struct SDKBuilder {
             withIntermediateDirectories: true
         )
 
-        // TODO: parallelize these two steps
+        // TODO: parallelize these three steps
         // we need to synchronize progress reporting though
+
+        try await installMacros(in: output)
 
         try await installToolset(in: output)
 
@@ -223,7 +225,49 @@ struct SDKBuilder {
         try await tarExit
     }
 
-    // swiftlint:disable:next cyclomatic_complexity
+    private func installMacros(in output: URL) async throws {
+        let oamVersion = "1.1.0"
+
+        @Dependency(\.httpClient) var httpClient
+        let url = URL(string: """
+        https://github.com/xtool-org/OpenAppleMacros/releases/download/\
+        v\(oamVersion)/OpenAppleMacrosServer-\(arch.rawValue)
+        """)!
+
+        let (response, body) = try await httpClient.send(HTTPRequest(url: url))
+        guard response.status == 200, let body else { throw Console.Error("Could not fetch toolset") }
+
+        let length: Int64? = switch body.length {
+        case .known(let known): known
+        case .unknown: nil
+        }
+
+        let outputPath = output.appendingPathComponent("OpenAppleMacrosServer").path
+        do {
+            let handle = try FileDescriptor.open(
+                FilePath(outputPath),
+                .writeOnly,
+                options: .create,
+                permissions: [.ownerReadWriteExecute, .groupReadExecute, .otherReadExecute]
+            )
+            defer { try? handle.close() }
+
+            var written: Int64 = 0
+            for try await chunk in body {
+                try handle.writeAll(chunk)
+                written += Int64(chunk.count)
+
+                if let length {
+                    let progress = Int(Double(written) / Double(length) * 100)
+                    print("\r[Downloading OpenAppleMacros] \(progress)%", terminator: "")
+                    fflush(stdoutSafe)
+                }
+            }
+        }
+        print()
+    }
+
+    // swiftlint:disable:next cyclomatic_complexity function_body_length
     private func installDeveloper(in output: URL) async throws -> URL {
         let dev = output.appendingPathComponent("Developer")
 
@@ -315,42 +359,82 @@ struct SDKBuilder {
 
         print("[Finalizing SDKs]")
 
-        /*
-         XCTest and Testing.framework are located in *.platform/Developer/{Library/Frameworks,usr/lib} rather than inside
-         the SDK. These search paths are explicitly included when building tests, which presumably ensures that normal
-         applications don't accidentally link against them in production.
-
-         SwiftPM makes no such affordances outside of macOS, so we add the usr/lib path as include/library search paths
-         in the SDK config, and symlink the frameworks into the SDKs (since there's no frameworkSearchPaths option).
-         While this drops a safeguard it's better than not having the testing libs at all.
-         */
-
         for platform in ["iPhoneOS", "MacOSX", "iPhoneSimulator"] {
-            let lib = "../../../../../Library"
-            let dest = dev.appendingPathComponent("""
-            Platforms/\(platform).platform/Developer/SDKs/\(platform).sdk\
-            /System/Library/Frameworks
+            let platformDir = dev.appendingPathComponent("Platforms/\(platform).platform")
+
+            /*
+             XCTest and Testing.framework are located in *.platform/Developer/{Library/Frameworks,usr/lib} rather than inside
+             the SDK. These search paths are explicitly included when building tests, which presumably ensures that normal
+             applications don't accidentally link against them in production.
+
+             SwiftPM makes no such affordances outside of macOS, so we add the usr/lib path as include/library search paths
+             in the SDK config, and symlink the frameworks into the SDKs (since there's no frameworkSearchPaths option).
+             While this drops a safeguard it's better than not having the testing libs at all.
+             */
+
+            let fwk = platformDir.appendingPathComponent("""
+            Developer/SDKs/\(platform).sdk/System/Library/Frameworks
             """).path
 
+            let lib = "../../../../../Library"
+
             try FileManager.default.createSymbolicLink(
-                atPath: "\(dest)/Testing.framework",
+                atPath: "\(fwk)/Testing.framework",
                 withDestinationPath: "\(lib)/Frameworks/Testing.framework"
             )
 
             try FileManager.default.createSymbolicLink(
-                atPath: "\(dest)/XCTest.framework",
+                atPath: "\(fwk)/XCTest.framework",
                 withDestinationPath: "\(lib)/Frameworks/XCTest.framework"
             )
 
             try FileManager.default.createSymbolicLink(
-                atPath: "\(dest)/XCUIAutomation.framework",
+                atPath: "\(fwk)/XCUIAutomation.framework",
                 withDestinationPath: "\(lib)/Frameworks/XCUIAutomation.framework"
             )
 
             try FileManager.default.createSymbolicLink(
-                atPath: "\(dest)/XCTestCore.framework",
+                atPath: "\(fwk)/XCTestCore.framework",
                 withDestinationPath: "\(lib)/PrivateFrameworks/XCTestCore.framework"
             )
+
+            /*
+             Apply patches to load OpenAppleMacros as the swift-plugin-server
+             */
+
+            let bin = platformDir.appendingPathComponent("Developer/usr/bin")
+            let pluginServer = bin.appendingPathComponent("swift-plugin-server")
+            try? FileManager.default.createDirectory(at: bin, withIntermediateDirectories: true)
+            try? FileManager.default.removeItem(at: pluginServer)
+            try FileManager.default.createSymbolicLink(
+                atPath: pluginServer.path,
+                withDestinationPath: "../../../../../../OpenAppleMacrosServer"
+            )
+
+            let hostDir = platformDir.appendingPathComponent("Developer/usr/lib/swift/host")
+            let pluginsDir = hostDir.appendingPathComponent("plugins")
+
+            if platform == "iPhoneSimulator" {
+                // The iPhoneSimulator platform doesn't contain plugins; Xcode seems to be hardcoded
+                // to look at the ones from iPhoneOS.platform. We can symlink the iPhoneOS ones too.
+                try? FileManager.default.createDirectory(at: hostDir, withIntermediateDirectories: true)
+                try? FileManager.default.removeItem(at: pluginsDir)
+                try FileManager.default.createSymbolicLink(
+                    atPath: pluginsDir.path,
+                    withDestinationPath: "../../../../../../iPhoneOS.platform/Developer/usr/lib/swift/host/plugins"
+                )
+            } else {
+                let plugins = try FileManager.default.contentsOfDirectory(at: pluginsDir, includingPropertiesForKeys: nil)
+                // remove the lib*.dylib plugins and create lib*.so files, which is what swiftc expects
+                // on Linux hosts. the files are stubs (empty) because we just need them to convince
+                // swiftc that yes we can handle said modules. the actual logic lives in the OpenAppleMacros
+                // server.
+                for plugin in plugins {
+                    try FileManager.default.removeItem(at: plugin)
+                    let name = plugin.deletingPathExtension().lastPathComponent
+                    try Data().write(to: pluginsDir.appendingPathComponent("\(name).so"))
+                }
+            }
         }
 
         return dev
