@@ -72,18 +72,27 @@ public struct XcodePacker {
             } else {
                 []
             }
+
+            var sources: [TargetSource] = [
+                TargetSource(
+                    path: try emptyFile.relativePath(from: projectDir).string,
+                    buildPhase: .sources
+                ),
+            ]
+            if product.type == .application, let catalogPath = product.assetCatalogPath {
+                sources.append(TargetSource(
+                    path: (fromProjectToRoot + Path(catalogPath)).string,
+                    buildPhase: .resources
+                ))
+            }
+
             return Target(
                 name: product.targetName,
                 type: product.type == .application ? .application : .appExtension,
                 platform: .iOS,
                 deploymentTarget: deploymentTarget,
                 settings: Settings(buildSettings: buildSettings),
-                sources: [
-                    TargetSource(
-                        path: try emptyFile.relativePath(from: projectDir).string,
-                        buildPhase: .sources
-                    ),
-                ],
+                sources: sources,
                 dependencies: [
                     Dependency(
                         type: .package(products: [product.product]),

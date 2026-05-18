@@ -53,15 +53,19 @@ struct PackOperation {
             schema: schema,
             diagnostics: diagnostics
         )
-        let plan = try await planner.createPlan()
-        for entry in await diagnostics.drain() {
-            let prefix: String
-            switch entry.severity {
-            case .warning: prefix = "warning"
-            case .note: prefix = "note"
+        @Sendable func drainDiagnostics() async {
+            for entry in await diagnostics.drain() {
+                let prefix: String
+                switch entry.severity {
+                case .warning: prefix = "warning"
+                case .note: prefix = "note"
+                }
+                FileHandle.standardError.write(Data("\(prefix): \(entry.message)\n".utf8))
             }
-            FileHandle.standardError.write(Data("\(prefix): \(entry.message)\n".utf8))
         }
+
+        let plan = try await planner.createPlan()
+        await drainDiagnostics()
 
         #if os(macOS)
         if xcode {
@@ -71,9 +75,11 @@ struct PackOperation {
 
         let packer = Packer(
             buildSettings: buildSettings,
-            plan: plan
+            plan: plan,
+            diagnostics: diagnostics
         )
         let bundle = try await packer.pack()
+        await drainDiagnostics()
 
         let productsWithEntitlements = plan
             .allProducts

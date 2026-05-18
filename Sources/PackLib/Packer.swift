@@ -1,13 +1,16 @@
 import Foundation
 import XUtils
+import XCAssetCompiler
 
 public struct Packer: Sendable {
     public let buildSettings: BuildSettings
     public let plan: Plan
+    public let diagnostics: Diagnostics
 
-    public init(buildSettings: BuildSettings, plan: Plan) {
+    public init(buildSettings: BuildSettings, plan: Plan, diagnostics: Diagnostics = Diagnostics()) {
         self.plan = plan
         self.buildSettings = buildSettings
+        self.diagnostics = diagnostics
     }
 
     private func build() async throws {
@@ -86,12 +89,14 @@ public struct Packer: Sendable {
 
         try await withThrowingTaskGroup(of: Void.self) { group in
             for product in plan.allProducts {
-                try pack(
-                    product: product,
-                    binDir: binDir,
-                    outputURL: product.directory(inApp: outputURL),
-                    &group
-                )
+                let productOutputURL = product.directory(inApp: outputURL)
+                group.addTask {
+                    try await pack(
+                        product: product,
+                        binDir: binDir,
+                        outputURL: productOutputURL
+                    )
+                }
             }
 
             while !group.isEmpty {
@@ -112,103 +117,147 @@ public struct Packer: Sendable {
         return dest
     }
 
+    // swiftlint:disable:next function_body_length
     @Sendable private func pack(
         product: Plan.Product,
         binDir: URL,
-        outputURL: URL,
-        _ group: inout ThrowingTaskGroup<Void, Error>
-    ) throws {
-        @Sendable func packFileToRoot(srcName: String) async throws {
-            let srcURL = URL(fileURLWithPath: srcName)
-            let destURL = outputURL.appendingPathComponent(srcURL.lastPathComponent)
-            try FileManager.default.copyItem(at: srcURL, to: destURL)
-
-            try Task.checkCancellation()
-        }
-
-        @Sendable func packFile(srcName: String, dstName: String? = nil, sign: Bool = false) async throws {
-            let srcURL = URL(fileURLWithPath: srcName, relativeTo: binDir)
-            let dstURL = URL(fileURLWithPath: dstName ?? srcURL.lastPathComponent, relativeTo: outputURL)
-            try? FileManager.default.createDirectory(at: dstURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try FileManager.default.copyItem(at: srcURL, to: dstURL)
-
-            try Task.checkCancellation()
-        }
-
-        // Ensure output directory is available
+        outputURL: URL
+    ) async throws {
         try? FileManager.default.createDirectory(at: outputURL, withIntermediateDirectories: true)
 
-        for command in product.resources {
-            group.addTask {
-                switch command {
-                case .bundle(let package, let target):
-                    try await packFile(srcName: "\(package)_\(target).bundle")
-                case .binaryTarget(let name):
-                    let src = URL(fileURLWithPath: "\(name).framework/\(name)", relativeTo: binDir)
-                    let magic = Data("!<arch>\n".utf8)
-                    let thinMagic = Data("!<thin>\n".utf8)
-                    guard let bytes = try? FileHandle(forReadingFrom: src).read(upToCount: magic.count) else {
-                        // if we can't find the binary, it might be a static framework that SwiftPM
-                        // did not copy into the .build directory. we don't need to pack it anyway.
-                        break
-                    }
-                    // if the magic matches one of these it's a static archive; don't embed it.
-                    // https://github.com/apple/llvm-project/blob/e716ff14c46490d2da6b240806c04e2beef01f40/llvm/include/llvm/Object/Archive.h#L33
-                    // swiftlint:disable:previous line_length
-                    if bytes != magic && bytes != thinMagic {
-                        try await packFile(srcName: "\(name).framework", dstName: "Frameworks/\(name).framework", sign: true)
-                    }
-                case .library(let name):
-                    try await packFile(srcName: "lib\(name).dylib", dstName: "Frameworks/lib\(name).dylib", sign: true)
-                case .root(let source):
-                    try await packFileToRoot(srcName: source)
-                }
-            }
+        let compiled: CompiledCatalog?
+        if let catalogPath = product.assetCatalogPath {
+            let compiler = XCAssetCompiler(
+                deploymentTarget: product.deploymentTarget,
+                diagnostics: diagnostics
+            )
+            compiled = try await compiler.compile(catalog: URL(fileURLWithPath: catalogPath))
+        } else {
+            compiled = nil
         }
-        if let iconPath = product.iconPath {
-            group.addTask {
-                try await packFileToRoot(srcName: iconPath)
+
+        let effectiveIconPath: String?
+        if let compiled, compiled.primaryIconName != nil {
+            if product.iconPath != nil {
+                await diagnostics.warn(
+                    "xtool.yml: iconPath is ignored because the asset catalog supplies an AppIcon."
+                )
             }
+            effectiveIconPath = nil
+        } else {
+            effectiveIconPath = product.iconPath
         }
-        for compiledAsset in product.compiledAssets {
-            let bytes = compiledAsset.carData
-            group.addTask {
-                let destURL = outputURL.appendingPathComponent("Assets.car")
-                try bytes.write(to: destURL)
+
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            @Sendable func packFileToRoot(srcName: String) async throws {
+                let srcURL = URL(fileURLWithPath: srcName)
+                let destURL = outputURL.appendingPathComponent(srcURL.lastPathComponent)
+                try FileManager.default.copyItem(at: srcURL, to: destURL)
+
                 try Task.checkCancellation()
             }
-            for emittedFile in compiledAsset.emittedFiles {
+
+            @Sendable func packFile(srcName: String, dstName: String? = nil, sign: Bool = false) async throws {
+                let srcURL = URL(fileURLWithPath: srcName, relativeTo: binDir)
+                let dstURL = URL(fileURLWithPath: dstName ?? srcURL.lastPathComponent, relativeTo: outputURL)
+                try? FileManager.default.createDirectory(
+                    at: dstURL.deletingLastPathComponent(),
+                    withIntermediateDirectories: true
+                )
+                try FileManager.default.copyItem(at: srcURL, to: dstURL)
+
+                try Task.checkCancellation()
+            }
+
+            for command in product.resources {
                 group.addTask {
-                    let destURL = outputURL.appendingPathComponent(emittedFile.name)
-                    try emittedFile.data.write(to: destURL)
-                    try Task.checkCancellation()
+                    switch command {
+                    case .bundle(let package, let target):
+                        try await packFile(srcName: "\(package)_\(target).bundle")
+                    case .binaryTarget(let name):
+                        let src = URL(fileURLWithPath: "\(name).framework/\(name)", relativeTo: binDir)
+                        let magic = Data("!<arch>\n".utf8)
+                        let thinMagic = Data("!<thin>\n".utf8)
+                        guard let bytes = try? FileHandle(forReadingFrom: src).read(upToCount: magic.count) else {
+                            // if we can't find the binary, it might be a static framework that SwiftPM
+                            // did not copy into the .build directory. we don't need to pack it anyway.
+                            break
+                        }
+                        // if the magic matches one of these it's a static archive; don't embed it.
+                        // https://github.com/apple/llvm-project/blob/e716ff14c46490d2da6b240806c04e2beef01f40/llvm/include/llvm/Object/Archive.h#L33
+                        // swiftlint:disable:previous line_length
+                        if bytes != magic && bytes != thinMagic {
+                            try await packFile(srcName: "\(name).framework", dstName: "Frameworks/\(name).framework", sign: true)
+                        }
+                    case .library(let name):
+                        try await packFile(srcName: "lib\(name).dylib", dstName: "Frameworks/lib\(name).dylib", sign: true)
+                    case .root(let source):
+                        try await packFileToRoot(srcName: source)
+                    }
                 }
             }
-        }
-        group.addTask {
-            try await packFile(srcName: product.targetName, dstName: product.product)
-        }
-        group.addTask {
-            var info = product.infoPlist
+            if let iconPath = effectiveIconPath {
+                group.addTask {
+                    try await packFileToRoot(srcName: iconPath)
+                }
+            }
+            if let compiled {
+                let carData = compiled.carData
+                group.addTask {
+                    let destURL = outputURL.appendingPathComponent("Assets.car")
+                    try carData.write(to: destURL)
+                    try Task.checkCancellation()
+                }
+                for emittedFile in compiled.emittedFiles {
+                    let name = emittedFile.name
+                    let data = emittedFile.data
+                    group.addTask {
+                        let destURL = outputURL.appendingPathComponent(name)
+                        try data.write(to: destURL)
+                        try Task.checkCancellation()
+                    }
+                }
+            }
+            group.addTask {
+                try await packFile(srcName: product.targetName, dstName: product.product)
+            }
+            group.addTask {
+                var info = product.infoPlist
 
-            if product.type == .application {
-                info["UIRequiredDeviceCapabilities"] = ["arm64"]
-                info["LSRequiresIPhoneOS"] = true
-                info["CFBundleSupportedPlatforms"] = ["iPhoneOS"]
+                if product.type == .application {
+                    info["UIRequiredDeviceCapabilities"] = ["arm64"]
+                    info["LSRequiresIPhoneOS"] = true
+                    info["CFBundleSupportedPlatforms"] = ["iPhoneOS"]
+                }
+
+                if let compiled {
+                    info.merge(compiled.infoPlistAdditions, uniquingKeysWith: { _, new in new })
+                }
+
+                if let iconPath = effectiveIconPath {
+                    let iconName = URL(fileURLWithPath: iconPath).deletingPathExtension().lastPathComponent
+                    info["CFBundleIconFile"] = iconName
+                }
+
+                let infoPath = outputURL.appendingPathComponent("Info.plist")
+                let encodedPlist = try PropertyListSerialization.data(
+                    fromPropertyList: info,
+                    format: .xml,
+                    options: 0
+                )
+                try encodedPlist.write(to: infoPath)
             }
 
-            if let iconPath = product.iconPath {
-                let iconName = URL(fileURLWithPath: iconPath).deletingPathExtension().lastPathComponent
-                info["CFBundleIconFile"] = iconName
+            while !group.isEmpty {
+                do {
+                    try await group.next()
+                } catch is CancellationError {
+                    // continue
+                } catch {
+                    group.cancelAll()
+                    throw error
+                }
             }
-
-            let infoPath = outputURL.appendingPathComponent("Info.plist")
-            let encodedPlist = try PropertyListSerialization.data(
-                fromPropertyList: info,
-                format: .xml,
-                options: 0
-            )
-            try encodedPlist.write(to: infoPath)
         }
     }
 }
