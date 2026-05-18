@@ -67,6 +67,11 @@ public actor Signer {
     ) throws {
         let encoder = PropertyListEncoder()
         encoder.outputFormat = .xml
+        var entitlementMapping = entitlementMapping
+        if entitlementMapping.isEmpty {
+            // zsign_sign requires at least one entitlements_data_t
+            entitlementMapping[app] = try Entitlements(entitlements: [])
+        }
         let entsArray: [entitlements_data_t] = try entitlementMapping.map { url, ents in
             try url.withUnsafeFileSystemRepresentation { bundlePath in
                 guard let bundlePath = bundlePath else { throw Error.badFilePath }
