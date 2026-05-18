@@ -68,6 +68,7 @@ let package = Package(
 
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.0.0"),
         .package(url: "https://github.com/swiftlang/swift-subprocess", from: "1.0.0"),
+        .package(url: "https://github.com/swiftlang/swift-tools-protocols", exact: "0.0.10"),
 
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.0"),
         .package(url: "https://github.com/swift-server/swift-openapi-async-http-client", from: "1.0.0"),
@@ -176,6 +177,7 @@ let package = Package(
                 .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "Version", package: "Version"),
                 .product(name: "libunxip", package: "unxip"),
+                .product(name: "LanguageServerProtocolTransport", package: "swift-tools-protocols"),
             ],
             cSettings: cSettings,
             swiftSettings: swiftSettings,

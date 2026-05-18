@@ -1,5 +1,5 @@
 {
-  "originHash" : "372e7c63deb9508728c2f792b06935bafc6dd9a5320c5376c7eb9fa2798f3f9c",
+  "originHash" : "c7a8ecfa1983b2d2cd303da1fc360a5329a8fe77440411341561bb35dd3c197a",
   "pins" : [
     {
       "identity" : "aexml",
@@ -85,7 +85,7 @@
     {
       "identity" : "swift-algorithms",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-algorithms.git",
+      "location" : "https://github.com/apple/swift-algorithms",
       "state" : {
         "revision" : "87e50f483c54e6efd60e885f7f5aa946cee68023",
         "version" : "1.2.1"
@@ -94,7 +94,7 @@
     {
       "identity" : "swift-argument-parser",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-argument-parser.git",
+      "location" : "https://github.com/apple/swift-argument-parser",
       "state" : {
         "revision" : "6a52f3251125d74daf04fcbd5e6f08a75d074382",
         "version" : "1.8.2"
@@ -382,10 +382,19 @@
     {
       "identity" : "swift-system",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-system.git",
+      "location" : "https://github.com/apple/swift-system",
       "state" : {
         "revision" : "869129b7bf4ecc57b97d0193ad29690ca2134750",
         "version" : "1.8.1"
+      }
+    },
+    {
+      "identity" : "swift-tools-protocols",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-tools-protocols",
+      "state" : {
+        "revision" : "d81024558da3bcd53748c4cfdaba10a49242442e",
+        "version" : "0.0.10"
       }
     },
     {
