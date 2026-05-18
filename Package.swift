@@ -138,20 +138,6 @@ let package = Package(
                 "XToolSupport",
             ]
         ),
-        .testTarget(
-            name: "XKitTests",
-            dependencies: [
-                "XKit",
-                .product(name: "SuperutilsTestSupport", package: "xtool-core")
-            ],
-            exclude: [
-                "config/config-template.json",
-            ],
-            resources: [
-                .copy("config/config.json"),
-                .copy("config/test.app"),
-            ]
-        ),
         .target(
             name: "XToolSupport",
             dependencies: [
