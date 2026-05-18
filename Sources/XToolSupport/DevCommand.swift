@@ -23,10 +23,30 @@ struct PackOperation {
 
     var triple: String?
     var buildOptions = BuildOptions(configuration: .debug)
+    var extraOptions: [String] = []
+    var watchMode = false
     var xcode = false
 
+    func buildSettings() async throws -> BuildSettings {
+        try await BuildSettings(
+            configuration: buildOptions.configuration,
+            triple: triple ?? Self.defaultTriple,
+            options: extraOptions + (
+                watchMode
+                ? [
+                    "-Xlinker", "-interposable",
+                    // https://kyleye.top/posts/debugreplaceableview-multiple-type-erasers/
+                    "-Xswiftc", "-enable-experimental-feature", "-Xswiftc", "OpaqueTypeErasure",
+                    // https://www.guardsquare.com/blog/behind-swiftui-previews
+                    "-Xswiftc", "-Xfrontend", "-Xswiftc", "-enable-private-imports",
+                ]
+                : []
+            )
+        )
+    }
+
     @discardableResult
-    func run() async throws -> URL {
+    func run() async throws -> (Plan, URL) {
         print("Planning...")
 
         let schema: PackSchema
@@ -41,11 +61,7 @@ struct PackOperation {
             """)
         }
 
-        let buildSettings = try await BuildSettings(
-            configuration: buildOptions.configuration,
-            triple: triple ?? Self.defaultTriple,
-            options: []
-        )
+        let buildSettings = try await buildSettings()
 
         let planner = Planner(
             buildSettings: buildSettings,
@@ -55,7 +71,8 @@ struct PackOperation {
 
         #if os(macOS)
         if xcode {
-            return try await XcodePacker(plan: plan).createProject()
+            let url = try await XcodePacker(plan: plan).createProject()
+            return (plan, url)
         }
         #endif
 
@@ -68,28 +85,26 @@ struct PackOperation {
         let productsWithEntitlements = plan
             .allProducts
             .compactMap { p in p.entitlementsPath.map { (p, $0) } }
-        if !productsWithEntitlements.isEmpty {
-            let mapping = try await withThrowingTaskGroup(of: (URL, Entitlements).self) { group in
-                for (product, path) in productsWithEntitlements {
-                    group.addTask {
-                        let data = try await Data(reading: URL(fileURLWithPath: path))
-                        let decoder = PropertyListDecoder()
-                        let entitlements = try decoder.decode(Entitlements.self, from: data)
-                        return (product.directory(inApp: bundle), entitlements)
-                    }
+        let mapping = try await withThrowingTaskGroup(of: (URL, Entitlements?).self) { group in
+            for (product, path) in productsWithEntitlements {
+                group.addTask {
+                    let data = try await Data(reading: URL(fileURLWithPath: path))
+                    let decoder = PropertyListDecoder()
+                    let entitlements = try decoder.decode(Entitlements.self, from: data)
+                    return (product.directory(inApp: bundle), entitlements)
                 }
-                return try await group.reduce(into: [:]) { $0[$1.0] = $1.1 }
             }
-            print("Applying entitlements...")
-            try await Signer.first().sign(
-                app: bundle,
-                identity: .adhoc,
-                entitlementMapping: mapping,
-                progress: { _ in }
-            )
+            return try await group.reduce(into: [:]) { $0[$1.0] = $1.1 }
         }
+        print("Applying entitlements...")
+        try await Signer.first().sign(
+            app: bundle,
+            identity: .adhoc,
+            entitlementMapping: mapping,
+            progress: { _ in }
+        )
 
-        return bundle
+        return (plan, bundle)
     }
 }
 
@@ -144,7 +159,7 @@ struct DevBuildCommand: AsyncParsableCommand {
             signingAuthToken = nil
         }
 
-        let url = try await PackOperation(
+        let (_, url) = try await PackOperation(
             triple: triple,
             buildOptions: packOptions
         ).run()
@@ -209,6 +224,13 @@ struct DevRunCommand: AsyncParsableCommand {
         help: "Target the iOS Simulator"
     ) var simulator = false
 
+    @Flag(
+        name: .shortAndLong,
+        help: "Hot reload files on change. Requires simulator."
+    ) var watch = false
+
+    @Option var xloadPath: String?
+
     var triple: String? {
         if simulator {
             #if arch(arm64)
@@ -222,17 +244,37 @@ struct DevRunCommand: AsyncParsableCommand {
         return nil
     }
     #else
+    var watch: Bool { false }
     var triple: String? { nil }
     #endif
 
     @OptionGroup var connectionOptions: ConnectionOptions
 
+    func validate() throws {
+        #if os(macOS)
+        if watch && !simulator {
+            throw ValidationError("--watch requires --simulator")
+        }
+        #endif
+    }
+
     func run() async throws {
-        let output = try await PackOperation(triple: triple, buildOptions: packOptions).run()
+        let operation = PackOperation(
+            triple: triple,
+            buildOptions: packOptions,
+            watchMode: watch,
+        )
+        let (plan, output) = try await operation.run()
 
         #if os(macOS)
         if simulator {
-            try await SimInstallOperation(path: output).run()
+            try await SimInstallOperation(
+                operation: operation,
+                plan: plan,
+                path: output,
+                watch: watch,
+                xLoadLibrary: xloadPath,
+            ).run()
             return
         }
         #endif
@@ -281,24 +323,3 @@ struct DevCommand: AsyncParsableCommand {
 }
 
 extension BuildConfiguration: ExpressibleByArgument {}
-
-#if os(macOS)
-import Subprocess
-
-struct SimInstallOperation {
-    var path: URL
-
-    // TODO: allow customizing this
-    var simulator = "booted"
-
-    func run() async throws {
-        try await Subprocess.run(
-            .path("/usr/bin/xcrun"),
-            arguments: ["simctl", "install", simulator, path.path],
-            output: .discarded
-        )
-        .checkSuccess()
-        print("Installed to simulator")
-    }
-}
-#endif
