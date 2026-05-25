@@ -244,10 +244,9 @@ public struct Planner: Sendable {
     }
 
     private func _dumpAction(arguments: [String], path: String) async throws -> Data {
-        let dumpConfig = try await buildSettings.swiftPMInvocation(
+        let dumpConfig = try await buildSettings.withPackagePath(path).swiftPMInvocation(
             forTool: "package",
             arguments: arguments,
-            packagePathOverride: path
         )
         return try await Subprocess.run(
             dumpConfig,

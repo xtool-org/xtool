@@ -56,6 +56,7 @@ struct SDKBuilder {
     let output: URL
     let arch: Arch
 
+    // swiftlint:disable:next function_body_length
     func buildSDK() async throws {
         // TODO: store relevant info for staleness check
         let sdkVersion = "develop"
@@ -136,6 +137,9 @@ struct SDKBuilder {
             "linker": {
                 "path": "ld64.lld"
             },
+            "librarian": {
+                "path": "llvm-lib"
+            },
             "swiftCompiler": {
                 "extraCLIOptions": [
                     "-Xfrontend", "-enable-cross-import-overlays",
@@ -145,6 +149,26 @@ struct SDKBuilder {
         }
         """.write(
             to: output.appendingPathComponent("toolset.json"),
+            atomically: false,
+            encoding: .utf8
+        )
+
+        // this toolset works with the swiftbuild system on Linux
+        // note that we need Swift 6.4+ because 6.3 has bugs in
+        // resolving the librarian and linker paths.
+        try """
+        {
+            "schemaVersion": "1.0",
+            "rootPath": "toolset/bin",
+            "linker": {
+                "path": "ld"
+            },
+            "librarian": {
+                "path": "llvm-lib"
+            }
+        }
+        """.write(
+            to: output.appendingPathComponent("toolset-swb.json"),
             atomically: false,
             encoding: .utf8
         )
@@ -215,9 +239,19 @@ struct SDKBuilder {
             try await input.finish()
         }
         .checkSuccess()
+
+        // swift-build assumes we have an Apple-flavored librarian for Apple platforms
+        // (https://github.com/swiftlang/swift-build/blob/b2433e74e/Sources/SWBCore/SpecImplementations/Tools/LinkerTools.swift#L1735)
+        // but allows us to override this assumption if we explicitly provide the name llvm-lib (look a few lines above in that file)
+        try FileManager.default.moveItem(
+            at: toolsetDir.appending(path: "bin/libtool"),
+            to: toolsetDir.appending(path: "bin/llvm-lib")
+        )
+
+        // TODO: install cctools ld as well
     }
 
-    // swiftlint:disable:next cyclomatic_complexity function_body_length
+    // swiftlint:disable:next cyclomatic_complexity
     private func installDeveloper(in output: URL) async throws -> URL {
         let dev = output.appendingPathComponent("Developer")
 
@@ -321,10 +355,11 @@ struct SDKBuilder {
 
         for platform in ["iPhoneOS", "MacOSX", "iPhoneSimulator"] {
             let lib = "../../../../../Library"
-            let dest = dev.appendingPathComponent("""
-            Platforms/\(platform).platform/Developer/SDKs/\(platform).sdk\
-            /System/Library/Frameworks
-            """).path
+            let platformDir = dev.appending(path: "Platforms/\(platform).platform")
+
+            try patchPlatformManifest(path: platformDir.appending(path: "Info.plist"))
+
+            let dest = platformDir.appending(path: "Developer/SDKs/\(platform).sdk/System/Library/Frameworks").path
 
             try FileManager.default.createSymbolicLink(
                 atPath: "\(dest)/Testing.framework",
@@ -352,6 +387,21 @@ struct SDKBuilder {
         )
 
         return dev
+    }
+
+    private func patchPlatformManifest(path: URL) throws {
+        let data = try Data(contentsOf: path)
+        guard var plist = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any] else {
+            throw Console.Error("Could not read '\(path.path)'")
+        }
+
+        var defaultProperties = (plist["DefaultProperties"] as? [String: Any]) ?? [:]
+        defaultProperties["SWIFT_RESOURCE_DIR"] = "$(PLATFORM_DIR)/../../Toolchains/XcodeDefault.xctoolchain/usr/lib/swift"
+        defaultProperties["CLANG_RESOURCE_DIR"] = "$(SWIFT_RESOURCE_DIR)/clang"
+        plist["DefaultProperties"] = defaultProperties
+
+        let newData = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+        try newData.write(to: path)
     }
 
     // returns the number of files we actually want to keep,
@@ -497,13 +547,16 @@ struct SDKEntry {
             E("clang"),
         ]),
         E("Platforms", ["iPhoneOS", "MacOSX", "iPhoneSimulator"].map {
-            E("\($0).platform/Developer", [
-                E("SDKs"),
-                E("Library", [
-                    E("Frameworks"),
-                    E("PrivateFrameworks"),
-                ]),
-                E("usr/lib"),
+            E("\($0).platform", [
+                E("Info.plist"),
+                E("Developer", [
+                    E("SDKs"),
+                    E("Library", [
+                        E("Frameworks"),
+                        E("PrivateFrameworks"),
+                    ]),
+                    E("usr/lib"),
+                ])
             ])
         }),
     ])
