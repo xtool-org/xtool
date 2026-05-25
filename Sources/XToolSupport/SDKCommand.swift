@@ -47,9 +47,10 @@ struct DevSDKBuildCommand: AsyncParsableCommand {
     func run() async throws {
         let builderArch = try arch.sdkBuilderArch
         let input = try SDKBuilder.Input(path: path)
-        let builder = SDKBuilder(input: input, outputPath: outputDir, arch: builderArch)
-        let sdkPath = try await builder.buildSDK()
-        print("Built SDK at \(sdkPath)")
+        let output = URL(fileURLWithPath: outputDir, isDirectory: true).appending(path: "darwin.xtoolsdk")
+        let builder = SDKBuilder(input: input, output: output, arch: builderArch)
+        try await builder.buildSDK()
+        print("Built SDK at \(output.path). You can install it with `xtool sdk install`.")
     }
 }
 
@@ -83,8 +84,8 @@ struct DevSDKInstallCommand: AsyncParsableCommand {
     )
 
     @Argument(
-        help: "Path to Xcode.xip or Xcode.app",
-        completion: .file(extensions: ["xip", "app"])
+        help: "Path to Xcode.xip, Xcode.app, or darwin.xtoolsdk",
+        completion: .file(extensions: ["xip", "app", "xtoolsdk"])
     )
     var path: String
 
@@ -132,7 +133,7 @@ struct DarwinSDK {
         if let version = try? Data(contentsOf: bundle.appendingPathComponent("darwin-sdk-version.txt")) {
             self.version = String(decoding: version, as: UTF8.self)
                 .trimmingCharacters(in: .whitespacesAndNewlines)
-        } else if bundle.lastPathComponent == "darwin.artifactbundle" {
+        } else if bundle.lastPathComponent == "darwin.xtoolsdk" {
             self.version = "unknown"
         } else {
             return nil
@@ -148,10 +149,36 @@ struct DarwinSDK {
         let url = URL(fileURLWithPath: path)
         guard DarwinSDK(bundle: url) != nil else { throw Console.Error("Invalid Darwin SDK at '\(path)'")}
 
+        try await addHostClangResourceDir(to: url)
+
         let process = Process()
         process.executableURL = try await ToolRegistry.locate("swift")
         process.arguments = ["sdk", "install", url.path]
         try await process.runUntilExit()
+    }
+
+    private static func addHostClangResourceDir(to sdk: URL) async throws {
+        let outPipe = Pipe()
+        let clang = Process()
+        clang.executableURL = try await ToolRegistry.locate("clang")
+        clang.arguments = ["-print-resource-dir"]
+        clang.standardOutput = outPipe
+        clang.standardError = FileHandle.standardError
+        async let outputData = Data(reading: outPipe.fileHandleForReading)
+        do {
+            try await clang.runUntilExit()
+        } catch is Process.Failure {
+            throw Console.Error("Failed to query host clang -print-resource-dir")
+        }
+        let path = String(decoding: try await outputData, as: UTF8.self)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !path.isEmpty else {
+            throw Console.Error("Host clang returned an empty resource directory")
+        }
+        let hostClangResources = URL(fileURLWithPath: path, isDirectory: true)
+        let hostInclude = hostClangResources.appending(path: "include")
+        let sdkInclude = sdk.appending(path: "Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/clang/include")
+        try FileManager.default.copyItem(at: hostInclude, to: sdkInclude)
     }
 
     static func current() async throws -> DarwinSDK? {
@@ -243,20 +270,28 @@ struct InstallSDKOperation {
         #if os(macOS)
         print("Skipping SDK install; the iOS SDK ships with Xcode on macOS")
         #else
-        // validate input before removing existing SDK
-        let input = try SDKBuilder.Input(path: path)
-        let arch = try ArchSelection.auto.sdkBuilderArch
+
+        let tempDir = try TemporaryDirectory(name: "DarwinSDKBuild")
+        let sdkPath = tempDir.url.appending(path: "darwin.artifactbundle")
+
+        if path.hasSuffix(".xtoolsdk") {
+            print("Installing prebuilt SDK...")
+            try FileManager.default.copyItem(at: URL(filePath: path), to: sdkPath)
+        } else {
+            // validate input before removing existing SDK
+            let input = try SDKBuilder.Input(path: path)
+            let arch = try ArchSelection.auto.sdkBuilderArch
+
+            let builder = SDKBuilder(input: input, output: sdkPath, arch: arch)
+            try await builder.buildSDK()
+        }
 
         if let sdk = try await DarwinSDK.current() {
             print("Removing existing SDK...")
             try sdk.remove()
         }
 
-        let tempDir = try TemporaryDirectory(name: "DarwinSDKBuild")
-        let builder = SDKBuilder(input: input, outputPath: tempDir.url.path, arch: arch)
-        let sdkPath = try await builder.buildSDK()
-
-        try await DarwinSDK.install(from: sdkPath)
+        try await DarwinSDK.install(from: sdkPath.path)
 
         // don't destroy tempDir before this point
         withExtendedLifetime(tempDir) {}
