@@ -43,6 +43,8 @@ struct PackOperation {
             """)
         }
 
+        await LSPConfig.tryEnsure(using: schema)
+
         let buildSettings = try await BuildSettings(
             configuration: buildOptions.configuration,
             triple: triple ?? Self.defaultTriple,
@@ -276,6 +278,7 @@ struct DevCommand: AsyncParsableCommand {
             DevXcodeCommand.self,
             DevBuildCommand.self,
             DevRunCommand.self,
+            DevBSPCommand.self,
         ],
         defaultSubcommand: DevRunCommand.self
     )
