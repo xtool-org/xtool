@@ -212,6 +212,7 @@ struct SDKBuilder {
                     fflush(stdoutSafe)
                 }
             }
+            try await input.finish()
         }
         .checkSuccess()
     }
