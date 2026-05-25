@@ -1,6 +1,6 @@
 import Foundation
 import XUtils
-import XCAssetCompiler
+import AssetKit
 
 public struct Packer: Sendable {
     public let buildSettings: BuildSettings
@@ -125,19 +125,16 @@ public struct Packer: Sendable {
     ) async throws {
         try? FileManager.default.createDirectory(at: outputURL, withIntermediateDirectories: true)
 
-        let compiled: CompiledCatalog?
+        let compiled: CompileResult?
         if let catalogPath = product.assetCatalogPath {
-            let compiler = XCAssetCompiler(
-                deploymentTarget: product.deploymentTarget,
-                diagnostics: diagnostics
-            )
+            let compiler = XCAssetCompiler(deploymentTarget: product.deploymentTarget)
             compiled = try await compiler.compile(catalog: URL(fileURLWithPath: catalogPath))
         } else {
             compiled = nil
         }
 
         let effectiveIconPath: String?
-        if let compiled, compiled.primaryIconName != nil {
+        if let compiled, compiled.appIconBundle != nil {
             if product.iconPath != nil {
                 await diagnostics.warn(
                     "xtool.yml: iconPath is ignored because the asset catalog supplies an AppIcon."
@@ -208,9 +205,9 @@ public struct Packer: Sendable {
                     try carData.write(to: destURL)
                     try Task.checkCancellation()
                 }
-                for emittedFile in compiled.emittedFiles {
-                    let name = emittedFile.name
-                    let data = emittedFile.data
+                for looseFile in compiled.appIconBundle?.looseFiles ?? [] {
+                    let name = looseFile.name
+                    let data = looseFile.data
                     group.addTask {
                         let destURL = outputURL.appendingPathComponent(name)
                         try data.write(to: destURL)
@@ -230,8 +227,8 @@ public struct Packer: Sendable {
                     info["CFBundleSupportedPlatforms"] = ["iPhoneOS"]
                 }
 
-                if let compiled {
-                    info.merge(compiled.infoPlistAdditions, uniquingKeysWith: { _, new in new })
+                if let bundle = compiled?.appIconBundle {
+                    info.merge(bundle.infoPlistAdditions, uniquingKeysWith: { _, new in new })
                 }
 
                 if let iconPath = effectiveIconPath {

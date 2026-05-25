@@ -1,5 +1,5 @@
 {
-  "originHash" : "eb1808095307efd48683c726652ae675e8a873b52ee48a59bd2f3e9ce3595083",
+  "originHash" : "5d8bca12bb90d8ff772f84873319d8cfb89ddb6e38648f783ada24cd945c314f",
   "pins" : [
     {
       "identity" : "aexml",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "db806756c989760b35108146381535aec231092b",
         "version" : "4.7.0"
+      }
+    },
+    {
+      "identity" : "assetkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/xtool-org/AssetKit",
+      "state" : {
+        "revision" : "bc9912b1017facbda994cd24ce7e44b93165adc6",
+        "version" : "1.0.0"
       }
     },
     {
