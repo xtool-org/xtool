@@ -55,20 +55,21 @@ public struct Packer: Sendable {
             try Data().write(to: sources.appendingPathComponent("stub.c", isDirectory: false))
         }
 
-        let buildConfig = try await buildSettings.swiftPMInvocation(
-            forTool: "build",
-            arguments: [
-                "--package-path", packageDir.path,
-                "--scratch-path", ".build",
-                // resolving can cause SwiftPM to overwrite the root package deps
-                // with just the deps needed for the builder package (which is to
-                // say, any "dev dependencies" of the root package may be removed.)
-                // fortunately we've already resolved the root package by this point
-                // in order to dump the plan, so we can skip resolution here to skirt
-                // the issue.
-                "--disable-automatic-resolution",
-            ]
-        )
+        let buildConfig = try await buildSettings
+            .withPackagePath(packageDir.path)
+            .swiftPMInvocation(
+                forTool: "build",
+                arguments: [
+                    "--scratch-path", ".build",
+                    // resolving can cause SwiftPM to overwrite the root package deps
+                    // with just the deps needed for the builder package (which is to
+                    // say, any "dev dependencies" of the root package may be removed.)
+                    // fortunately we've already resolved the root package by this point
+                    // in order to dump the plan, so we can skip resolution here to skirt
+                    // the issue.
+                    "--disable-automatic-resolution",
+                ],
+            )
         try await Subprocess.run(
             buildConfig,
             output: .currentStandardError,
@@ -84,8 +85,16 @@ public struct Packer: Sendable {
 
         let outputURL = output.url
 
+        let binPath: String
+        switch buildSettings.buildSystem {
+        case .swiftPM:
+            binPath = "\(buildSettings.triple)/\(buildSettings.configuration.rawValue)"
+        case .swiftBuild:
+            let platformName = buildSettings.triple.contains("simulator") ? "iphonesimulator" : "iphoneos"
+            binPath = "out/Products/\(buildSettings.configuration.swiftBuildValue)-\(platformName)"
+        }
         let binDir = URL(
-            fileURLWithPath: ".build/\(buildSettings.triple)/\(buildSettings.configuration.rawValue)",
+            fileURLWithPath: ".build/\(binPath)",
             isDirectory: true
         )
 

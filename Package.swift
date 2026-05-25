@@ -167,6 +167,7 @@ let package = Package(
             name: "PackLib",
             dependencies: [
                 "XUtils",
+                .product(name: "Superutils", package: "xtool-core"),
                 .product(name: "Yams", package: "Yams"),
                 .product(name: "XcodeGenKit", package: "XcodeGen", condition: .when(platforms: [.macOS])),
             ]
