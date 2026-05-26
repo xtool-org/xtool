@@ -71,7 +71,8 @@ public struct Packer: Sendable {
         )
         try await Subprocess.run(
             buildConfig,
-            output: .standardError
+            output: .standardError,
+            error: .standardError,
         )
         .checkSuccess()
     }

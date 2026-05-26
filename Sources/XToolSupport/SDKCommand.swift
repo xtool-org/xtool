@@ -157,7 +157,7 @@ struct DarwinSDK {
             arguments: ["sdk", "install", url.path],
             output: .discarded
         )
-        .checkSuccess()f6b84ce (wip: use swift-subprocess)
+        .checkSuccess()
     }
 
     private static func addHostClangResourceDir(to sdk: URL) async throws {
