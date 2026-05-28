@@ -133,7 +133,7 @@ struct DarwinSDK {
         if let version = try? Data(contentsOf: bundle.appendingPathComponent("darwin-sdk-version.txt")) {
             self.version = String(decoding: version, as: UTF8.self)
                 .trimmingCharacters(in: .whitespacesAndNewlines)
-        } else if bundle.lastPathComponent == "darwin.xtoolsdk" {
+        } else if ["darwin.xtoolsdk", "darwin.artifactbundle"].contains(bundle.lastPathComponent) {
             self.version = "unknown"
         } else {
             return nil
