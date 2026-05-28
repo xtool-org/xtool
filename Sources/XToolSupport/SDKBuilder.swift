@@ -53,16 +53,12 @@ struct SDKBuilder {
     }
 
     let input: Input
-    let outputPath: String
+    let output: URL
     let arch: Arch
 
-    @discardableResult
-    func buildSDK() async throws -> String {
+    func buildSDK() async throws {
         // TODO: store relevant info for staleness check
         let sdkVersion = "develop"
-
-        let output = URL(fileURLWithPath: outputPath, isDirectory: true)
-            .appendingPathComponent("darwin.artifactbundle")
 
         try? FileManager.default.removeItem(at: output)
         try FileManager.default.createDirectory(
@@ -171,8 +167,6 @@ struct SDKBuilder {
 
         try Data("\(sdkVersion)\n".utf8)
             .write(to: output.appendingPathComponent("darwin-sdk-version.txt"))
-
-        return output.path
     }
 
     private func installToolset(in output: URL) async throws {
@@ -223,7 +217,7 @@ struct SDKBuilder {
         try await tarExit
     }
 
-    // swiftlint:disable:next cyclomatic_complexity
+    // swiftlint:disable:next cyclomatic_complexity function_body_length
     private func installDeveloper(in output: URL) async throws -> URL {
         let dev = output.appendingPathComponent("Developer")
 
@@ -352,6 +346,10 @@ struct SDKBuilder {
                 withDestinationPath: "\(lib)/PrivateFrameworks/XCTestCore.framework"
             )
         }
+
+        try FileManager.default.removeItem(
+            at: dev.appending(path: "Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/clang/include")
+        )
 
         return dev
     }
