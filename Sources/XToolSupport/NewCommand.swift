@@ -125,7 +125,8 @@ struct NewCommand: AsyncParsableCommand {
                 """
                 {
                     "swiftPM": {
-                        "swiftSDK": "arm64-apple-ios"
+                        "swiftSDK": "arm64-apple-ios",
+                        "swiftCompilerFlags": ["-F", "./xtool/\(moduleName).app/Frameworks"]
                     }
                 }
                 """
