@@ -81,3 +81,17 @@ jobs:
           TAG="${{ github.ref_name }}"
           gh release create "$TAG" --draft --title "v$TAG"
           gh release upload "$TAG" output/**/*.{AppImage,AppImage.zsync,app.zip,app.dSYM.zip}
+  docker:
+    uses: docker/github-builder/.github/workflows/build.yml@v1
+    permissions:
+      contents: read # to fetch the repository content
+      id-token: write # for signing attestations and cache entries with GitHub OIDC
+      packages: write # to push built images to GitHub Container Registry
+    with:
+      output: image
+      push: true
+      platforms: linux/amd64,linux/arm64
+      meta-images: |
+        ghcr.io/xtool-org/xtool
+      meta-tags: |
+        type=semver,pattern={{version}}

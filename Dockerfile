@@ -79,10 +79,14 @@ RUN cd xadi \
     && cp -r bin/libxadi.so /prefix/usr/lib/libxadi.so
 
 
-FROM build-base
+FROM build-base AS build-xtool-base
 
 COPY --from=build-limd /prefix/usr /usr
 COPY --from=build-xadi /prefix/usr /usr
+
+WORKDIR /xtool
+
+FROM build-xtool-base AS dev
 
 # Docker doesn't support FUSE
 ENV APPIMAGE_EXTRACT_AND_RUN=1
@@ -92,6 +96,20 @@ ENV APPIMAGE_EXTRACT_AND_RUN=1
 # socat -dd TCP-LISTEN:27015,range=127.0.0.1/32,reuseaddr,fork UNIX-CLIENT:/var/run/usbmuxd
 ENV USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015
 
-WORKDIR /xtool
-
 CMD [ "/bin/bash" ]
+
+FROM build-xtool-base AS build-xtool
+
+ADD Package.swift Package.resolved /xtool/
+RUN swift package resolve
+
+ADD . /xtool
+RUN ./Linux/build.sh
+
+FROM swift:6.3 AS xtool
+
+COPY --from=build-xtool /xtool/Linux/packages/xtool-*.AppImage /xtool/xtool.AppImage
+RUN (cd /xtool && ./xtool.AppImage --appimage-extract) \
+    && mv /xtool/squashfs-root /usr/local/xtool \
+    && rm -rf /xtool \
+    && ln -s /usr/local/xtool/AppRun /usr/local/bin/xtool
