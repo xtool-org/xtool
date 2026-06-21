@@ -41,22 +41,18 @@ actor SwiftWorkspace {
     }
 
     init(
+        configuration: BuildServerConfiguration,
         buildDirectory: FilePath,
         outDirectory: FilePath,
-        buildSettings: BuildSettings,
     ) async throws {
-        guard let swiftURL = URL(filePath: try await BuildSettings.swiftURL()) else {
-            throw Console.Error("Swift URL invalid")
-        }
-
         self.buildDirectory = buildDirectory
         self.outDirectory = outDirectory
 
         let handler = StreamingMessageHandler()
 
         let (connection, _) = try JSONRPCConnection.start(
-            executable: swiftURL,
-            arguments: buildSettings.buildServerArguments,
+            executable: configuration.executable,
+            arguments: configuration.arguments,
             name: "xtool",
             protocol: .bspProtocol,
             stderrLoggingCategory: "xtool-error",
@@ -76,6 +72,10 @@ actor SwiftWorkspace {
         ))
 
         connection.send(OnBuildInitializedNotification())
+
+        // some BSP servers (eg SourceKit-Bazel-BSP) require an initial build targets request
+        // before they send OnBuildTargetDidChange
+        _ = try await connection.send(WorkspaceBuildTargetsRequest())
 
         for await case _ as OnBuildTargetDidChangeNotification in handler.notifications { break }
 
@@ -240,6 +240,88 @@ actor SwiftWorkspace {
         ) {
             fatalError("Can't handle request \(Request.method)")
         }
+    }
+}
+
+// https://github.com/swiftlang/sourcekit-lsp/blob/3278ca0e3/Sources/BuildServerIntegration/ExternalBuildServerAdapter.swift#L66
+struct BuildServerConfiguration {
+    var executable: URL
+    var arguments: [String]
+}
+
+// https://build-server-protocol.github.io/docs/overview/server-discovery#the-bsp-connection-details
+struct BuildServerDefinition: Codable {
+    var name: String
+    var version: String
+    var bspVersion: String
+    var languages: [String]
+    var argv: [String]
+}
+
+extension BuildServerConfiguration {
+    static func swiftPM(settings: BuildSettings) async throws -> Self {
+        guard let swiftURL = URL(filePath: try await BuildSettings.swiftURL()) else {
+            throw Console.Error("Swift URL invalid")
+        }
+        return BuildServerConfiguration(
+            executable: swiftURL,
+            arguments: settings.buildServerArguments
+        )
+    }
+
+    static func swiftPM(in url: URL) async throws -> Self? {
+        if url.appending(path: "Package.swift").exists {
+            return try await .swiftPM(settings: .init(configuration: .debug, triple: "arm64-apple-ios-simulator"))
+        }
+        return nil
+    }
+
+    static func external(definition: BuildServerDefinition) async throws -> Self {
+        guard !definition.argv.isEmpty else {
+            throw Console.Error("BSP argv must be non-empty")
+        }
+        var arguments = definition.argv
+        let executable = URL(filePath: arguments.removeFirst())
+        return BuildServerConfiguration(
+            executable: executable,
+            arguments: arguments
+        )
+    }
+
+    static func external(definition url: URL) async throws -> Self {
+        let data = try Data(contentsOf: url)
+        let definition = try JSONDecoder().decode(BuildServerDefinition.self, from: data)
+        return try await .external(definition: definition)
+    }
+
+    static func external(in directory: URL) async throws -> Self? {
+        let bsp = directory.appending(path: ".bsp")
+        let bspContents = (try? FileManager.default.contentsOfDirectory(at: bsp, includingPropertiesForKeys: nil)) ?? []
+        let bspFiles = bspContents.filter { $0.pathExtension == "json" }
+        switch bspFiles.count {
+        case 0:
+            return nil
+        case 1:
+            return try await .external(definition: bspFiles[0])
+        default:
+            throw Console.Error("""
+            Found multiple Build Server definitions in '\(bsp.absoluteURL.path)'.
+            
+            Please explicitly specify the one you want to use.
+            """)
+        }
+    }
+
+    static func discover(in directory: URL) async throws -> Self? {
+        if let external = try await external(in: directory) {
+            return external
+        }
+
+        if let swiftPM = try await swiftPM(in: directory) {
+            return swiftPM
+        }
+
+        return nil
     }
 }
 

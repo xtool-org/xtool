@@ -83,23 +83,80 @@ private struct TemporaryDirectoryRoot {
             url = FileManager.default.temporaryDirectory.appendingPathComponent("sh.xtool")
             #endif
         }
-        try? FileManager.default.removeItem(at: url)
-        do {
-            try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
-        } catch {
-            self._url = .failure(Errors.tmpdirCreationFailed(url, error))
-            return
+
+        Self.pruneOrphans(in: url)
+
+        self._url = Result {
+            let childDir = try Self.claimDirectory(in: url)
+            try FileManager.default.createDirectory(at: childDir, withIntermediateDirectories: true)
+            return childDir
         }
-        self._url = .success(url)
+        .mapError { $0 as? Errors ?? .tmpdirCreationFailed(url, $0) }
+    }
+
+    private static func claimDirectory(in url: URL) throws -> URL {
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+
+//        #if os(macOS)
+//        let random = UUID().uuidString
+//        let lockFile = url.appending(path: "\(random).lock")
+//        print("Locking")
+//        _ = try FileDescriptor.open(FilePath(lockFile.path), .readWrite, options: [.create, .exclusiveLock])
+//        print("Locked")
+//        return url.appending(path: random)
+//        #else
+        for _ in 0..<10 {
+            let random = UUID().uuidString
+            let lockFile = url.appending(path: "\(random).lock")
+            FileManager.default.createFile(atPath: lockFile.path, contents: nil)
+            let fd = try FileDescriptor.open(FilePath(lockFile.path), .writeOnly, options: [])
+            guard try fd.tryLock(mode: .exclusive) else {
+                // someone else raced us and claimed the right to prune between when we created the file and
+                // when we tried to lock it
+                continue
+            }
+            return url.appending(path: random)
+        }
+        throw Errors.tmpdirClaimFailed(url)
+//        #endif
+    }
+
+    private static func pruneOrphans(in url: URL) {
+        guard let children = try? FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil)
+            else { return }
+        for lock in children {
+            do {
+                let basename = lock.lastPathComponent
+                guard basename.hasSuffix(".lock") && basename != ".lock" else { continue }
+                let lockFD = try FileDescriptor.open(FilePath(lock.path), .readWrite)
+                defer { try? lockFD.close() }
+                if try lockFD.tryLock(mode: .exclusive) {
+                    // we must remove the directory first. if we instead removed the lock first,
+                    // we could be killed after the lock was removed but before the dir was
+                    // removed and therefore leave it hanging around.
+                    do {
+                        try FileManager.default.removeItem(at: lock.deletingPathExtension())
+                    } catch CocoaError.fileNoSuchFile {
+                        // pass
+                    }
+                    try FileManager.default.removeItem(at: lock)
+                }
+            } catch {
+                // continue
+            }
+        }
     }
 
     enum Errors: Error, CustomStringConvertible {
         case tmpdirCreationFailed(URL, Error)
+        case tmpdirClaimFailed(URL)
 
         var description: String {
             switch self {
             case let .tmpdirCreationFailed(url, error):
-                "Could not create temporary directory at '\(url.path)': \(error)"
+                "Could not create temporary directory in '\(url.path)': \(error)"
+            case let .tmpdirClaimFailed(url):
+                "Could not claim temporary directory in '\(url.path)'"
             }
         }
     }
