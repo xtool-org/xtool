@@ -15,8 +15,10 @@ import XKit
     }
 
     private static func runXTool() async throws {
-        try await withDependencies {
-            $0.keyValueStorage = KeychainStorage(service: "sh.xtool.keychain.credentials")
+        try await withDependencies { d in
+            #if HAS_TEAM
+            d.keyValueStorage = KeychainStorage(service: "sh.xtool.keychain.credentials")
+            #endif
         } operation: {
             try await XTool.run()
         }
