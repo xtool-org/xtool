@@ -92,7 +92,12 @@ let package = Package(
             exclude: ["openapi-generator-config.yaml", "patch.js"]
         ),
         // common utilities shared across xtool targets
-        .target(name: "XUtils"),
+        .target(
+            name: "XUtils",
+            dependencies: [
+                .product(name: "SystemPackage", package: "swift-system"),
+            ]
+        ),
         .target(
             name: "XKit",
             dependencies: [
