@@ -2,8 +2,10 @@ services:
   xtool:
     build:
       context: .
+      target: dev
     volumes:
       - .:/xtool
+      - .build/linux:/xtool/.build
     container_name: xtool
     stdin_open: true
     tty: true
@@ -13,6 +15,4 @@ services:
       - seccomp:unconfined
     extra_hosts:
       # host.docker.internal doesn't exist by default on Linux hosts
-      # TODO: Does this conflict with the default host on macOS?
-      # we could rename this
       - "host.docker.internal:host-gateway"
