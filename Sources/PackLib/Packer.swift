@@ -143,20 +143,23 @@ public struct Packer: Sendable {
                 switch command {
                 case .bundle(let package, let target):
                     try await packFile(srcName: "\(package)_\(target).bundle")
-                case .binaryTarget(let name):
-                    let src = URL(fileURLWithPath: "\(name).framework/\(name)", relativeTo: binDir)
-                    let magic = Data("!<arch>\n".utf8)
-                    let thinMagic = Data("!<thin>\n".utf8)
-                    guard let bytes = try? FileHandle(forReadingFrom: src).read(upToCount: magic.count) else {
+                case .binaryTarget(let name, let frameworkName):
+                    let resolvedName = frameworkName ?? findFrameworkName(for: name, in: binDir) ?? name
+                    let src = URL(fileURLWithPath: "\(resolvedName).framework/\(resolvedName)", relativeTo: binDir)
+                    guard FileManager.default.fileExists(atPath: src.path) else {
                         // if we can't find the binary, it might be a static framework that SwiftPM
                         // did not copy into the .build directory. we don't need to pack it anyway.
                         break
                     }
-                    // if the magic matches one of these it's a static archive; don't embed it.
+                    // if the binary is a static archive, don't embed it.
                     // https://github.com/apple/llvm-project/blob/e716ff14c46490d2da6b240806c04e2beef01f40/llvm/include/llvm/Object/Archive.h#L33
                     // swiftlint:disable:previous line_length
-                    if bytes != magic && bytes != thinMagic {
-                        try await packFile(srcName: "\(name).framework", dstName: "Frameworks/\(name).framework", sign: true)
+                    if !isStaticBinary(at: src) {
+                        try await packFile(
+                            srcName: "\(resolvedName).framework",
+                            dstName: "Frameworks/\(resolvedName).framework",
+                            sign: true
+                        )
                     }
                 case .library(let name):
                     try await packFile(srcName: "lib\(name).dylib", dstName: "Frameworks/lib\(name).dylib", sign: true)
@@ -196,6 +199,67 @@ public struct Packer: Sendable {
             try encodedPlist.write(to: infoPath)
         }
     }
+}
+
+private func findFrameworkName(for binaryTargetName: String, in binDir: URL) -> String? {
+    let fm = FileManager.default
+    guard let contents = try? fm.contentsOfDirectory(atPath: binDir.path) else {
+        return nil
+    }
+    for item in contents where item.hasSuffix(".framework") {
+        let frameworkName = String(item.dropLast(".framework".count))
+        let binaryPath = binDir
+            .appendingPathComponent(item)
+            .appendingPathComponent(frameworkName)
+        guard fm.fileExists(atPath: binaryPath.path),
+              let handle = try? FileHandle(forReadingFrom: binaryPath),
+              let data = try? handle.read(upToCount: 256) else {
+            continue
+        }
+        try? handle.close()
+        if data.range(of: Data(binaryTargetName.utf8)) != nil {
+            return frameworkName
+        }
+        if frameworkName.hasPrefix(binaryTargetName) || binaryTargetName.hasPrefix(frameworkName) {
+            return frameworkName
+        }
+    }
+    return nil
+}
+
+private func isStaticBinary(at url: URL) -> Bool {
+    guard let handle = try? FileHandle(forReadingFrom: url),
+          let bytes = try? handle.read(upToCount: 8) else {
+        return false
+    }
+    defer { try? handle.close() }
+
+    let archMagic = Data("!<arch>\n".utf8)
+    let thinMagic = Data("!<thin>\n".utf8)
+
+    if bytes.starts(with: archMagic) || bytes.starts(with: thinMagic) {
+        return true
+    }
+
+    guard bytes.count >= 4 else { return false }
+
+    let magic = bytes.prefix(4).withUnsafeBytes { $0.load(as: UInt32.self).bigEndian }
+    let fatMagic: UInt32 = 0xCAFEBABE
+    let fatMagic64: UInt32 = 0xCAFEBABF
+
+    if magic == fatMagic || magic == fatMagic64 {
+        let is64 = (magic == fatMagic64)
+        try? handle.seek(toOffset: 16)
+        guard let offsetData = try? handle.read(upToCount: is64 ? 8 : 4) else { return false }
+        let sliceOffset: UInt64 = is64
+            ? offsetData.withUnsafeBytes { $0.load(as: UInt64.self).bigEndian }
+            : UInt64(offsetData.withUnsafeBytes { $0.load(as: UInt32.self).bigEndian })
+        try? handle.seek(toOffset: sliceOffset)
+        guard let sliceMagic = try? handle.read(upToCount: 8) else { return false }
+        return sliceMagic.starts(with: archMagic) || sliceMagic.starts(with: thinMagic)
+    }
+
+    return false
 }
 
 extension Plan.Product {
