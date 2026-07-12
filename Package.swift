@@ -55,6 +55,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-nio", from: "2.77.0"),
 
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.0.0"),
+        .package(url: "https://github.com/swiftlang/swift-subprocess", .upToNextMinor(from: "0.5.0")),
 
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.0"),
         .package(url: "https://github.com/swift-server/swift-openapi-async-http-client", from: "1.0.0"),
@@ -96,6 +97,11 @@ let package = Package(
             name: "XUtils",
             dependencies: [
                 .product(name: "SystemPackage", package: "swift-system"),
+                .product(
+                    name: "Subprocess",
+                    package: "swift-subprocess",
+                    condition: .when(platforms: [.linux, .macOS])
+                ),
             ]
         ),
         .target(

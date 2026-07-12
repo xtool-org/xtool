@@ -1,5 +1,6 @@
 import Foundation
 import XUtils
+import Subprocess
 
 public struct Packer: Sendable {
     public let buildSettings: BuildSettings
@@ -54,7 +55,7 @@ public struct Packer: Sendable {
             try Data().write(to: sources.appendingPathComponent("stub.c", isDirectory: false))
         }
 
-        let builder = try await buildSettings.swiftPMInvocation(
+        let buildConfig = try await buildSettings.swiftPMInvocation(
             forTool: "build",
             arguments: [
                 "--package-path", packageDir.path,
@@ -68,8 +69,12 @@ public struct Packer: Sendable {
                 "--disable-automatic-resolution",
             ]
         )
-        builder.standardOutput = FileHandle.standardError
-        try await builder.runUntilExit()
+        try await Subprocess.run(
+            buildConfig,
+            output: .currentStandardError,
+            error: .currentStandardError,
+        )
+        .checkSuccess()
     }
 
     public func pack() async throws -> URL {
