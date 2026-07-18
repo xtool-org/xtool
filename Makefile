@@ -56,6 +56,10 @@ linux-clean:
 linux-dist:
 	docker compose run --build --rm xtool Linux/build.sh
 
+.PHONY: docker
+docker:
+	docker build . -t ghcr.io/xtool-org/xtool:latest
+
 .PHONY: mac
 # dev build for macOS
 mac: project
