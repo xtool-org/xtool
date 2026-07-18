@@ -30,7 +30,13 @@ private struct XToolCommand: AsyncParsableCommand {
                     NewCommand.self,
                     DevCommand.self,
                     DSCommand.self,
-                ]
+                ] + { () -> [AsyncParsableCommand.Type] in
+                    #if os(macOS)
+                    [HotReloadCommand.self]
+                    #else
+                    []
+                    #endif
+                }()
             ),
             CommandGroup(
                 name: "Device",
