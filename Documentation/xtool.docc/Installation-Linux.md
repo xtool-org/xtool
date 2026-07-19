@@ -10,9 +10,31 @@ This article outlines the steps to install `xtool` and begin developing iOS apps
 
 ### WSL (for Windows users)
 
-If you're on Windows, you can use xtool via [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/install) (WSL).
+If you're on Windows, you can use xtool via [Windows Subsystem for
+Linux](https://learn.microsoft.com/en-us/windows/wsl/install)
+(WSl). Windows 11 22h2 or later is strongly recommended because of its
+support for [mirrored
+networking](https://learn.microsoft.com/en-us/windows/wsl/networking)
+and the need for usbmuxd to access a localhost port exposed by the Windows Apple Mobile Device
+Service.
 
-Once you install WSL, you'll also need to set up USB passthrough. See Microsoft's instructions on [installing USBIPD](https://learn.microsoft.com/en-us/windows/wsl/connect-usb). Make sure you're able to bind your iOS device to WSL via USB.
+You'll also need to install [iTunes
+12.10](https://support.apple.com/en-us/106372). Once iTunes is
+installed, you can go into "Add/Remove programs" and uninstall all
+Apple components other than Apple Mobile Device Service.
+
+Add the following line to your .bash_login file on WSL:
+
+    export USBMUXD_SOCKET_ADDRESS=127.0.0.1:27015
+   
+With the above environment variable set, Apple Mobile Device Service
+running, and usbmuxd installed (see later in this document), when you
+connect your Apple device via USB, the connection will be managed by
+Windows, but usbmuxd will be able to access it through the localhost
+port exposed by Apple Mobile Device service.
+
+Note that the USB passthrough approach previously recommended for WSL
+users is at best unstable, and not recommended.
 
 ### Swift
 
