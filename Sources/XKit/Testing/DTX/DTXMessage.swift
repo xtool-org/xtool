@@ -311,7 +311,9 @@ struct DTXMessage: Sendable {
         let flagsRaw = readLE(body, &cursor, as: UInt32.self)
         message.flags = DTXMessageFlags(rawValue: flagsRaw) ?? .send
         let auxLength = Int(readLE(body, &cursor, as: UInt32.self))
-        let totalLength = Int(readLE(body, &cursor, as: UInt64.self))
+        guard let totalLength = Int(exactly: readLE(body, &cursor, as: UInt64.self)) else {
+            throw DTXError.notEnoughData
+        }
 
         guard auxLength >= 0, totalLength >= auxLength else { throw DTXError.notEnoughData }
 

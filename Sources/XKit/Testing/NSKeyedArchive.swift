@@ -254,7 +254,8 @@ enum NSKeyedArchive {
         func decodeValue(_ value: PlistValue) throws -> Decoded {
             switch value {
             case .uid(let uid):
-                return try decodeUID(Int(uid))
+                guard let intUID = Int(exactly: uid) else { return .null }
+                return try decodeUID(intUID)
             case .string(let string):
                 return .string(string)
             case .data(let data):
@@ -346,6 +347,7 @@ enum NSKeyedArchive {
             }
         }
 
-        return try decodeUID(Int(rootUID))
+        guard let rootIntUID = Int(exactly: rootUID) else { throw DecodeError.missingRoot }
+        return try decodeUID(rootIntUID)
     }
 }

@@ -42,7 +42,7 @@ public final class SyslogRelayClient: Sendable {
     /// callback) or the client is deallocated.
     public func lines() -> AsyncStream<String> {
         AsyncStream { continuation in
-            box.continuation = continuation
+            box.setContinuation(continuation)
             let opaque = Unmanaged.passUnretained(box).toOpaque()
             let status = syslog_relay_start_capture_raw(raw, { char, userData in
                 guard let userData else { return }
@@ -65,9 +65,15 @@ public final class SyslogRelayClient: Sendable {
 /// (not an actor) since the C callback is synchronous and can't `await` a hop onto one -- the lock
 /// is what makes `buffer` safe to mutate from that background thread.
 private final class LineBox: @unchecked Sendable {
-    var continuation: AsyncStream<String>.Continuation?
+    private var continuation: AsyncStream<String>.Continuation?
     private var buffer = ""
     private let lock = NSLock()
+
+    func setContinuation(_ continuation: AsyncStream<String>.Continuation) {
+        lock.lock()
+        self.continuation = continuation
+        lock.unlock()
+    }
 
     func append(_ char: CChar) {
         let scalar = Character(UnicodeScalar(UInt8(bitPattern: char)))
@@ -75,6 +81,7 @@ private final class LineBox: @unchecked Sendable {
         if scalar == "\n" {
             let line = buffer
             buffer = ""
+            let continuation = self.continuation
             lock.unlock()
             continuation?.yield(line)
         } else {
@@ -84,6 +91,9 @@ private final class LineBox: @unchecked Sendable {
     }
 
     func finish() {
+        lock.lock()
+        let continuation = self.continuation
+        lock.unlock()
         continuation?.finish()
     }
 }

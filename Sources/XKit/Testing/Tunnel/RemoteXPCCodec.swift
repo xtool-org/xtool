@@ -276,7 +276,11 @@ enum RemoteXPCCodec {
             _ = try readLE(data, &cursor, as: UInt32.self) // payload byte length, unused on decode
             let count = Int(try readLE(data, &cursor, as: UInt32.self))
             var values: [RemoteXPCValue] = []
-            values.reserveCapacity(count)
+            // `count` is an unvalidated wire value (up to ~4 billion); clamp the up-front
+            // allocation to the remaining buffer size, since every element needs at least one
+            // byte to decode -- the loop below still fails fast via a bounds check if `count`
+            // doesn't match what's actually there.
+            values.reserveCapacity(min(count, data.distance(from: cursor, to: data.endIndex)))
             for _ in 0..<count {
                 values.append(try decodeValue(data, &cursor))
             }
