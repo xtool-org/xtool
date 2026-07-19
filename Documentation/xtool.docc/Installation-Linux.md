@@ -115,6 +115,23 @@ Choice (0-1):
 
 Once you select a login mode, you'll be asked to provide the corresponding credentials (API key or email+password+2FA). Needless to say, *your credentials are only sent to Apple* and nobody else (feel free to build xtool from source and check!)
 
+If you already have an Apple Development certificate and want xtool to reuse it for provisioning, log in with a `.p12` export:
+
+```bash
+xtool auth login \
+  --mode password \
+  --signing-p12 /path/to/cert.p12 \
+  --signing-p12-password '<p12-password>'
+```
+
+xtool copies the certificate into its own config directory and stores the password for later use during `xtool dev` and `xtool install`.
+
+You can verify this state with:
+
+```bash
+xtool auth status
+```
+
 ### 3. Configure xtool: SDK
 
 After you're logged in, you'll be asked to provide the path to the `Xcode.xip` file you downloaded earlier.
