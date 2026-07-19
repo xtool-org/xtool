@@ -549,6 +549,33 @@ public actor TestManagerdSession {
         return AppLookupInfo(container: container, path: path)
     }
 
+    /// Finds the actual installed bundle ID matching `baseBundleID`, accounting for the team-ID
+    /// prefix (`XTL-<teamID>.<baseBundleID>`) xtool's own free-tier signing adds -- a package's
+    /// configured bundle ID (from `xtool.yml`/`Package.swift`) is never what's actually installed
+    /// on a real device signed with a free account, only what it was derived from. Looks up every
+    /// installed app's `CFBundleIdentifier` (same raw `instproxy_lookup` pattern as `lookupApp`
+    /// above, for the same crash-avoidance reason) and returns the first exact or suffix match.
+    public static func resolveInstalledBundleID(
+        matching baseBundleID: String,
+        client: InstallationProxyClient
+    ) throws -> String? {
+        let optionsPlist = PlistValue.dictionary([
+            "ReturnAttributes": .array([.string("CFBundleIdentifier")]),
+        ]).toPlistT()
+        defer { plist_free(optionsPlist) }
+
+        var result: plist_t?
+        let status = instproxy_lookup(client.raw, nil, optionsPlist, &result)
+        guard status == INSTPROXY_E_SUCCESS, let result else { return nil }
+        defer { plist_free(result) }
+
+        guard case .dictionary(let apps) = PlistValue(plistT: result) else { return nil }
+        if apps[baseBundleID] != nil { return baseBundleID }
+
+        let suffix = ".\(baseBundleID)"
+        return apps.keys.first { $0.hasSuffix(suffix) }
+    }
+
     private func launchRunner(
         bundleID: String,
         testBundleName: String,

@@ -134,7 +134,23 @@ struct TestCommand: AsyncParsableCommand {
             """)
         }
 
-        let effectiveTestsToRun = try await resolveTestsToRun(xcTest: xcTest)
+        let (effectiveTestsToRun, chosenTarget) = try await resolveTestsToRun(xcTest: xcTest)
+
+        // XCUITest drives a separate app under test, identified by --target-bundle-id -- without
+        // it, testmanagerd has no idea what to launch, and `XCUIApplication()` (called with no
+        // explicit bundle ID, the common case) ends up doing nothing useful. Xcode itself defaults
+        // a UI test target to the app in the same project, so when the user didn't pass
+        // --target-bundle-id and picked a target that looks like a UI test target (by the same
+        // "UITests" naming convention Xcode's own project templates use), fall back to this
+        // package's own app -- resolved per-device in `runOnDevice` (via `resolveInstalledBundleID`)
+        // since `plan.app.bundleID` is only the raw, unprefixed value from `xtool.yml`/
+        // `Package.swift`, not what's actually installed on a device signed with a free account.
+        let autoDetectAppBundleID: String?
+        if targetBundleID == nil, let chosenTarget, chosenTarget.hasSuffix("UITests") {
+            autoDetectAppBundleID = plan.app.bundleID
+        } else {
+            autoDetectAppBundleID = nil
+        }
 
         guard let sdk = try await DarwinSDK.current() else {
             throw Console.Error("No Darwin SDK installed. Run `xtool sdk install` first.")
@@ -177,7 +193,8 @@ struct TestCommand: AsyncParsableCommand {
                             xcTest: xcTest,
                             token: token,
                             reportDir: reportDir,
-                            testsToRun: effectiveTestsToRun
+                            testsToRun: effectiveTestsToRun,
+                            autoDetectAppBundleID: autoDetectAppBundleID
                         )
                     }
                 }
@@ -190,7 +207,8 @@ struct TestCommand: AsyncParsableCommand {
                 xcTest: xcTest,
                 token: token,
                 reportDir: reportDir,
-                testsToRun: effectiveTestsToRun
+                testsToRun: effectiveTestsToRun,
+                autoDetectAppBundleID: autoDetectAppBundleID
             )
         }
 
@@ -230,12 +248,14 @@ struct TestCommand: AsyncParsableCommand {
     }
 
     /// Resolves which test identifiers to actually run: explicit `--only` wins outright (the
-    /// caller presumably already knows exactly what they want); otherwise, if the package has
-    /// more than one `.testTarget`, prompts for one (or takes `--test-target` directly) and scopes
-    /// the whole run to it via Apple's own `ModuleName`-as-identifier convention. A single-test-
-    /// target package never prompts -- `Console.choose` already special-cases exactly one element.
-    private func resolveTestsToRun(xcTest: Plan.XCTestPlan) async throws -> [String] {
-        guard testsToRun.isEmpty else { return testsToRun }
+    /// caller presumably already knows exactly what they want, so no target name is resolved in
+    /// that case); otherwise, if the package has more than one `.testTarget`, prompts for one (or
+    /// takes `--test-target` directly) and scopes the whole run to it via Apple's own
+    /// `ModuleName`-as-identifier convention. A single-test-target package never prompts --
+    /// `Console.choose` already special-cases exactly one element. The chosen target's name is
+    /// also returned so the caller can default `--target-bundle-id` for a UI test target.
+    private func resolveTestsToRun(xcTest: Plan.XCTestPlan) async throws -> (testsToRun: [String], chosenTarget: String?) {
+        guard testsToRun.isEmpty else { return (testsToRun, nil) }
 
         let chosen: String
         if let testTarget {
@@ -255,12 +275,12 @@ struct TestCommand: AsyncParsableCommand {
             )
         }
 
-        guard let path = xcTest.testTargetPaths[chosen] else { return [chosen] }
+        guard let path = xcTest.testTargetPaths[chosen] else { return ([chosen], chosen) }
         let classes = Self.xcTestCaseClassNames(inDirectory: URL(fileURLWithPath: path))
         guard !classes.isEmpty else {
             throw Console.Error("No XCTestCase subclasses found under '\(path)' for test target '\(chosen)'.")
         }
-        return classes
+        return (classes, chosen)
     }
 
     /// Scans every `.swift` file under `directory` for `class Foo: XCTestCase` / `final class
@@ -398,7 +418,8 @@ struct TestCommand: AsyncParsableCommand {
         xcTest: Plan.XCTestPlan,
         token: AuthToken,
         reportDir: URL?,
-        testsToRun: [String]
+        testsToRun: [String],
+        autoDetectAppBundleID: String?
     ) async throws -> [TestRunReport] {
         print("Installing \(xcTest.runnerProduct) to device: \(client.deviceName) (udid: \(client.udid))")
 
@@ -419,6 +440,33 @@ struct TestCommand: AsyncParsableCommand {
             throw Console.Error(Self.describeInstallFailure(error))
         } catch {
             throw Console.Error("Failed to install the test runner: \(error)")
+        }
+
+        // `targetBundleID` (the --target-bundle-id CLI option) wins outright; otherwise, if the
+        // chosen test target looked like a UI test target, look up what this package's own app is
+        // actually installed as on *this* device -- `autoDetectAppBundleID` is only the raw,
+        // unprefixed value from `xtool.yml`/`Package.swift`, not the team-ID-prefixed form a
+        // free-tier account's signing actually installs it under.
+        let targetBundleID: String?
+        if let explicit = self.targetBundleID {
+            targetBundleID = explicit
+        } else if let autoDetectAppBundleID {
+            let installProxy = try InstallationProxyClient(device: client.device, label: "xtool-test")
+            if let resolved = try TestManagerdSession.resolveInstalledBundleID(
+                matching: autoDetectAppBundleID,
+                client: installProxy
+            ) {
+                print("No --target-bundle-id given; defaulting to this package's own app (\(resolved)), since the chosen test target looks like a UI test target.")
+                targetBundleID = resolved
+            } else {
+                throw Console.Error("""
+                Could not find '\(autoDetectAppBundleID)' installed on \(client.deviceName) to drive as \
+                the UI test target. Install it first (e.g. `xtool install`/`xtool dev`), or pass \
+                --target-bundle-id explicitly if it's under a different bundle ID.
+                """)
+            }
+        } else {
+            targetBundleID = nil
         }
 
         let connection = try await Connection.connection(
