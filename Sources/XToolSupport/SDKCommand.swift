@@ -1,8 +1,6 @@
 import Foundation
 import XKit
-import Version
 import ArgumentParser
-import Dependencies
 import PackLib
 import XUtils
 import Subprocess
@@ -16,9 +14,99 @@ struct SDKCommand: AsyncParsableCommand {
             DevSDKRemoveCommand.self,
             DevSDKBuildCommand.self,
             DevSDKStatusCommand.self,
+            DevSDKMountDDICommand.self,
         ],
         defaultSubcommand: DevSDKInstallCommand.self
     )
+}
+
+struct DevSDKMountDDICommand: AsyncParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "mount-ddi",
+        abstract: "Extract a Developer Disk Image from Xcode.xip/Xcode.app and mount it on a connected device",
+        discussion: """
+        Locates the DeviceSupport folder matching the connected device's iOS version inside the \
+        given Xcode.xip/Xcode.app (real Xcode ships these under Contents/Developer/Platforms/\
+        iPhoneOS.platform/DeviceSupport/<version>/), extracts DeveloperDiskImage.dmg + its \
+        signature, and mounts it -- unmounting whatever Developer image is currently mounted \
+        first, if any, so this can be used to replace a stale or mismatched DDI.
+        """
+    )
+
+    @Argument(
+        help: "Path to Xcode.xip or Xcode.app",
+        completion: .file(extensions: ["xip", "app"])
+    )
+    var path: String
+
+    @Option(
+        help: ArgumentHelp(
+            "DeviceSupport version to use instead of the connected device's own version",
+            discussion: """
+            Newer Xcode releases don't ship a DeviceSupport folder for every historical iOS \
+            version -- pass e.g. '16.4' to use the closest available one if there's no exact \
+            match for the device's own version.
+            """
+        )
+    )
+    var version: String?
+
+    @OptionGroup var connectionOptions: ConnectionOptions
+
+    func run() async throws {
+        let client = try await connectionOptions.client()
+        let connection = try await Connection.connection(
+            forUDID: client.udid,
+            preferences: .init(lookupMode: .only(client.connectionType))
+        ) { _ in }
+        let versionPrefix: String
+        if let version {
+            versionPrefix = version
+        } else {
+            let productVersion = try await connection.client.value(
+                ofType: String.self, forDomain: nil, key: "ProductVersion"
+            )
+            versionPrefix = productVersion.split(separator: ".").prefix(2).joined(separator: ".")
+        }
+
+        let cacheDir = try TemporaryDirectory(name: "DDIMount-\(versionPrefix)")
+
+        print("Extracting Developer Disk Image for iOS \(versionPrefix) from '\(path)'...")
+        let result = try await DDIExtractor.extract(
+            xcodePath: path,
+            versionPrefix: versionPrefix,
+            outputDir: cacheDir.url
+        )
+        print("Extracted to \(result.dmg.path)")
+
+        let mounter = try await DDIMounter(connection: connection)
+        if try mounter.isMounted() {
+            print("Unmounting existing Developer Disk Image...")
+            // MobileImageMounterClient doesn't wrap unmount (mobile_image_mounter_unmount_image);
+            // ideviceimagemounter (same libimobiledevice suite already relied on elsewhere for
+            // interactive debugging this session) does, and is the more battle-tested path here.
+            try await Subprocess.run(
+                .name("ideviceimagemounter"),
+                arguments: ["-u", client.udid, "unmount", "/Developer"],
+                output: .discarded
+            )
+            .checkSuccess()
+        }
+
+        print("Mounting new Developer Disk Image...")
+        try await mounter.mountIfNeeded(
+            local: .init(dmg: result.dmg, signature: result.signature),
+            fetchRemote: {
+                throw Console.Error("Internal error: extracted DDI not found locally")
+            }
+        ) { progress in
+            print("\r[Mounting] \(Int(progress * 100))%", terminator: "")
+            fflush(stdoutSafe)
+        }
+        print("\nMounted Developer Disk Image for iOS \(versionPrefix) on \(client.deviceName).")
+
+        withExtendedLifetime(cacheDir) {}
+    }
 }
 
 struct DevSDKBuildCommand: AsyncParsableCommand {
@@ -214,40 +302,6 @@ struct DarwinSDK {
 
     func remove() throws {
         try FileManager.default.removeItem(at: bundle)
-    }
-}
-
-private enum SwiftVersion {}
-extension SwiftVersion {
-    static func current() async throws -> Version {
-        let outputString: String?
-        do {
-            outputString = try await Subprocess.run(
-                .name("swift"),
-                arguments: ["--version"],
-                output: .string(limit: .max)
-            )
-            .checkSuccess()
-            .standardOutput
-        } catch {
-            throw Console.Error("Failed to obtain Swift version")
-        }
-        var output = outputString?[...] ?? ""
-        if output.hasPrefix("Apple ") {
-            output = output.dropFirst("Apple ".count)
-        }
-        guard output.hasPrefix("Swift version ") else {
-            throw Console.Error("Could not parse Swift version: '\(output)'")
-        }
-        output = output.dropFirst("Swift version ".count)
-        guard let space = output.firstIndex(of: " ") else {
-            throw Console.Error("Could not parse Swift version: '\(output)'")
-        }
-        output = output[..<space]
-        guard let version = Version(tolerant: output) else {
-            throw Console.Error("Could not parse Swift version: '\(output)'")
-        }
-        return version
     }
 }
 

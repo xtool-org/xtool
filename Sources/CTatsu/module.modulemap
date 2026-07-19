@@ -1,0 +1,4 @@
+module CTatsu [extern_c] {
+    header "shim.h"
+    link "tatsu"
+}

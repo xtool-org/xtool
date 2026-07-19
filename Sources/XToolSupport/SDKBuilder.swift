@@ -360,67 +360,10 @@ struct SDKBuilder {
     // returns the number of files we actually want to keep,
     // useful for computing progress % during fs traversal
     private func extractXIP(inputPath: String, outDir: String) async throws -> Int {
-        let fd = try FileDescriptor.open(inputPath, .readOnly)
-        defer { try? fd.close() }
-
-        let length = try fd.seek(offset: 0, from: .end)
-        try fd.seek(offset: 0, from: .start)
-
-        // global state, ah well
-        let oldDirectory = FileManager.default.currentDirectoryPath
-        guard FileManager.default.changeCurrentDirectoryPath(outDir) else {
-            throw Console.Error("Could not change directory to '\(outDir)'")
-        }
-        defer { _ = FileManager.default.changeCurrentDirectoryPath(oldDirectory) }
-
-        let inputStream = DataReader.data(readingFrom: fd.rawValue)
-
-        let (observer, source) = inputStream.lockstepSplit()
-
-        async let readTask: Void = {
-            var read = 0
-            for try await chunk in observer {
-                read += chunk.count
-                let progress = Int(Double(read) / Double(length) * 100)
-                print("\r[Extracting XIP] \(progress)%", terminator: "")
-                fflush(stdoutSafe)
-                if read == length { break }
-            }
-        }()
-
-        let xipToChunks = XIP.transform(
-            DataReader(data: source),
-            options: nil
-        )
-
-        // ideally we would filter out the files we don't want at this stage,
-        // speeding up extraction AND entirely avoiding the "Installing SDKs"
-        // post-processing step. However, files in xip archives may be hardlinks
-        // to one another and so we need to handle the case where a file inside
-        // our filter() points to a file outside of it. We might be able to do this
-        // with a double-pass system.
-
-        let chunksToFiles = Chunks.transform(
-            xipToChunks,
-            options: nil
-        )
-
-        let filesToDisk = Files.transform(
-            chunksToFiles,
-            options: .init(
-                compress: false,
-                dryRun: false
-            )
-        )
-
         var wanted = 0
-        for try await file in filesToDisk {
-            wanted += Self.isWanted(file.name[...]) ? 1 : 0
+        try await extractXIPRaw(inputPath: inputPath, outDir: outDir) { name in
+            wanted += Self.isWanted(name) ? 1 : 0
         }
-        _ = try await readTask
-
-        print()
-
         return wanted
     }
 
@@ -510,4 +453,71 @@ struct SDKEntry {
             ])
         }),
     ])
+}
+
+/// Streams `inputPath` (an Xcode.xip) into `outDir`, unfiltered -- every file in the archive gets
+/// written to disk, regardless of whether the caller actually wants it. Filtering during
+/// extraction isn't safe: xip archives can contain hardlinks pointing at files outside of any
+/// single filter's matches (see `SDKBuilder.extractXIP`'s original comment, preserved on the
+/// caller in `SDKBuilder.isWanted`/`extractXIP` above). `onFile` is invoked once per extracted
+/// file with its archive-relative path, for callers that want progress counting or
+/// post-extraction filtering without a second directory walk -- `SDKBuilder.extractXIP` and
+/// `DDIExtractor.extract(xcodePath:versionPrefix:outputDir:)` both build on this shared core.
+func extractXIPRaw(
+    inputPath: String,
+    outDir: String,
+    onFile: (Substring) -> Void = { _ in }
+) async throws {
+    let fd = try FileDescriptor.open(inputPath, .readOnly)
+    defer { try? fd.close() }
+
+    let length = try fd.seek(offset: 0, from: .end)
+    try fd.seek(offset: 0, from: .start)
+
+    // global state, ah well
+    let oldDirectory = FileManager.default.currentDirectoryPath
+    guard FileManager.default.changeCurrentDirectoryPath(outDir) else {
+        throw Console.Error("Could not change directory to '\(outDir)'")
+    }
+    defer { _ = FileManager.default.changeCurrentDirectoryPath(oldDirectory) }
+
+    let inputStream = DataReader.data(readingFrom: fd.rawValue)
+
+    let (observer, source) = inputStream.lockstepSplit()
+
+    async let readTask: Void = {
+        var read = 0
+        for try await chunk in observer {
+            read += chunk.count
+            let progress = Int(Double(read) / Double(length) * 100)
+            print("\r[Extracting XIP] \(progress)%", terminator: "")
+            fflush(stdoutSafe)
+            if read == length { break }
+        }
+    }()
+
+    let xipToChunks = XIP.transform(
+        DataReader(data: source),
+        options: nil
+    )
+
+    let chunksToFiles = Chunks.transform(
+        xipToChunks,
+        options: nil
+    )
+
+    let filesToDisk = Files.transform(
+        chunksToFiles,
+        options: .init(
+            compress: false,
+            dryRun: false
+        )
+    )
+
+    for try await file in filesToDisk {
+        onFile(file.name[...])
+    }
+    _ = try await readTask
+
+    print()
 }

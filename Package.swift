@@ -74,6 +74,13 @@ let package = Package(
     ],
     targets: [
         .systemLibrary(name: "XADI"),
+        // wraps libtatsu (Apple TSS/personalization protocol client), used for
+        // personalized Developer Disk Image mounting on iOS 17+. Declared locally
+        // (rather than in xtool-core, which only vendors libimobiledevice/plist/etc.
+        // as of this writing) against the system-installed library, same pattern as
+        // XADI above. Linux-only for now: xtool-core's macOS/Windows binaryTargets
+        // don't yet publish a libtatsu xcframework.
+        .systemLibrary(name: "CTatsu"),
         .target(
             name: "CXKit",
             dependencies: [
@@ -111,9 +118,15 @@ let package = Package(
                 "CXKit",
                 "XUtils",
                 .byName(name: "XADI", condition: .when(platforms: [.linux])),
+                .byName(name: "CTatsu", condition: .when(platforms: [.linux])),
                 .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
                 .product(name: "SwiftyMobileDevice", package: "SwiftyMobileDevice"),
+                // for personalization calls on MobileImageMounterClient not yet
+                // wrapped by SwiftyMobileDevice (query nonce/identifiers/manifest,
+                // mount-with-options). See Installation/PersonalizedDDIMounter.swift.
+                .product(name: "libimobiledevice", package: "xtool-core"),
+                .product(name: "plist", package: "xtool-core"),
                 .product(name: "Zupersign", package: "zsign"),
                 .product(name: "SignerSupport", package: "xtool-core"),
                 .product(name: "ProtoCodable", package: "xtool-core"),
@@ -147,6 +160,9 @@ let package = Package(
             name: "XToolTests",
             dependencies: [
                 "XToolSupport",
+                "XKit",
+                "PackLib",
+                .product(name: "plist", package: "xtool-core"),
             ]
         ),
         .target(
