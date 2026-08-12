@@ -4,5 +4,7 @@
 !/Sources
 !/Tests
 !/Linux
+!/Android
+/Android/output
 /Linux/packages
 /Linux/staging

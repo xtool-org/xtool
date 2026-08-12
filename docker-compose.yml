@@ -21,3 +21,13 @@ services:
       service: xtool
     build:
       target: dev-test
+  xtool-android:
+    profiles: [android]
+    build:
+      context: .
+      target: dev-android
+    volumes:
+      - .:/xtool
+      - .build/android:/xtool/.build
+    stdin_open: true
+    tty: true

@@ -1,4 +1,7 @@
 import Foundation
+#if os(Android)
+import Android
+#endif
 import XKit
 import ArgumentParser
 import XUtils
@@ -74,7 +77,7 @@ extension ParsableCommand where Self: SendableMetatype {
             }
         }
 
-        signal(SIGINT, SIG_IGN)
+        _ = signal(SIGINT, SIG_IGN)
         let source = DispatchSource.makeSignalSource(signal: SIGINT)
         source.setEventHandler { task.cancel() }
         source.resume()
