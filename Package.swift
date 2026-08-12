@@ -100,7 +100,7 @@ let package = Package(
                 .product(
                     name: "Subprocess",
                     package: "swift-subprocess",
-                    condition: .when(platforms: [.linux, .macOS])
+                    condition: .when(platforms: [.linux, .macOS, .android])
                 ),
             ]
         ),
@@ -110,7 +110,7 @@ let package = Package(
                 "DeveloperAPI",
                 "CXKit",
                 "XUtils",
-                .byName(name: "XADI", condition: .when(platforms: [.linux])),
+                .byName(name: "XADI", condition: .when(platforms: [.linux, .android])),
                 .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
                 .product(name: "SwiftyMobileDevice", package: "SwiftyMobileDevice"),
@@ -128,17 +128,17 @@ let package = Package(
                 .product(
                     name: "OpenAPIAsyncHTTPClient",
                     package: "swift-openapi-async-http-client",
-                    condition: .when(platforms: [.linux])
+                    condition: .when(platforms: [.linux, .android])
                 ),
                 .product(
                     name: "AsyncHTTPClient",
                     package: "async-http-client",
-                    condition: .when(platforms: [.linux])
+                    condition: .when(platforms: [.linux, .android])
                 ),
                 .product(
                     name: "WebSocketKit",
                     package: "websocket-kit",
-                    condition: .when(platforms: [.linux])
+                    condition: .when(platforms: [.linux, .android])
                 ),
             ],
             cSettings: cSettings
