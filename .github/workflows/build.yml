@@ -127,9 +127,23 @@ jobs:
                   pin['state']['revision'] = '7de3610da39c7cfa2635affab52fba169a94f4b4'
           json.dump(p, open('Package.resolved', 'w'), indent=2)
           EOF2
-          swift package update xtool-core unxip
+          # `swift package update unxip` recomputes the version and would
+          # overwrite the rewritten pin; only update xtool-core here, then
+          # re-apply the unxip pin afterwards (see below).
+          swift package update xtool-core
       - name: Cross-compile for Android
         run: |
+          # Re-apply the unxip fork pin AFTER any resolution (above):
+          # pinned-revision checkout goes through the mirror, which
+          # serves our 3.3 tag with the .when(platforms:) manifest.
+          python3 - <<'EOF3'
+          import json
+          p = json.load(open('Package.resolved'))
+          for pin in p['pins']:
+              if pin['identity'] == 'unxip':
+                  pin['state']['revision'] = '7de3610da39c7cfa2635affab52fba169a94f4b4'
+          json.dump(p, open('Package.resolved', 'w'), indent=2)
+          EOF3
           swift sdk list || true
           # point SwiftPM's systemLibrary pkg-config lookups at the
           # cross-compiled libraries (see build-native-libs.sh)
