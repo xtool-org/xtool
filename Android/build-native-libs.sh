@@ -82,7 +82,8 @@ fetch https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz 
 tar -C "$WORK" -xzf "$WORK/zlib.tar.gz"
 (
 	cd "$WORK/zlib-1.3.1"
-	CHOST="$TRIPLE" ./configure --prefix="$PREFIX" --static
+	# position-independent, like everything else we build
+	CHOST="$TRIPLE" CFLAGS="-fPIC" ./configure --prefix="$PREFIX" --static
 	make -j"$(nproc)" install
 )
 build_autotools \
