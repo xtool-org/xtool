@@ -153,4 +153,9 @@ jobs:
           export PKG_CONFIG_PATH="$ANDROID_SWIFT_SDK/swift-android/pkgconfig"
           # The Android SDK registers API-level-suffixed triples, not the
           # bare aarch64-unknown-linux-android.
-          swift build --product xtool --swift-sdk aarch64-unknown-linux-android28
+          # The final executable link line omits --target, so clang
+          # defaults to the host triple and rejects the aarch64-only
+          # --fix-cortex-a53-843419 the Swift driver passes; set it
+          # explicitly.
+          swift build --product xtool --swift-sdk aarch64-unknown-linux-android28 \
+            -Xclang-linker --target=aarch64-unknown-linux-android28
