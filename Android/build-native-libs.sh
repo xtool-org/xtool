@@ -59,8 +59,8 @@ tar -C "$WORK" -xzf "$WORK/openssl.tar.gz"
 build_autotools() { # <tarball-url> <src-dir> [configure args...]
 	local url=$1 dir=$2
 	shift 2
-	fetch "$url" "$dir.tar.bz2"
-	tar -C "$WORK" -xjf "$WORK/$dir.tar.bz2"
+	fetch "$url" "$dir.tar"
+	tar -C "$WORK" -xf "$WORK/$dir.tar"
 	(
 		cd "$WORK/$dir"
 		./configure --host="$TRIPLE" --prefix="$PREFIX" "$@"
@@ -123,5 +123,42 @@ LIB_DST=$SDK/ndk-sysroot/usr/lib/$TRIPLE
 mkdir -p "$INC_DST" "$LIB_DST"
 cp -R "$PREFIX/include/." "$INC_DST/"
 cp -a "$PREFIX/lib/"*.a "$LIB_DST/"
+
+# unxip links liblzma; build it too.
+echo "==> xz"
+fetch https://github.com/tukaani-project/xz/releases/download/v5.6.4/xz-5.6.4.tar.gz xz.tar
+tar -C "$WORK" -xf "$WORK/xz.tar"
+(
+	cd "$WORK/xz-5.6.4"
+	./configure --host="$TRIPLE" --prefix="$PREFIX" --disable-shared --enable-static
+	make -j"$(nproc)" install
+)
+cp -a "$PREFIX/lib/liblzma.a" "$LIB_DST/"
+
+# Generate pkg-config files pointing at the sysroot. SwiftPM's
+# systemLibrary targets query pkg-config for cflags/libs; on this host
+# pkg-config would otherwise resolve to host (x86_64) libraries.
+echo "==> generating pkg-config files"
+PC_DST=$SDK/swift-android/pkgconfig
+mkdir -p "$PC_DST"
+pc() { # <name> <version> <libs> [requires]
+	cat > "$PC_DST/$1.pc" <<EOF
+Name: $1
+Description: cross-compiled for Android
+Version: $2
+Libs: -L$LIB_DST $3
+Cflags: -I$INC_DST
+${4:+Requires: $4}
+EOF
+}
+pc openssl 3.3.2 "-lssl -lcrypto"
+pc liblzma 5.6.4 "-llzma"
+pc zlib 1.3.1 "-lz"
+pc libplist-2.0 2.6.0 "-lplist-2.0"
+pc libusbmuxd-2.0 2.1.0 "-lusbmuxd-2.0" "libplist-2.0"
+pc libimobiledevice-glue-1.0 1.3.1 "-limobiledevice-glue-1.0" "libplist-2.0"
+pc libcurl 8.16.0 "-lcurl -lssl -lcrypto -lz"
+pc libtatsu-1.0 1.0.4 "-ltatsu-1.0 -lcurl -lssl -lcrypto -lz" "libplist-2.0"
+pc libimobiledevice-1.0 2.0.0 "-limobiledevice-1.0" "libplist-2.0 libusbmuxd-2.0 libimobiledevice-glue-1.0 libtatsu-1.0 libcurl"
 
 echo "==> done: native libs installed into $SDK"
