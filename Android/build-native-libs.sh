@@ -102,6 +102,9 @@ fetch \
 tar -C "$WORK" -xzf "$WORK/libimobiledevice.tar.gz"
 (
 	cd "$WORK/libimobiledevice-master"
+	# git-archive tarballs have no version info; provide one for bootstrap
+	git init -q . && git add -A && git -c user.email=ci@localhost -c user.name=ci commit -qm "libimobiledevice master snapshot"
+	echo "2.0.1-git" > .tarball-version
 	./autogen.sh --host="$TRIPLE" --prefix="$PREFIX" --without-cython
 	make -j"$(nproc)" install
 )
