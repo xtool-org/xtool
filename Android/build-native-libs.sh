@@ -117,13 +117,6 @@ tar -C "$WORK" -xzf "$WORK/libimobiledevice.tar.gz"
 	make -j"$(nproc)" install
 )
 
-echo "==> installing into SDK sysroot"
-INC_DST=$SDK/ndk-sysroot/usr/include
-LIB_DST=$SDK/ndk-sysroot/usr/lib/$TRIPLE
-mkdir -p "$INC_DST" "$LIB_DST"
-cp -R "$PREFIX/include/." "$INC_DST/"
-cp -a "$PREFIX/lib/"*.a "$LIB_DST/"
-
 # unxip links liblzma; build it too.
 echo "==> xz"
 fetch https://github.com/tukaani-project/xz/releases/download/v5.6.4/xz-5.6.4.tar.gz xz.tar
@@ -133,7 +126,13 @@ tar -C "$WORK" -xf "$WORK/xz.tar"
 	./configure --host="$TRIPLE" --prefix="$PREFIX" --disable-shared --enable-static
 	make -j"$(nproc)" install
 )
-cp -a "$PREFIX/lib/liblzma.a" "$LIB_DST/"
+
+echo "==> installing into SDK sysroot"
+INC_DST=$SDK/ndk-sysroot/usr/include
+LIB_DST=$SDK/ndk-sysroot/usr/lib/$TRIPLE
+mkdir -p "$INC_DST" "$LIB_DST"
+cp -R "$PREFIX/include/." "$INC_DST/"
+cp -a "$PREFIX/lib/"*.a "$LIB_DST/"
 
 # Generate pkg-config files pointing at the sysroot. SwiftPM's
 # systemLibrary targets query pkg-config for cflags/libs; on this host
