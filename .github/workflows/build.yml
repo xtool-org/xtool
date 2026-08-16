@@ -77,9 +77,12 @@ jobs:
           swift sdk install \
             "https://download.swift.org/swift-${SWIFT_VERSION}-release/android-sdk/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE_android.artifactbundle.tar.gz" \
             --checksum "$ANDROID_SDK_CHECKSUM"
-          bundle=$(ls -d "$HOME"/.swiftpm/swift-sdks/swift-*-RELEASE_android.artifactbundle)
-          # Populate the SDK's ndk-sysroot from the NDK (hardlinks; no
-          # SELinux-style restrictions on CI runners).
+          # Depending on SwiftPM version, the unpacked bundle lives under
+          # ~/.swiftpm/swift-sdks or the download cache — find either.
+          bundle=$(find "$HOME/.swiftpm" -maxdepth 3 -type d -name '*_android.artifactbundle' | head -1)
+          test -n "$bundle" || { echo "SDK bundle not found" >&2; exit 1; }
+          # Populate the SDK's ndk-sysroot from the NDK (the bundle's
+          # setup-android-sdk.sh hardlinks it in).
           (cd "$bundle/swift-android" && bash scripts/setup-android-sdk.sh)
       - name: Cross-compile for Android
         run: |
