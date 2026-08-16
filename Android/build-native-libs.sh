@@ -34,6 +34,10 @@ mkdir -p "$PREFIX"
 # find each other instead of the host's libraries.
 export PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig
 export PKG_CONFIG_LIBDIR=$PREFIX/lib/pkgconfig
+# Make all configure probes (not just pkg-config ones) find the prefix:
+# AC_CHECK_LIB link tests need -L, header checks need -I.
+export CPPFLAGS="-I$PREFIX/include"
+export LDFLAGS="-L$PREFIX/lib"
 
 fetch() {
 	curl -sfL --retry 3 -o "$WORK/$2" "$1"
