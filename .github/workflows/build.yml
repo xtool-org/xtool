@@ -77,9 +77,23 @@ jobs:
           swift sdk install \
             "https://download.swift.org/swift-${SWIFT_VERSION}-release/android-sdk/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE_android.artifactbundle.tar.gz" \
             --checksum "$ANDROID_SDK_CHECKSUM"
-          # Depending on SwiftPM version, the unpacked bundle lives under
-          # ~/.swiftpm/swift-sdks or the download cache — find either.
-          bundle=$(find "$HOME/.swiftpm" -maxdepth 3 -type d -name '*_android.artifactbundle' | head -1)
+          # Depending on SwiftPM version/platform, the unpacked bundle
+          # lives under ~/.swiftpm/swift-sdks, the XDG data dir, or the
+          # cache — check the known candidates, then fall back to a
+          # HOME-wide search.
+          bundle=""
+          for d in \
+            "$HOME/.swiftpm/swift-sdks" \
+            "$HOME/.local/share/swiftpm/swift-sdks" \
+            "$HOME/.cache/swiftpm/swift-sdks"; do
+              if [ -d "$d/swift-${SWIFT_VERSION}-RELEASE_android.artifactbundle" ]; then
+                bundle="$d/swift-${SWIFT_VERSION}-RELEASE_android.artifactbundle"
+                break
+              fi
+          done
+          if [ -z "$bundle" ]; then
+            bundle=$(find "$HOME" -maxdepth 6 -type d -name "swift-${SWIFT_VERSION}-RELEASE_android.artifactbundle" 2>/dev/null | head -1)
+          fi
           test -n "$bundle" || { echo "SDK bundle not found" >&2; exit 1; }
           # Populate the SDK's ndk-sysroot from the NDK (the bundle's
           # setup-android-sdk.sh hardlinks it in).
