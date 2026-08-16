@@ -48,8 +48,8 @@ tar -C "$WORK" -xzf "$WORK/openssl.tar.gz"
 	cd "$WORK/openssl-3.3.2"
 	./Configure android-arm64 -D__ANDROID_API__=$API no-shared no-tests \
 		--prefix="$PREFIX"
-	make -j"$(nproc)" build_swift
-	make install_swift install_dev
+	make -j"$(nproc)" build_libs
+	make install_dev
 )
 
 build_autotools() { # <tarball-url> <src-dir> [configure args...]
