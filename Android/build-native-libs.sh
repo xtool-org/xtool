@@ -78,7 +78,7 @@ build_autotools \
 # and activation servers), so build it before them; curl needs zlib,
 # which the NDK does not ship pkg-config files for.
 echo "==> zlib"
-fetch https://zlib.net/zlib-1.3.1.tar.gz zlib.tar.gz
+fetch https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz zlib.tar.gz
 tar -C "$WORK" -xzf "$WORK/zlib.tar.gz"
 (
 	cd "$WORK/zlib-1.3.1"
