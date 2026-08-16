@@ -75,7 +75,16 @@ build_autotools \
 	https://github.com/libimobiledevice/libusbmuxd/releases/download/2.1.0/libusbmuxd-2.1.0.tar.bz2 \
 	libusbmuxd-2.1.0 --without-udev
 # libtatsu and libimobiledevice need libcurl (they talk to Apple's TSS
-# and activation servers), so build it before them.
+# and activation servers), so build it before them; curl needs zlib,
+# which the NDK does not ship pkg-config files for.
+echo "==> zlib"
+fetch https://zlib.net/zlib-1.3.1.tar.gz zlib.tar.gz
+tar -C "$WORK" -xzf "$WORK/zlib.tar.gz"
+(
+	cd "$WORK/zlib-1.3.1"
+	CHOST="$TRIPLE" ./configure --prefix="$PREFIX" --static
+	make -j"$(nproc)" install
+)
 build_autotools \
 	https://github.com/curl/curl/releases/download/curl-8_16_0/curl-8.16.0.tar.bz2 \
 	curl-8.16.0 --disable-shared --enable-static --with-openssl --without-libpsl \
