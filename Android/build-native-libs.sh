@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# Cross-builds the native libraries xtool links against (OpenSSL and the
+# libimobiledevice stack) for aarch64 Android, installing them into the
+# Swift SDK for Android's NDK sysroot so that
+#   swift build --swift-sdk aarch64-unknown-linux-android28
+# can compile and link against them.
+#
+# Usage: Android/build-native-libs.sh <path-to-swift-android-sdk>
+#   ANDROID_NDK_HOME must point at an unpacked NDK (>= r27).
+#
+# The library set mirrors the Linux Docker image (see Dockerfile): OpenSSL
+# plus libplist/libimobiledevice-glue/libusbmuxd/libtatsu/libimobiledevice
+# from the libimobiledevice project, all built statically. libxadi is not
+# needed: XADIProvider is os(Linux)-only (on macOS/Android anisette uses
+# Omnisette), so the XADI system library never enters the link.
+set -euo pipefail
+
+API=28
+TRIPLE=aarch64-linux-android
+SDK=${1:?usage: build-native-libs.sh <swift-android-sdk-dir>}
+: "${ANDROID_NDK_HOME:?ANDROID_NDK_HOME must be set}"
+
+TOOLCHAIN=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin
+export PATH="$TOOLCHAIN:$PATH"
+export CC="$TRIPLE$API-clang"
+export CXX="$TRIPLE$API-clang++"
+export AR=llvm-ar RANLIB=llvm-ranlib STRIP=llvm-strip
+export ANDROID_NDK_ROOT=$ANDROID_NDK_HOME
+
+WORK=$(mktemp -d)
+PREFIX=$WORK/prefix
+mkdir -p "$PREFIX"
+# Point pkg-config exclusively at the cross prefix so the autotools builds
+# find each other instead of the host's libraries.
+export PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig
+export PKG_CONFIG_LIBDIR=$PREFIX/lib/pkgconfig
+
+fetch() {
+	curl -sfL --retry 3 -o "$WORK/$2" "$1"
+}
+
+echo "==> OpenSSL"
+fetch \
+	https://github.com/openssl/openssl/releases/download/openssl-3.3.2/openssl-3.3.2.tar.gz \
+	openssl.tar.gz
+tar -C "$WORK" -xzf "$WORK/openssl.tar.gz"
+(
+	cd "$WORK/openssl-3.3.2"
+	./Configure android-arm64 -D__ANDROID_API__=$API no-shared no-tests \
+		--prefix="$PREFIX"
+	make -j"$(nproc)" build_swift
+	make install_swift install_dev
+)
+
+build_autotools() { # <tarball-url> <src-dir> [configure args...]
+	local url=$1 dir=$2
+	shift 2
+	fetch "$url" "$dir.tar.bz2"
+	tar -C "$WORK" -xjf "$WORK/$dir.tar.bz2"
+	(
+		cd "$WORK/$dir"
+		./configure --host="$TRIPLE" --prefix="$PREFIX" "$@"
+		make -j"$(nproc)" install
+	)
+}
+
+echo "==> libimobiledevice stack"
+build_autotools \
+	https://github.com/libimobiledevice/libplist/releases/download/2.6.0/libplist-2.6.0.tar.bz2 \
+	libplist-2.6.0 --without-cython
+build_autotools \
+	https://github.com/libimobiledevice/libimobiledevice-glue/releases/download/1.3.1/libimobiledevice-glue-1.3.1.tar.bz2 \
+	libimobiledevice-glue-1.3.1
+build_autotools \
+	https://github.com/libimobiledevice/libusbmuxd/releases/download/2.1.0/libusbmuxd-2.1.0.tar.bz2 \
+	libusbmuxd-2.1.0 --without-udev
+build_autotools \
+	https://github.com/libimobiledevice/libtatsu/releases/download/1.0.4/libtatsu-1.0.4.tar.bz2 \
+	libtatsu-1.0.4
+# libimobiledevice has no release tarball with the API SwiftyMobileDevice
+# needs; use master like the Linux Docker image does.
+fetch \
+	https://codeload.github.com/libimobiledevice/libimobiledevice/tar.gz/refs/heads/master \
+	libimobiledevice.tar.gz
+tar -C "$WORK" -xzf "$WORK/libimobiledevice.tar.gz"
+(
+	cd "$WORK/libimobiledevice-master"
+	./autogen.sh --host="$TRIPLE" --prefix="$PREFIX" --without-cython
+	make -j"$(nproc)" install
+)
+
+echo "==> installing into SDK sysroot"
+INC_DST=$SDK/ndk-sysroot/usr/include
+LIB_DST=$SDK/ndk-sysroot/usr/lib/$TRIPLE
+mkdir -p "$INC_DST" "$LIB_DST"
+cp -R "$PREFIX/include/." "$INC_DST/"
+cp -a "$PREFIX/lib/"*.a "$LIB_DST/"
+
+echo "==> done: native libs installed into $SDK"

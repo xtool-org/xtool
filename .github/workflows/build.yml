@@ -85,9 +85,15 @@ jobs:
           bundle="$HOME/.swiftpm/swift-sdks/swift-${SWIFT_VERSION}-RELEASE_android.artifactbundle"
           test -d "$bundle" || bundle=$(find "$HOME" -maxdepth 6 -type d -name "swift-${SWIFT_VERSION}-RELEASE_android.artifactbundle" 2>/dev/null | head -1)
           test -n "$bundle" || { echo "SDK bundle not found" >&2; exit 1; }
+          echo "ANDROID_SWIFT_SDK=$bundle" >> "$GITHUB_ENV"
           # Populate the SDK's ndk-sysroot from the NDK (the bundle's
           # setup-android-sdk.sh hardlinks it in).
           (cd "$bundle/swift-android" && bash scripts/setup-android-sdk.sh)
+      - name: Cross-build native libraries for Android
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends autoconf automake libtool
+          Android/build-native-libs.sh "$ANDROID_SWIFT_SDK/swift-android"
       - name: Cross-compile for Android
         run: |
           swift sdk list || true
