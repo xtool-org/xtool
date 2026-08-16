@@ -65,7 +65,7 @@ jobs:
       - name: Install Swift toolchain
         run: |
           curl -sfL "https://download.swift.org/swift-${SWIFT_VERSION}-release/ubuntu2404/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu24.04.tar.gz" \
-            | tar -xJ -C "$HOME"
+            | tar -xzf - -C "$HOME"
           echo "$HOME/swift-${SWIFT_VERSION}-RELEASE-ubuntu24.04/usr/bin" >> "$GITHUB_PATH"
       - name: Install Android NDK
         run: |
