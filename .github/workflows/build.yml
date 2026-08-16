@@ -91,4 +91,6 @@ jobs:
       - name: Cross-compile for Android
         run: |
           swift sdk list || true
-          swift build --product xtool --swift-sdk aarch64-unknown-linux-android
+          # The Android SDK registers API-level-suffixed triples, not the
+          # bare aarch64-unknown-linux-android.
+          swift build --product xtool --swift-sdk aarch64-unknown-linux-android28
