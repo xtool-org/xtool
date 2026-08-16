@@ -94,6 +94,23 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends autoconf automake libtool
           Android/build-native-libs.sh "$ANDROID_SWIFT_SDK/swift-android"
+      - name: Use bionic-guarded xtool-core
+        # TEMPORARY until xtool-org/xtool-core#2 is released: Superutils
+        # needs the Android guards for bionic Foundation.
+        run: |
+          mkdir -p ~/.swiftpm/configuration
+          cat > ~/.swiftpm/configuration/mirrors.json <<'EOF'
+          {
+            "object": [
+              {
+                "original": "https://github.com/xtool-org/xtool-core",
+                "mirror": "https://github.com/hpr/xtool-core"
+              }
+            ],
+            "version": 1
+          }
+          EOF
+          swift package update xtool-core
       - name: Cross-compile for Android
         run: |
           swift sdk list || true
