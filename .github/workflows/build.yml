@@ -153,9 +153,14 @@ jobs:
           export PKG_CONFIG_PATH="$ANDROID_SWIFT_SDK/swift-android/pkgconfig"
           # The Android SDK registers API-level-suffixed triples, not the
           # bare aarch64-unknown-linux-android.
-          # The final executable link line omits --target, so clang
-          # defaults to the host triple and rejects the aarch64-only
-          # --fix-cortex-a53-843419 the Swift driver passes; set it
-          # explicitly.
+          # The final executable link: clang (Android aarch64 default) adds
+          # --fix-cortex-a53-843419, but generic ld.lld defaults to x86-64
+          # emulation without an explicit -m and rejects the flag. Pass the
+          # emulation explicitly.
           swift build --product xtool --swift-sdk aarch64-unknown-linux-android28 \
-            -Xclang-linker --target=aarch64-unknown-linux-android28
+            -Xclang-linker --target=aarch64-unknown-linux-android28 \
+            -Xclang-linker -Wl,-m,aarch64elf \
+            || { echo '==> link failed; retrying verbosely for diagnosis'; \
+                 swift build -v --product xtool --swift-sdk aarch64-unknown-linux-android28 \
+                   -Xclang-linker --target=aarch64-unknown-linux-android28 \
+                   -Xclang-linker -Wl,-m,aarch64elf 2>&1 | tail -80; exit 1; }
