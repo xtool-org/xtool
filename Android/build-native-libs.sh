@@ -74,16 +74,16 @@ build_autotools \
 build_autotools \
 	https://github.com/libimobiledevice/libusbmuxd/releases/download/2.1.0/libusbmuxd-2.1.0.tar.bz2 \
 	libusbmuxd-2.1.0 --without-udev
-build_autotools \
-	https://github.com/libimobiledevice/libtatsu/releases/download/1.0.4/libtatsu-1.0.4.tar.bz2 \
-	libtatsu-1.0.4
-# libimobiledevice needs libcurl (mobileactivation talks to Apple's
-# activation servers).
+# libtatsu and libimobiledevice need libcurl (they talk to Apple's TSS
+# and activation servers), so build it before them.
 build_autotools \
 	https://github.com/curl/curl/releases/download/curl-8_16_0/curl-8.16.0.tar.bz2 \
 	curl-8.16.0 --disable-shared --enable-static --with-openssl --without-libpsl \
 	--without-libidn2 --without-brotli --without-zstd --without-nghttp2 \
 	--disable-ldap --disable-ldaps --with-ca-bundle=/system/etc/security/cacerts
+build_autotools \
+	https://github.com/libimobiledevice/libtatsu/releases/download/1.0.4/libtatsu-1.0.4.tar.bz2 \
+	libtatsu-1.0.4
 # libimobiledevice has no release tarball with the API SwiftyMobileDevice
 # needs; use master like the Linux Docker image does.
 fetch \
