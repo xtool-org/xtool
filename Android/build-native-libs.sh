@@ -64,6 +64,10 @@ build_autotools() { # <tarball-url> <src-dir> [configure args...]
 	)
 }
 
+# bionic's pthreads are in libc and modern NDKs ship no libpthread;
+# provide an empty static lib so -lpthread probes and links resolve.
+"$AR" cr "$PREFIX/lib/libpthread.a"
+
 echo "==> libimobiledevice stack"
 build_autotools \
 	https://github.com/libimobiledevice/libplist/releases/download/2.6.0/libplist-2.6.0.tar.bz2 \
@@ -105,9 +109,7 @@ tar -C "$WORK" -xzf "$WORK/libimobiledevice.tar.gz"
 	# git-archive tarballs have no version info; provide one for bootstrap
 	git init -q . && git add -A && git -c user.email=ci@localhost -c user.name=ci commit -qm "libimobiledevice master snapshot"
 	echo "2.0.1-git" > .tarball-version
-	# bionic's pthreads are in libc; there is no libpthread, so the
-	# AC_CHECK_LIB(pthread, pthread_once) probe fails spuriously.
-	ac_cv_lib_pthread_pthread_once=yes ./autogen.sh --host="$TRIPLE" --prefix="$PREFIX" --without-cython
+	./autogen.sh --host="$TRIPLE" --prefix="$PREFIX" --without-cython
 	make -j"$(nproc)" install
 )
 
