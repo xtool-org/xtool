@@ -133,15 +133,18 @@ jobs:
           swift package update xtool-core
       - name: Cross-compile for Android
         run: |
-          # Re-apply the unxip fork pin AFTER any resolution (above):
-          # pinned-revision checkout goes through the mirror, which
-          # serves our 3.3 tag with the .when(platforms:) manifest.
+          # Re-apply the fork pins AFTER any resolution (above):
+          # `swift package update` recomputes versions from the canonical
+          # (cached) repos and overwrites rewritten pins. Pinned-revision
+          # checkouts go through the mirror, which serves the fork tags.
           python3 - <<'EOF3'
           import json
           p = json.load(open('Package.resolved'))
           for pin in p['pins']:
               if pin['identity'] == 'unxip':
                   pin['state']['revision'] = '7de3610da39c7cfa2635affab52fba169a94f4b4'
+              if pin['identity'] == 'xtool-core':
+                  pin['state']['revision'] = '58d5b679fa93f6e2a81901a54f43686ef3f53264'
           json.dump(p, open('Package.resolved', 'w'), indent=2)
           EOF3
           swift sdk list || true
