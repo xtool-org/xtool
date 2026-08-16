@@ -106,8 +106,8 @@ tar -C "$WORK" -xzf "$WORK/libimobiledevice.tar.gz"
 	git init -q . && git add -A && git -c user.email=ci@localhost -c user.name=ci commit -qm "libimobiledevice master snapshot"
 	echo "2.0.1-git" > .tarball-version
 	# bionic's pthreads are in libc; there is no libpthread, so the
-	# acx_pthread -lpthread probe fails spuriously. pthread_once exists.
-	ac_cv_func_pthread_once=yes ./autogen.sh --host="$TRIPLE" --prefix="$PREFIX" --without-cython
+	# AC_CHECK_LIB(pthread, pthread_once) probe fails spuriously.
+	ac_cv_lib_pthread_pthread_once=yes ./autogen.sh --host="$TRIPLE" --prefix="$PREFIX" --without-cython
 	make -j"$(nproc)" install
 )
 
