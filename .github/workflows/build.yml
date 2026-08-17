@@ -209,23 +209,55 @@ jobs:
           if swift build --product xtool --swift-sdk aarch64-unknown-linux-android28; then
             exit 0
           fi
-          # DIAGNOSTIC (temporary): on link failure, re-run verbosely so
-          # clang dumps the ld.lld invocation + response file contents,
-          # then inspect any response files left on disk.
-          echo '=== verbose retry ==='
-          swift build --product xtool --swift-sdk aarch64-unknown-linux-android28 -v 2>&1 | tail -100 || true
-          echo '=== response files on disk ==='
-          for f in /tmp/response-*.txt; do
-            [ -e "$f" ] || { echo '(none left on disk)'; break; }
-            echo "== $f"
-            grep -c 'aarch64elf' "$f" || true
-          done
-          echo '=== captured response files (via ld.lld wrapper) ==='
-          for f in /tmp/captured-rsp-*.txt; do
-            [ -e "$f" ] || { echo '(none captured)'; break; }
-            echo "== $f ($(wc -c < "$f") bytes)"
-            echo '-- first 200 bytes:'; head -c 200 "$f"; echo
-            echo '-- -m tokens:'; grep -o '"\?-m"\?[ "]*[a-z0-9_]*' "$f" | sort | uniq -c || true
-            echo '-- fix-cortex count:'; grep -c 'fix-cortex' "$f" || true
-          done
+          # DIAGNOSTIC (temporary): the probe proved this ld.lld honors -m
+          # from a response file, yet the real link fails as if -m were
+          # absent while the captured response file demonstrably contains
+          # it. Re-run the real binary against the captured file and find
+          # the token region that neutralizes -m via prefix checkpoints.
+          echo '=== captured response file analysis ==='
+          BIN="$HOME/swift-${SWIFT_VERSION}-RELEASE-ubuntu24.04/usr/bin"
+          f=$(ls /tmp/captured-rsp-*.txt | head -1)
+          [ -n "$f" ] || { echo '(none captured)'; exit 1; }
+          echo "file: $f ($(wc -c < "$f") bytes, $(wc -l < "$f") newlines)"
+          echo '-- first 16 bytes:'; head -c 16 "$f" | od -c | head -2
+          echo '-- rerun real lld on captured file as-is:'
+          "$BIN/ld.lld.real" @"$f" 2>&1 | head -4 || true
+          echo '-- rerun with -m aarch64linux prepended on argv:'
+          "$BIN/ld.lld.real" -m aarch64linux @"$f" 2>&1 | head -4 || true
+          echo '=== token-prefix checkpoints ==='
+          python3 - "$f" "$BIN/ld.lld.real" <<'EOF'
+          import re, subprocess, sys
+          data = open(sys.argv[1]).read()
+          lld = sys.argv[2]
+          toks = re.findall(r'"[^"]*"|\S+', data)
+          print('token count:', len(toks))
+          def check(n):
+              use = toks[:n] + ['"-o"', '"/tmp/b.out"', '"/tmp/probe.o"']
+              open('/tmp/b.rsp', 'w').write(' '.join(use))
+              r = subprocess.run([lld, '@/tmp/b.rsp'],
+                                 capture_output=True, text=True)
+              bad = 'only supported on AArch64' in r.stderr
+              first = (r.stderr.strip().splitlines() or ['(no stderr)'])[0]
+              print('prefix', n, '->', 'BAD' if bad else 'ok', '|', first[:110])
+              return bad
+          mi = toks.index('"-m"')
+          print('first -m token index:', mi)
+          check(mi)
+          early = check(mi + 2)
+          full = check(len(toks))
+          if not full:
+              print('FULL FILE OK ON RERUN: failure is environmental (wrapper?)')
+          elif early:
+              print('broken right after first -m: culprit in the head tokens')
+          else:
+              lo, hi = mi + 2, len(toks)
+              while lo < hi:
+                  mid = (lo + hi) // 2
+                  if check(mid):
+                      hi = mid
+                  else:
+                      lo = mid + 1
+              print('first bad prefix length:', lo)
+              print('culprit region:', toks[max(0, lo - 5):lo + 2])
+          EOF
           exit 1
