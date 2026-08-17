@@ -72,39 +72,6 @@ jobs:
           curl -sfL -o ndk.zip "https://dl.google.com/android/repository/android-ndk-r${NDK_VERSION}-linux.zip"
           unzip -q ndk.zip -d "$HOME"
           echo "ANDROID_NDK_HOME=$HOME/android-ndk-r${NDK_VERSION}" >> "$GITHUB_ENV"
-      # DIAGNOSTIC (temporary): the final swiftc link on CI fails with
-      # "ld.lld: error: --fix-cortex-a53-843419 is only supported on AArch64"
-      # even though clang's own dump shows "-m" "aarch64linux" in the
-      # response file. Probe whether this toolchain's ld.lld honors -m
-      # from a response file vs from argv.
-      - name: Probe ld.lld emulation handling
-        run: |
-          LD="$HOME/swift-${SWIFT_VERSION}-RELEASE-ubuntu24.04/usr/bin/ld.lld"
-          "$LD" --version | head -2
-          echo 'int main(void){return 0;}' > /tmp/probe.c
-          clang --target=aarch64-linux-android28 \
-            --sysroot="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot" \
-            -c /tmp/probe.c -o /tmp/probe.o
-          printf '"-EL" "--fix-cortex-a53-843419" "-m" "aarch64elf" "-pie" "-o" "/tmp/probe-rsp.out" "/tmp/probe.o"\n' > /tmp/probe.rsp
-          echo '=== -m via response file ==='
-          "$LD" @/tmp/probe.rsp && echo RSP_OK
-          echo '=== -m via argv ==='
-          "$LD" -EL --fix-cortex-a53-843419 -m aarch64elf -pie -o /tmp/probe-argv.out /tmp/probe.o && echo ARGV_OK
-          true
-      # DIAGNOSTIC (temporary): the probe above proves this ld.lld honors
-      # -m from a response file, yet the real link fails as if -m were
-      # absent even though clang's failure dump shows it. Capture the
-      # ACTUAL response file bytes lld receives.
-      - name: Wrap ld.lld to capture response files
-        run: |
-          BIN="$HOME/swift-${SWIFT_VERSION}-RELEASE-ubuntu24.04/usr/bin"
-          mv "$BIN/ld.lld" "$BIN/ld.lld.real"
-          printf '%s\n' '#!/bin/bash' \
-            'for a in "$@"; do' \
-            '  case "$a" in @*) cp "${a#@}" "/tmp/captured-rsp-$(date +%s%N).txt" ;; esac' \
-            'done' \
-            'exec -a ld.lld "$(dirname "$0")/ld.lld.real" "$@"' > "$BIN/ld.lld"
-          chmod +x "$BIN/ld.lld"
       - name: Install Swift SDK for Android
         run: |
           # Install from a local file: URL installs land in a cache dir on
@@ -180,7 +147,6 @@ jobs:
                   pin['state']['revision'] = '58d5b679fa93f6e2a81901a54f43686ef3f53264'
           json.dump(p, open('Package.resolved', 'w'), indent=2)
           EOF3
-          swift sdk list || true
           # SwiftPM's systemLibrary targets (xtool-core: openssl,
           # libplist-2.0, ...) query pkg-config for cflags/libs. Without
           # this, the host pkg-config resolves host (x86_64) .pc files and
@@ -193,68 +159,8 @@ jobs:
           # build-native-libs.sh so only the cross sysroot is visible.
           export PKG_CONFIG_PATH="$ANDROID_SWIFT_SDK/swift-android/pkgconfig"
           export PKG_CONFIG_LIBDIR="$ANDROID_SWIFT_SDK/swift-android/pkgconfig"
-          echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
-          ls "$PKG_CONFIG_PATH" || true
           # The Android SDK registers API-level-suffixed triples, not the
           # bare aarch64-unknown-linux-android.
-          if swift build --product xtool --swift-sdk aarch64-unknown-linux-android28; then
-            exit 0
-          fi
-          # DIAGNOSTIC (temporary): the probe proved this ld.lld honors -m
-          # from a response file, yet the real link fails as if -m were
-          # absent while the captured response file demonstrably contains
-          # it. Re-run the real binary against the captured file and find
-          # the token region that neutralizes -m via prefix checkpoints.
-          echo '=== captured response file analysis ==='
-          BIN="$HOME/swift-${SWIFT_VERSION}-RELEASE-ubuntu24.04/usr/bin"
-          f=$(ls /tmp/captured-rsp-*.txt | head -1)
-          [ -n "$f" ] || { echo '(none captured)'; exit 1; }
-          # ld.lld dispatches on argv[0]; use a copy named ld.lld so the
-          # rerun selects the GNU/ELF flavor like the real invocation.
-          mkdir -p /tmp/lldbin && cp "$BIN/ld.lld.real" /tmp/lldbin/ld.lld
-          LLD=/tmp/lldbin/ld.lld
-          echo "file: $f ($(wc -c < "$f") bytes, $(wc -l < "$f") newlines)"
-          echo '-- first 16 bytes:'; head -c 16 "$f" | od -c | head -2
-          echo '-- -L tokens:'
-          grep -o '"-L[^"]*"' "$f" | sort | uniq -c
-          echo '-- rerun lld on captured file as-is:'
-          "$LLD" @"$f" 2>&1 | head -4 || true
-          echo '-- rerun with -m aarch64linux prepended on argv:'
-          "$LLD" -m aarch64linux @"$f" 2>&1 | head -4 || true
-          echo '=== token-prefix checkpoints ==='
-          python3 - "$f" "$LLD" <<'EOF'
-          import re, subprocess, sys
-          data = open(sys.argv[1]).read()
-          lld = sys.argv[2]
-          toks = re.findall(r'"[^"]*"|\S+', data)
-          print('token count:', len(toks))
-          def check(n):
-              use = toks[:n] + ['"-o"', '"/tmp/b.out"', '"/tmp/probe.o"']
-              open('/tmp/b.rsp', 'w').write(' '.join(use))
-              r = subprocess.run([lld, '@/tmp/b.rsp'],
-                                 capture_output=True, text=True)
-              bad = 'only supported on AArch64' in r.stderr
-              first = (r.stderr.strip().splitlines() or ['(no stderr)'])[0]
-              print('prefix', n, '->', 'BAD' if bad else 'ok', '|', first[:110])
-              return bad
-          mi = toks.index('"-m"')
-          print('first -m token index:', mi)
-          check(mi)
-          early = check(mi + 2)
-          full = check(len(toks))
-          if not full:
-              print('FULL FILE OK ON RERUN: failure is environmental (wrapper?)')
-          elif early:
-              print('broken right after first -m: culprit in the head tokens')
-          else:
-              lo, hi = mi + 2, len(toks)
-              while lo < hi:
-                  mid = (lo + hi) // 2
-                  if check(mid):
-                      hi = mid
-                  else:
-                      lo = mid + 1
-              print('first bad prefix length:', lo)
-              print('culprit region:', toks[max(0, lo - 5):lo + 2])
-          EOF
-          exit 1
+          swift build --product xtool --swift-sdk aarch64-unknown-linux-android28
+          # Sanity-check the product: must be an aarch64 Android ELF.
+          file .build/aarch64-unknown-linux-android28/debug/xtool
