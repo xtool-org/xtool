@@ -174,5 +174,11 @@ echo 'INPUT(-lc++)' > "$LIB_DST/libstdc++.so"
 # but lld is not built with zstd support"). Strip debug sections from every
 # static archive in the sysroot so lld can consume them.
 find "$SDK/ndk-sysroot" -name '*.a' -exec llvm-strip --strip-debug {} +
+# Verify the strip actually took: fail here, not at the final Swift link.
+archives=$(find "$SDK/ndk-sysroot" -name '*.a' | wc -l)
+libc="$SDK/ndk-sysroot/usr/lib/$TRIPLE/libc.a"
+remaining=$(readelf -SW "$libc" | grep -E '^[[:space:]]+\[[[:space:]0-9]+\]' | grep -c ' C ' || true)
+echo "stripped debug sections from $archives archives; compressed sections left in $libc: $remaining"
+[ "$remaining" = 0 ] || { echo "ERROR: zstd-compressed sections remain in $libc" >&2; exit 1; }
 
 echo "==> done: native libs installed into $SDK"
