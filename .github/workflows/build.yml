@@ -193,6 +193,8 @@ jobs:
           # build-native-libs.sh so only the cross sysroot is visible.
           export PKG_CONFIG_PATH="$ANDROID_SWIFT_SDK/swift-android/pkgconfig"
           export PKG_CONFIG_LIBDIR="$ANDROID_SWIFT_SDK/swift-android/pkgconfig"
+          echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
+          ls "$PKG_CONFIG_PATH"
           # The Android SDK registers API-level-suffixed triples, not the
           # bare aarch64-unknown-linux-android.
           if swift build --product xtool --swift-sdk aarch64-unknown-linux-android28; then
@@ -213,6 +215,8 @@ jobs:
           LLD=/tmp/lldbin/ld.lld
           echo "file: $f ($(wc -c < "$f") bytes, $(wc -l < "$f") newlines)"
           echo '-- first 16 bytes:'; head -c 16 "$f" | od -c | head -2
+          echo '-- -L tokens:'
+          grep -o '"-L[^"]*"' "$f" | sort | uniq -c
           echo '-- rerun lld on captured file as-is:'
           "$LLD" @"$f" 2>&1 | head -4 || true
           echo '-- rerun with -m aarch64linux prepended on argv:'
