@@ -172,10 +172,12 @@ echo 'INPUT(-lc++)' > "$LIB_DST/libstdc++.so"
 # debug sections, but the swift.org toolchain's lld is built without zstd
 # support and errors out reading them ("is compressed with ELFCOMPRESS_ZSTD,
 # but lld is not built with zstd support"). Strip debug sections from every
-# static archive in the sysroot so lld can consume them.
-find "$SDK/ndk-sysroot" -name '*.a' -exec llvm-strip --strip-debug {} +
+# static archive in the sysroot so lld can consume them. Note -L: the SDK's
+# setup-android-sdk.sh symlinks ndk-sysroot/usr/lib/<triple> into the NDK by
+# default (SWIFT_ANDROID_NDK_LINK=1), and find's default -P won't traverse it.
+find -L "$SDK/ndk-sysroot" -name '*.a' -exec llvm-strip --strip-debug {} +
 # Verify the strip actually took: fail here, not at the final Swift link.
-archives=$(find "$SDK/ndk-sysroot" -name '*.a' | wc -l)
+archives=$(find -L "$SDK/ndk-sysroot" -name '*.a' | wc -l)
 libc="$SDK/ndk-sysroot/usr/lib/$TRIPLE/libc.a"
 remaining=$(readelf -SW "$libc" | grep -E '^[[:space:]]+\[[[:space:]0-9]+\]' | grep -c ' C ' || true)
 echo "stripped debug sections from $archives archives; compressed sections left in $libc: $remaining"
