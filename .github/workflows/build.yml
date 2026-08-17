@@ -148,19 +148,26 @@ jobs:
           json.dump(p, open('Package.resolved', 'w'), indent=2)
           EOF3
           swift sdk list || true
-          # SwiftPM invokes the HOST toolchain's generic ld.lld for the
-          # final executable link (not the NDK clang wrapper). The NDK
-          # sysroot + aarch64 flags arrive via response file, but no
-          # emulation is selected, so lld defaults to x86-64 and rejects
-          # aarch64-only flags. Shim ld.lld on the PATH to inject it.
-          mkdir -p "$HOME/bin"
-          cat > "$HOME/bin/ld.lld" <<'EOF4'
-          #!/bin/sh
-          # Generic lld invocation for an Android/aarch64 target: pass
-          # through to the real host lld with the right emulation.
-          exec /home/runner/swift-6.3.2-RELEASE-ubuntu24.04/usr/bin/ld.lld -m aarch64elf "$@"
+          # SwiftPM runs the final executable link through the HOST
+          # toolchain's clang, which resolves the generic ld.lld from its
+          # own program dir (PATH is searched only after -B dirs and the
+          # program dir, so a PATH shim cannot intercept). The link args
+          # arrive via response file with no emulation selected, so lld
+          # defaults to x86-64 and rejects aarch64-only flags. The SDK
+          # toolset's linker options DO reach this link (its
+          # -z max-page-size=16384 is in the response file), so inject the
+          # emulation there instead.
+          python3 - <<'EOF4'
+          import json, os
+          p = os.path.join(os.environ["ANDROID_SWIFT_SDK"], "swift-android", "swift-toolset.json")
+          j = json.load(open(p))
+          linker = j.setdefault("linker", {})
+          opts = linker.setdefault("extraCLIOptions", [])
+          if "-Wl,-m,aarch64elf" not in opts:
+              opts.append("-Wl,-m,aarch64elf")
+          json.dump(j, open(p, "w"), indent=2)
+          print("patched", p)
           EOF4
-          chmod +x "$HOME/bin/ld.lld"
           # The Android SDK registers API-level-suffixed triples, not the
           # bare aarch64-unknown-linux-android.
           swift build --product xtool --swift-sdk aarch64-unknown-linux-android28
