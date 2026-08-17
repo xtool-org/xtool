@@ -163,8 +163,11 @@ jobs:
           j = json.load(open(p))
           linker = j.setdefault("linker", {})
           opts = linker.setdefault("extraCLIOptions", [])
-          if "-Wl,-m,aarch64elf" not in opts:
-              opts.append("-Wl,-m,aarch64elf")
+          # toolset linker options are copied VERBATIM into the ld.lld
+          # response file (no -Wl, translation), so use raw lld syntax
+          # like the existing "-z" / "max-page-size=16384" entries.
+          if "-m" not in opts:
+              opts += ["-m", "aarch64elf"]
           json.dump(j, open(p, "w"), indent=2)
           print("patched", p)
           EOF4
