@@ -175,7 +175,12 @@ echo 'INPUT(-lc++)' > "$LIB_DST/libstdc++.so"
 # static archive in the sysroot so lld can consume them. Note -L: the SDK's
 # setup-android-sdk.sh symlinks ndk-sysroot/usr/lib/<triple> into the NDK by
 # default (SWIFT_ANDROID_NDK_LINK=1), and find's default -P won't traverse it.
-find -L "$SDK/ndk-sysroot" -name '*.a' -exec llvm-strip --strip-debug {} +
+# Skip failures: some NDK "archives" (e.g. libc++.a in the per-API dirs) are
+# GNU ld scripts, not objects, and llvm-strip can't parse them.
+find -L "$SDK/ndk-sysroot" -name '*.a' -print0 |
+  while IFS= read -r -d '' a; do
+    llvm-strip --strip-debug "$a" 2>/dev/null || true
+  done
 # Verify the strip actually took: fail here, not at the final Swift link.
 archives=$(find -L "$SDK/ndk-sysroot" -name '*.a' | wc -l)
 libc="$SDK/ndk-sysroot/usr/lib/$TRIPLE/libc.a"
