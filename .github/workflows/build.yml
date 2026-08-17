@@ -99,11 +99,11 @@ jobs:
         run: |
           BIN="$HOME/swift-${SWIFT_VERSION}-RELEASE-ubuntu24.04/usr/bin"
           mv "$BIN/ld.lld" "$BIN/ld.lld.real"
-          printf '%s\n' '#!/bin/sh' \
+          printf '%s\n' '#!/bin/bash' \
             'for a in "$@"; do' \
             '  case "$a" in @*) cp "${a#@}" "/tmp/captured-rsp-$(date +%s%N).txt" ;; esac' \
             'done' \
-            'exec "$(dirname "$0")/ld.lld.real" "$@"' > "$BIN/ld.lld"
+            'exec -a ld.lld "$(dirname "$0")/ld.lld.real" "$@"' > "$BIN/ld.lld"
           chmod +x "$BIN/ld.lld"
       - name: Install Swift SDK for Android
         run: |
@@ -218,14 +218,18 @@ jobs:
           BIN="$HOME/swift-${SWIFT_VERSION}-RELEASE-ubuntu24.04/usr/bin"
           f=$(ls /tmp/captured-rsp-*.txt | head -1)
           [ -n "$f" ] || { echo '(none captured)'; exit 1; }
+          # ld.lld dispatches on argv[0]; use a copy named ld.lld so the
+          # rerun selects the GNU/ELF flavor like the real invocation.
+          mkdir -p /tmp/lldbin && cp "$BIN/ld.lld.real" /tmp/lldbin/ld.lld
+          LLD=/tmp/lldbin/ld.lld
           echo "file: $f ($(wc -c < "$f") bytes, $(wc -l < "$f") newlines)"
           echo '-- first 16 bytes:'; head -c 16 "$f" | od -c | head -2
-          echo '-- rerun real lld on captured file as-is:'
-          "$BIN/ld.lld.real" @"$f" 2>&1 | head -4 || true
+          echo '-- rerun lld on captured file as-is:'
+          "$LLD" @"$f" 2>&1 | head -4 || true
           echo '-- rerun with -m aarch64linux prepended on argv:'
-          "$BIN/ld.lld.real" -m aarch64linux @"$f" 2>&1 | head -4 || true
+          "$LLD" -m aarch64linux @"$f" 2>&1 | head -4 || true
           echo '=== token-prefix checkpoints ==='
-          python3 - "$f" "$BIN/ld.lld.real" <<'EOF'
+          python3 - "$f" "$LLD" <<'EOF'
           import re, subprocess, sys
           data = open(sys.argv[1]).read()
           lld = sys.argv[2]
