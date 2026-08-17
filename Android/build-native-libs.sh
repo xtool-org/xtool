@@ -157,7 +157,9 @@ pc libplist-2.0 2.6.0 "-lplist-2.0"
 pc libusbmuxd-2.0 2.1.0 "-lusbmuxd-2.0" "libplist-2.0"
 pc libimobiledevice-glue-1.0 1.3.1 "-limobiledevice-glue-1.0" "libplist-2.0"
 pc libcurl 8.16.0 "-lcurl -lssl -lcrypto -lz"
-pc libtatsu-1.0 1.0.4 "-ltatsu-1.0 -lcurl -lssl -lcrypto -lz" "libplist-2.0"
+# libtatsu's .pc is versioned (libtatsu-1.0) but its libtool target is not:
+# it installs libtatsu.a, so the link flag must be -ltatsu.
+pc libtatsu-1.0 1.0.4 "-ltatsu -lcurl -lssl -lcrypto -lz" "libplist-2.0"
 pc libimobiledevice-1.0 2.0.0 "-limobiledevice-1.0" "libplist-2.0 libusbmuxd-2.0 libimobiledevice-glue-1.0 libtatsu-1.0 libcurl"
 
 # SwiftPM links products containing C++ targets (zsign) with -lstdc++ for
