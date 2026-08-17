@@ -168,4 +168,11 @@ pc libimobiledevice-1.0 2.0.0 "-limobiledevice-1.0" "libplist-2.0 libusbmuxd-2.0
 # name onto the NDK's C++ runtime so the link resolves.
 echo 'INPUT(-lc++)' > "$LIB_DST/libstdc++.so"
 
+# The NDK's prebuilt static libraries (libc.a & co.) carry zstd-compressed
+# debug sections, but the swift.org toolchain's lld is built without zstd
+# support and errors out reading them ("is compressed with ELFCOMPRESS_ZSTD,
+# but lld is not built with zstd support"). Strip debug sections from every
+# static archive in the sysroot so lld can consume them.
+find "$SDK/ndk-sysroot" -name '*.a' -exec llvm-strip --strip-debug {} +
+
 echo "==> done: native libs installed into $SDK"
