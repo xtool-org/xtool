@@ -138,7 +138,7 @@ cp -a "$PREFIX/lib/"*.a "$LIB_DST/"
 # systemLibrary targets query pkg-config for cflags/libs; on this host
 # pkg-config would otherwise resolve to host (x86_64) libraries.
 echo "==> generating pkg-config files"
-PC_DST=$SDK/swift-android/pkgconfig
+PC_DST=$SDK/pkgconfig
 mkdir -p "$PC_DST"
 pc() { # <name> <version> <libs> [requires]
 	cat > "$PC_DST/$1.pc" <<EOF
