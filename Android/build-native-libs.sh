@@ -162,11 +162,10 @@ pc libcurl 8.16.0 "-lcurl -lssl -lcrypto -lz"
 pc libtatsu-1.0 1.0.4 "-ltatsu -lcurl -lssl -lcrypto -lz" "libplist-2.0"
 pc libimobiledevice-1.0 2.0.0 "-limobiledevice-1.0" "libplist-2.0 libusbmuxd-2.0 libimobiledevice-glue-1.0 libtatsu-1.0 libcurl"
 
-# SwiftPM links products containing C++ targets (zsign) with -lstdc++ for
-# every non-Darwin/FreeBSD/Windows triple (BuildPlan+Product.swift), but
-# Android's C++ runtime is libc++ and the NDK ships no libstdc++. Map the
-# name onto the NDK's C++ runtime so the link resolves.
-echo 'INPUT(-lc++)' > "$LIB_DST/libstdc++.so"
+# SwiftPM's -lstdc++ for C++ products needs no mapping on Android: the NDK
+# ships a legacy libstdc++.so stub in each per-API-level sysroot lib dir,
+# which the clang driver puts on the link search path; --as-needed then
+# drops it since the real C++ runtime (libc++_shared) provides the symbols.
 
 # The NDK's prebuilt static libraries (libc.a & co.) carry zstd-compressed
 # debug sections, but the swift.org toolchain's lld is built without zstd
