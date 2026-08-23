@@ -14,6 +14,12 @@ If you're on Windows, you can use xtool via [Windows Subsystem for Linux](https:
 
 Once you install WSL, you'll also need to set up USB passthrough. See Microsoft's instructions on [installing USBIPD](https://learn.microsoft.com/en-us/windows/wsl/connect-usb). Make sure you're able to bind your iOS device to WSL via USB.
 
+> Note:
+>
+> If you encounter `Error: AFCClient.Error.muxError`, follow the steps described in [this issue comment](https://github.com/xtool-org/xtool/issues/19#issuecomment-2898986718) from user rena2019.
+>
+> This relays the device connection from iTunes on Windows, instead of relying on USBIPD.
+
 ### Swift
 
 Install the Swift 6.3 toolchain for your Linux distribution from <https://swift.org/install/linux>.
