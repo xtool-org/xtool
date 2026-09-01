@@ -138,3 +138,9 @@ extension WirelessAccessoryEntitlement: EntitlementWithCapability {
         DeveloperServicesCapability(.wirelessAccessoryConfiguration, isFree: true)
     }
 }
+
+extension WiFiAwareEntitlement: EntitlementWithCapability {
+    var capability: DeveloperServicesCapability {
+        DeveloperServicesCapability(rawName: "WIFI_AWARE", isFree: false)
+    }
+}
