@@ -146,6 +146,7 @@ let package = Package(
         .testTarget(
             name: "XToolTests",
             dependencies: [
+                "XKit",
                 "XToolSupport",
             ]
         ),
