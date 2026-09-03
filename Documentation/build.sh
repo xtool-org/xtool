@@ -22,4 +22,5 @@ else
 fi
 
 "$docc" "$command" xtool.docc \
+    --enable-experimental-code-block-annotations \
     --experimental-enable-custom-templates
