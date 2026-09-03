@@ -95,3 +95,8 @@ jobs:
         ghcr.io/xtool-org/xtool
       meta-tags: |
         type=semver,pattern={{version}}
+    secrets:
+      registry-auths: |
+        - registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
