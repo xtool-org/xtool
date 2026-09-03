@@ -94,43 +94,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends autoconf automake libtool
           Android/build-native-libs.sh "$ANDROID_SWIFT_SDK/swift-android"
-      - name: Use bionic-guarded forks of xtool-core and unxip
-        # TEMPORARY until xtool-org/xtool-core#2 is released and
-        # saagarjha/unxip#41 is merged: Superutils needs the Android
-        # guards for bionic Foundation, and unxip's zlib/getopt shims
-        # clash with the NDK's own modules when cross compiling.
-        # Mirrors alone don't retarget version-pinned deps, so also
-        # rewrite the unxip pin to the fork's 3.3 (which has the
-        # .when(platforms:) manifest).
-        run: |
-          mkdir -p ~/.swiftpm/configuration
-          cat > ~/.swiftpm/configuration/mirrors.json <<'EOF'
-          {
-            "object": [
-              {
-                "original": "https://github.com/xtool-org/xtool-core",
-                "mirror": "https://github.com/hpr/xtool-core"
-              },
-              {
-                "original": "https://github.com/saagarjha/unxip",
-                "mirror": "https://github.com/hpr/unxip"
-              }
-            ],
-            "version": 1
-          }
-          EOF
-          python3 - <<'EOF2'
-          import json
-          p = json.load(open('Package.resolved'))
-          for pin in p['pins']:
-              if pin['identity'] == 'unxip':
-                  pin['state']['revision'] = '7de3610da39c7cfa2635affab52fba169a94f4b4'
-          json.dump(p, open('Package.resolved', 'w'), indent=2)
-          EOF2
-          # `swift package update unxip` recomputes the version and would
-          # overwrite the rewritten pin; only update xtool-core here, then
-          # re-apply the unxip pin afterwards (see below).
-          swift package update xtool-core
       - name: Cross-compile for Android
         run: |
           # Re-apply the fork pins AFTER any resolution (above):

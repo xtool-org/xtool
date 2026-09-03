@@ -40,7 +40,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/xtool-org/xtool-core", .upToNextMinor(from: "1.4.0")),
+        .package(url: "https://github.com/xtool-org/xtool-core", .upToNextMinor(from: "1.4.1")),
         .package(url: "https://github.com/xtool-org/SwiftyMobileDevice", .upToNextMinor(from: "1.5.0")),
         .package(url: "https://github.com/xtool-org/zsign", .upToNextMinor(from: "1.7.0")),
 
@@ -67,7 +67,8 @@ let package = Package(
         .package(url: "https://github.com/attaswift/BigInt", from: "5.5.0"),
         .package(url: "https://github.com/mxcl/Version", from: "2.1.0"),
         .package(url: "https://github.com/jpsim/Yams", from: "5.1.3"),
-        .package(url: "https://github.com/saagarjha/unxip", from: "3.2.0"),
+        // temp override until https://github.com/saagarjha/unxip/pull/41 is merged and tagged
+        .package(url: "https://github.com/hpr/unxip", revision: "7de3610da39c7cfa2635affab52fba169a94f4b4"),
 
         // TODO: just depend on tuist/XcodeProj instead
         .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.45.4"),

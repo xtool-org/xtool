@@ -1,5 +1,5 @@
 {
-  "originHash" : "41970e2ef95ed2d95550d89758de9edde764c927d6316551e31f0e6b2c05a55a",
+  "originHash" : "ddb5df9b2d803d0b99eeae678e32b9891f069860d15b189456c30e87b3bf8083",
   "pins" : [
     {
       "identity" : "aexml",
@@ -53,15 +53,6 @@
       "state" : {
         "revision" : "57b6318128e3f901c93f4fbf98d1c1464ec168d3",
         "version" : "6.2.0"
-      }
-    },
-    {
-      "identity" : "opencombine",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/OpenCombine/OpenCombine.git",
-      "state" : {
-        "revision" : "8576f0d579b27020beccbccc3ea6844f3ddfc2c2",
-        "version" : "0.14.0"
       }
     },
     {
@@ -409,10 +400,9 @@
     {
       "identity" : "unxip",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/saagarjha/unxip",
+      "location" : "https://github.com/hpr/unxip",
       "state" : {
-        "revision" : "6c3990517fcc4c1db6952fccf4c562fb14097601",
-        "version" : "3.3.0"
+        "revision" : "7de3610da39c7cfa2635affab52fba169a94f4b4"
       }
     },
     {
@@ -465,8 +455,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/xtool-org/xtool-core",
       "state" : {
-        "revision" : "d412ac768d1e73d16ad7ccc6805f12fc701709f6",
-        "version" : "1.4.0"
+        "revision" : "f5be7f3db0207e58f90eb38739afb3994300db25",
+        "version" : "1.4.1"
       }
     },
     {
