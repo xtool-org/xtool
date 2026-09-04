@@ -1,0 +1,81 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build-appimage:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build
+        run: XTL_CONFIG=debug make linux-dist
+      - name: Upload AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: xtool-linux-aarch64
+          path: Linux/packages/xtool-aarch64.AppImage
+          compression-level: 0
+  build-mac:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          brew install xcodegen
+          make mac DEVELOPMENT_TEAM='""'
+          (cd macOS/Build/XcodeInstall && zip -yqr xtool.app.zip xtool.app)
+      - name: Upload app
+        uses: actions/upload-artifact@v4
+        with:
+          name: xtool-mac
+          path: macOS/Build/XcodeInstall/xtool.app.zip
+          compression-level: 0
+  test:
+    needs: [build-appimage, build-mac]
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: xtool-*
+          merge-multiple: true
+          path: stage
+      - name: Process artifacts
+        run: |
+          chmod +x stage/xtool-aarch64.AppImage
+          unzip -q stage/xtool.app.zip -d stage
+          ln -fs "$PWD/stage/xtool.app/Contents/Resources/bin/xtool" /usr/local/bin/xtool
+      # https://github.com/abiosoft/colima/issues/970#issuecomment-2224011277
+      - name: Setup Docker
+        run: |
+          brew install --formula docker colima qemu
+          LIMACTL_PATH=$(brew --prefix)/bin/limactl
+          sudo curl -fL -o $LIMACTL_PATH https://github.com/mikekazakov/lima-nohvf/raw/acd34e689a7186d8317116165101b1fa56083542/limactl
+          sudo chmod +x $LIMACTL_PATH
+          colima start --disk 20 --vm-type qemu --arch arm64
+      - name: Build SDK
+        run: |
+          xtool sdk build /Applications/Xcode_16.3.app stage
+      - name: Run test
+        run: |
+          docker run --rm -i \
+            -v ./stage:/stage \
+            swift:6.1.1 \
+            bash << EOF
+
+          mkdir -p ~/.swiftpm/swift-sdks
+          ln -fs /stage/darwin.artifactbundle ~/.swiftpm/swift-sdks/
+          export APPIMAGE_EXTRACT_AND_RUN=1
+          ln -fs /stage/xtool-aarch64.AppImage /usr/local/bin/xtool
+
+          xtool new Hello --skip-setup
+          cd Hello
+          xtool dev build
+
+          EOF
