@@ -56,6 +56,7 @@ struct SDKBuilder {
     let output: URL
     let arch: Arch
 
+    // swiftlint:disable:next function_body_length
     func buildSDK() async throws {
         // TODO: store relevant info for staleness check
         let sdkVersion = "develop"
@@ -136,6 +137,9 @@ struct SDKBuilder {
             "linker": {
                 "path": "ld64.lld"
             },
+            "librarian": {
+                "path": "llvm-lib"
+            },
             "swiftCompiler": {
                 "extraCLIOptions": [
                     "-Xfrontend", "-enable-cross-import-overlays",
@@ -145,6 +149,26 @@ struct SDKBuilder {
         }
         """.write(
             to: output.appendingPathComponent("toolset.json"),
+            atomically: false,
+            encoding: .utf8
+        )
+
+        // this toolset works with the swiftbuild system on Linux
+        // note that we need Swift 6.4+ because 6.3 has bugs in
+        // resolving the librarian and linker paths.
+        try """
+        {
+            "schemaVersion": "1.0",
+            "rootPath": "toolset/bin",
+            "linker": {
+                "path": "ld64.lld"
+            },
+            "librarian": {
+                "path": "llvm-lib"
+            }
+        }
+        """.write(
+            to: output.appendingPathComponent("toolset-swb.json"),
             atomically: false,
             encoding: .utf8
         )
@@ -169,6 +193,7 @@ struct SDKBuilder {
             .write(to: output.appendingPathComponent("darwin-sdk-version.txt"))
     }
 
+    // swiftlint:disable:next function_body_length
     private func installToolset(in output: URL) async throws {
         // tag from https://github.com/xtool-org/darwin-tools-linux-llvm
         let darwinToolsVersion = "1.0.1"
@@ -218,9 +243,112 @@ struct SDKBuilder {
             try await execution.standardInputWriter.finish()
         }
         .checkSuccess()
+
+        // swift-build assumes we have an Apple-flavored librarian for Apple platforms
+        // (https://github.com/swiftlang/swift-build/blob/b2433e74e/Sources/SWBCore/SpecImplementations/Tools/LinkerTools.swift#L1735)
+        // but allows us to override this assumption if we explicitly provide the name llvm-lib (look a few lines above in that file)
+        try FileManager.default.moveItem(
+            at: toolsetDir.appending(path: "bin/libtool"),
+            to: toolsetDir.appending(path: "bin/llvm-lib")
+        )
+
+        let ld64 = toolsetDir.appending(path: "bin/ld64.lld")
+        let origBins = toolsetDir.appending(path: "bin/orig")
+        let origLD64 = origBins.appending(path: "ld64.lld")
+        try FileManager.default.createDirectory(at: origBins, withIntermediateDirectories: false)
+        try FileManager.default.moveItem(at: ld64, to: origLD64)
+
+        // this terrible hack works around the fact that lld doesn't support the -r option,
+        // which merges multiple object files into one (used by SPM's SWB backend to combine
+        // per-file MachOs into a single one for the module, on Darwin).
+        //
+        // so instead, we write a trampoline that intercepts `ld64.lld -r` and instead runs
+        // libtool to build a static archive.
+        try """
+        #!/bin/sh
+
+        set -eu
+
+        case "$0" in
+            */*) script_path="$0" ;;
+            *) script_path="$(command -v "$0")" ;;
+        esac
+        case "$script_path" in
+            /*) script_dir="${script_path%/*}"; [ -n "$script_dir" ] || script_dir="/" ;;
+            */*) script_dir="${script_path%/*}" ;;
+            *) script_dir="." ;;
+        esac
+        bin_dir="$(CDPATH= cd -P "$script_dir" && pwd -P)"
+
+        find_argument_value() {
+            argument_name="$1"
+            shift
+
+            while [ "$#" -gt 0 ]; do
+                if [ "$1" = "$argument_name" ]; then
+                    shift
+                    if [ "$#" -gt 0 ]; then
+                        argument_value="$1"
+                        return 0
+                    fi
+                    return 1
+                fi
+                shift
+            done
+
+            return 1
+        }
+
+        relocatable=
+        for argument do
+            if [ "$argument" = "-r" ]; then
+                relocatable=1
+            fi
+        done
+
+        if [ -n "$relocatable" ]; then
+            missing_argument=
+
+            if find_argument_value -filelist "$@"; then
+                filelist="$argument_value"
+            else
+                missing_argument=1
+            fi
+            if find_argument_value -dependency_info "$@"; then
+                dependency_info="$argument_value"
+            else
+                missing_argument=1
+            fi
+            if find_argument_value -o "$@"; then
+                output="$argument_value"
+            else
+                missing_argument=1
+            fi
+
+            if [ -n "$missing_argument" ]; then
+                echo "ld64.lld trampoline could not process arguments." >&2
+                echo "Please file an issue at https://github.com/xtool-org/xtool/issues" >&2
+                echo "  Arguments: $@" >&2
+                exit 2
+            fi
+
+            exec "$bin_dir/llvm-lib" -static \
+                -filelist "$filelist" \
+                -dependency_info "$dependency_info" \
+                -o "$output"
+        fi
+
+        exec "$bin_dir/orig/ld64.lld" "$@"
+        """.write(
+            to: ld64,
+            atomically: false,
+            encoding: .utf8
+        )
+        // set -x
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: ld64.path)
     }
 
-    // swiftlint:disable:next cyclomatic_complexity function_body_length
+    // swiftlint:disable:next cyclomatic_complexity
     private func installDeveloper(in output: URL) async throws -> URL {
         let dev = output.appendingPathComponent("Developer")
 
@@ -324,10 +452,11 @@ struct SDKBuilder {
 
         for platform in ["iPhoneOS", "MacOSX", "iPhoneSimulator"] {
             let lib = "../../../../../Library"
-            let dest = dev.appendingPathComponent("""
-            Platforms/\(platform).platform/Developer/SDKs/\(platform).sdk\
-            /System/Library/Frameworks
-            """).path
+            let platformDir = dev.appending(path: "Platforms/\(platform).platform")
+
+            try patchPlatformManifest(path: platformDir.appending(path: "Info.plist"))
+
+            let dest = platformDir.appending(path: "Developer/SDKs/\(platform).sdk/System/Library/Frameworks").path
 
             try FileManager.default.createSymbolicLink(
                 atPath: "\(dest)/Testing.framework",
@@ -355,6 +484,22 @@ struct SDKBuilder {
         )
 
         return dev
+    }
+
+    private func patchPlatformManifest(path: URL) throws {
+        let data = try Data(contentsOf: path)
+        guard var plist = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any] else {
+            throw Console.Error("Could not read '\(path.path)'")
+        }
+
+        var defaultProperties = (plist["DefaultProperties"] as? [String: Any]) ?? [:]
+        defaultProperties["SWIFT_RESOURCE_DIR"] = "$(PLATFORM_DIR)/../../Toolchains/XcodeDefault.xctoolchain/usr/lib/swift"
+        defaultProperties["CLANG_RESOURCE_DIR"] = "$(SWIFT_RESOURCE_DIR)/clang"
+        defaultProperties["ALTERNATE_LINKER"] = "lld"
+        plist["DefaultProperties"] = defaultProperties
+
+        let newData = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+        try newData.write(to: path)
     }
 
     // returns the number of files we actually want to keep,
@@ -500,13 +645,16 @@ struct SDKEntry {
             E("clang"),
         ]),
         E("Platforms", ["iPhoneOS", "MacOSX", "iPhoneSimulator"].map {
-            E("\($0).platform/Developer", [
-                E("SDKs"),
-                E("Library", [
-                    E("Frameworks"),
-                    E("PrivateFrameworks"),
-                ]),
-                E("usr/lib"),
+            E("\($0).platform", [
+                E("Info.plist"),
+                E("Developer", [
+                    E("SDKs"),
+                    E("Library", [
+                        E("Frameworks"),
+                        E("PrivateFrameworks"),
+                    ]),
+                    E("usr/lib"),
+                ])
             ])
         }),
     ])
