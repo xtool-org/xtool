@@ -140,12 +140,10 @@ public struct DeveloperAPIXcodeAuthMiddleware: ClientMiddleware {
 
         // Xcode-specific
         request.headerFields[.userAgent] = "Xcode"
-        request.headerFields[.init(DeviceInfo.xcodeVersionKey)!] = "16.2 (16C5031c)"
+        request.headerFields[.init(DeviceInfo.xcodeVersionKey)!] = DeviceInfo.xcodeVersion
 
         // MobileMe identity
-        request.headerFields[.init(DeviceInfo.clientInfoKey)!] = """
-        <VirtualMac2,1> <macOS;15.1.1;24B91> <com.apple.AuthKit/1 (com.apple.dt.Xcode/23505)>
-        """ // deviceInfo.clientInfo.clientString
+        request.headerFields[.init(DeviceInfo.clientInfoKey)!] = deviceInfo.clientInfo.clientString
         request.headerFields[.init(DeviceInfo.deviceIDKey)!] = deviceInfo.deviceID
 
         // GrandSlam authentication
