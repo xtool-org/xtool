@@ -14,29 +14,19 @@ public struct DeviceInfo: Codable, Sendable {
     /// `X-Xcode-Version`
     static let xcodeVersionKey = "X-Xcode-Version"
     /// Not included in `dictionary`
-    public static let xcodeVersion = "14.2 (14C18)"
+    public static let xcodeVersion = "26.5 (17F42)"
 
     public struct ClientInfo: Codable {
-        public static let macOSVersion = "14.3.1"
-        public static let macOSBuild = "23D60"
-
-        public static let authKitVersion = "1"
-        public static let akdVersion = "1.0"
-        public static let cfNetworkVersion = "978.0.7"
-        public static let darwinVersion = "18.7.0"
-
         public let modelID: String // e.g. MacBookPro11,5
 
-        // TODO: Do we need to replace com.apple.akd with com.apple.dt.Xcode? See AltStore
         var clientString: String {
             """
-            <\(modelID)> <Mac OS X;\(Self.macOSVersion);\(Self.macOSBuild)> \
-            <com.apple.AuthKit/\(Self.authKitVersion) (com.apple.akd/\(Self.akdVersion))>
+            <\(modelID)> <macOS;26.6;25G72> <com.apple.AuthKit/1 (com.apple.dt.Xcode/26.0)>
             """
         }
 
         var userAgent: String {
-            "akd/\(Self.akdVersion) CFNetwork/\(Self.cfNetworkVersion) Darwin/\(Self.darwinVersion)"
+            "AuthKit/1 (Macintosh; OS X 26.6) (com.apple.dt.Xcode/26.0)"
         }
 
         public init(modelID: String) {
