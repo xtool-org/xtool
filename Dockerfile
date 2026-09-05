@@ -102,8 +102,6 @@ CMD [ "/bin/bash" ]
 FROM build-base AS dev-android
 
 ARG SWIFT_VERSION
-# Keep in sync with SWIFT_VERSION above.
-ARG ANDROID_SDK_CHECKSUM=939e933549d12d28f2e0bf71019d734d309859e9773c572657ce565a81f85d68
 ARG NDK_VERSION=27c
 
 ENV ANDROID_NDK_HOME=/opt/android-ndk-r${NDK_VERSION}
@@ -113,7 +111,9 @@ RUN curl -fSL --retry 3 -o /tmp/ndk.zip "https://dl.google.com/android/repositor
     && unzip -q /tmp/ndk.zip -d /opt \
     && rm /tmp/ndk.zip
 
-RUN swift sdk install "https://download.swift.org/swift-${SWIFT_VERSION}-release/android-sdk/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE_android.artifactbundle.tar.gz" --checksum "$ANDROID_SDK_CHECKSUM" \
+RUN curl -fSL --retry 3 -o /tmp/swift-android-sdk.tar.gz "https://download.swift.org/swift-${SWIFT_VERSION}-release/android-sdk/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE_android.artifactbundle.tar.gz" \
+    && swift sdk install /tmp/swift-android-sdk.tar.gz \
+    && rm /tmp/swift-android-sdk.tar.gz \
     && "$ANDROID_SWIFT_SDK/swift-android/scripts/setup-android-sdk.sh"
 
 COPY Android/build-native-libs.sh /tmp/build-native-libs.sh
