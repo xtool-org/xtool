@@ -6,21 +6,21 @@
 #   swift build --swift-sdk aarch64-unknown-linux-android28
 # can compile and link against them.
 #
-# Usage: Android/build-native-libs.sh <path-to-swift-android-sdk> <install-prefix>
+# Usage: Android/build-native-libs.sh <install-prefix>
 #   ANDROID_NDK_HOME must point at an unpacked NDK (>= r27).
 #   Native clang, clang++, ld.lld, and LLVM archive tools must be on PATH.
 #
 # The library set mirrors the Linux Docker image (see Dockerfile): OpenSSL
 # plus libplist/libimobiledevice-glue/libusbmuxd/libtatsu/libimobiledevice
-# from the libimobiledevice project, all built statically. libxadi is not
+# from the libimobiledevice project, built as shared libraries. OpenSSL,
+# curl, zlib, and xz remain static. libxadi is not
 # needed: XADIProvider is os(Linux)-only (on macOS/Android anisette uses
 # Omnisette), so the XADI system library never enters the link.
 set -euo pipefail
 
 API=28
 TRIPLE=aarch64-linux-android
-SDK=${1:?usage: build-native-libs.sh <swift-android-sdk-dir> <install-prefix>}
-DEST=${2:?usage: build-native-libs.sh <swift-android-sdk-dir> <install-prefix>}
+DEST=${1:?usage: build-native-libs.sh <install-prefix>}
 mkdir -p "$DEST"
 DEST=$(cd "$DEST" && pwd)
 : "${ANDROID_NDK_HOME:?ANDROID_NDK_HOME must be set}"
@@ -70,7 +70,7 @@ build_autotools() { # <tarball-url> <src-dir> [configure args...]
 	tar -C "$WORK" -xf "$WORK/$dir.tar"
 	(
 		cd "$WORK/$dir"
-		./configure --host="$TRIPLE" --prefix="$PREFIX" "$@"
+		./configure --host="$TRIPLE" --prefix="$PREFIX" --enable-shared --disable-static "$@"
 		make -j"$(nproc)" install
 	)
 }
@@ -120,7 +120,7 @@ tar -C "$WORK" -xzf "$WORK/libimobiledevice.tar.gz"
 	# git-archive tarballs have no version info; provide one for bootstrap
 	git init -q . && git add -A && git -c user.email=ci@localhost -c user.name=ci commit -qm "libimobiledevice master snapshot"
 	echo "2.0.1-git" > .tarball-version
-	./autogen.sh --host="$TRIPLE" --prefix="$PREFIX" --without-cython
+	./autogen.sh --host="$TRIPLE" --prefix="$PREFIX" --without-cython --enable-shared --disable-static
 	make -j"$(nproc)" install
 )
 
@@ -140,6 +140,7 @@ LIB_DST=$DEST/lib
 mkdir -p "$INC_DST" "$LIB_DST"
 cp -R "$PREFIX/include/." "$INC_DST/"
 cp -a "$PREFIX/lib/"*.a "$LIB_DST/"
+cp -a "$PREFIX/lib/"*.so* "$LIB_DST/"
 
 # Generate pkg-config files pointing at the installation prefix. SwiftPM's
 # systemLibrary targets query pkg-config for cflags/libs; on this host
@@ -166,19 +167,7 @@ pc libimobiledevice-glue-1.0 1.3.1 "-limobiledevice-glue-1.0" "libplist-2.0"
 pc libcurl 8.16.0 "-lcurl -lssl -lcrypto -lz"
 # libtatsu's .pc is versioned (libtatsu-1.0) but its libtool target is not:
 # it installs libtatsu.a, so the link flag must be -ltatsu.
-pc libtatsu-1.0 1.0.4 "-ltatsu -lcurl -lssl -lcrypto -lz" "libplist-2.0"
-pc libimobiledevice-1.0 2.0.0 "-limobiledevice-1.0" "libplist-2.0 libusbmuxd-2.0 libimobiledevice-glue-1.0 libtatsu-1.0 libcurl"
-
-# The NDK's prebuilt static libraries (libc.a & co.) carry zstd-compressed
-# debug sections, but the swift.org toolchain's lld is built without zstd
-# support and errors out reading them ("is compressed with ELFCOMPRESS_ZSTD,
-# but lld is not built with zstd support"). Strip debug sections from every
-# static archive in the sysroot so lld can consume them. Note -L: the SDK's
-# setup-android-sdk.sh symlinks ndk-sysroot/usr/lib/<triple> into the NDK by
-# default (SWIFT_ANDROID_NDK_LINK=1), and find's default -P won't traverse it.
-# Skip failures: some NDK "archives" (e.g. libc++.a in the per-API dirs) are
-# GNU ld scripts, not objects, and llvm-objcopy can't parse them.
-find -L "$SDK/ndk-sysroot" -name '*.a' -print0 \
-	| xargs -0 -n1 -P1 -I {} bash -c 'llvm-objcopy --strip-debug "$0" 2>/dev/null || true' {}
+pc libtatsu-1.0 1.0.4 "-ltatsu" "libplist-2.0"
+pc libimobiledevice-1.0 2.0.0 "-limobiledevice-1.0" "libplist-2.0 libusbmuxd-2.0 libimobiledevice-glue-1.0 libtatsu-1.0"
 
 echo "==> done: native libs installed into $DEST"
