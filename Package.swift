@@ -40,7 +40,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/xtool-org/xtool-core", .upToNextMinor(from: "1.4.0")),
+        .package(url: "https://github.com/xtool-org/xtool-core", .upToNextMinor(from: "1.4.1")),
         .package(url: "https://github.com/xtool-org/SwiftyMobileDevice", .upToNextMinor(from: "1.5.0")),
         .package(url: "https://github.com/xtool-org/zsign", .upToNextMinor(from: "1.7.0")),
 
@@ -67,7 +67,8 @@ let package = Package(
         .package(url: "https://github.com/attaswift/BigInt", from: "5.5.0"),
         .package(url: "https://github.com/mxcl/Version", from: "2.1.0"),
         .package(url: "https://github.com/jpsim/Yams", from: "5.1.3"),
-        .package(url: "https://github.com/saagarjha/unxip", from: "3.2.0"),
+        // temp override until https://github.com/saagarjha/unxip/pull/41 is merged and tagged
+        .package(url: "https://github.com/kabiroberai/unxip", revision: "5dfd415917b16218363f0f2ee7872a522d6abb0a"),
 
         // TODO: just depend on tuist/XcodeProj instead
         .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.45.4"),
@@ -100,7 +101,7 @@ let package = Package(
                 .product(
                     name: "Subprocess",
                     package: "swift-subprocess",
-                    condition: .when(platforms: [.linux, .macOS])
+                    condition: .when(platforms: [.linux, .macOS, .android])
                 ),
             ]
         ),
@@ -110,7 +111,7 @@ let package = Package(
                 "DeveloperAPI",
                 "CXKit",
                 "XUtils",
-                .byName(name: "XADI", condition: .when(platforms: [.linux])),
+                .byName(name: "XADI", condition: .when(platforms: [.linux, .android])),
                 .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
                 .product(name: "SwiftyMobileDevice", package: "SwiftyMobileDevice"),
@@ -128,17 +129,17 @@ let package = Package(
                 .product(
                     name: "OpenAPIAsyncHTTPClient",
                     package: "swift-openapi-async-http-client",
-                    condition: .when(platforms: [.linux])
+                    condition: .when(platforms: [.linux, .android])
                 ),
                 .product(
                     name: "AsyncHTTPClient",
                     package: "async-http-client",
-                    condition: .when(platforms: [.linux])
+                    condition: .when(platforms: [.linux, .android])
                 ),
                 .product(
                     name: "WebSocketKit",
                     package: "websocket-kit",
-                    condition: .when(platforms: [.linux])
+                    condition: .when(platforms: [.linux, .android])
                 ),
             ],
             cSettings: cSettings

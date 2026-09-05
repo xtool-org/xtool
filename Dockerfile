@@ -1,7 +1,8 @@
 # Note: We use 22.04 since AppImage recommends building on the
 # oldest configuration that you support
 
-FROM swift:6.3-jammy AS build-base
+ARG SWIFT_VERSION=6.3.2
+FROM swift:${SWIFT_VERSION}-jammy AS build-base
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -96,6 +97,35 @@ ENV APPIMAGE_EXTRACT_AND_RUN=1
 # socat -dd TCP-LISTEN:27015,range=127.0.0.1/32,reuseaddr,fork UNIX-CLIENT:/var/run/usbmuxd
 ENV USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015
 
+CMD [ "/bin/bash" ]
+
+FROM build-base AS dev-android
+
+ARG SWIFT_VERSION
+ARG NDK_VERSION=27c
+
+ENV ANDROID_NDK_HOME=/opt/android-ndk-r${NDK_VERSION}
+ENV ANDROID_SWIFT_SDK=/root/.swiftpm/swift-sdks/swift-${SWIFT_VERSION}-RELEASE_android.artifactbundle
+ENV ANDROID_NATIVE_PREFIX=/opt/android-native
+
+RUN curl -fSL --retry 3 -o /tmp/ndk.zip "https://dl.google.com/android/repository/android-ndk-r${NDK_VERSION}-linux.zip" \
+    && unzip -q /tmp/ndk.zip -d /opt \
+    && rm /tmp/ndk.zip
+
+RUN curl -fSL --retry 3 -o /tmp/swift-android-sdk.tar.gz "https://download.swift.org/swift-${SWIFT_VERSION}-release/android-sdk/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE_android.artifactbundle.tar.gz" \
+    && swift sdk install /tmp/swift-android-sdk.tar.gz \
+    && rm /tmp/swift-android-sdk.tar.gz \
+    && "$ANDROID_SWIFT_SDK/swift-android/scripts/setup-android-sdk.sh"
+
+COPY Android/build-native-libs.sh /tmp/build-native-libs.sh
+RUN /tmp/build-native-libs.sh "$ANDROID_NATIVE_PREFIX" \
+    && rm /tmp/build-native-libs.sh
+
+# Keep SwiftPM's systemLibrary targets from finding host libraries.
+ENV PKG_CONFIG_PATH=${ANDROID_NATIVE_PREFIX}/lib/pkgconfig
+ENV PKG_CONFIG_LIBDIR=${ANDROID_NATIVE_PREFIX}/lib/pkgconfig
+
+WORKDIR /xtool
 CMD [ "/bin/bash" ]
 
 FROM build-xtool-base AS build-xtool

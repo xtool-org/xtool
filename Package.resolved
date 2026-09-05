@@ -1,5 +1,5 @@
 {
-  "originHash" : "80db0cddb0e78cf6a4c79f94537cdfebd8004679161532fbae8a57ee9d1d8cd1",
+  "originHash" : "4255bd8e7916b8091f5da45b983dde8bab3f0dc0a4a10f9c7a42d7be32b74d45",
   "pins" : [
     {
       "identity" : "aexml",
@@ -400,10 +400,9 @@
     {
       "identity" : "unxip",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/saagarjha/unxip",
+      "location" : "https://github.com/kabiroberai/unxip",
       "state" : {
-        "revision" : "6c3990517fcc4c1db6952fccf4c562fb14097601",
-        "version" : "3.3.0"
+        "revision" : "5dfd415917b16218363f0f2ee7872a522d6abb0a"
       }
     },
     {
@@ -456,8 +455,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/xtool-org/xtool-core",
       "state" : {
-        "revision" : "d412ac768d1e73d16ad7ccc6805f12fc701709f6",
-        "version" : "1.4.0"
+        "revision" : "f5be7f3db0207e58f90eb38739afb3994300db25",
+        "version" : "1.4.1"
       }
     },
     {
