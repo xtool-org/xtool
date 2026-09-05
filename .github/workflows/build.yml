@@ -71,24 +71,15 @@ jobs:
         run: |
           curl -sfL -o ndk.zip "https://dl.google.com/android/repository/android-ndk-r${NDK_VERSION}-linux.zip"
           unzip -q ndk.zip -d "$HOME"
+          rm -f ndk.zip
           echo "ANDROID_NDK_HOME=$HOME/android-ndk-r${NDK_VERSION}" >> "$GITHUB_ENV"
       - name: Install Swift SDK for Android
         run: |
-          # Install from a local file: URL installs land in a cache dir on
-          # some SwiftPM versions and the SDK then isn't found by
-          # `swift build --swift-sdk <triple>`; local-file installs
-          # register in ~/.swiftpm/swift-sdks.
-          curl -sfL --retry 3 -o /tmp/android-sdk.tar.gz \
-            "https://download.swift.org/swift-${SWIFT_VERSION}-release/android-sdk/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE_android.artifactbundle.tar.gz"
-          echo "${ANDROID_SDK_CHECKSUM}  /tmp/android-sdk.tar.gz" | sha256sum -c -
-          swift sdk install /tmp/android-sdk.tar.gz --checksum "$ANDROID_SDK_CHECKSUM"
+          swift sdk install "https://download.swift.org/swift-${SWIFT_VERSION}-release/android-sdk/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE_android.artifactbundle.tar.gz" --checksum "$ANDROID_SDK_CHECKSUM"
           bundle="$HOME/.swiftpm/swift-sdks/swift-${SWIFT_VERSION}-RELEASE_android.artifactbundle"
-          test -d "$bundle" || bundle=$(find "$HOME" -maxdepth 6 -type d -name "swift-${SWIFT_VERSION}-RELEASE_android.artifactbundle" 2>/dev/null | head -1)
           test -n "$bundle" || { echo "SDK bundle not found" >&2; exit 1; }
           echo "ANDROID_SWIFT_SDK=$bundle" >> "$GITHUB_ENV"
-          # Populate the SDK's ndk-sysroot from the NDK (the bundle's
-          # setup-android-sdk.sh hardlinks it in).
-          (cd "$bundle/swift-android" && bash scripts/setup-android-sdk.sh)
+          "$bundle"/swift-android/scripts/setup-android-sdk.sh
       - name: Cross-build native libraries for Android
         run: |
           sudo apt-get update
@@ -96,20 +87,6 @@ jobs:
           Android/build-native-libs.sh "$ANDROID_SWIFT_SDK/swift-android"
       - name: Cross-compile for Android
         run: |
-          # Re-apply the fork pins AFTER any resolution (above):
-          # `swift package update` recomputes versions from the canonical
-          # (cached) repos and overwrites rewritten pins. Pinned-revision
-          # checkouts go through the mirror, which serves the fork tags.
-          python3 - <<'EOF3'
-          import json
-          p = json.load(open('Package.resolved'))
-          for pin in p['pins']:
-              if pin['identity'] == 'unxip':
-                  pin['state']['revision'] = '7de3610da39c7cfa2635affab52fba169a94f4b4'
-              if pin['identity'] == 'xtool-core':
-                  pin['state']['revision'] = '58d5b679fa93f6e2a81901a54f43686ef3f53264'
-          json.dump(p, open('Package.resolved', 'w'), indent=2)
-          EOF3
           # SwiftPM's systemLibrary targets (xtool-core: openssl,
           # libplist-2.0, ...) query pkg-config for cflags/libs. Without
           # this, the host pkg-config resolves host (x86_64) .pc files and
