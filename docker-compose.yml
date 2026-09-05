@@ -16,3 +16,13 @@ services:
     extra_hosts:
       # host.docker.internal doesn't exist by default on Linux hosts
       - "host.docker.internal:host-gateway"
+  xtool-android:
+    profiles: [android]
+    build:
+      context: .
+      target: dev-android
+    volumes:
+      - .:/xtool
+      - .build/android:/xtool/.build
+    stdin_open: true
+    tty: true

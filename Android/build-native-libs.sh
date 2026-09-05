@@ -7,6 +7,7 @@
 #
 # Usage: Android/build-native-libs.sh <path-to-swift-android-sdk>
 #   ANDROID_NDK_HOME must point at an unpacked NDK (>= r27).
+#   Native clang, clang++, ld.lld, and LLVM archive tools must be on PATH.
 #
 # The library set mirrors the Linux Docker image (see Dockerfile): OpenSSL
 # plus libplist/libimobiledevice-glue/libusbmuxd/libtatsu/libimobiledevice
@@ -20,14 +21,17 @@ TRIPLE=aarch64-linux-android
 SDK=${1:?usage: build-native-libs.sh <swift-android-sdk-dir>}
 : "${ANDROID_NDK_HOME:?ANDROID_NDK_HOME must be set}"
 
-TOOLCHAIN=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin
-export PATH="$TOOLCHAIN:$PATH"
-export CC="$TRIPLE$API-clang"
-export CXX="$TRIPLE$API-clang++"
-export AR=llvm-ar RANLIB=llvm-ranlib STRIP=llvm-strip
-export ANDROID_NDK_ROOT=$ANDROID_NDK_HOME
+# Only use the NDK's target headers and libraries, not its host executables.
+# The Linux archive labels these directories linux-x86_64 even on ARM hosts.
+NDK=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64
+RESOURCE_DIR=("$NDK"/lib/clang/*)
+export CC="clang --target=$TRIPLE$API --sysroot=$NDK/sysroot -resource-dir=${RESOURCE_DIR[0]}"
+export CXX="clang++ --target=$TRIPLE$API --sysroot=$NDK/sysroot -resource-dir=${RESOURCE_DIR[0]}"
+export AR=llvm-ar RANLIB=llvm-ranlib NM=llvm-nm
+export STRIP="llvm-objcopy --strip-all"
 
 WORK=$(mktemp -d)
+trap 'rm -rf "$WORK"' EXIT
 PREFIX=$WORK/prefix
 mkdir -p "$PREFIX"
 # Point pkg-config exclusively at the cross prefix so the autotools builds
@@ -37,7 +41,7 @@ export PKG_CONFIG_LIBDIR=$PREFIX/lib/pkgconfig
 # Make all configure probes (not just pkg-config ones) find the prefix:
 # AC_CHECK_LIB link tests need -L, header checks need -I.
 export CPPFLAGS="-I$PREFIX/include"
-export LDFLAGS="-L$PREFIX/lib"
+export LDFLAGS="-fuse-ld=lld -L$PREFIX/lib"
 
 fetch() {
 	curl -sfL --retry 3 -o "$WORK/$2" "$1"
@@ -50,8 +54,7 @@ fetch \
 tar -C "$WORK" -xzf "$WORK/openssl.tar.gz"
 (
 	cd "$WORK/openssl-3.3.2"
-	./Configure android-arm64 -D__ANDROID_API__=$API no-shared no-tests \
-		--prefix="$PREFIX"
+	./Configure linux-aarch64 no-shared no-tests --prefix="$PREFIX"
 	make -j"$(nproc)" build_libs
 	make install_dev
 )
@@ -136,7 +139,7 @@ cp -a "$PREFIX/lib/"*.a "$LIB_DST/"
 
 # Generate pkg-config files pointing at the sysroot. SwiftPM's
 # systemLibrary targets query pkg-config for cflags/libs; on this host
-# pkg-config would otherwise resolve to host (x86_64) libraries.
+# pkg-config would otherwise resolve to host libraries.
 echo "==> generating pkg-config files"
 PC_DST=$SDK/pkgconfig
 mkdir -p "$PC_DST"
@@ -175,10 +178,10 @@ pc libimobiledevice-1.0 2.0.0 "-limobiledevice-1.0" "libplist-2.0 libusbmuxd-2.0
 # setup-android-sdk.sh symlinks ndk-sysroot/usr/lib/<triple> into the NDK by
 # default (SWIFT_ANDROID_NDK_LINK=1), and find's default -P won't traverse it.
 # Skip failures: some NDK "archives" (e.g. libc++.a in the per-API dirs) are
-# GNU ld scripts, not objects, and llvm-strip can't parse them.
+# GNU ld scripts, not objects, and llvm-objcopy can't parse them.
 find -L "$SDK/ndk-sysroot" -name '*.a' -print0 |
   while IFS= read -r -d '' a; do
-    llvm-strip --strip-debug "$a" 2>/dev/null || true
+    llvm-objcopy --strip-debug "$a" 2>/dev/null || true
   done
 # Verify the strip actually took: fail here, not at the final Swift link.
 archives=$(find -L "$SDK/ndk-sysroot" -name '*.a' | wc -l)
