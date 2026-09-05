@@ -1,5 +1,5 @@
 {
-  "originHash" : "ddb5df9b2d803d0b99eeae678e32b9891f069860d15b189456c30e87b3bf8083",
+  "originHash" : "0a077c7756c6b28817aaa00274cba3d31faa7752fd33d161347b8ac5e3cfa21d",
   "pins" : [
     {
       "identity" : "aexml",
@@ -402,7 +402,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/hpr/unxip",
       "state" : {
-        "revision" : "7de3610da39c7cfa2635affab52fba169a94f4b4"
+        "revision" : "b194eab4cc71234a9e915cc368277ab2cb4b8fc8"
       }
     },
     {

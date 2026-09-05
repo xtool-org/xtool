@@ -68,7 +68,7 @@ let package = Package(
         .package(url: "https://github.com/mxcl/Version", from: "2.1.0"),
         .package(url: "https://github.com/jpsim/Yams", from: "5.1.3"),
         // temp override until https://github.com/saagarjha/unxip/pull/41 is merged and tagged
-        .package(url: "https://github.com/hpr/unxip", revision: "7de3610da39c7cfa2635affab52fba169a94f4b4"),
+        .package(url: "https://github.com/hpr/unxip", revision: "b194eab4cc71234a9e915cc368277ab2cb4b8fc8"),
 
         // TODO: just depend on tuist/XcodeProj instead
         .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.45.4"),
