@@ -106,6 +106,7 @@ ARG NDK_VERSION=27c
 
 ENV ANDROID_NDK_HOME=/opt/android-ndk-r${NDK_VERSION}
 ENV ANDROID_SWIFT_SDK=/root/.swiftpm/swift-sdks/swift-${SWIFT_VERSION}-RELEASE_android.artifactbundle
+ENV ANDROID_NATIVE_PREFIX=/opt/android-native
 
 RUN curl -fSL --retry 3 -o /tmp/ndk.zip "https://dl.google.com/android/repository/android-ndk-r${NDK_VERSION}-linux.zip" \
     && unzip -q /tmp/ndk.zip -d /opt \
@@ -117,12 +118,12 @@ RUN curl -fSL --retry 3 -o /tmp/swift-android-sdk.tar.gz "https://download.swift
     && "$ANDROID_SWIFT_SDK/swift-android/scripts/setup-android-sdk.sh"
 
 COPY Android/build-native-libs.sh /tmp/build-native-libs.sh
-RUN /tmp/build-native-libs.sh "$ANDROID_SWIFT_SDK/swift-android" \
+RUN /tmp/build-native-libs.sh "$ANDROID_SWIFT_SDK/swift-android" "$ANDROID_NATIVE_PREFIX" \
     && rm /tmp/build-native-libs.sh
 
 # Keep SwiftPM's systemLibrary targets from finding host libraries.
-ENV PKG_CONFIG_PATH=${ANDROID_SWIFT_SDK}/swift-android/pkgconfig
-ENV PKG_CONFIG_LIBDIR=${ANDROID_SWIFT_SDK}/swift-android/pkgconfig
+ENV PKG_CONFIG_PATH=${ANDROID_NATIVE_PREFIX}/lib/pkgconfig
+ENV PKG_CONFIG_LIBDIR=${ANDROID_NATIVE_PREFIX}/lib/pkgconfig
 
 WORKDIR /xtool
 CMD [ "/bin/bash" ]

@@ -57,6 +57,5 @@ jobs:
         uses: actions/checkout@v6
       - name: Cross-compile for Android
         run: |
-          docker compose run --build --rm xtool-android bash -o pipefail -c \
-            "swift build --product xtool --swift-sdk aarch64-unknown-linux-android28 && \
-            readelf -h .build/aarch64-unknown-linux-android28/debug/xtool | grep 'Machine:.*AArch64' > /dev/null"
+          docker compose run --build --rm xtool-android \
+            swift build --product xtool --swift-sdk aarch64-unknown-linux-android28

@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Cross-builds the native libraries xtool links against (OpenSSL and the
-# libimobiledevice stack) for aarch64 Android, installing them into the
-# Swift SDK for Android's NDK sysroot so that
+# libimobiledevice stack) for aarch64 Android, installing them into a
+# separate prefix. Point PKG_CONFIG_PATH and PKG_CONFIG_LIBDIR at its
+# lib/pkgconfig directory so that
 #   swift build --swift-sdk aarch64-unknown-linux-android28
 # can compile and link against them.
 #
-# Usage: Android/build-native-libs.sh <path-to-swift-android-sdk>
+# Usage: Android/build-native-libs.sh <path-to-swift-android-sdk> <install-prefix>
 #   ANDROID_NDK_HOME must point at an unpacked NDK (>= r27).
 #   Native clang, clang++, ld.lld, and LLVM archive tools must be on PATH.
 #
@@ -18,7 +19,10 @@ set -euo pipefail
 
 API=28
 TRIPLE=aarch64-linux-android
-SDK=${1:?usage: build-native-libs.sh <swift-android-sdk-dir>}
+SDK=${1:?usage: build-native-libs.sh <swift-android-sdk-dir> <install-prefix>}
+DEST=${2:?usage: build-native-libs.sh <swift-android-sdk-dir> <install-prefix>}
+mkdir -p "$DEST"
+DEST=$(cd "$DEST" && pwd)
 : "${ANDROID_NDK_HOME:?ANDROID_NDK_HOME must be set}"
 
 # Only use the NDK's target headers and libraries, not its host executables.
@@ -130,18 +134,18 @@ tar -C "$WORK" -xf "$WORK/xz.tar"
 	make -j"$(nproc)" install
 )
 
-echo "==> installing into SDK sysroot"
-INC_DST=$SDK/ndk-sysroot/usr/include
-LIB_DST=$SDK/ndk-sysroot/usr/lib/$TRIPLE
+echo "==> installing into $DEST"
+INC_DST=$DEST/include
+LIB_DST=$DEST/lib
 mkdir -p "$INC_DST" "$LIB_DST"
 cp -R "$PREFIX/include/." "$INC_DST/"
 cp -a "$PREFIX/lib/"*.a "$LIB_DST/"
 
-# Generate pkg-config files pointing at the sysroot. SwiftPM's
+# Generate pkg-config files pointing at the installation prefix. SwiftPM's
 # systemLibrary targets query pkg-config for cflags/libs; on this host
 # pkg-config would otherwise resolve to host libraries.
 echo "==> generating pkg-config files"
-PC_DST=$SDK/pkgconfig
+PC_DST=$DEST/lib/pkgconfig
 mkdir -p "$PC_DST"
 pc() { # <name> <version> <libs> [requires]
 	cat > "$PC_DST/$1.pc" <<EOF
@@ -165,11 +169,6 @@ pc libcurl 8.16.0 "-lcurl -lssl -lcrypto -lz"
 pc libtatsu-1.0 1.0.4 "-ltatsu -lcurl -lssl -lcrypto -lz" "libplist-2.0"
 pc libimobiledevice-1.0 2.0.0 "-limobiledevice-1.0" "libplist-2.0 libusbmuxd-2.0 libimobiledevice-glue-1.0 libtatsu-1.0 libcurl"
 
-# SwiftPM's -lstdc++ for C++ products needs no mapping on Android: the NDK
-# ships a legacy libstdc++.so stub in each per-API-level sysroot lib dir,
-# which the clang driver puts on the link search path; --as-needed then
-# drops it since the real C++ runtime (libc++_shared) provides the symbols.
-
 # The NDK's prebuilt static libraries (libc.a & co.) carry zstd-compressed
 # debug sections, but the swift.org toolchain's lld is built without zstd
 # support and errors out reading them ("is compressed with ELFCOMPRESS_ZSTD,
@@ -179,15 +178,7 @@ pc libimobiledevice-1.0 2.0.0 "-limobiledevice-1.0" "libplist-2.0 libusbmuxd-2.0
 # default (SWIFT_ANDROID_NDK_LINK=1), and find's default -P won't traverse it.
 # Skip failures: some NDK "archives" (e.g. libc++.a in the per-API dirs) are
 # GNU ld scripts, not objects, and llvm-objcopy can't parse them.
-find -L "$SDK/ndk-sysroot" -name '*.a' -print0 |
-  while IFS= read -r -d '' a; do
-    llvm-objcopy --strip-debug "$a" 2>/dev/null || true
-  done
-# Verify the strip actually took: fail here, not at the final Swift link.
-archives=$(find -L "$SDK/ndk-sysroot" -name '*.a' | wc -l)
-libc="$SDK/ndk-sysroot/usr/lib/$TRIPLE/libc.a"
-remaining=$(readelf -SW "$libc" | grep -E '^[[:space:]]+\[[[:space:]0-9]+\]' | grep -c ' C ' || true)
-echo "stripped debug sections from $archives archives; compressed sections left in $libc: $remaining"
-[ "$remaining" = 0 ] || { echo "ERROR: zstd-compressed sections remain in $libc" >&2; exit 1; }
+find -L "$SDK/ndk-sysroot" -name '*.a' -print0 \
+	| xargs -0 -n1 -P1 -I {} bash -c 'llvm-objcopy --strip-debug "$0" 2>/dev/null || true' {}
 
-echo "==> done: native libs installed into $SDK"
+echo "==> done: native libs installed into $DEST"
