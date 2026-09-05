@@ -44,13 +44,22 @@ extension HTTPClientProtocol {
         onProgress: @isolated(any) (Double?) -> Void = { _ in }
     ) async throws -> (response: HTTPResponse, body: Data) {
         await onProgress(0)
-        let (response, body) = try await send(request, body: body.map { HTTPBody($0) })
-        guard let body else {
-            return (response, Data())
+        let (response, responseBody) = try await send(request, body: body.map { HTTPBody($0) })
+        guard response.status.kind == .successful else {
+            let errorBody = (try? await Self.collect(responseBody, onProgress: { _ in })) ?? Data()
+            throw HTTPResponseError(request: request, response: response, body: errorBody)
         }
+        return (response, try await Self.collect(responseBody, onProgress: onProgress))
+    }
+
+    private static func collect(
+        _ body: HTTPBody?,
+        onProgress: @isolated(any) (Double?) -> Void
+    ) async throws -> Data {
+        guard let body else { return Data() }
         switch body.length {
         case .unknown:
-            return (response, try await body.reduce(into: Data()) { $0 += $1 })
+            return try await body.reduce(into: Data()) { $0 += $1 }
         case .known(let length):
             var data = Data(capacity: Int(length))
             let total = Double(length)
@@ -58,8 +67,60 @@ extension HTTPClientProtocol {
                 data += chunk
                 await onProgress(min(Double(data.count) / total, 1))
             }
-            return (response, data)
+            return data
         }
+    }
+}
+
+public struct HTTPResponseError: Error, LocalizedError, Sendable {
+    public let method: HTTPRequest.Method
+    public let url: String
+    public let status: HTTPResponse.Status
+    public let contentType: String?
+    public let bodyPrefix: String
+
+    private static let bodyPrefixLimit = 1024
+    private static let errorPageContentTypes: Set<String> = ["text/html", "text/plain"]
+
+    public var errorDescription: String? {
+        var description = "\(method.rawValue) \(url) failed: HTTP \(status.code)"
+        if !status.reasonPhrase.isEmpty {
+            description += " \(status.reasonPhrase)"
+        }
+        if let contentType {
+            description += " (\(contentType))"
+        }
+        return bodyPrefix.isEmpty ? description : "\(description): \(bodyPrefix)"
+    }
+}
+
+extension HTTPResponseError {
+    init(request: HTTPRequest, response: HTTPResponse, body: Data) {
+        let contentType = response.headerFields[.contentType]
+        self.init(
+            method: request.method,
+            url: "\(request.scheme ?? "https")://\(request.authority ?? "")\(request.path ?? "")",
+            status: response.status,
+            contentType: contentType,
+            bodyPrefix: Self.errorPagePrefix(of: body, contentType: contentType)
+        )
+    }
+
+    private static func errorPagePrefix(of body: Data, contentType: String?) -> String {
+        guard let contentType,
+              errorPageContentTypes.contains(mediaType(of: contentType))
+        else { return "" }
+        let text = String(decoding: body.prefix(bodyPrefixLimit), as: UTF8.self)
+            .split(whereSeparator: \.isWhitespace)
+            .joined(separator: " ")
+        guard !text.isEmpty else { return "" }
+        return body.count > bodyPrefixLimit ? "\(text)…" : text
+    }
+
+    private static func mediaType(of contentType: String) -> String {
+        contentType.prefix { $0 != ";" }
+            .trimmingCharacters(in: .whitespaces)
+            .lowercased()
     }
 }
 
