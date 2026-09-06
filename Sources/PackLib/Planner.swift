@@ -111,7 +111,55 @@ public struct Planner: Sendable {
             extensionProducts = []
         }
 
-        return Plan(app: app, extensions: extensionProducts)
+        let xcTest = xcTestPlan(from: graph, app: app)
+
+        return Plan(app: app, extensions: extensionProducts, xcTest: xcTest)
+    }
+
+    /// SwiftPM combines every test target in the root package into a single `<packageName>
+    /// PackageTests` product (confirmed by reading SwiftPM's own source -- there is no
+    /// per-target test product). Rather than an artificial split, this mirrors that: one
+    /// combined `.xctest` bundle, with per-target/per-method selection handled at runtime via
+    /// `XCTestConfiguration.testsToRun`/`testsToSkip` (`xcodebuild -only-testing:`'s equivalent),
+    /// not by building separate bundles.
+    ///
+    /// - Important: confirmed against a real Darwin SDK (`swift build --build-tests --swift-sdk
+    ///   arm64-apple-ios`) that if a test target depends (even transitively) on the same library
+    ///   product wrapped as the app (`schema.product`/`app.product`), and that library contains
+    ///   the app's `@main` entry point -- which is exactly how xtool's own app-wrapping model
+    ///   requires it to be structured, see `product(from:matching:type:...)` above -- the combined
+    ///   test product fails to link with a `duplicate symbol: main` error, because SwiftPM
+    ///   statically links the test product against everything the test target depends on
+    ///   (including that `@main`) while *also* generating its own XCTest bootstrap `main`. Real
+    ///   Xcode sidesteps this because unit tests get dlopen'd into an already-running host
+    ///   process rather than statically linked into a fresh executable; SwiftPM's package-testing
+    ///   model has no equivalent. Not fixed here -- needs either user-facing guidance (keep
+    ///   `@main` in a target the test target doesn't depend on, which is Apple's own recommended
+    ///   SwiftPM structure anyway) or a build-graph-level fix, tracked as an open item.
+    private func xcTestPlan(from graph: PackageGraph, app: Plan.Product) -> Plan.XCTestPlan? {
+        let testTargets = (graph.root.targets ?? []).filter(\.isTestTarget)
+        guard !testTargets.isEmpty else { return nil }
+
+        let deploymentTarget = graph.root.platforms?.first { $0.name == "ios" }?.version
+            ?? Self.minSupportedIOSVersion
+
+        return Plan.XCTestPlan(
+            packageName: graph.root.name,
+            // Deliberately *not* derived from `app.bundleID`: a free/personal Apple Developer
+            // account is capped at a small number of new App ID registrations per rolling 7-day
+            // window, and deriving this per-app would silently cost every new project tested an
+            // extra registration on top of the app's own. One xtool install only ever tests one
+            // app at a time anyway, so a single shared runner ID (still team-scoped by
+            // `ProvisioningIdentifiers.identifier(fromSanitized:context:)`, so it doesn't collide
+            // across different developers/teams) is reused across every project instead.
+            bundleID: "xtool.xctrunner",
+            deploymentTarget: deploymentTarget,
+            entitlementsPath: schema.entitlementsPath,
+            testTargetNames: testTargets.map(\.name),
+            testTargetPaths: Dictionary(uniqueKeysWithValues: testTargets.compactMap { target in
+                target.path.map { (target.name, $0) }
+            })
+        )
     }
 
     // swiftlint:disable cyclomatic_complexity function_parameter_count
@@ -295,9 +343,42 @@ public struct Planner: Sendable {
 public struct Plan: Sendable {
     public var app: Product
     public var extensions: [Product]
+    /// Non-nil when the package has at least one SwiftPM test target. See `Planner.xcTestPlan`
+    /// for why this isn't folded into `allProducts`/`Product` -- building and packaging it is a
+    /// meaningfully different process (drives `swift build --build-tests` on the real package
+    /// rather than the synthesized per-product wrapper package `Packer` otherwise always uses).
+    public var xcTest: XCTestPlan?
 
     public var allProducts: [Product] {
         [app] + extensions
+    }
+
+    /// Describes the combined XCTest bundle (all test targets in the package) and the `Runner.app`
+    /// synthesized to host it, mirroring Xcode's `<Target>-Runner.app` convention.
+    public struct XCTestPlan: Sendable {
+        public var packageName: String
+        public var bundleID: String
+        public var deploymentTarget: String
+        public var entitlementsPath: String?
+        /// Every SwiftPM `.testTarget` in the root package (e.g. `["MyAppTests", "MyAppUITests"]`)
+        /// -- still built into one combined `.xctest` bundle (see `testProductName`'s doc comment
+        /// for why SwiftPM leaves no alternative), but exposed separately so a caller (`xtool
+        /// test`) can let the user pick one to actually run.
+        public var testTargetNames: [String]
+        /// Resolved source directory per test target name (e.g. `["MyAppTests":
+        /// "Sources/MyAppTests"]`), used to scope a chosen target down to its actual `XCTestCase`
+        /// class names for `testsToRun` filtering. A bare module name is *not* a valid
+        /// `XCTTestIdentifier` on its own -- confirmed against real hardware (this session): it
+        /// silently matches zero tests rather than "everything in that module" (unlike
+        /// `xcodebuild -only-testing:ModuleName`, which is a distinct, higher-level filter xtool
+        /// doesn't have access to here) -- so per-target selection instead expands to every
+        /// `XCTestCase` subclass whose source file lives under this path.
+        public var testTargetPaths: [String: String]
+
+        /// SwiftPM's own product name for the combined test bundle (`<packageName>PackageTests`).
+        public var testProductName: String { "\(packageName)PackageTests" }
+        /// Name of the runner's own synthesized executable target/product.
+        public var runnerProduct: String { "\(packageName)XCTRunner" }
     }
 
     public enum Resource: Codable, Sendable, Hashable {
@@ -409,9 +490,18 @@ private struct PackageDump: Decodable {
     struct Target: Decodable {
         let name: String
         let moduleType: String
+        // SwiftPM's `describe --type json` reports this as "type": "test"/"library"/"executable"/etc,
+        // distinct from moduleType ("SwiftTarget"/"ClangTarget"/etc). Only "test" is checked today.
+        let type: String?
         let productDependencies: [String]?
         let targetDependencies: [String]?
         let resources: [Resource]?
+        /// Resolved source directory (e.g. `Sources/MyAppTests`) -- SwiftPM allows test targets
+        /// under either `Sources/<name>` or `Tests/<name>`, so this is read from `describe`'s own
+        /// resolved value rather than assumed.
+        let path: String?
+
+        var isTestTarget: Bool { type == "test" }
     }
 
     struct Resource: Decodable {

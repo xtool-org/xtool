@@ -39,6 +39,8 @@ private struct XToolCommand: AsyncParsableCommand {
                     InstallCommand.self,
                     UninstallCommand.self,
                     LaunchCommand.self,
+                    TestCommand.self,
+                    TunnelRSDTestCommand.self,
                 ]
             )
         ]

@@ -1,5 +1,3 @@
-#if false
-
 //
 //  DDIMounter.swift
 //  XKit
@@ -10,13 +8,17 @@
 
 import Foundation
 import SwiftyMobileDevice
-#if os(Linux)
-import FoundationNetworking
-#endif
+import Dependencies
 
-public final class DDIMounter {
+/// Mounts the Developer Disk Image (classic, pre-iOS 17) required to expose
+/// developer-only lockdown services such as `com.apple.testmanagerd.lockdown`.
+///
+/// For iOS 17+ devices, use ``PersonalizedDDIMounter`` instead -- Apple replaced the
+/// single shared DDI with a per-device "personalized" image starting iOS 17. Callers
+/// should branch on the device's product version; see `DDIMounter.mount(on:...)`.
+public final class DDIMounter: Sendable {
 
-    public struct DDILoc {
+    public struct DDILoc: Sendable {
         public let dmg: URL
         public let signature: URL
 
@@ -26,67 +28,17 @@ public final class DDIMounter {
         }
     }
 
-    private class RequestDelegate: NSObject, URLSessionTaskDelegate, URLSessionDataDelegate {
-        enum Verdict {
-            case streamData(size: Int)
-            case downloadFull(URL)
-            case failed(Swift.Error)
-        }
-
-        private var verdict: Verdict?
-        private let cache: URL
-        private let fileStream: OutputStream
-        private let pipedStream: OutputStream
-        private let onVerdict: (Verdict) -> Void
-        init(stream: OutputStream, cache: URL, onVerdict: @escaping (Verdict) -> Void) {
-            self.pipedStream = stream
-            self.cache = cache
-            self.fileStream = OutputStream(url: cache, append: false)!
-            self.onVerdict = onVerdict
-            stream.open()
-            fileStream.open()
-        }
-
-        func urlSession(
-            _ session: URLSession,
-            dataTask: URLSessionDataTask,
-            didReceive response: URLResponse,
-            completionHandler: @escaping (URLSession.ResponseDisposition) -> Void
-        ) {
-            let len = response.expectedContentLength
-            completionHandler(.allow)
-            if len == -1 {
-                verdict = .downloadFull(cache)
-            } else {
-                let verdict: Verdict = .streamData(size: Int(len))
-                self.verdict = verdict
-                onVerdict(verdict)
-            }
-        }
-
-        func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-            data.withUnsafeBytes { bytes in
-                let buf = bytes.bindMemory(to: UInt8.self)
-                _ = pipedStream.write(buf.baseAddress!, maxLength: buf.count)
-                _ = fileStream.write(buf.baseAddress!, maxLength: buf.count)
-            }
-        }
-
-        func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Swift.Error?) {
-            pipedStream.close()
-            fileStream.close()
-            if case let .downloadFull(url) = verdict {
-                onVerdict(error.map(Verdict.failed) ?? .downloadFull(url))
-            }
-        }
-    }
-
-    private enum MounterStatus: String, Decodable {
+    enum MounterStatus: String, Decodable {
         case complete = "Complete"
     }
 
-    private struct MountedImage: Decodable {
-        let status: MounterStatus
+    /// `mobile_image_mounter_lookup_image` returns successfully (an empty-but-valid plist) even
+    /// when nothing is mounted, so a bare "did this throw" check always reports "mounted"
+    /// regardless of actual state -- callers must decode the response and check `status` instead.
+    /// Shared with `PersonalizedDDIMounter.isMounted()`, since the response shape doesn't differ
+    /// between classic and personalized image types.
+    struct MountedImage: Decodable {
+        let status: MounterStatus?
         let signature: [Data]?
 
         private enum CodingKeys: String, CodingKey {
@@ -95,7 +47,7 @@ public final class DDIMounter {
         }
     }
 
-    private struct MountResult: Decodable {
+    struct MountResult: Decodable {
         let status: MounterStatus?
         let error: String?
 
@@ -107,92 +59,82 @@ public final class DDIMounter {
 
     public struct Error: Swift.Error, LocalizedError {
         public let message: String?
-        public var errorDescription: String? { message }
+        public init(message: String?) { self.message = message }
+        public var errorDescription: String? { message ?? "Failed to mount the Developer Disk Image" }
     }
 
     private let client: MobileImageMounterClient
-    public init(connection: Connection) throws {
-        self.client = try connection.startClient()
+    public init(connection: Connection) async throws {
+        self.client = try await connection.startClient()
     }
 
-    private func mount(file: InputStream, size: Int, signature: Data) throws {
-        file.open()
-        defer { file.close() }
+    /// Returns `true` if a "Developer" image is already mounted.
+    public func isMounted() throws -> Bool {
+        let mounted = try client.lookup(imageType: "Developer", resultType: MountedImage.self)
+        return mounted.signature?.isEmpty == false
+    }
 
-        try client.upload(imageType: "Developer", file: file, size: size, signature: signature)
+    private func mount(data: Data, signature: Data) throws {
+        // InputStream(data:) is a plain memory-backed stream (unlike the CFSocketStream-based
+        // Stream.getBoundStreams piping this used to go through), so it works identically on
+        // Linux, macOS, and Windows.
+        let stream = InputStream(data: data)
+        stream.open()
+        defer { stream.close() }
+
+        try client.upload(imageType: "Developer", file: stream, size: data.count, signature: signature)
         let result = try client.mount(imageType: "Developer", signature: signature, resultType: MountResult.self)
         guard result.status == .complete else {
             throw Error(message: result.error)
         }
     }
 
-    public func mountIfNeeded(local: DDILoc, fetchRemote: () throws -> DDILoc) throws {
-        #warning("we can't use CFSocketStream on Linux at all")
-        #if os(Linux)
-        // maybe just tear all of this down and download first, then mount the ddi.
-        fatalError("DDIMounter does not yet work on Linux")
-        #else
-        let mounted = try client.lookup(imageType: "Developer", resultType: MountedImage.self)
-        if mounted.signature != nil { return }
+    /// Mounts the classic Developer Disk Image, using `local` as a cache and falling back to
+    /// `fetchRemote` (a pair of URLs to download) if it isn't present or is invalid.
+    ///
+    /// No-op if a Developer image is already mounted.
+    public func mountIfNeeded(
+        local: DDILoc,
+        fetchRemote: @Sendable () async throws -> DDILoc,
+        progress: @escaping @Sendable (Double) -> Void = { _ in }
+    ) async throws {
+        guard try !isMounted() else { return }
 
-        if local.dmg.exists,
-           local.signature.exists,
-           let file = InputStream(url: local.dmg),
-           let fileSize = try? local.dmg.resourceValues(forKeys: [.fileSizeKey]).fileSize,
-           let signature = try? Data(contentsOf: local.signature) {
-            return try mount(file: file, size: fileSize, signature: signature)
-        }
+        @Dependency(\.httpClient) var httpClientDependency
+        let httpClient = httpClientDependency
 
-        let remote = try fetchRemote()
+        let dmgData: Data
+        let signature: Data
+        if let cachedDMG = try? Data(contentsOf: local.dmg),
+           let cachedSignature = try? Data(contentsOf: local.signature) {
+            dmgData = cachedDMG
+            signature = cachedSignature
+            progress(1)
+        } else {
+            let remote = try await fetchRemote()
 
-        var istream: InputStream!
-        var ostream: OutputStream!
-        Stream.getBoundStreams(withBufferSize: 1024, inputStream: &istream, outputStream: &ostream)
-
-        let group = DispatchGroup()
-
-        var mode: RequestDelegate.Verdict!
-        group.enter()
-        let delegate = RequestDelegate(stream: ostream, cache: local.dmg) { m in
-            mode = m
-            group.leave()
-        }
-
-        let dmgReq = URLRequest(url: remote.dmg)
-        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
-        session.dataTask(with: dmgReq).resume()
-
-        let sigReq = URLRequest(url: remote.signature)
-        var sigRes: Result<Data, Swift.Error>!
-        group.enter()
-        URLSession.shared.dataTask(with: sigReq) { data, _, err in
-            if let data = data {
-                sigRes = .success(data)
-            } else {
-                sigRes = .failure(err ?? Error(message: nil))
+            async let dmgResult = httpClient.makeRequest(HTTPRequest(url: remote.dmg)) { downloadProgress in
+                // signature download is comparatively tiny, so weight the dmg download
+                // as ~95% of overall progress
+                progress((downloadProgress ?? 0) * 0.95)
             }
-            group.leave()
-            try? data?.write(to: local.signature)
-        }.resume()
+            let (_, signatureData) = try await httpClient.makeRequest(HTTPRequest(url: remote.signature))
+            let (_, dmgFetchedData) = try await dmgResult
 
-        group.wait()
-        let signature = try sigRes.get()
+            dmgData = dmgFetchedData
+            signature = signatureData
 
-        switch mode! {
-        case .downloadFull(let url):
-            let file = InputStream(url: url)!
-            let size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize!
-            try mount(file: file, size: size, signature: signature)
-        case .streamData(let size):
-            try mount(file: istream, size: size, signature: signature)
-        case .failed(let error):
-            throw error
+            try? FileManager.default.createDirectory(
+                at: local.dmg.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            try? dmgData.write(to: local.dmg)
+            try? signature.write(to: local.signature)
+
+            progress(1)
         }
 
-        _ = delegate
-        #endif
+        try mount(data: dmgData, signature: signature)
     }
 
 }
-
-#endif

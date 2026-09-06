@@ -9,9 +9,26 @@ struct DSIdentifiersCommand: AsyncParsableCommand {
         abstract: "Interact with bundle identifiers",
         subcommands: [
             DSIdentifiersListCommand.self,
+            DSIdentifiersDeleteCommand.self,
         ],
         defaultSubcommand: DSIdentifiersListCommand.self
     )
+}
+
+struct DSIdentifiersDeleteCommand: AsyncParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "delete",
+        abstract: "Delete a bundle identifier"
+    )
+
+    @Argument(help: "The Developer Services id of the bundle identifier to delete (see `xtool ds identifiers list`)")
+    var id: String
+
+    func run() async throws {
+        let client = DeveloperAPIClient(auth: try AuthToken.saved().authData())
+        _ = try await client.bundleIdsDeleteInstance(path: .init(id: id)).noContent
+        print("Deleted \(id)")
+    }
 }
 
 struct DSIdentifiersListCommand: AsyncParsableCommand {
