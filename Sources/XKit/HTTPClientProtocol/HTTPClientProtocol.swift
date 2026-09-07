@@ -41,87 +41,70 @@ extension HTTPClientProtocol {
     public func makeRequest(
         _ request: HTTPRequest,
         body: Data? = nil,
+        requireHTTPSuccess: Bool = true,
         onProgress: @isolated(any) (Double?) -> Void = { _ in }
     ) async throws -> (response: HTTPResponse, body: Data) {
         await onProgress(0)
         let (response, responseBody) = try await send(request, body: body.map { HTTPBody($0) })
-        guard response.status.kind == .successful else {
-            let errorBody = (try? await Self.collect(responseBody, onProgress: { _ in })) ?? Data()
-            throw HTTPResponseError(request: request, response: response, body: errorBody)
+        guard !requireHTTPSuccess || response.status.kind == .successful else {
+            let errorBody = (try? await responseBody.collect()) ?? Data()
+            throw HTTPResponseError(
+                method: request.method,
+                url: "\(request.scheme ?? "https")://\(request.authority ?? "")\(request.path ?? "")",
+                status: response.status,
+                // we don't use `decoding:as:` because we want to validate the UTF8
+                body: String(data: errorBody, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
+            )
         }
-        return (response, try await Self.collect(responseBody, onProgress: onProgress))
+        return (response, try await responseBody.collect(onProgress: onProgress))
     }
+}
 
-    private static func collect(
-        _ body: HTTPBody?,
+extension HTTPBody? {
+    fileprivate func collect(
+        onProgress: @isolated(any) (Double?) -> Void = { _ in }
+    ) async throws -> Data {
+        try await self?.collect(onProgress: onProgress) ?? Data()
+    }
+}
+
+extension HTTPBody {
+    fileprivate func collect(
         onProgress: @isolated(any) (Double?) -> Void
     ) async throws -> Data {
-        guard let body else { return Data() }
-        switch body.length {
+        switch self.length {
         case .unknown:
-            return try await body.reduce(into: Data()) { $0 += $1 }
+            return try await self.reduce(into: Data()) { $0 += $1 }
         case .known(let length):
             var data = Data(capacity: Int(length))
             let total = Double(length)
-            for try await chunk in body {
+            for try await chunk in self {
                 data += chunk
-                await onProgress(min(Double(data.count) / total, 1))
+                await onProgress(Swift.min(Double(data.count) / total, 1))
             }
             return data
         }
     }
 }
 
-public struct HTTPResponseError: Error, LocalizedError, Sendable {
+public struct HTTPResponseError: Error, LocalizedError, Sendable, CustomStringConvertible {
     public let method: HTTPRequest.Method
     public let url: String
     public let status: HTTPResponse.Status
-    public let contentType: String?
-    public let bodyPrefix: String
+    public let body: String?
 
-    private static let bodyPrefixLimit = 1024
-    private static let errorPageContentTypes: Set<String> = ["text/html", "text/plain"]
-
-    public var errorDescription: String? {
+    public var description: String {
         var description = "\(method.rawValue) \(url) failed: HTTP \(status.code)"
         if !status.reasonPhrase.isEmpty {
             description += " \(status.reasonPhrase)"
         }
-        if let contentType {
-            description += " (\(contentType))"
+        if let body, !body.isEmpty {
+            description += ". Details:\n\(body)"
         }
-        return bodyPrefix.isEmpty ? description : "\(description): \(bodyPrefix)"
-    }
-}
-
-extension HTTPResponseError {
-    init(request: HTTPRequest, response: HTTPResponse, body: Data) {
-        let contentType = response.headerFields[.contentType]
-        self.init(
-            method: request.method,
-            url: "\(request.scheme ?? "https")://\(request.authority ?? "")\(request.path ?? "")",
-            status: response.status,
-            contentType: contentType,
-            bodyPrefix: Self.errorPagePrefix(of: body, contentType: contentType)
-        )
+        return description
     }
 
-    private static func errorPagePrefix(of body: Data, contentType: String?) -> String {
-        guard let contentType,
-              errorPageContentTypes.contains(mediaType(of: contentType))
-        else { return "" }
-        let text = String(decoding: body.prefix(bodyPrefixLimit), as: UTF8.self)
-            .split(whereSeparator: \.isWhitespace)
-            .joined(separator: " ")
-        guard !text.isEmpty else { return "" }
-        return body.count > bodyPrefixLimit ? "\(text)…" : text
-    }
-
-    private static func mediaType(of contentType: String) -> String {
-        contentType.prefix { $0 != ";" }
-            .trimmingCharacters(in: .whitespaces)
-            .lowercased()
-    }
+    public var errorDescription: String? { description }
 }
 
 private struct UnimplementedHTTPClient: HTTPClientProtocol, ClientTransport {
