@@ -100,6 +100,8 @@ CMD [ "/bin/bash" ]
 
 FROM build-xtool-base AS build-xtool
 
+ARG XTL_CI
+
 ADD Package.swift Package.resolved /xtool/
 RUN swift package resolve
 

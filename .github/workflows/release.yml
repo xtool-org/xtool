@@ -3,6 +3,9 @@ on:
     tags:
       - "*"
 
+env:
+  XTL_CI: "1"
+
 jobs:
   build-linux:
     strategy:
@@ -23,6 +26,7 @@ jobs:
         run: |
           docker compose run --build \
             -e XTOOL_VERSION=${{ github.ref_name }} \
+            -e XTL_CI=1 \
             --rm xtool Linux/build.sh
       - name: Upload artifact
         uses: actions/upload-artifact@v7
@@ -88,6 +92,8 @@ jobs:
       id-token: write # for signing attestations and cache entries with GitHub OIDC
       packages: write # to push built images to GitHub Container Registry
     with:
+      build-args: |
+        XTL_CI=1
       output: image
       push: true
       platforms: linux/amd64,linux/arm64

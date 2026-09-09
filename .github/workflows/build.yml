@@ -6,6 +6,8 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+env:
+  XTL_CI: "1"
 jobs:
   build-linux:
     strategy:
@@ -22,7 +24,7 @@ jobs:
         uses: actions/checkout@v6
       - name: Build and test
         run: |
-          docker compose run --build xtool bash -c \
+          docker compose run --build -e XTL_CI=1 xtool bash -c \
             "swift build --product xtool && .build/debug/xtool --help && swift test"
   build-macos:
     runs-on: macos-26

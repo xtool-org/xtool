@@ -8,6 +8,8 @@
 
 #if false
 
+// For reference: https://github.com/xtool-org/xtool/issues/196
+
 import Foundation
 
 /// Creates a socket connected to `ip` on `port`.
