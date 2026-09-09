@@ -45,12 +45,12 @@ extension HTTPClientProtocol {
     public func makeRequest(
         _ request: HTTPRequest,
         body: Data? = nil,
-        throwOnServerError: Bool = true,
+        requireHTTPSuccess: Bool = true,
         onProgress: @isolated(any) (Double?) -> Void = { _ in }
     ) async throws -> (response: HTTPResponse, body: Data) {
         await onProgress(0)
         let (response, responseBody) = try await send(request, body: body.map { HTTPBody($0) })
-        guard !throwOnServerError || response.status.kind != .serverError else {
+        guard !requireHTTPSuccess || ![.clientError, .serverError].contains(response.status.kind) else {
             let errorBody = (try? await responseBody.collect()) ?? Data()
             throw HTTPResponseError(
                 method: request.method,
