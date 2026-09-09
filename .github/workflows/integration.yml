@@ -1,0 +1,18 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+concurrency:
+  group: integration-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  integration-test-linux:
+    # https://github.com/xtool-org/mac-actions-runner
+    runs-on: ubuntu-on-macos
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Run integration tests
+        run: |
+          ./integration-tests/run.sh

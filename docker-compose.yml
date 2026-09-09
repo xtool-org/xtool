@@ -16,3 +16,8 @@ services:
     extra_hosts:
       # host.docker.internal doesn't exist by default on Linux hosts
       - "host.docker.internal:host-gateway"
+  xtool-test:
+    extends:
+      service: xtool
+    build:
+      target: dev-test

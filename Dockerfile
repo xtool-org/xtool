@@ -84,6 +84,14 @@ ENV USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015
 
 CMD [ "/bin/bash" ]
 
+FROM dev AS dev-test
+
+ENV XTL_TEST_ENV=1
+
+COPY --from=bats/bats:latest /opt/bats /opt/bats
+COPY --from=bats/bats:latest /usr/lib/bats /usr/lib/bats
+RUN ln -s /opt/bats/bin/bats /usr/local/bin/bats
+
 FROM build-xtool-base AS build-xtool
 
 ARG XTL_CI
