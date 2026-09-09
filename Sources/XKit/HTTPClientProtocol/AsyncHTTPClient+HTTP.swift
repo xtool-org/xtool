@@ -22,12 +22,27 @@ extension HTTPClientDependencyKey: DependencyKey {
 }
 
 private struct Client: HTTPClientProtocol {
+    private static var proxyConfiguration: HTTPClient.Configuration.Proxy? {
+        // e.g. `XTL_HTTP_PROXY=localhost:8080`
+        guard let value = ProcessInfo.processInfo.environment["XTL_HTTP_PROXY"],
+              let separator = value.lastIndex(of: ":"),
+              let port = Int(value[value.index(after: separator)...]) else {
+            return nil
+        }
+
+        let host = String(value[..<separator])
+        return host.isEmpty ? nil : .server(host: host, port: port)
+    }
+
     private static let tlsConfiguration: TLSConfiguration = {
         // if ssl cert parsing fails we're screwed so we might as well force try
         // swiftlint:disable:next force_try
         let appleRootCA = try! NIOSSLCertificate(bytes: Array(appleRootPEM.utf8), format: .pem)
         var tlsConfiguration: TLSConfiguration = .makeClientConfiguration()
         tlsConfiguration.additionalTrustRoots = [.certificates([appleRootCA])]
+        if ProcessInfo.processInfo.environment["XTL_DISABLE_TLS_VALIDATION"] == "1" {
+            tlsConfiguration.certificateVerification = .none
+        }
         return tlsConfiguration
     }()
 
@@ -36,6 +51,7 @@ private struct Client: HTTPClientProtocol {
     init() {
         var config = HTTPClient.Configuration(
             tlsConfiguration: Self.tlsConfiguration,
+            proxy: Self.proxyConfiguration,
             decompression: .enabled(limit: .none)
         )
         config.timeout.connect = .seconds(60)
