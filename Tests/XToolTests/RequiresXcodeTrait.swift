@@ -34,6 +34,10 @@ enum TestXcode {
             return URL(filePath: output).deletingLastPathComponent().deletingLastPathComponent()
         }
         #endif
+        let candidate = URL(filePath: "/usr/local/share/Xcode.app")
+        if FileManager.default.fileExists(atPath: candidate.path) {
+            return candidate
+        }
         return nil
     }
 }
