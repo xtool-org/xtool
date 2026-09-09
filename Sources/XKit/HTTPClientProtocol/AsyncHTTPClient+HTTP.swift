@@ -30,7 +30,7 @@ private struct Client: HTTPClientProtocol {
         tlsConfiguration.additionalTrustRoots = [.certificates([appleRootCA])]
         return tlsConfiguration
     }()
-    
+
     var client: HTTPClient
 
     init() {
