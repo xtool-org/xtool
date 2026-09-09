@@ -18,6 +18,10 @@ public protocol HTTPClientProtocol: Sendable {
     var asOpenAPITransport: ClientTransport { get }
 
     func makeWebSocket(url: URL) async throws -> WebSocketSession
+
+    func withEphemeralClient<T>(
+        perform: (any HTTPClientProtocol) async throws -> T
+    ) async throws -> T
 }
 
 extension HTTPClientProtocol {
@@ -41,12 +45,12 @@ extension HTTPClientProtocol {
     public func makeRequest(
         _ request: HTTPRequest,
         body: Data? = nil,
-        requireHTTPSuccess: Bool = true,
+        throwOnServerError: Bool = true,
         onProgress: @isolated(any) (Double?) -> Void = { _ in }
     ) async throws -> (response: HTTPResponse, body: Data) {
         await onProgress(0)
         let (response, responseBody) = try await send(request, body: body.map { HTTPBody($0) })
-        guard !requireHTTPSuccess || response.status.kind == .successful else {
+        guard !throwOnServerError || response.status.kind != .serverError else {
             let errorBody = (try? await responseBody.collect()) ?? Data()
             throw HTTPResponseError(
                 method: request.method,
@@ -126,6 +130,12 @@ private struct UnimplementedHTTPClient: HTTPClientProtocol, ClientTransport {
     ) async throws -> HTTPResponse {
         let closure: () throws -> HTTPResponse = unimplemented()
         return try closure()
+    }
+
+    func withEphemeralClient<T>(
+        perform: (any HTTPClientProtocol) async throws -> T
+    ) async throws -> T {
+        try await perform(self)
     }
 
     public func makeWebSocket(url: URL) async throws -> any WebSocketSession {

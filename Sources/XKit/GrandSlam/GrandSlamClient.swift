@@ -41,7 +41,11 @@ struct GrandSlamClient: Sendable {
         }
         request.configure(request: &httpRequest, deviceInfo: deviceInfo, anisetteData: anisetteData)
 
-        let resp = try await httpClient.makeRequest(httpRequest, body: body)
+        // GrandSlam doesn't seem to like reused (keep-alive) connections so create a
+        // new one for each request. cf https://github.com/rileytestut/AltSign/pull/52
+        let resp = try await httpClient.withEphemeralClient {
+            try await $0.makeRequest(httpRequest, body: body)
+        }
         return try R.Decoder.decode(data: resp.body)
     }
 

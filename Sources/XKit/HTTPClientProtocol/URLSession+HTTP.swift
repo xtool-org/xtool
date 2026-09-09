@@ -56,6 +56,15 @@ private struct Client: HTTPClientProtocol {
         URLSessionTransport(configuration: .init(session: session))
     }
 
+    func withEphemeralClient<T>(
+        perform: (any HTTPClientProtocol) async throws -> T
+    ) async throws -> T {
+        let ephemeralClient = Client()
+        let result = await Result { try await perform(ephemeralClient) }
+        ephemeralClient.session.finishTasksAndInvalidate()
+        return try result.get()
+    }
+
     public func makeWebSocket(url: URL) async throws -> any WebSocketSession {
         let task = session.webSocketTask(with: url)
         let (event, eventContinuation) = AsyncStream<URLSessionWebSocketTask.CloseCode?>.makeStream()
