@@ -1,4 +1,4 @@
-// swift-tools-version:6.0
+// swift-tools-version:6.2
 
 import PackageDescription
 
@@ -18,6 +18,14 @@ let xtoolVersion: String? = {
 let cSettings: [CSetting] = [
     .define("_GNU_SOURCE", .when(platforms: [.linux])),
 ]
+
+let swiftSettings: [SwiftSetting] = {
+    var settings: [SwiftSetting] = []
+    if Context.environment["XTL_CI"] == "1" {
+        settings.append(.treatAllWarnings(as: .error))
+    }
+    return settings
+}()
 
 let package = Package(
     name: "xtool",
@@ -90,7 +98,8 @@ let package = Package(
             dependencies: [
                 .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
             ],
-            exclude: ["openapi-generator-config.yaml", "patch.js"]
+            exclude: ["openapi-generator-config.yaml", "patch.js"],
+            swiftSettings: swiftSettings,
         ),
         // common utilities shared across xtool targets
         .target(
@@ -102,7 +111,8 @@ let package = Package(
                     package: "swift-subprocess",
                     condition: .when(platforms: [.linux, .macOS])
                 ),
-            ]
+            ],
+            swiftSettings: swiftSettings,
         ),
         .target(
             name: "XKit",
@@ -141,14 +151,16 @@ let package = Package(
                     condition: .when(platforms: [.linux])
                 ),
             ],
-            cSettings: cSettings
+            cSettings: cSettings,
+            swiftSettings: swiftSettings,
         ),
         .testTarget(
             name: "XToolTests",
             dependencies: [
                 "XKit",
                 "XToolSupport",
-            ]
+            ],
+            swiftSettings: swiftSettings,
         ),
         .target(
             name: "XToolSupport",
@@ -162,7 +174,8 @@ let package = Package(
                 .product(name: "Version", package: "Version"),
                 .product(name: "libunxip", package: "unxip"),
             ],
-            cSettings: cSettings
+            cSettings: cSettings,
+            swiftSettings: swiftSettings,
         ),
         .target(
             name: "PackLib",
@@ -170,7 +183,8 @@ let package = Package(
                 "XUtils",
                 .product(name: "Yams", package: "Yams"),
                 .product(name: "XcodeGenKit", package: "XcodeGen", condition: .when(platforms: [.macOS])),
-            ]
+            ],
+            swiftSettings: swiftSettings,
         ),
         .executableTarget(
             name: "xtool",
@@ -179,7 +193,8 @@ let package = Package(
                 "XKit",
                 "XToolSupport",
             ],
-            cSettings: cSettings
+            cSettings: cSettings,
+            swiftSettings: swiftSettings,
         ),
     ]
 )
