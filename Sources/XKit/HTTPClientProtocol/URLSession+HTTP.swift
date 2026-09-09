@@ -40,6 +40,18 @@ private struct Client: HTTPClientProtocol {
         ) {
             webSocketCallbacks.withValue { $0.removeValue(forKey: webSocketTask) }?(closeCode)
         }
+
+        func urlSession(
+            _ session: URLSession,
+            didReceive challenge: URLAuthenticationChallenge
+        ) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
+            if ProcessInfo.processInfo.environment["XTL_DISABLE_TLS_VALIDATION"] == "1",
+               let trust = challenge.protectionSpace.serverTrust {
+                return (.useCredential, URLCredential(trust: trust))
+            } else {
+                return (.performDefaultHandling, nil)
+            }
+        }
     }
 
     private let clientDelegate = ClientDelegate()
