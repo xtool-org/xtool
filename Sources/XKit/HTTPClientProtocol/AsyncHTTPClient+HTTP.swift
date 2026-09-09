@@ -18,23 +18,31 @@ import OpenAPIAsyncHTTPClient
 import Dependencies
 
 extension HTTPClientDependencyKey: DependencyKey {
-    public static let liveValue: HTTPClientProtocol = {
+    public static let liveValue: HTTPClientProtocol = Client()
+}
+
+private struct Client: HTTPClientProtocol {
+    private static let tlsConfiguration: TLSConfiguration = {
         // if ssl cert parsing fails we're screwed so we might as well force try
         // swiftlint:disable:next force_try
         let appleRootCA = try! NIOSSLCertificate(bytes: Array(appleRootPEM.utf8), format: .pem)
         var tlsConfiguration: TLSConfiguration = .makeClientConfiguration()
         tlsConfiguration.additionalTrustRoots = [.certificates([appleRootCA])]
+        return tlsConfiguration
+    }()
+
+    var client: HTTPClient
+
+    init() {
         var config = HTTPClient.Configuration(
-            tlsConfiguration: tlsConfiguration,
+            tlsConfiguration: Self.tlsConfiguration,
             decompression: .enabled(limit: .none)
         )
         config.timeout.connect = .seconds(60)
-        return HTTPClient(configuration: config)
-    }()
-}
+        self.client = HTTPClient(configuration: config)
+    }
 
-extension HTTPClient: HTTPClientProtocol {
-    public func makeWebSocket(url: URL) async throws -> any WebSocketSession {
+    func makeWebSocket(url: URL) async throws -> any WebSocketSession {
         let (stream, continuation) = AsyncStream.makeStream(of: WebSocketSessionWrapper.self)
         async let value = stream.first(where: { _ in true })
         // must be after the `async let` so that we finish if connect throws
@@ -42,7 +50,7 @@ extension HTTPClient: HTTPClientProtocol {
         // we can't use the async overload because we need to immediately subscribe
         // to onText/onBinary in the same EventLoop tick that the WebSocket is created.
         // This is also why we create the SessionWrapper inside the closure.
-        let future = WebSocket.connect(to: url, on: eventLoopGroup) {
+        let future = WebSocket.connect(to: url, on: client.eventLoopGroup) {
             continuation.yield(WebSocketSessionWrapper(webSocket: $0))
         }
         try await future.get()
@@ -56,8 +64,17 @@ extension HTTPClient: HTTPClientProtocol {
         case connectFailed
     }
 
-    public var asOpenAPITransport: any ClientTransport {
-        AsyncHTTPClientTransport(configuration: .init(client: self))
+    var asOpenAPITransport: any ClientTransport {
+        AsyncHTTPClientTransport(configuration: .init(client: client))
+    }
+
+    func withEphemeralClient<T>(
+        perform: (any HTTPClientProtocol) async throws -> T
+    ) async throws -> T {
+        let ephemeralClient = Client()
+        let result = await Result { try await perform(ephemeralClient) }
+        try? await ephemeralClient.client.shutdown()
+        return try result.get()
     }
 }
 
