@@ -171,7 +171,7 @@ struct DarwinSDK {
         let hostClangResources = URL(filePath: output.trimmingCharacters(in: .whitespacesAndNewlines))
         let hostInclude = hostClangResources.appending(path: "include")
         let sdkInclude = sdk.appending(path: "Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/clang/include")
-        try FileManager.default.copyItem(at: hostInclude, to: sdkInclude)
+        try await FileManager.default.copyItem(at: hostInclude, to: sdkInclude, preserveOwner: false)
     }
 
     static func current() async throws -> DarwinSDK? {
@@ -264,7 +264,7 @@ struct InstallSDKOperation {
 
         if path.hasSuffix(".xtoolsdk") {
             print("Installing prebuilt SDK...")
-            try FileManager.default.copyItem(at: URL(filePath: path), to: sdkPath)
+            try await FileManager.default.copyItem(at: URL(filePath: path), to: sdkPath, preserveOwner: false)
         } else {
             // validate input before removing existing SDK
             let input = try SDKBuilder.Input(path: path)
