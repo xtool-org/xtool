@@ -3,6 +3,7 @@
 *.ipa
 .DS_Store
 /.build
+/Android/output/
 /Packages
 xcuserdata/
 DerivedData/

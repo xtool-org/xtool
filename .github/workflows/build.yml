@@ -3,6 +3,7 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -51,3 +52,10 @@ jobs:
             -skipMacroValidation -skipPackagePluginValidation \
             -scheme XKit -destination generic/platform=iOS \
           | xcbeautify
+  build-android:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Cross-compile for Android
+        run: Android/build.sh --debug

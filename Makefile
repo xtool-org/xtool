@@ -13,6 +13,7 @@ endif
 ifeq ($(RELEASE),1)
 INTERNAL_SWIFTFLAGS = -c release
 INTERNAL_XCFLAGS = -configuration Release
+IS_RELEASE = 1
 else
 INTERNAL_SWIFTFLAGS = -c debug
 INTERNAL_XCFLAGS = -configuration Debug
@@ -85,6 +86,14 @@ mac-clean:
 mac-dist:
 	@echo "bundle exec fastlane package"
 	@cd macOS && bundle exec fastlane package
+
+.PHONY: android
+android:
+	Android/build.sh $(if $(IS_RELEASE),,--debug)
+
+.PHONY: android-dev
+android-dev:
+	docker compose run --build --rm xtool-android
 
 .PHONY: reload
 # update Xcode project and restart Xcode

@@ -49,7 +49,7 @@ private struct UnimplementedRawADIProvider: RawADIProvider {
 private enum RawADIProviderDependencyKey: DependencyKey {
     static let testValue: RawADIProvider = UnimplementedRawADIProvider()
     static let liveValue: RawADIProvider = {
-        #if os(Linux)
+        #if canImport(XADI)
         return XADIProvider()
         #else
         return OmnisetteADIProvider()

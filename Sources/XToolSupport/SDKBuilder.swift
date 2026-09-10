@@ -305,6 +305,9 @@ struct SDKBuilder {
         }
         print()
 
+        print("[Validating SDKs]")
+        try Self.validateInstalledSDKs(in: dev)
+
         print("[Cleaning up]")
         if let cleanupStageDir {
             try? FileManager.default.removeItem(at: cleanupStageDir)
@@ -355,6 +358,37 @@ struct SDKBuilder {
         )
 
         return dev
+    }
+
+    /// Files expected in every installed SDK. When the XIP extractor
+    /// fails to recreate hard-linked duplicates (e.g. unxip's linkat(2)
+    /// failing on hosts that restrict hard links, such as SELinux-
+    /// enforced Android), these files silently vanish from the staged
+    /// tree; the resulting SDK then produces confusing compile errors
+    /// ("'__config' file not found") long after installation. Validating
+    /// a sample of known victims turns that silent corruption into a
+    /// clear failure at install time.
+    private static let sdkValidationPaths = [
+        // libc++ headers are stored as hardlink duplicates in the XIP
+        "Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/include/c++/v1/__config",
+        "Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/include/c++/v1/vector",
+        "Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/include/c++/v1/string",
+        // so are the Swift runtime shims headers
+        "Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/lib/swift/shims/HeapObject.h",
+        "Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/lib/swift/shims/KeyPath.h",
+    ]
+
+    private static func validateInstalledSDKs(in dev: URL) throws {
+        let manager = FileManager.default
+        for path in sdkValidationPaths
+        where !manager.fileExists(atPath: dev.appending(path: path).path) {
+            throw Console.Error("""
+            SDK validation failed: \(path) is missing. The SDK bundle is \
+            corrupt; this can happen when XIP extraction silently fails \
+            to recreate hard-linked files. Please try installing the SDK \
+            again (and report a bug if it persists).
+            """)
+        }
     }
 
     // returns the number of files we actually want to keep,
