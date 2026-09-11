@@ -1,5 +1,5 @@
 {
-  "originHash" : "80db0cddb0e78cf6a4c79f94537cdfebd8004679161532fbae8a57ee9d1d8cd1",
+  "originHash" : "90ad8f84cef9a5c63d7cc80c20c4a7e332fd63bead7d72ee1d94da8b1a0a2186",
   "pins" : [
     {
       "identity" : "aexml",
@@ -422,6 +422,15 @@
       "state" : {
         "revision" : "90bbbdab3ede12c803cfbe91646f291c092517a3",
         "version" : "2.16.2"
+      }
+    },
+    {
+      "identity" : "xadi",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/xtool-org/xadi",
+      "state" : {
+        "revision" : "831f8ddfc72f7a48d0c2c03ac9c864eee1f8f6b3",
+        "version" : "0.4.0"
       }
     },
     {
