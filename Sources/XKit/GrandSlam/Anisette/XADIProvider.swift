@@ -1,4 +1,4 @@
-#if os(Linux)
+#if canImport(XADI)
 
 import Foundation
 import XADI

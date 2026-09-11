@@ -66,23 +66,9 @@ RUN cd libimobiledevice \
     && make install DESTDIR=/prefix
 
 
-FROM build-base AS build-xadi
-
-RUN mkdir -p /prefix/usr/lib
-
-RUN curl -fsS https://dlang.org/install.sh | bash -s ldc
-
-ADD https://github.com/xtool-org/xadi.git#main /xadi
-
-RUN cd xadi \
-    && /bin/bash -c 'source $(/root/dlang/install.sh ldc -a) && dub build --build=release' \
-    && cp -r bin/libxadi.so /prefix/usr/lib/libxadi.so
-
-
 FROM build-base AS build-xtool-base
 
 COPY --from=build-limd /prefix/usr /usr
-COPY --from=build-xadi /prefix/usr /usr
 
 WORKDIR /xtool
 

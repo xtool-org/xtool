@@ -51,6 +51,7 @@ let package = Package(
         .package(url: "https://github.com/xtool-org/xtool-core", .upToNextMinor(from: "1.4.0")),
         .package(url: "https://github.com/xtool-org/SwiftyMobileDevice", .upToNextMinor(from: "1.5.0")),
         .package(url: "https://github.com/xtool-org/zsign", .upToNextMinor(from: "1.7.0")),
+        .package(url: "https://github.com/xtool-org/xadi", .upToNextMinor(from: "0.4.0")),
 
         .package(url: "https://github.com/apple/swift-system", from: "1.4.0"),
         .package(url: "https://github.com/apple/swift-http-types", from: "1.3.1"),
@@ -81,7 +82,6 @@ let package = Package(
         .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.45.4"),
     ],
     targets: [
-        .systemLibrary(name: "XADI"),
         .target(
             name: "CXKit",
             dependencies: [
@@ -120,7 +120,7 @@ let package = Package(
                 "DeveloperAPI",
                 "CXKit",
                 "XUtils",
-                .byName(name: "XADI", condition: .when(platforms: [.linux])),
+                .product(name: "XADI", package: "xadi", condition: .when(platforms: [.linux, .macOS])),
                 .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
                 .product(name: "SwiftyMobileDevice", package: "SwiftyMobileDevice"),
