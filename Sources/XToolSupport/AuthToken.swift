@@ -9,6 +9,17 @@ enum AuthToken: Codable, CustomStringConvertible {
         var token: String
         var expiry: Date
         var teamID: String
+        var anisetteVersion: String?
+
+        init(appleID: String, adsid: String, token: String, expiry: Date, teamID: String) {
+            self.appleID = appleID
+            self.adsid = adsid
+            self.token = token
+            self.expiry = expiry
+            self.teamID = teamID
+            @Dependency(\.anisetteDataProvider) var anisetteProvider
+            self.anisetteVersion = anisetteProvider.providerVersion
+        }
     }
 
     struct AppStoreConnect: Codable {
@@ -58,7 +69,19 @@ extension AuthToken {
         guard let data = try storage.data(forKey: "XTLAuthToken") else {
             return nil
         }
-        return try decoder.decode(AuthToken.self, from: data)
+        let decoded = try decoder.decode(AuthToken.self, from: data)
+        switch decoded {
+        case .xcode(let xcode):
+            @Dependency(\.anisetteDataProvider) var anisetteProvider
+            guard xcode.anisetteVersion == anisetteProvider.providerVersion else {
+                try? clear()
+                anisetteProvider.resetProvisioning()
+                return nil
+            }
+        case .appStoreConnect:
+            break
+        }
+        return decoded
     }
 
     static func clear() throws {

@@ -171,7 +171,7 @@ struct AuthLogoutCommand: AsyncParsableCommand {
 
         if reset2FA {
             @Dependency(\.anisetteDataProvider) var anisetteProvider
-            await anisetteProvider.resetProvisioning()
+            anisetteProvider.resetProvisioning()
             print("Forgot device")
         }
     }
