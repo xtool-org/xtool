@@ -120,7 +120,7 @@ let package = Package(
                 "DeveloperAPI",
                 "CXKit",
                 "XUtils",
-                .product(name: "XADI", package: "xadi", condition: .when(platforms: [.linux])),
+                .product(name: "XADI", package: "xadi", condition: .when(platforms: [.linux, .macOS])),
                 .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
                 .product(name: "SwiftyMobileDevice", package: "SwiftyMobileDevice"),
