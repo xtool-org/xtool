@@ -1,0 +1,19 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+concurrency:
+  group: integration-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  integration-test-linux:
+    runs-on: ubuntu-on-macos
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Build and test
+        run: |
+          docker compose run --build -e XTL_CI=1 \
+            -v /usr/local/share/Xcode.app:/usr/local/share/Xcode.app xtool \
+            swift test
