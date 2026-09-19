@@ -65,6 +65,12 @@ struct NewCommand: AsyncParsableCommand {
 
         let moduleName = name.replacingOccurrences(of: "-", with: "_")
 
+        let lspFile = if try await SwiftVersion.current.supportsSwiftBuild {
+            LSPConfig.bsp
+        } else {
+            LSPConfig.legacyLSP
+        }
+
         let files: [(String, String)] = [
             (
                 "Package.swift",
@@ -120,16 +126,7 @@ struct NewCommand: AsyncParsableCommand {
                 """
             ),
 
-            (
-                ".sourcekit-lsp/config.json",
-                """
-                {
-                    "swiftPM": {
-                        "swiftSDK": "arm64-apple-ios"
-                    }
-                }
-                """
-            ),
+            lspFile,
 
             (
                 "Sources/\(moduleName)/\(moduleName)App.swift",

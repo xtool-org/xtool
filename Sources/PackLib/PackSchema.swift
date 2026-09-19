@@ -22,6 +22,8 @@ public struct PackSchemaBase: Codable, Sendable {
 
     public var extensions: [Extension]?
 
+    public var skipBSPCreation: Bool?
+
     public struct Extension: Codable, Sendable {
         public var product: String
         public var bundleID: String?
