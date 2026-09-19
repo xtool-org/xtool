@@ -1,5 +1,5 @@
 {
-  "originHash" : "239b1d03e11e770439616e1ce55479152e315402e6fd5d3c0f62a2ca1c08b762",
+  "originHash" : "70ed310397f7785149edfd3c75ea1be84b43c694430c1a7d8a48d1da0809d3b5",
   "pins" : [
     {
       "identity" : "aexml",
@@ -393,8 +393,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/xtool-org/SwiftyMobileDevice",
       "state" : {
-        "revision" : "280d0dc8153469944491aee2f19af29e9c7a77f0",
-        "version" : "1.5.0"
+        "revision" : "1f6e4cc614a31953bda5d1092a747cfdea90916f",
+        "version" : "1.7.0"
       }
     },
     {
@@ -465,8 +465,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/xtool-org/xtool-core",
       "state" : {
-        "revision" : "d412ac768d1e73d16ad7ccc6805f12fc701709f6",
-        "version" : "1.4.0"
+        "revision" : "f867f9c2aea16ac78ca14d0d2f948b47db0732b4",
+        "version" : "1.5.0"
       }
     },
     {
@@ -483,8 +483,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/xtool-org/zsign",
       "state" : {
-        "revision" : "6c4a9f52dd8bf374aa938ef9c17d5f261f2c333a",
-        "version" : "1.7.0"
+        "revision" : "19aab76b3f1388966a3ed4fc11b357f95aafc70b",
+        "version" : "1.8.0"
       }
     }
   ],
