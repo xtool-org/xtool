@@ -138,7 +138,7 @@ public struct Planner: Sendable {
             }
             guard visited.insert(targetName).inserted else { continue }
             if target.moduleType == "BinaryTarget" {
-                resources.append(.binaryTarget(name: targetName))
+                resources.append(.binaryTarget(name: targetName, frameworkName: nil))
             }
             if target.resources?.isEmpty == false {
                 resources.append(.bundle(package: targetPackage.name, target: targetName))
@@ -302,7 +302,7 @@ public struct Plan: Sendable {
 
     public enum Resource: Codable, Sendable, Hashable {
         case bundle(package: String, target: String)
-        case binaryTarget(name: String)
+        case binaryTarget(name: String, frameworkName: String?)
         case library(name: String)
         case root(source: String)
     }
