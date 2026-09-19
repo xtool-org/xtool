@@ -245,6 +245,14 @@ public struct ADIDataProvider: AnisetteDataProvider {
         try? storage.setString(nil, forKey: Self.routingInfoKey)
     }
 
+    public var providerVersion: String? {
+        #if os(macOS)
+        return "1"
+        #else
+        return nil
+        #endif
+    }
+
     public func provisioningData() -> ProvisioningData? {
         guard let provisioningInfo = try? storage.data(forKey: Self.provisioningKey),
               let routingInfoString = try? storage.string(forKey: Self.routingInfoKey),
@@ -280,6 +288,23 @@ public struct ADIDataProvider: AnisetteDataProvider {
 
 }
 
-public struct ADIError: Error {
+public struct ADIError: Error, CustomStringConvertible {
     public var code: Int
+
+    public var description: String {
+        switch code {
+        case -45061:
+            return """
+            You were logged out. Please log in again with `xtool auth`.
+
+            If you see this repeatedly, please file an issue at https://github.com/xtool-org/xtool/issues/new/choose
+            """
+        default:
+            return """
+            Apple Anisette library returned error \(code). Please try logging in again with `xtool auth`.
+
+            If this problem persists, file an issue at https://github.com/xtool-org/xtool/issues/new/choose
+            """
+        }
+    }
 }

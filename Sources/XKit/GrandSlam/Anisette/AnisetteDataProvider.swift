@@ -10,8 +10,14 @@ import Foundation
 import Dependencies
 
 public protocol AnisetteDataProvider: Sendable {
+    /// Stored alongside login data. If the provider reports a new version, we log out and reset provisioning.
+    ///
+    /// The default implementation returns `nil`.
+    var providerVersion: String? { get }
+
     // This is a suggestion and not a requirement.
-    func resetProvisioning() async
+    func resetProvisioning()
+
     func provisioningData() -> ProvisioningData?
 
     func fetchAnisetteData() async throws -> AnisetteData
@@ -24,8 +30,9 @@ public struct ProvisioningData: Hashable, Codable, Sendable {
 }
 
 extension AnisetteDataProvider {
+    public var providerVersion: String? { nil }
     public func provisioningData() -> ProvisioningData? { nil }
-    public func resetProvisioning() async {}
+    public func resetProvisioning() {}
 }
 
 extension DependencyValues {
