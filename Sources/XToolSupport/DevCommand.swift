@@ -27,6 +27,15 @@ struct PackOperation {
 
     @discardableResult
     func run() async throws -> URL {
+        // TODO: support running inside a child directory
+
+        let contents = try FileManager.default.contentsOfDirectory(atPath: ".")
+        guard contents.contains("Package.swift")
+            || contents.contains(where: { $0.hasPrefix("Package@") && $0.hasSuffix(".swift") })
+            else {
+            throw Console.Error("Could not find Package.swift in this directory.")
+        }
+
         try await EnsureSDKOperation(quiet: true).run()
 
         print("Planning...")
@@ -42,6 +51,8 @@ struct PackOperation {
             configuration with 'com.example' organization ID.
             """)
         }
+
+        await LSPConfig.tryEnsure(using: schema)
 
         let buildSettings = try await BuildSettings(
             configuration: buildOptions.configuration,
@@ -276,6 +287,7 @@ struct DevCommand: AsyncParsableCommand {
             DevXcodeCommand.self,
             DevBuildCommand.self,
             DevRunCommand.self,
+            DevBSPCommand.self,
         ],
         defaultSubcommand: DevRunCommand.self
     )
