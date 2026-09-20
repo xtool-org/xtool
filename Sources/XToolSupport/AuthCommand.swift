@@ -111,12 +111,15 @@ struct AuthOperation {
             }
         )
 
+        @Dependency(\.anisetteDataProvider) var anisetteProvider
+
         return AuthToken.xcode(.init(
             appleID: username,
             adsid: token.adsid,
             token: token.token,
             expiry: token.expiry,
-            teamID: team.id.rawValue
+            teamID: team.id.rawValue,
+            anisetteProviderID: anisetteProvider.providerID
         ))
     }
 }

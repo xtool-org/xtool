@@ -92,13 +92,10 @@ public struct ADIDataProvider: AnisetteDataProvider {
 
     private let _clientInfo = LockIsolated<String?>(nil)
 
-    public init(provisioningData: ProvisioningData? = nil) {
+    public init() {
         @Dependency(\.keyValueStorage) var storage
-        if let provisioningData {
-            self.localUserUID = provisioningData.localUserUID
-            try? storage.setData(provisioningData.adiPb, forKey: Self.provisioningKey)
-            try? storage.setString("\(provisioningData.routingInfo)", forKey: Self.routingInfoKey)
-        } else if let localUserUIDString = try? storage.string(forKey: Self.localUserUIDKey),
+
+        if let localUserUIDString = try? storage.string(forKey: Self.localUserUIDKey),
            let localUserUID = UUID(uuidString: localUserUIDString) {
             self.localUserUID = localUserUID
         } else {
@@ -110,9 +107,15 @@ public struct ADIDataProvider: AnisetteDataProvider {
         self.localUserID = SHA256.hash(data: Data(localUserUID.uuidString.utf8))
             .map { String(format: "%02X", $0) }
             .joined()
+
+        if (try? storage.string(forKey: Self.providerIDKey)) != Self.providerID {
+            self.resetProvisioning()
+            try? storage.setString(Self.providerID, forKey: Self.providerIDKey)
+        }
     }
 
     private static let localUserUIDKey = "XTLLocalUserUID"
+    private static let providerIDKey = "XTLADIProviderID"
     private static let provisioningKey = "XTLProvisioningInfo"
     private static let routingInfoKey = "XTLRoutingInfo"
 
@@ -245,6 +248,16 @@ public struct ADIDataProvider: AnisetteDataProvider {
         try? storage.setString(nil, forKey: Self.routingInfoKey)
     }
 
+    private static var providerID: String? {
+        #if os(macOS)
+        return "1"
+        #else
+        return nil
+        #endif
+    }
+
+    public var providerID: String? { Self.providerID }
+
     public func provisioningData() -> ProvisioningData? {
         guard let provisioningInfo = try? storage.data(forKey: Self.provisioningKey),
               let routingInfoString = try? storage.string(forKey: Self.routingInfoKey),
@@ -280,6 +293,23 @@ public struct ADIDataProvider: AnisetteDataProvider {
 
 }
 
-public struct ADIError: Error {
+public struct ADIError: Error, CustomStringConvertible {
     public var code: Int
+
+    public var description: String {
+        switch code {
+        case -45061:
+            return """
+            You were logged out. Please log in again with `xtool auth`.
+
+            If you see this repeatedly, please file an issue at https://github.com/xtool-org/xtool/issues/new/choose
+            """
+        default:
+            return """
+            Apple Anisette library returned error \(code). Please try logging in again with `xtool auth`.
+
+            If this problem persists, file an issue at https://github.com/xtool-org/xtool/issues/new/choose
+            """
+        }
+    }
 }
