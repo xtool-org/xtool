@@ -98,14 +98,23 @@ public struct DarwinSDK {
     }
 
     private static func addHostClangResourceDir(to sdk: URL) async throws {
-        let clangURL = try await ToolRegistry.locate("clang")
+        struct SwiftTargetInfo: Decodable {
+            struct Paths: Decodable {
+                let runtimeResourcePath: String
+            }
+            let paths: Paths
+        }
+
         let process = try await Subprocess.run(
-            .path(FilePath(clangURL.path)),
-            arguments: ["-print-resource-dir"],
-            output: .string(limit: .max)
+            .path(try await BuildSettings.swiftcURL()),
+            arguments: ["-print-target-info"],
+            output: .data(limit: .max)
         ).checkSuccess()
-        let output = process.standardOutput ?? ""
-        let hostClangResources = URL(filePath: output.trimmingCharacters(in: .whitespacesAndNewlines))
+        let targetInfo = try JSONDecoder().decode(
+            SwiftTargetInfo.self,
+            from: process.standardOutput
+        )
+        let hostClangResources = URL(filePath: targetInfo.paths.runtimeResourcePath).appending(path: "clang")
         let hostInclude = hostClangResources.appending(path: "include")
         let sdkInclude = sdk.appending(path: "Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/clang/include")
         try await FileManager.default.copyItem(at: hostInclude, to: sdkInclude, preserveOwner: false)
