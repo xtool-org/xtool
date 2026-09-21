@@ -22,14 +22,14 @@ Once you install WSL, you'll also need to set up USB passthrough. See Microsoft'
 
 ### Swift
 
-Install the Swift 6.3 toolchain for your Linux distribution from <https://swift.org/install/linux>.
+Install the Swift 6.4 toolchain for your Linux distribution from <https://swift.org/install/linux>.
 
 After following the steps there, confirm that Swift is installed correctly:
 
 ```bash
 swift --version
 # should say something like:
-# Swift version 6.3 (swift-6.3-RELEASE)
+# Swift version 6.4 (swift-6.4-RELEASE)
 ```
 
 ### usbmuxd
@@ -131,7 +131,7 @@ Choice (0-1): 0
 Path to Xcode.xip:
 ```
 
-Enter the path (for example `~/Downloads/Xcode_16.3.xip`) and hit enter. xtool will extract the Xcode XIP to generate and install an iOS Swift SDK for you.
+Enter the path (for example `~/Downloads/Xcode_27.0.xip`) and hit enter. xtool will extract the Xcode XIP to generate and install an iOS Swift SDK for you.
 
 Confirm that it worked:
 
