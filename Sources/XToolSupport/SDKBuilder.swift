@@ -79,11 +79,12 @@ struct SDKBuilder {
     static let sdkEpoch = 2
 
     // tag from https://github.com/xtool-org/darwin-tools-linux-llvm
-    static let darwinToolsVersion = "1.0.1"
+    static let darwinToolsVersion = "1.1.0"
 
     // tag from https://github.com/xtool-org/OpenAppleMacros
-    static let oamVersion = "1.2.0"
+    static let oamVersion = "1.3.0"
     static let oamLibraries: [String] = [
+        "FoundationModelsMacros",
         "PreviewsMacros",
         "SwiftUIMacros",
     ]

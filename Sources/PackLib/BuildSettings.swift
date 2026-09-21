@@ -65,6 +65,8 @@ public struct BuildSettings: Sendable {
             ]
             self.sdkEnvironment.merge([
                 "XCODE_EXTRA_PLATFORM_FOLDERS": "\(darwinSDK.bundle.path)/Developer/Platforms",
+                // SWB looks for dsymutil in the PATH. Other stuff (lld, libtool) is handled by toolset-swb.json.
+                "PATH": "\(darwinSDK.bundle.path)/toolset/bin:\(ProcessInfo.processInfo.environment["PATH"] ?? "")",
             ]) { $1 }
             #endif
         }
