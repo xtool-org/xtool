@@ -38,7 +38,7 @@ if [[ ! -f staging/linuxdeploy/linuxdeploy.AppImage ]]; then
 fi
 
 mkdir -p staging/tmp/AppDir/usr/bin
-find "${bin}"/ -name '*.resources' -print0 | xargs -0 -I {} cp -a {} "${PWD}/staging/tmp/AppDir/usr/bin/"
+find "${bin}"/ -name '*.resources' -or -name '*.bundle' -print0 | xargs -0 -I {} cp -a {} "${PWD}/staging/tmp/AppDir/usr/bin/"
 
 export LINUXDEPLOY_OUTPUT_VERSION="${XTOOL_VERSION:-unversioned}"
 export LDAI_OUTPUT="staging/tmp/xtool-${curr_arch}.AppImage"
