@@ -1,7 +1,7 @@
 # Note: We use 22.04 since AppImage recommends building on the
 # oldest configuration that you support
 
-ARG SWIFT_VERSION=6.3.3
+ARG SWIFT_VERSION=6.4.0
 
 FROM swift:${SWIFT_VERSION}-jammy AS build-base
 
