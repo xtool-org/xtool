@@ -9,9 +9,11 @@ public actor BuildCoordinator {
     let sessionManager: BuildSessionManager
     let buildRequest: SWBBuildRequest
     let pifContainer: XPIF.Container
+    let targetSelection: BuildDescription.TargetSelection?
 
     init(description: BuildDescription) async throws {
         self.pifContainer = description.pif
+        self.targetSelection = description.targetSelection
 
         Signposter.track("Creating BuildSessionManager")
 
@@ -117,7 +119,10 @@ public actor BuildCoordinator {
             parameters.overrides.synthesized = overridesTable
             var request = SWBBuildRequest()
             request.parameters = parameters
-            request.useImplicitDependencies = true
+            request.useImplicitDependencies = description.targetSelection?.buildImplicitDependencies ?? true
+            request.configuredTargets = description.targetSelection?.buildTargets.map {
+                SWBConfiguredTarget(guid: $0.value)
+            } ?? []
             request.setDerivedDataPath(xtoolDir.appending(path: ".xtool-tmp/DerivedData"))
             self.buildRequest = request
         } catch {
@@ -131,12 +136,16 @@ public actor BuildCoordinator {
     }
 
     func mainProductGUID() throws -> String {
+        if let targetSelection { return targetSelection.application.value }
         let apps = pifContainer.workspace.projects.flatMap(\.targets).compactMap { base -> XPIF.Target? in
             guard case let .target(target) = base, target.productType == .application else { return nil }
             return target
         }
         guard apps.count == 1, let app = apps.first else {
-            throw Console.Error("Expected one application target, found \(apps.count).")
+            throw Console.Error("""
+                Expected one application target in Xcode project or workspace, found \(apps.count). \
+                Select an application with --scheme or 'scheme' in xtool.yml.
+                """)
         }
         return app.id.value
     }

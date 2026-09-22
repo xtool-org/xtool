@@ -24,6 +24,7 @@ actor XToolBuildServer: QueueBasedMessageHandler {
     private let connectionToClient: any LanguageServerProtocol.Connection
     private var coordinator: BuildCoordinator?
     private let triple: String
+    private let scheme: String?
     private let exitHandler: @Sendable (Int) -> Void
     private var packageRoot: URL?
     private var headersByTargetGUID: [String: Set<URL>] = [:]
@@ -34,10 +35,12 @@ actor XToolBuildServer: QueueBasedMessageHandler {
 
     init(
         triple: String,
+        scheme: String? = nil,
         connectionToClient: any LanguageServerProtocol.Connection,
         exitHandler: @escaping @Sendable (Int) -> Void
     ) {
         self.triple = triple
+        self.scheme = scheme
         self.exitHandler = exitHandler
         self.connectionToClient = connectionToClient
         self.connectionToUnderlyingBuildServer = LocalConnection(receiverName: "underlying-swift-build-server")
@@ -57,7 +60,7 @@ actor XToolBuildServer: QueueBasedMessageHandler {
                 throw Console.Error("`xtool dev build-server` requires Swift 6.4 or later")
             }
             let project = try await XToolProject.discover(start: directory)
-            let description = try await project.describe(configuration: .debug, triple: triple)
+            let description = try await project.describe(configuration: .debug, triple: triple, scheme: scheme)
             let pif = description.pif
             let coordinator = try await BuildCoordinator(description: description)
             // The transport may have closed while the coordinator was being created.

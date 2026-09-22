@@ -97,6 +97,14 @@ struct SwiftPMBuildDescriberTests {
             return
         }
         #expect(group.children.count == 5)
+        let projectURL = projectDir.appending(path: "App.xcodeproj")
+        let scheme = try XcodeScheme(named: "App-App", containers: [projectURL])
+        let runnable = try #require(scheme.runnable)
+        #expect(runnable.name == "App-App")
+        #expect(runnable.objectID == app.objectID.rawValue)
+        #expect(runnable.projectURL == projectURL.resolvingSymlinksInPath())
+        #expect(scheme.buildTargets.map(\.name) == ["App-App"])
+        #expect(scheme.buildImplicitDependencies)
     }
 
     @Test func dumpsPIFAndGeneratesProjectForSwiftPackage() async throws {

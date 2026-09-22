@@ -1,0 +1,213 @@
+// !$*UTF8*$!
+{
+    archiveVersion = 1;
+    classes = {};
+    objectVersion = 56;
+    objects = {
+
+/* Begin PBXBuildFile section */
+        A10000000000000000000001 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* App.swift */; };
+        A10000000000000000000002 /* ExampleSupport in Frameworks */ = {isa = PBXBuildFile; productRef = AC0000000000000000000001 /* ExampleSupport */; };
+        A10000000000000000000003 /* message.txt in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* message.txt */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+        A20000000000000000000001 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+        A20000000000000000000003 /* message.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = message.txt; sourceTree = "<group>"; };
+        A20000000000000000000004 /* DemoXcode.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DemoXcode.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+        A30000000000000000000001 /* Frameworks */ = {
+            isa = PBXFrameworksBuildPhase;
+            buildActionMask = 2147483647;
+            files = (A10000000000000000000002 /* ExampleSupport in Frameworks */);
+            runOnlyForDeploymentPostprocessing = 0;
+        };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+        A40000000000000000000001 = {
+            isa = PBXGroup;
+            children = (
+                A40000000000000000000002 /* Sources */,
+                A40000000000000000000003 /* Resources */,
+                A40000000000000000000005 /* Products */,
+            );
+            sourceTree = "<group>";
+        };
+        A40000000000000000000002 /* Sources */ = {
+            isa = PBXGroup;
+            children = (A20000000000000000000001 /* App.swift */);
+            path = Sources;
+            sourceTree = "<group>";
+        };
+        A40000000000000000000003 /* Resources */ = {
+            isa = PBXGroup;
+            children = (A20000000000000000000003 /* message.txt */);
+            path = Resources;
+            sourceTree = "<group>";
+        };
+        A40000000000000000000005 /* Products */ = {
+            isa = PBXGroup;
+            children = (A20000000000000000000004 /* DemoXcode.app */);
+            name = Products;
+            sourceTree = "<group>";
+        };
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+        A50000000000000000000001 /* DemoXcode */ = {
+            isa = PBXNativeTarget;
+            buildConfigurationList = A90000000000000000000002 /* Build configuration list for PBXNativeTarget "DemoXcode" */;
+            buildPhases = (
+                A70000000000000000000001 /* Sources */,
+                A30000000000000000000001 /* Frameworks */,
+                A60000000000000000000001 /* Resources */,
+            );
+            buildRules = ();
+            dependencies = ();
+            name = DemoXcode;
+            packageProductDependencies = (AC0000000000000000000001 /* ExampleSupport */);
+            productName = DemoXcode;
+            productReference = A20000000000000000000004 /* DemoXcode.app */;
+            productType = "com.apple.product-type.application";
+        };
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+        AA0000000000000000000001 /* Project object */ = {
+            isa = PBXProject;
+            attributes = {BuildIndependentTargetsInParallel = YES; LastUpgradeCheck = 1600; };
+            buildConfigurationList = A90000000000000000000001 /* Build configuration list for PBXProject "DemoXcode" */;
+            compatibilityVersion = "Xcode 14.0";
+            developmentRegion = en;
+            hasScannedForEncodings = 0;
+            knownRegions = (en, Base);
+            mainGroup = A40000000000000000000001;
+            packageReferences = (AB0000000000000000000001 /* XCLocalSwiftPackageReference "../ExampleSupport" */);
+            productRefGroup = A40000000000000000000005 /* Products */;
+            projectDirPath = "";
+            projectRoot = "";
+            targets = (A50000000000000000000001 /* DemoXcode */);
+        };
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+        A60000000000000000000001 /* Resources */ = {
+            isa = PBXResourcesBuildPhase;
+            buildActionMask = 2147483647;
+            files = (A10000000000000000000003 /* message.txt in Resources */);
+            runOnlyForDeploymentPostprocessing = 0;
+        };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+        A70000000000000000000001 /* Sources */ = {
+            isa = PBXSourcesBuildPhase;
+            buildActionMask = 2147483647;
+            files = (
+                A10000000000000000000001 /* App.swift in Sources */,
+            );
+            runOnlyForDeploymentPostprocessing = 0;
+        };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+        A80000000000000000000001 /* Debug */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                CLANG_ENABLE_MODULES = YES;
+                DEBUG_INFORMATION_FORMAT = dwarf;
+                ENABLE_TESTABILITY = YES;
+                IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+                MACOSX_DEPLOYMENT_TARGET = 14.0;
+                SDKROOT = auto;
+                SDK_VARIANT = auto;
+                SUPPORTED_PLATFORMS = "macosx iphoneos iphonesimulator";
+                SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+                SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+                SWIFT_VERSION = 6.0;
+            };
+            name = Debug;
+        };
+        A80000000000000000000002 /* Release */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                CLANG_ENABLE_MODULES = YES;
+                DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+                IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+                MACOSX_DEPLOYMENT_TARGET = 14.0;
+                SDKROOT = auto;
+                SDK_VARIANT = auto;
+                SUPPORTED_PLATFORMS = "macosx iphoneos iphonesimulator";
+                SWIFT_COMPILATION_MODE = wholemodule;
+                SWIFT_OPTIMIZATION_LEVEL = "-O";
+                SWIFT_VERSION = 6.0;
+            };
+            name = Release;
+        };
+        A80000000000000000000003 /* Debug */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                CODE_SIGN_STYLE = Automatic;
+                GENERATE_INFOPLIST_FILE = YES;
+                "INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphone*]" = YES;
+                "INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphone*]" = YES;
+                "LD_RUNPATH_SEARCH_PATHS[sdk=iphone*]" = "$(inherited) @executable_path/Frameworks";
+                "LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) @executable_path/../Frameworks";
+                PRODUCT_BUNDLE_IDENTIFIER = sh.xtool.examples.DemoXcode;
+                PRODUCT_NAME = "$(TARGET_NAME)";
+                "TARGETED_DEVICE_FAMILY[sdk=iphone*]" = "1,2";
+            };
+            name = Debug;
+        };
+        A80000000000000000000004 /* Release */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                CODE_SIGN_STYLE = Automatic;
+                GENERATE_INFOPLIST_FILE = YES;
+                "INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphone*]" = YES;
+                "INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphone*]" = YES;
+                "LD_RUNPATH_SEARCH_PATHS[sdk=iphone*]" = "$(inherited) @executable_path/Frameworks";
+                "LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) @executable_path/../Frameworks";
+                PRODUCT_BUNDLE_IDENTIFIER = sh.xtool.examples.DemoXcode;
+                PRODUCT_NAME = "$(TARGET_NAME)";
+                "TARGETED_DEVICE_FAMILY[sdk=iphone*]" = "1,2";
+            };
+            name = Release;
+        };
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+        A90000000000000000000001 /* Build configuration list for PBXProject "DemoXcode" */ = {
+            isa = XCConfigurationList;
+            buildConfigurations = (A80000000000000000000001 /* Debug */, A80000000000000000000002 /* Release */);
+            defaultConfigurationIsVisible = 0;
+            defaultConfigurationName = Debug;
+        };
+        A90000000000000000000002 /* Build configuration list for PBXNativeTarget "DemoXcode" */ = {
+            isa = XCConfigurationList;
+            buildConfigurations = (A80000000000000000000003 /* Debug */, A80000000000000000000004 /* Release */);
+            defaultConfigurationIsVisible = 0;
+            defaultConfigurationName = Debug;
+        };
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+        AB0000000000000000000001 /* XCLocalSwiftPackageReference "../ExampleSupport" */ = {
+            isa = XCLocalSwiftPackageReference;
+            relativePath = ../ExampleSupport;
+        };
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+        AC0000000000000000000001 /* ExampleSupport */ = {
+            isa = XCSwiftPackageProductDependency;
+            package = AB0000000000000000000001 /* XCLocalSwiftPackageReference "../ExampleSupport" */;
+            productName = ExampleSupport;
+        };
+/* End XCSwiftPackageProductDependency section */
+    };
+    rootObject = AA0000000000000000000001 /* Project object */;
+}

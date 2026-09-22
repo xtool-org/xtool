@@ -12,6 +12,9 @@ struct DevBSPCommand: AsyncParsableCommand {
     @Option
     var triple: String?
 
+    @Option(help: "Xcode scheme to build (overrides xtool.yml)")
+    var scheme: String?
+
     func run() async throws {
         let transport = BSPCommandTransport()
         // Only BSP frames may be written to the client's stdout.
@@ -21,6 +24,7 @@ struct DevBSPCommand: AsyncParsableCommand {
         } operation: {
             let server = XToolBuildServer(
                 triple: triple ?? PackOperation.defaultTriple,
+                scheme: scheme,
                 connectionToClient: transport.connection,
                 exitHandler: { _ in transport.connection.close() }
             )

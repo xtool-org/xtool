@@ -1,0 +1,167 @@
+{
+  "id": "985959785319747668373CC6",
+  "root-group-debug-id": "44CB005EE2E65D9CC817B0A0",
+  "configuration-list-debug-id": "3C05BEEE7303EE3FA7B250FA",
+  "class-prefix": "PF",
+  "default-configuration": "Debug",
+  "configurations": [
+    { "id": "433548979C024CC63B5F3B8D", "name": "Debug", "file": "id:87E89ABB4C1C551FE08D355D" },
+    { "id": "B800A40FDE6F0A0218D9BCD2", "name": "Release", "file": "id:87E89ABB4C1C551FE08D355D" },
+  ],
+  "localizations": {
+    "development": "en",
+    "supported": [
+      "Base",
+      "fr",
+    ],
+  },
+  "files": [
+    { "path": "Sources/Feature.swift", "id": "AE8ED2743925477EAFAD0DFD", "encoding": "utf8", "target-membership": [ { "id": "25B2FEC255F5749BDFF02710", "build-phase": "id:CAF85B0888D78F1F83771A07", "arguments": "-DLOCAL" } ] },
+    { "path": "Sources/Other.swift", "id": "17989396AB9542B7A6F19D69", "target-membership": [ { "id": "2431ADF55F8891FF47272B79", "build-phase": "id:CAF85B0888D78F1F83771A07" } ] },
+    {
+      "path": "Sources/Feature.h",
+      "id": "BA5CAA4285A84D88129280D2",
+      "target-membership": [
+        { "id": "9449AEABF19DE80786D2FE73", "build-phase": "id:194E9FE656A1BCABFA596619", "header-role": "public" },
+        { "id": "F187BBC502B22299CD142406", "build-phase": "id:E21F935F11D7E966DBBAE78D" },
+      ],
+    }, {
+      "kind": "group",
+      "id": "E89B30AA1DC30A6AD8C34610",
+      "path": "Resources",
+      "children": [
+        {
+          "kind": "variant-group",
+          "id": "F4F877DDF1670B8C39240650",
+          "name": "Localizable.strings",
+          "target-membership": [
+            { "id": "2748450557125186C299F45B", "build-phase": "id:F77E8395C14206FA0A5A32E1", "asset-tags": [ "fixture" ] },
+          ],
+          "children": [
+            {
+              "path": "en.lproj/Localizable.strings",
+              "id": "BA118BF7FC9C1AEDC1EDB28A",
+            }, {
+              "path": "fr.lproj/Localizable.strings",
+              "id": "7458199FE97A184002BFD3C4",
+              "encoding": "utf8",
+            },
+          ],
+        },
+      ],
+    },
+    { "path": "Settings.xcconfig", "id": "87E89ABB4C1C551FE08D355D" },
+    {
+      "kind": "group",
+      "id": "4EDC8BFAFC6BD936B849F38C",
+      "name": "Products",
+      "children": [
+        { "path": "<PRODUCTS>/Features.framework", "id": "FB9EF894175C327470F768D9", "index": false },
+      ],
+    },
+  ],
+  "targets": [
+    {
+      "name": "Features",
+      "id": "5697D03DAEF4DE9CF8DB7CB1",
+      "configuration-list-debug-id": "A6FB65CCCF5741BC044EAB30",
+      "product": "id:FB9EF894175C327470F768D9",
+      "product-type": "framework",
+      "specialized-configurations": [
+        { "id": "D52364EB7F4DAE720159F17A", "name": "Debug" },
+        { "id": "D7133DDD9B2C56730E249807", "name": "Release" },
+      ],
+      "build-phases": [
+        { "kind": "headers", "id": "194E9FE656A1BCABFA596619" },
+        { "kind": "compile-sources", "id": "CAF85B0888D78F1F83771A07" },
+        { "kind": "resources", "id": "F77E8395C14206FA0A5A32E1" },
+        {
+          "kind": "copy",
+          "id": "E21F935F11D7E966DBBAE78D",
+          "name": "Copy Header",
+          "bundle-base-path": "build-products-directory",
+          "relative-path": "include",
+        }, {
+          "kind": "script",
+          "id": "102ACC10E67A297D79F7A044",
+          "name": "Generate",
+          "input-paths": [
+            "$(SRCROOT)/input",
+          ],
+          "input-file-list-paths": [
+            "$(SRCROOT)/Inputs.xcfilelist",
+          ],
+          "output-paths": [
+            "$(DERIVED_FILE_DIR)/output",
+          ],
+          "output-file-list-paths": [
+            "$(SRCROOT)/Outputs.xcfilelist",
+          ],
+          "dependency-file": "$(DERIVED_FILE_DIR)/output.d",
+          "run-on-every-build": true,
+          "shell": "/bin/sh",
+          "script": "echo fixture",
+        },
+      ],
+      "build-rules": [
+        {
+          "id": "62845F31A2FE00BE3EBAAEB9",
+          "processor": "com.apple.compilers.proxy.script",
+          "file-type": "pattern.proxy",
+          "file-patterns": "*.fixture",
+          "input-files": [
+            "$(INPUT_FILE_PATH)",
+          ],
+          "output-files": [
+            "$(DERIVED_FILE_DIR)/$(INPUT_FILE_BASE).swift",
+          ],
+          "script": "echo rule",
+        },
+      ],
+      "build-settings": {
+        "CODE_SIGN_STYLE[config=Debug]": "Automatic",
+        "CODE_SIGN_STYLE[config=Release]": "Manual",
+        "GENERATE_INFOPLIST_FILE[config=Debug]": "YES",
+        "INFOPLIST_FILE[config=Release]": "Info.plist",
+        "PRODUCT_BUNDLE_IDENTIFIER": "sh.xtool.pif.Features",
+        "PRODUCT_NAME": "$(TARGET_NAME)",
+      },
+    }, {
+      "name": "All",
+      "id": "A52ACE420F2175D08B1577A1",
+      "configuration-list-debug-id": "91321694432A748261AFE995",
+      "kind": "aggregate",
+      "specialized-configurations": [
+        { "id": "3752D8080E98983C1F1A5855", "name": "Debug" },
+        { "id": "10C619824FAB373D2828DF94", "name": "Release" },
+      ],
+      "dependencies": [
+        "Features",
+      ],
+    }, {
+      "name": "External",
+      "id": "68C114EA9C8C66041E945221",
+      "configuration-list-debug-id": "FE81CF25B6D7C783551D544C",
+      "kind": "external-build-system",
+      "specialized-configurations": [
+        { "id": "BAD3340EDE84BFE02446B2DE", "name": "Debug" },
+        { "id": "DE07F11AE176D0A9A1D93738", "name": "Release" },
+      ],
+      "build-tool-path": "/usr/bin/make",
+      "build-tool-arguments": "all",
+      "build-tool-working-directory": "$(SRCROOT)",
+    },
+  ],
+  "build-settings": {
+    "CUSTOM[config=Debug][sdk=iphoneos*]": "device",
+    "OTHER_SWIFT_FLAGS[config=Debug]": [
+      "$(inherited)",
+      "-DDEBUG",
+    ],
+    "SDKROOT": "iphoneos",
+    "SWIFT_OPTIMIZATION_LEVEL[config=Release]": "-O",
+    "SWIFT_VERSION": "6.0",
+  },
+  "products-group": "id:4EDC8BFAFC6BD936B849F38C",
+  "last-upgrade": "16.0",
+}

@@ -5,7 +5,9 @@ import XUtils
 
 extension SwiftPMBuildDescriber {
     func bundleProducts(in project: XPIF.Project) throws -> [ProjectProduct] {
-        let idSpecifier = self.project.base.schema.idSpecifier
+        let idSpecifier = try self.project.base.schema.idSpecifier.orThrow(
+            Console.Error("xtool.yml: Must specify either orgID or bundleID")
+        )
         let appProduct = try libraryProduct(in: project, matching: schema.product)
         let app = ProjectProduct(
             packageProduct: appProduct,

@@ -1,0 +1,80 @@
+{
+  "id": "985959785319747668373CC6",
+  "root-group-debug-id": "44CB005EE2E65D9CC817B0A0",
+  "configuration-list-debug-id": "3C05BEEE7303EE3FA7B250FA",
+  "class-prefix": "PF",
+  "default-configuration": "Debug",
+  "configurations": [
+    { "id": "433548979C024CC63B5F3B8D", "name": "Debug", "file": "id:87E89ABB4C1C551FE08D355D" },
+    { "id": "B800A40FDE6F0A0218D9BCD2", "name": "Release", "file": "id:87E89ABB4C1C551FE08D355D" },
+  ],
+  "localizations": {
+    "development": "en",
+    "supported": [
+      "Base",
+    ],
+  },
+  "files": [
+    {
+      "kind": "folder",
+      "id": "04FA91A3914FA55ADE36462E",
+      "path": "SyncFiles",
+      "target-membership": [
+        "Features",
+      ],
+      "membership-exceptions": [
+        {
+          "target": "Features",
+          "exclusions": [
+            "Excluded.swift",
+          ],
+        },
+      ],
+    },
+    { "path": "Settings.xcconfig", "id": "87E89ABB4C1C551FE08D355D" },
+    {
+      "kind": "group",
+      "id": "4EDC8BFAFC6BD936B849F38C",
+      "name": "Products",
+      "children": [
+        { "path": "<PRODUCTS>/Features.framework", "id": "FB9EF894175C327470F768D9", "index": false },
+      ],
+    },
+  ],
+  "targets": [
+    {
+      "name": "Features",
+      "id": "5697D03DAEF4DE9CF8DB7CB1",
+      "configuration-list-debug-id": "A6FB65CCCF5741BC044EAB30",
+      "product": "id:FB9EF894175C327470F768D9",
+      "product-type": "framework",
+      "specialized-configurations": [
+        { "id": "D52364EB7F4DAE720159F17A", "name": "Debug" },
+        { "id": "D7133DDD9B2C56730E249807", "name": "Release" },
+      ],
+      "build-phases": [
+        { "kind": "compile-sources", "id": "CAF85B0888D78F1F83771A07" },
+        { "kind": "resources", "id": "F77E8395C14206FA0A5A32E1" },
+      ],
+      "build-settings": {
+        "CODE_SIGN_STYLE[config=Debug]": "Automatic",
+        "CODE_SIGN_STYLE[config=Release]": "Manual",
+        "GENERATE_INFOPLIST_FILE": "YES",
+        "PRODUCT_BUNDLE_IDENTIFIER": "sh.xtool.pif.Features",
+        "PRODUCT_NAME": "$(TARGET_NAME)",
+      },
+    },
+  ],
+  "build-settings": {
+    "CUSTOM[config=Debug][sdk=iphoneos*]": "device",
+    "OTHER_SWIFT_FLAGS[config=Debug]": [
+      "$(inherited)",
+      "-DDEBUG",
+    ],
+    "SDKROOT": "iphoneos",
+    "SWIFT_OPTIMIZATION_LEVEL[config=Release]": "-O",
+    "SWIFT_VERSION": "6.0",
+  },
+  "products-group": "id:4EDC8BFAFC6BD936B849F38C",
+  "last-upgrade": "16.0",
+}

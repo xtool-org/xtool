@@ -14,6 +14,12 @@ public struct PackSchemaBase: Codable, Sendable {
 
     public var product: String?
 
+    /// Path to Package.swift, an Xcode workspace, or an Xcode project, relative to xtool.yml.
+    public var project: String?
+
+    /// Xcode scheme to select when building an Xcode project or workspace.
+    public var scheme: String?
+
     public var infoPath: String?
     public var entitlementsPath: String?
 
@@ -51,7 +57,7 @@ public struct PackSchema: Sendable {
     }
 
     public let base: PackSchemaBase
-    public let idSpecifier: IDSpecifier
+    public let idSpecifier: IDSpecifier?
 
     public init(validating base: PackSchemaBase) throws {
         self.base = base
@@ -66,13 +72,21 @@ public struct PackSchema: Sendable {
         case (nil, let orgID?):
             idSpecifier = .orgID(orgID)
         case (nil, nil):
-            throw StringError("xtool.yml: Must specify either orgID or bundleID")
+            idSpecifier = nil
         }
 
         if let iconPath = base.iconPath {
             let ext = URL(fileURLWithPath: iconPath).pathExtension
             guard ext == "png" else {
                 throw StringError("xtool.yml: iconPath should have a 'png' path extension. Got '\(ext)'.")
+            }
+        }
+
+        if let project = base.project {
+            let url = URL(fileURLWithPath: project)
+            guard url.lastPathComponent == "Package.swift"
+                || ["xcworkspace", "xcodeproj"].contains(url.pathExtension) else {
+                throw StringError("xtool.yml: project must point to Package.swift, an .xcworkspace, or an .xcodeproj.")
             }
         }
     }

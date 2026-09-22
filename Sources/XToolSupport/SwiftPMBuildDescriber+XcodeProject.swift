@@ -227,6 +227,14 @@ extension SwiftPMBuildDescriber {
         let projectURL = projectDir.appending(path: "\(app.product).xcodeproj")
         let project = XcodeProject(project: schema, url: projectURL)
         try project.write()
+        let appReference = XcodeScheme.TargetReference(
+            projectURL: project.url,
+            objectID: targetIDs[0].rawValue,
+            name: app.targetName,
+            buildableName: "\(app.product).app",
+        )
+        try XcodeScheme(name: app.targetName, buildTargets: [appReference], runnable: appReference)
+            .write(in: project.url, shared: true)
 
         let workspaceURL = xtoolDir.appending(path: "\(app.product).xcworkspace")
         let workspace = XcodeWorkspace(children: [

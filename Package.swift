@@ -37,6 +37,7 @@ let package = Package(
     ],
     products: [
         .library(name: "XPIF", targets: ["XPIF"]),
+        .library(name: "XcodePIFConversion", targets: ["XcodePIFConversion"]),
         .library(
             name: "XKit",
             targets: ["XKit"]
@@ -97,6 +98,15 @@ let package = Package(
                 .product(name: "OrderedCollections", package: "swift-collections"),
             ],
             exclude: ["LICENSE.txt", "README.md"],
+            swiftSettings: swiftSettings,
+        ),
+        .target(
+            name: "XcodePIFConversion",
+            dependencies: [
+                "XPIF",
+                "XcodeProjects",
+                .product(name: "OrderedCollections", package: "swift-collections"),
+            ],
             swiftSettings: swiftSettings,
         ),
         .target(
@@ -178,6 +188,7 @@ let package = Package(
             name: "XToolTests",
             dependencies: [
                 "XPIF",
+                "XcodePIFConversion",
                 "XcodeProjects",
                 "XKit",
                 "XToolSupport",
@@ -204,6 +215,7 @@ let package = Package(
             name: "XToolSupport",
             dependencies: [
                 "XPIF",
+                "XcodePIFConversion",
                 "XcodeProjects",
                 "SwiftyMobileDevice",
                 "XKit",

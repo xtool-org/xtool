@@ -1,4 +1,5 @@
 import XCLIUtils
+import XPIF
 import Foundation
 import ArgumentParser
 import XKit
@@ -18,15 +19,21 @@ struct PackOperation {
             help: "Verbose output"
         ) var verbose = false
 
+        @Option(
+            help: "Xcode scheme to build (overrides xtool.yml)"
+        ) var scheme: String?
+
         init() {}
 
         // this is load bearing: synthesized init doesn't work with ArgumentParser
         init(
             configuration: BuildConfiguration,
             verbose: Bool = false,
+            scheme: String? = nil,
         ) {
             self.configuration = configuration
             self.verbose = verbose
+            self.scheme = scheme
         }
     }
 
@@ -45,14 +52,14 @@ struct PackOperation {
 
         let description = try await project.describe(
             configuration: buildOptions.configuration,
-            triple: triple ?? Self.defaultTriple
+            triple: triple ?? Self.defaultTriple,
+            scheme: buildOptions.scheme
         )
-
         let coordinator = try await BuildCoordinator(description: description)
         defer { await coordinator.close() }
         return try await ProjectBuildOperation(
             buildCoordinator: coordinator,
-            verbose: buildOptions.verbose,
+            verbose: buildOptions.verbose
         ).run()
     }
 }
@@ -80,7 +87,7 @@ struct DevBuildCommand: AsyncParsableCommand {
         commandName: "build",
         abstract: "Build iOS app",
         discussion: """
-        This command builds the Swift package iOS app in the current directory
+        This command builds the Swift package or Xcode iOS app in the current directory
         """
     )
 
@@ -170,7 +177,7 @@ struct DevRunCommand: AsyncParsableCommand {
         commandName: "run",
         abstract: "Build and run iOS app",
         discussion: """
-        This command deploys the Swift package iOS app in the current directory
+        This command deploys the Swift package or Xcode iOS app in the current directory
         """
     )
 
@@ -266,7 +273,7 @@ struct DevRunCommand: AsyncParsableCommand {
 struct DevCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "dev",
-        abstract: "Build and run a Swift package",
+        abstract: "Build and run a Swift package or Xcode project",
         subcommands: [
             DevXcodeCommand.self,
             DevBuildCommand.self,
