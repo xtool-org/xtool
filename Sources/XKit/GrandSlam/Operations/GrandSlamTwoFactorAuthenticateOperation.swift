@@ -6,6 +6,7 @@
 //  Copyright © 2019 Kabir Oberai. All rights reserved.
 //
 
+import XUtils
 import Foundation
 
 public protocol TwoFactorAuthDelegate: AnyObject, Sendable {
@@ -30,7 +31,7 @@ struct GrandSlamTwoFactorAuthenticateOperation {
         do {
             try await client.send(GrandSlamSMSAuthRequest(loginData: loginData, phoneNumberID: phoneNumberID))
         } catch let error as HTTPResponseError where error.status.code == 403 {
-            print("""
+            d.out.print("""
             warning: Could not send verification code via SMS. Falling back to trusted device authentication...
             """)
             try await performTrustedDeviceAuth()
@@ -62,7 +63,7 @@ struct GrandSlamTwoFactorAuthenticateOperation {
         do {
             try await client.send(request)
         } catch let error as HTTPResponseError where error.status.code == 403 {
-            print("""
+            d.out.print("""
             warning: Could not send verification code. Generate one manually.
                      See https://github.com/xtool-org/xtool/discussions/368
             """)

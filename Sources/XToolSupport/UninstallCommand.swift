@@ -1,3 +1,4 @@
+import XUtils
 import Foundation
 import XKit
 import SwiftyMobileDevice
@@ -24,9 +25,9 @@ struct UninstallCommand: AsyncParsableCommand {
                 progress: { _ in }
             )
         } catch {
-            print("Failed: \(error)")
+            d.out.print("Failed: \(error)")
             return
         }
-        print("Success!")
+        d.out.print("Success!")
     }
 }

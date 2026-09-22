@@ -1,3 +1,4 @@
+import XCLIUtils
 import Foundation
 import ArgumentParser
 import PackLib
@@ -38,7 +39,7 @@ struct PackOperation {
 
         try await EnsureSDKOperation(quiet: true).run()
 
-        print("Planning...")
+        d.out.print("Planning...")
 
         let schema: PackSchema
         let configPath = URL(fileURLWithPath: "xtool.yml")
@@ -46,7 +47,7 @@ struct PackOperation {
             schema = try await PackSchema(url: configPath)
         } else {
             schema = .default
-            print("""
+            d.out.print("""
             warning: Could not locate configuration file '\(configPath.path)'. Using default \
             configuration with 'com.example' organization ID.
             """)
@@ -91,7 +92,7 @@ struct PackOperation {
                 }
                 return try await group.reduce(into: [:]) { $0[$1.0] = $1.1 }
             }
-            print("Applying entitlements...")
+            d.out.print("Applying entitlements...")
             try await Signer.first().sign(
                 app: bundle,
                 identity: .adhoc,
@@ -112,7 +113,7 @@ struct DevXcodeCommand: AsyncParsableCommand {
 
     func run() async throws {
         let result = try await PackOperation(xcode: true).run()
-        print("Wrote to \(result.path)")
+        d.out.print("Wrote to \(result.path)")
     }
 }
 
@@ -167,12 +168,12 @@ struct DevBuildCommand: AsyncParsableCommand {
                 delegate: installDelegate
             )
             do {
-                defer { print() }
+                defer { d.out.print() }
                 try await installer.signInPlace(app: url)
             } catch let error as CancellationError {
                 throw error
             } catch {
-                print("Error: \(error)")
+                d.out.print("Error: \(error)")
                 throw ExitCode.failure
             }
         }
@@ -187,19 +188,19 @@ struct DevBuildCommand: AsyncParsableCommand {
             let ipaURL = try await compressor.compress(directory: payloadDir) { progress in
                 if let progress {
                     let percent = Int(progress * 100)
-                    print("\rPackaging... \(percent)%", terminator: "")
+                    d.out.print("\rPackaging... \(percent)%", terminator: "")
                 } else {
-                    print("\rPackaging...", terminator: "")
+                    d.out.print("\rPackaging...", terminator: "")
                 }
             }
-            print()
+            d.out.print()
             try? FileManager.default.removeItem(at: finalURL)
             try FileManager.default.moveItem(at: ipaURL, to: finalURL)
         } else {
             finalURL = url
         }
 
-        print("Wrote to \(finalURL.path)")
+        d.out.print("Wrote to \(finalURL.path)")
     }
 }
 
@@ -251,7 +252,7 @@ struct DevRunCommand: AsyncParsableCommand {
         let token = try AuthToken.saved()
 
         let client = try await connectionOptions.client()
-        print("Installing to device: \(client.deviceName) (udid: \(client.udid))")
+        d.out.print("Installing to device: \(client.deviceName) (udid: \(client.udid))")
 
         let installDelegate = XToolInstallerDelegate()
         let installer = IntegratedInstaller(
@@ -259,7 +260,7 @@ struct DevRunCommand: AsyncParsableCommand {
             delegate: installDelegate
         )
 
-        defer { print() }
+        defer { d.out.print() }
 
         do {
             try await installer.install(
@@ -271,7 +272,7 @@ struct DevRunCommand: AsyncParsableCommand {
         } catch let error as CancellationError {
             throw error
         } catch {
-            print("\nError: \(error)")
+            d.out.print("\nError: \(error)")
             throw ExitCode.failure
         }
     }
@@ -309,7 +310,7 @@ struct SimInstallOperation {
             output: .discarded
         )
         .checkSuccess()
-        print("Installed to simulator")
+        d.out.print("Installed to simulator")
     }
 }
 #endif

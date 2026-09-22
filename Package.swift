@@ -60,7 +60,6 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-openapi-generator", from: "1.6.0"),
         .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-openapi-urlsession", from: "1.0.0"),
-        .package(url: "https://github.com/apple/swift-nio", from: "2.77.0"),
         .package(url: "https://github.com/apple/swift-collections", from: "1.7.1"),
         .package(url: "https://github.com/apple/xcode-project-format.git", .upToNextMinor(from: "0.1.0")),
 
@@ -73,6 +72,7 @@ let package = Package(
 
         .package(url: "https://github.com/pointfreeco/swift-concurrency-extras", from: "1.3.0"),
         .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.6.2"),
+        .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.3.3"),
         // we don't use this but need the explicit dependency to keep the lockfile stable.
         // TODO: remove once https://github.com/pointfreeco/combine-schedulers/issues/120 is fixed
         .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.14.0"),
@@ -108,6 +108,8 @@ let package = Package(
         .target(
             name: "XUtils",
             dependencies: [
+                "CXKit",
+                .product(name: "Dependencies", package: "swift-dependencies"),
                 .product(name: "SystemPackage", package: "swift-system"),
                 .product(
                     name: "Subprocess",
@@ -161,9 +163,20 @@ let package = Package(
             dependencies: [
                 "XKit",
                 "XToolSupport",
+                "XCLIUtils",
                 "PackLib",
                 .product(name: "Crypto", package: "swift-crypto"),
                 .product(name: "X509", package: "swift-certificates"),
+                .product(name: "CustomDump", package: "swift-custom-dump"),
+            ],
+            swiftSettings: swiftSettings,
+        ),
+        .target(
+            name: "XCLIUtils",
+            dependencies: [
+                "XUtils",
+                .product(name: "Dependencies", package: "swift-dependencies"),
+                .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
             ],
             swiftSettings: swiftSettings,
         ),
@@ -172,10 +185,11 @@ let package = Package(
             dependencies: [
                 "SwiftyMobileDevice",
                 "XKit",
+                "XCLIUtils",
                 "PackLib",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "SystemPackage", package: "swift-system"),
-                .product(name: "NIOPosix", package: "swift-nio"),
+                .product(name: "Dependencies", package: "swift-dependencies"),
                 .product(name: "libunxip", package: "unxip"),
             ],
             cSettings: cSettings,
