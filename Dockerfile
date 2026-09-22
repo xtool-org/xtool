@@ -1,7 +1,9 @@
 # Note: We use 22.04 since AppImage recommends building on the
 # oldest configuration that you support
 
-FROM swift:6.3-jammy AS build-base
+ARG SWIFT_VERSION=6.3.3
+
+FROM swift:${SWIFT_VERSION}-jammy AS build-base
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -102,7 +104,7 @@ RUN swift package resolve
 ADD . /xtool
 RUN ./Linux/build.sh
 
-FROM swift:6.3 AS xtool
+FROM swift:${SWIFT_VERSION} AS xtool
 
 COPY --from=build-xtool /xtool/Linux/packages/xtool-*.AppImage /xtool/xtool.AppImage
 RUN (cd /xtool && ./xtool.AppImage --appimage-extract) \
