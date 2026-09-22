@@ -30,8 +30,8 @@ let swiftSettings: [SwiftSetting] = {
 let package = Package(
     name: "xtool",
     platforms: [
-        .iOS(.v16),
-        .macOS(.v13),
+        .iOS(.v17),
+        .macOS(.v14),
     ],
     products: [
         .library(
