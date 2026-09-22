@@ -76,7 +76,8 @@ let package = Package(
         .package(url: "https://github.com/attaswift/BigInt", from: "5.5.0"),
         .package(url: "https://github.com/mxcl/Version", from: "2.1.0"),
         .package(url: "https://github.com/jpsim/Yams", from: "5.1.3"),
-        .package(url: "https://github.com/saagarjha/unxip", from: "3.2.0"),
+        // temp override until https://github.com/saagarjha/unxip/pull/44 is merged and tagged
+        .package(url: "https://github.com/kabiroberai/unxip", revision: "fe8aca60db26fac0875c4185fbc5fa345a20ccf3"),
 
         // TODO: just depend on tuist/XcodeProj instead
         .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.45.4"),
@@ -109,7 +110,7 @@ let package = Package(
                 .product(
                     name: "Subprocess",
                     package: "swift-subprocess",
-                    condition: .when(platforms: [.linux, .macOS])
+                    condition: .when(platforms: [.linux, .macOS, .android])
                 ),
             ],
             swiftSettings: swiftSettings,
@@ -138,17 +139,17 @@ let package = Package(
                 .product(
                     name: "OpenAPIAsyncHTTPClient",
                     package: "swift-openapi-async-http-client",
-                    condition: .when(platforms: [.linux])
+                    condition: .when(platforms: [.linux, .android])
                 ),
                 .product(
                     name: "AsyncHTTPClient",
                     package: "async-http-client",
-                    condition: .when(platforms: [.linux])
+                    condition: .when(platforms: [.linux, .android])
                 ),
                 .product(
                     name: "WebSocketKit",
                     package: "websocket-kit",
-                    condition: .when(platforms: [.linux])
+                    condition: .when(platforms: [.linux, .android])
                 ),
             ],
             cSettings: cSettings,
