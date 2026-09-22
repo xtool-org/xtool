@@ -42,6 +42,15 @@ opt_in_rules:
 analyzer_rules:
   - unused_import
 custom_rules:
+  prefer_dependency_print:
+    name: "Dependency Output"
+    included: '/Sources/'
+    excluded: '/(Tests|Examples)/'
+    regex: '(?<![\w.])(?:Swift\s*\.\s*)?print\s*\('
+    match_kinds:
+      - identifier
+    message: "Use d.out.print instead of print or Swift.print."
+    severity: error
   spaces_not_tabs:
     name: "Spaces not Tabs"
     regex: ^\t
