@@ -68,7 +68,7 @@ sudo apt-get install usbmuxd
 
 ### Xcode.xip
 
-Download **Xcode 26** from <https://developer.apple.com/download/all/?q=Xcode>. Note the path where `Xcode.xip` is saved.
+Download **Xcode 27** from <https://developer.apple.com/download/all/?q=Xcode>. Note the path where `Xcode.xip` is saved.
 
 > Note:
 >
