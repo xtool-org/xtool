@@ -76,7 +76,7 @@ struct SDKBuilder {
     let mode: Mode
 
     // bump this when the sdk builder logic changes
-    static let sdkEpoch = 2
+    static let sdkEpoch = 3
 
     // tag from https://github.com/xtool-org/darwin-tools-linux-llvm
     static let darwinToolsVersion = "1.1.0"
@@ -425,6 +425,8 @@ struct SDKBuilder {
         print()
     }
 
+    private static let expectedXcodeChildren = ["Info.plist", "version.plist", "Developer"]
+
     // swiftlint:disable:next cyclomatic_complexity function_body_length
     private func installDeveloper(in output: URL) async throws -> URL {
         let dev = output.appendingPathComponent("Developer")
@@ -458,19 +460,25 @@ struct SDKBuilder {
             wanted = try await extractXIP(inputPath: inputPath, outDir: output.path)
             appDir = expectedAppDir
             cleanupStageDir = nil
+            try cleanUpXcode(appDir)
         case (.xip, .update):
             throw Console.Error("Can't update with xip input")
-        case (.app(let appPath), .buildSlim), (.app(let appPath), .update):
+        case (.app(let appPath), .buildSlim):
             appDir = URL(fileURLWithPath: appPath)
             wanted = nil
             cleanupStageDir = nil
+        case (.app(let appPath), .update):
+            appDir = URL(fileURLWithPath: appPath)
+            wanted = nil
+            cleanupStageDir = nil
+            try cleanUpXcode(appDir)
         case (.app(let appPath), .buildNormal):
             let source = URL(fileURLWithPath: appPath)
             let sourceContentsDir = source.appendingPathComponent("Contents")
             let expectedContentsDir = expectedAppDir.appendingPathComponent("Contents")
             try FileManager.default.createDirectory(at: expectedContentsDir, withIntermediateDirectories: true)
             print("[Copying Xcode.app] This might take a minute...")
-            for child in ["Info.plist", "version.plist", "Developer"] {
+            for child in Self.expectedXcodeChildren {
                 let expectedFile = expectedContentsDir.appendingPathComponent(child)
                 let sourceFile = sourceContentsDir.appendingPathComponent(child)
                 guard FileManager.default.fileExists(atPath: sourceFile.path) else {
@@ -628,6 +636,30 @@ struct SDKBuilder {
         )
 
         return dev
+    }
+
+    /// Removes unneeded files from a copy of Xcode.app that's owned by xtool.
+    /// 
+    /// This is conservative: we keep anything that we expect _might_ be necessary
+    /// even in a future update of xtool, so that SDK self-updates work. We only
+    /// delete files that we're relatively confident won't be needed.
+    /// 
+    /// - Important: ONLY call this if we own appDir, lest we delete files from the user's Xcode.
+    private func cleanUpXcode(_ appDir: URL) throws {
+        let contentsDir = appDir.appendingPathComponent("Contents")
+        let contents = try FileManager.default.contentsOfDirectory(
+            at: contentsDir,
+            includingPropertiesForKeys: nil
+        )
+        let expectedChildren = Set(Self.expectedXcodeChildren)
+        let missingChildren = expectedChildren.subtracting(contents.map(\.lastPathComponent))
+        guard missingChildren.isEmpty else {
+            let missing = missingChildren.sorted().joined(separator: ", ")
+            throw Console.Error("Unrecognized xip layout: missing \(missing)")
+        }
+        for child in contents where !expectedChildren.contains(child.lastPathComponent) {
+            try FileManager.default.removeItem(at: child)
+        }
     }
 
     private func extractXIP(inputPath: String, outDir: String) async throws -> Int {
