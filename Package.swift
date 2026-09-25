@@ -65,6 +65,7 @@ let package = Package(
         // v1.7.0 has a crash on old OSes: https://github.com/apple/swift-collections/issues/733.
         // pin 1.6.0 until 1.7.1 is released.
         .package(url: "https://github.com/apple/swift-collections", exact: "1.6.0"),
+        .package(url: "https://github.com/apple/xcode-project-format.git", .upToNextMinor(from: "0.1.0")),
 
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.0.0"),
         .package(url: "https://github.com/swiftlang/swift-subprocess", from: "1.0.0"),
@@ -84,8 +85,8 @@ let package = Package(
         .package(url: "https://github.com/jpsim/Yams", from: "5.1.3"),
         .package(url: "https://github.com/saagarjha/unxip", from: "3.2.0"),
 
-        // TODO: just depend on tuist/XcodeProj instead
-        .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.45.4"),
+        // NB: this should only be imported from XcodeProjects
+        .package(url: "https://github.com/tuist/XcodeProj.git", from: "9.17.5"),
     ],
     targets: [
         .target(
@@ -165,6 +166,7 @@ let package = Package(
             dependencies: [
                 "XKit",
                 "XToolSupport",
+                "PackLib",
             ],
             swiftSettings: swiftSettings,
         ),
@@ -177,19 +179,27 @@ let package = Package(
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "SystemPackage", package: "swift-system"),
                 .product(name: "NIOPosix", package: "swift-nio"),
-                .product(name: "Version", package: "Version"),
                 .product(name: "libunxip", package: "unxip"),
             ],
             cSettings: cSettings,
             swiftSettings: swiftSettings,
         ),
         .target(
+            name: "XcodeProjects",
+            dependencies: [
+                .product(name: "XcodeProj", package: "XcodeProj"),
+                .product(name: "XcodeProjectFormat", package: "xcode-project-format"),
+            ],
+        ),
+        .target(
             name: "PackLib",
             dependencies: [
                 "XUtils",
+                "XcodeProjects",
                 .product(name: "Superutils", package: "xtool-core"),
                 .product(name: "Yams", package: "Yams"),
-                .product(name: "XcodeGenKit", package: "XcodeGen", condition: .when(platforms: [.macOS])),
+                .product(name: "Version", package: "Version"),
+                .product(name: "XcodeProjectFormat", package: "xcode-project-format"),
             ],
             swiftSettings: swiftSettings,
         ),

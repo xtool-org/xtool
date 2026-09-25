@@ -1,10 +1,5 @@
-#if os(macOS)
 import Foundation
-import PathKit
-import Version
-import ProjectSpec
-import XcodeGenKit
-import XcodeProj
+import XcodeProjects
 
 public struct XcodePacker {
     public var plan: Plan
@@ -14,151 +9,284 @@ public struct XcodePacker {
     }
 
     // swiftlint:disable:next function_body_length
-    public func createProject() async throws -> URL {
-        let xtoolDir: Path = "xtool"
+    public func createProject(
+        at root: URL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+    ) async throws -> URL {
+        let xtoolDir = root.appendingPathComponent("xtool", isDirectory: true)
+        let projectDir = xtoolDir.appendingPathComponent(".xtool-tmp", isDirectory: true)
+        try? FileManager.default.removeItem(at: projectDir)
+        try FileManager.default.createDirectory(at: projectDir, withIntermediateDirectories: true)
 
-        let projectDir: Path = xtoolDir + ".xtool-tmp"
-        try? xtoolDir.delete()
-        try projectDir.mkpath()
+        let fromProjectToRoot = "../.."
 
-        let fromProjectToRoot = try Path(".").relativePath(from: projectDir)
-
-        guard let deploymentTarget = Version(tolerant: plan.app.deploymentTarget) else {
-            throw StringError("Could not parse deployment target '\(plan.app.deploymentTarget)'")
+        let emptyText = Data("// leave this file empty".utf8)
+        let products = plan.allProducts
+        let targetIDs = products.map {
+            XCSchema.ObjectID("xtool:\($0.product)")
         }
+        let sourcePhase = XCSchema.BuildPhase.sources(.init(objectID: nil, name: nil))
+        let frameworksPhase = XCSchema.BuildPhase.frameworks(.init(objectID: nil, name: nil))
 
-        let emptyText = Data("""
-        // leave this file empty
-        """.utf8)
+        var groups: [XCSchema.Reference] = []
+        var productFiles: [XCSchema.Reference] = []
+        var targets: [XCSchema.Target] = []
 
-        let targets = try plan.allProducts.map { product in
-            let productDir = projectDir + product.product
-            try productDir.mkpath()
-
-            let emptyFile = productDir + "empty.c"
-            try emptyFile.write(emptyText)
-
-            let infoPath = productDir + "Info.plist"
+        for (index, product) in products.enumerated() {
+            let productDir = projectDir.appendingPathComponent(product.product, isDirectory: true)
+            try FileManager.default.createDirectory(at: productDir, withIntermediateDirectories: true)
+            try emptyText.write(to: productDir.appendingPathComponent("empty.c"))
 
             var plist = product.infoPlist
             let families = (plist.removeValue(forKey: "UIDeviceFamily") as? [Int]) ?? [1, 2]
             plist["CFBundleExecutable"] = product.targetName
             plist["CFBundleName"] = product.targetName
             plist["CFBundleDisplayName"] = product.product
-
+            if let iconPath = product.iconPath {
+                plist["CFBundleIconFile"] = URL(fileURLWithPath: iconPath).deletingPathExtension().lastPathComponent
+            }
             let encodedPlist = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
-            try infoPath.write(encodedPlist)
+            try encodedPlist.write(to: productDir.appendingPathComponent("Info.plist"))
 
-            var buildSettings: [String: BuildSetting] = [
+            var buildSettings: [String: XCSchema.BuildSetting] = [
                 "PRODUCT_BUNDLE_IDENTIFIER": .string(product.bundleID),
-                "TARGETED_DEVICE_FAMILY": .string(families.map { "\($0)" }.joined(separator: ",")),
+                "PRODUCT_NAME": .string(product.targetName),
+                "TARGETED_DEVICE_FAMILY": .string(families.map(String.init).joined(separator: ",")),
+                "IPHONEOS_DEPLOYMENT_TARGET": .string(product.deploymentTarget),
+                "INFOPLIST_FILE": .string("\(product.product)/Info.plist"),
+                "LD_RUNPATH_SEARCH_PATHS": .array(["$(inherited)", "@executable_path/Frameworks"]),
             ]
-
             if product.type == .appExtension {
-                buildSettings["APPLICATION_EXTENSION_API_ONLY"] = true
+                buildSettings["APPLICATION_EXTENSION_API_ONLY"] = .string("YES")
+                buildSettings["LD_RUNPATH_SEARCH_PATHS"] = .array([
+                    "$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks",
+                ])
             }
-
             if let entitlementsPath = product.entitlementsPath {
-                buildSettings["CODE_SIGN_ENTITLEMENTS"] = .string((fromProjectToRoot + Path(entitlementsPath)).string)
+                let path = (entitlementsPath as NSString).isAbsolutePath
+                    ? entitlementsPath
+                    : (fromProjectToRoot as NSString).appendingPathComponent(entitlementsPath)
+                buildSettings["CODE_SIGN_ENTITLEMENTS"] = .string(path)
             }
 
-            let additionalDependencies: [Dependency] = if product.type == .application {
-                plan.extensions.map {
-                    Dependency(
-                        type: .target,
-                        reference: $0.targetName
-                    )
-                }
-            } else {
-                []
-            }
-            return Target(
-                name: product.targetName,
-                type: product.type == .application ? .application : .appExtension,
-                platform: .iOS,
-                deploymentTarget: deploymentTarget,
-                settings: Settings(buildSettings: buildSettings),
-                sources: [
-                    TargetSource(
-                        path: try emptyFile.relativePath(from: projectDir).string,
-                        buildPhase: .sources
+            let source = XCSchema.FileReference(
+                objectID: nil,
+                path: "empty.c",
+                explicitFileType: nil,
+                expectedSignature: nil,
+                textEncoding: nil,
+                lineEnding: nil,
+                includeInIndex: nil,
+                buildFiles: [.init(
+                    objectID: nil,
+                    buildPhase: .named(
+                        target: .init(targetName: product.targetName),
+                        kind: .sources,
+                        name: nil
                     ),
-                ],
-                dependencies: [
-                    Dependency(
-                        type: .package(products: [product.product]),
-                        reference: "RootPackage"
-                    ),
-                ] + additionalDependencies,
-                info: Plist(
-                    path: try infoPath.relativePath(from: projectDir).string,
-                    attributes: [:]
-                )
+                    properties: buildFileProperties(),
+                )],
             )
+            let info = XCSchema.FileReference(
+                objectID: nil,
+                path: "Info.plist",
+                explicitFileType: nil,
+                expectedSignature: nil,
+                textEncoding: nil,
+                lineEnding: nil,
+                includeInIndex: nil,
+                buildFiles: [],
+            )
+            let resources = try resourceReferences(for: product, at: root)
+            groups.append(.group(.init(
+                objectID: nil,
+                name: product.product,
+                path: try .init(base: .group, path: product.product),
+                includeInIndex: nil,
+                children: [.fileReference(source), .fileReference(info)] + resources,
+            )))
+
+            let productFilename = "\(product.targetName).\(product.type == .application ? "app" : "appex")"
+            let productFile = XCSchema.FileReference(
+                objectID: nil,
+                path: try .init(base: .buildProducts, path: productFilename),
+                explicitFileType: .init(fileTypeID: product.type == .application ? "wrapper.application" : "wrapper.app-extension"),
+                expectedSignature: nil,
+                textEncoding: nil,
+                lineEnding: nil,
+                includeInIndex: false,
+                buildFiles: index == 0 ? [] : [.init(
+                    objectID: nil,
+                    buildPhase: .named(
+                        target: .init(targetName: plan.app.targetName),
+                        kind: .copy,
+                        name: "Embed App Extensions",
+                    ),
+                    properties: buildFileProperties(removeHeadersOnCopy: true),
+                )],
+            )
+            productFiles.append(.fileReference(productFile))
+
+            let packageProduct = XCSchema.SwiftPackageProductReference(
+                objectID: nil,
+                package: nil,
+                productName: product.product,
+                productType: .other,
+            )
+            let packageMember = XCSchema.SwiftPackageProductTargetMember(
+                packageProduct: packageProduct,
+                buildFile: .init(
+                    objectID: nil,
+                    buildPhase: .named(kind: .frameworks, name: nil),
+                    properties: buildFileProperties(),
+                ),
+            )
+            var phases = [sourcePhase, frameworksPhase]
+            if !resources.isEmpty {
+                phases.append(.copy(.init(
+                    objectID: nil,
+                    name: "Copy Root Resources",
+                    bundleBasePath: .resourcesDir,
+                    relativePath: "",
+                    scope: .always,
+                )))
+            }
+            if index == 0 && !plan.extensions.isEmpty {
+                phases.append(.copy(.init(
+                    objectID: nil,
+                    name: "Embed App Extensions",
+                    bundleBasePath: .plugInsDir,
+                    relativePath: "",
+                    scope: .always,
+                )))
+            }
+            let dependencies: [XCSchema.TargetDependency] = index == 0
+                ? plan.extensions.map {
+                    .localTarget(XCSchema.LocalTargetReference(targetName: $0.targetName), [])
+                }
+                : []
+            targets.append(.native(XCSchema.CommonTargetProperties(
+                name: product.targetName,
+                objectID: targetIDs[index],
+                configurationListDebugID: nil,
+                dependencies: dependencies,
+                buildPhases: phases,
+                buildRules: [],
+                specializedConfigurations: [],
+                buildSettings: buildSettings,
+                product: .namePath(.init(components: [.child("Products"), .child(productFilename)])),
+                productTypeID: XCSchema.ProductTypeID(
+                    abbreviatedRepresentation: product.type == .application
+                    ? "application"
+                    : "app-extension"
+                ),
+                testHostTarget: nil,
+                legacyProvisioningStyle: nil,
+                legacyTeamID: nil,
+                lastSwiftUpdateCheck: nil,
+                lastSwiftMigration: nil,
+                packageProductTargetMembers: [packageMember],
+            )))
         }
 
-        let project = Project(
-            name: plan.app.targetName,
-            targets: targets,
-            packages: [
-                "RootPackage": .local(
-                    path: fromProjectToRoot.string,
-                    group: nil,
-                    excludeFromProject: false
-                ),
+        let schema = XCSchema.Project(
+            objectID: nil,
+            rootGroupDebugID: nil,
+            configurationListDebugID: nil,
+            topLevelReferences: groups + [
+                .group(XCSchema.Group(
+                    objectID: nil,
+                    name: "Products",
+                    path: "",
+                    includeInIndex: nil,
+                    children: productFiles,
+                ))
             ],
-            options: SpecOptions(
-                localPackagesGroup: ""
-            )
+            packages: [.init(location: .local(.init(path: fromProjectToRoot)), traits: [])],
+            configurations: ["Debug", "Release"].map {
+                .init(name: .init(name: $0), file: nil, objectID: nil)
+            },
+            buildSettings: ["SDKROOT": .string("iphoneos")],
+            defaultConfigurationName: .init(name: "Debug"),
+            targets: targets,
+            localizationInfo: .init(development: .init(languageID: "en"), supported: []),
+            requiredCapabilities: [],
+            buildIndependentTargetsInParallel: true,
+            lastUpgradeCheck: nil,
+            lastSwiftUpdateCheck: nil,
+            lastSwiftMigration: nil,
+            organizationName: nil,
+            classPrefix: nil,
+            productsGroup: .namePath(.init(components: [.child("Products")])),
+            importedProducts: [],
         )
 
-        // TODO: Handle plan.resources of type .root
-        // TODO: Handle plan.iconPath
+        let project = XcodeProject(project: schema)
+        let projectURL = projectDir.appending(path: "\(plan.app.product).xcodeproj")
+        try project.write(to: projectURL)
 
-        let generator = ProjectGenerator(project: project)
-        let xcodeproj = projectDir + "\(plan.app.product).xcodeproj"
-        let xcworkspace = xtoolDir + "\(plan.app.product).xcworkspace"
-        do {
-            let current = Path.current
-            Path.current = xcodeproj.parent()
-            defer { Path.current = current }
-            let xcodeProject = try generator.generateXcodeProject(userName: NSUserName())
-            if let packageRef = xcodeProject.pbxproj.fileReferences.first(where: { $0.name == ".." }) {
-                for group in xcodeProject.pbxproj.groups {
-                    group.children.removeAll(where: { $0.uuid == packageRef.uuid })
-                }
-                xcodeProject.pbxproj.delete(object: packageRef)
-            }
+        let workspace = XcodeWorkspace(children: [
+            .file(XcodeWorkspace.Location(base: .container, path: "..")),
+            .file(XcodeWorkspace.Location(base: .group, path: ".xtool-tmp/\(projectURL.lastPathComponent)"))
+        ])
+        let workspaceURL = xtoolDir.appending(path: "\(plan.app.product).xcworkspace")
+        try workspace.write(to: workspaceURL)
+        return workspaceURL
+    }
 
-            try xcodeProject.write(path: Path(xcodeproj.lastComponent))
+    private func resourceReferences(for product: Plan.Product, at root: URL) throws -> [XCSchema.Reference] {
+        var paths = product.resources.compactMap { resource -> String? in
+            guard case .root(let source) = resource else { return nil }
+            return source
+        }
+        if let iconPath = product.iconPath {
+            paths.append(iconPath)
         }
 
-        do {
-            let current = Path.current
-            Path.current = xcworkspace.parent()
-            defer { Path.current = current }
+        var visited: Set<String> = []
+        return try paths.compactMap { path in
+            let url = URL(fileURLWithPath: path, relativeTo: root).standardizedFileURL
+            guard visited.insert(url.path).inserted else { return nil }
+            let isAbsolute = (path as NSString).isAbsolutePath
+            let referencePath = isAbsolute ? path : ("../.." as NSString).appendingPathComponent(path)
+            var isDirectory: ObjCBool = false
+            _ = FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory)
 
-            let xcworkspaceDirectory = xcworkspace.parent()
-            let fromWorkspaceToSelf = try Path(".").relativePath(from: xcworkspaceDirectory).withName()
-            let fromWorkspaceToProject = try xcodeproj.relativePath(from: xcworkspaceDirectory).withName()
-            let workspace = XCWorkspace(data: .init(children: [
-                .file(.init(location: .container(fromWorkspaceToSelf.string))),
-                .file(.init(location: .group(fromWorkspaceToProject.string))),
-            ]))
-            try workspace.write(path: Path(xcworkspace.lastComponent))
+            return .fileReference(.init(
+                objectID: nil,
+                path: try .init(base: isAbsolute ? .absolute : .project, path: referencePath),
+                explicitFileType: isDirectory.boolValue ? .init(fileTypeID: "folder") : nil,
+                expectedSignature: nil,
+                textEncoding: nil,
+                lineEnding: nil,
+                includeInIndex: nil,
+                buildFiles: [.init(
+                    objectID: nil,
+                    buildPhase: .named(
+                        target: .init(targetName: product.targetName),
+                        kind: .copy,
+                        name: "Copy Root Resources",
+                    ),
+                    properties: buildFileProperties(),
+                )],
+            ))
         }
+    }
 
-        return xcworkspace.url
+    private func buildFileProperties(removeHeadersOnCopy: Bool = false) -> XCSchema.BuildFileProperties {
+        XCSchema.BuildFileProperties(
+            platformFilters: [],
+            additionalBuildFlags: nil,
+            assetTags: [],
+            attributes: XCSchema.BuildFileAttributes(
+                headerRole: nil,
+                machInterfaceGeneration: nil,
+                isWeak: false,
+                codeSignOnCopy: false,
+                codeGeneration: .default,
+                headerPreservation: removeHeadersOnCopy ? .removeOnCopy : .keep,
+                decompress: false,
+                codeGenerationVisibility: nil,
+            ),
+        )
     }
 }
-
-extension Path {
-    fileprivate func withName() -> Path {
-        // eg if curr dir is Foo, this converts "." to "../Foo"
-        // which includes the name in the path, and therefore
-        // in the Xcode navigator
-        self.parent() + self.absolute().lastComponent
-    }
-}
-
-#endif

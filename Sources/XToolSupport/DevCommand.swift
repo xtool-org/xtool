@@ -66,11 +66,9 @@ struct PackOperation {
         )
         let plan = try await planner.createPlan()
 
-        #if os(macOS)
         if xcode {
             return try await XcodePacker(plan: plan).createProject()
         }
-        #endif
 
         let packer = Packer(
             buildSettings: buildSettings,
@@ -109,12 +107,12 @@ struct PackOperation {
 struct DevXcodeCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "generate-xcode-project",
-        abstract: "Generate Xcode project",
-        discussion: "This option does nothing on Linux"
+        abstract: "Generate Xcode project"
     )
 
     func run() async throws {
-        try await PackOperation(xcode: true).run()
+        let result = try await PackOperation(xcode: true).run()
+        print("Wrote to \(result.path)")
     }
 }
 

@@ -1,5 +1,5 @@
 {
-  "originHash" : "23134cf3fab2ed308c844bd3240285be6a7e070b43a9e75366896971e0c380c1",
+  "originHash" : "72833caa0d28404618b540ad08cbaa72d65446a56dc70dfd3ff2790a48c9fdda",
   "pins" : [
     {
       "identity" : "aexml",
@@ -38,15 +38,6 @@
       }
     },
     {
-      "identity" : "jsonutilities",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/yonaskolb/JSONUtilities.git",
-      "state" : {
-        "revision" : "128d2ffc22467f69569ef8ff971683e2393191a0",
-        "version" : "4.2.0"
-      }
-    },
-    {
       "identity" : "openapikit",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mattpolzin/OpenAPIKit",
@@ -71,15 +62,6 @@
       "state" : {
         "revision" : "3bfd2737b700b9a36565a8c94f4ad2b050a5e574",
         "version" : "1.0.1"
-      }
-    },
-    {
-      "identity" : "rainbow",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/onevcat/Rainbow.git",
-      "state" : {
-        "revision" : "711ca908ca19d16e577d575c8d0a48151a16bb1b",
-        "version" : "4.2.2"
       }
     },
     {
@@ -398,15 +380,6 @@
       }
     },
     {
-      "identity" : "swiftcli",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/jakeheis/SwiftCLI.git",
-      "state" : {
-        "revision" : "2e949055d9797c1a6bddcda0e58dada16cc8e970",
-        "version" : "6.0.3"
-      }
-    },
-    {
       "identity" : "swiftymobiledevice",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/xtool-org/SwiftyMobileDevice",
@@ -452,12 +425,12 @@
       }
     },
     {
-      "identity" : "xcodegen",
+      "identity" : "xcode-project-format",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/yonaskolb/XcodeGen",
+      "location" : "https://github.com/apple/xcode-project-format.git",
       "state" : {
-        "revision" : "8445e778451c7e44237b90281bde622d764b0084",
-        "version" : "2.46.0"
+        "revision" : "c132630aabf40f6d6c3f7bb004595d2e5a28ea42",
+        "version" : "0.1.0"
       }
     },
     {
@@ -465,8 +438,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tuist/XcodeProj.git",
       "state" : {
-        "revision" : "eb001108f64467b0cc7e8cbf90b3b4aaa1822cbb",
-        "version" : "9.14.0"
+        "revision" : "aeea2e97376cd69fbdd1c7e68664b79a1a641dde",
+        "version" : "9.17.5"
       }
     },
     {
