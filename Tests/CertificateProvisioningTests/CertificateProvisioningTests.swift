@@ -124,7 +124,7 @@ struct CertificateProvisioningTests {
         let context = try fixture.context()
         let requested = try fixture.entitlements([
             "com.example.unknown": true,
-            "com.apple.security.application-groups": ["group.com.example.shared"],
+            "com.apple.security.application-groups": ["group.com.example.z", "group.com.example.a"],
             "application-identifier": "OLD.com.example.game",
             "keychain-access-groups": ["OLD.com.example.game", "OLD.shared"]
         ])
@@ -135,7 +135,7 @@ struct CertificateProvisioningTests {
         let paidDictionary = try CertificateProvisioningPreparation.dictionary(paid.entitlements)
         #expect(paidDictionary["com.example.unknown"] as? Bool == true)
         #expect(paidDictionary["keychain-access-groups"] as? [String] == ["TEAM.\(final)", "TEAM.shared"])
-        #expect(paidDictionary["com.apple.security.application-groups"] as? [String] == ["group.XTL-TEAM.com.example.shared"])
+        #expect(paidDictionary["com.apple.security.application-groups"] as? [String] == ["group.XTL-TEAM.com.example.z", "group.XTL-TEAM.com.example.a"])
         #expect(paid.removedEntitlementKeys.isEmpty)
         let free = try CertificateProvisioningPreparation.normalizeEntitlements(requested, isFreeTeam: true, teamID: "TEAM", originalBundleID: "com.example.game", finalBundleID: final, context: context)
         #expect(Set(free.removedEntitlementKeys) == ["com.example.unknown", "com.apple.security.application-groups"])

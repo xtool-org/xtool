@@ -76,7 +76,7 @@ public enum CertificateProvisioningPreparation {
                     fromSanitized: ProvisioningIdentifiers.sanitize(groupID: .init(rawValue: group)),
                     context: context
                 ).rawValue
-            }.sorted()
+            }
         }
         let data = try PropertyListSerialization.data(fromPropertyList: normalized, format: .xml, options: 0)
         return CertificateProvisioningNormalization(
