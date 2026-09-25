@@ -1,0 +1,7 @@
+{
+    "swiftPM": {
+        "buildSystem": "swiftbuild",
+        "scratchPath": ".build/index-build"
+    },
+    "backgroundIndexing": true
+}
