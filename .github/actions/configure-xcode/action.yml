@@ -6,4 +6,4 @@ runs:
     - name: Set up Xcode
       shell: bash
       run: |
-        sudo xcode-select -s /Applications/Xcode_26.4.app
+        sudo xcode-select -s /Applications/Xcode_27.0.0.app
