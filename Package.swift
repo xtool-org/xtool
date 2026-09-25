@@ -137,6 +137,18 @@ let package = Package(
             cSettings: cSettings
         ),
         .testTarget(
+            name: "CertificateProvisioningTests",
+            dependencies: [
+                "XKit",
+                "DeveloperAPI",
+                .product(name: "Crypto", package: "swift-crypto"),
+                .product(name: "X509", package: "swift-certificates"),
+                .product(name: "SignerSupport", package: "xtool-core"),
+                .product(name: "HTTPTypes", package: "swift-http-types"),
+                .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
+            ]
+        ),
+        .testTarget(
             name: "XToolTests",
             dependencies: [
                 "XToolSupport",

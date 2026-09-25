@@ -17,14 +17,17 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
     public let xcodeAuthData: XcodeAuthData
     public let platform: DeveloperServicesPlatform
 
+    private let preserveExactGroupIDs: Bool
     private let client: DeveloperServicesClient
 
     public init?(
         context: SigningContext,
         groupIDs: [DeveloperServicesAppGroup.GroupID],
         appID: Components.Schemas.BundleId,
-        platform: ProvisioningPlatform = .iOS
+        platform: ProvisioningPlatform = .iOS,
+        preserveExactGroupIDs: Bool = false
     ) {
+        self.preserveExactGroupIDs = preserveExactGroupIDs
         self.context = context
         self.groupIDs = groupIDs
         self.appID = appID
@@ -42,10 +45,11 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
     ) async throws -> DeveloperServicesAppGroup.GroupID {
         let sanitized = ProvisioningIdentifiers.sanitize(groupID: groupID)
         let group: DeveloperServicesAppGroup
-        if let existingGroup = existingGroups[sanitized] {
+        let lookupKey = preserveExactGroupIDs ? groupID.rawValue : sanitized
+        if let existingGroup = existingGroups[lookupKey] {
             group = existingGroup
         } else {
-            let groupID = ProvisioningIdentifiers.groupID(fromSanitized: sanitized, context: context)
+            let groupID = preserveExactGroupIDs ? groupID : ProvisioningIdentifiers.groupID(fromSanitized: sanitized, context: context)
             let name = ProvisioningIdentifiers.groupName(fromSanitized: sanitized)
             let request = DeveloperServicesAddAppGroupRequest(
                 platform: platform,
@@ -72,8 +76,16 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
         let existing = try await client.send(DeveloperServicesListAppGroupsRequest(
             platform: platform, teamID: xcodeAuthData.teamID
         ))
-        let sanitized = existing.map { (ProvisioningIdentifiers.sanitize(groupID: $0.groupID), $0) }
+        let sanitized = existing.map { (preserveExactGroupIDs ? $0.groupID.rawValue : ProvisioningIdentifiers.sanitize(groupID: $0.groupID), $0) }
         let dict = Dictionary(sanitized, uniquingKeysWith: { $1 })
+        if preserveExactGroupIDs {
+            var result: [DeveloperServicesAppGroup.GroupID] = []
+            for groupID in Set(groupIDs).sorted(by: { $0.rawValue < $1.rawValue }) {
+                try Task.checkCancellation()
+                result.append(try await upsertAppGroup(groupID, existingGroups: dict))
+            }
+            return result
+        }
         return try await withThrowingTaskGroup(of: DeveloperServicesAppGroup.GroupID.self) { group in
             for groupID in groupIDs {
                 group.addTask {

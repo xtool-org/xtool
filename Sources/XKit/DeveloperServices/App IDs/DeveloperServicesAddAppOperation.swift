@@ -90,136 +90,18 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
         return try Entitlements(entitlements: [])
     }
 
-    /// Registers the app with the given entitlements
     private func upsertApp(
         bundleID: String,
         entitlements: Entitlements,
         isFreeTeam: Bool
     ) async throws -> Components.Schemas.BundleId {
-        let newBundleID = ProvisioningIdentifiers.identifier(fromSanitized: bundleID, context: self.context)
-        let expectedPlatform = platform.bundleIDPlatform
-
-        let existing = try await context.developerAPIClient
-            .bundleIdsGetCollection(query: .init(
-                filter_lbrack_identifier_rbrack_: [newBundleID]
-            ))
-            .ok.body.json.data
-            // filter[identifier] is a prefix filter so we need to manually upgrade to equality
-            .first(where: { candidate in
-                guard candidate.attributes?.identifier == newBundleID else {
-                    return false
-                }
-                guard let platformValue = candidate.attributes?.platform?.value1 else {
-                    return true
-                }
-                switch expectedPlatform {
-                case .ios:
-                    return platformValue == .ios || platformValue == .universal
-                case .macOs:
-                    return platformValue == .macOs || platformValue == .universal
-                case .universal:
-                    return true
-                }
-            })
-
-        let appID: Components.Schemas.BundleId
-        if let existing {
-            appID = existing
-        } else {
-            let name = ProvisioningIdentifiers.appName(fromSanitized: bundleID)
-            let createResponse = try await context.developerAPIClient.bundleIdsCreateInstance(
-                body: .json(
-                    .init(
-                        data: .init(
-                            _type: .bundleIds,
-                            attributes: .init(
-                                name: name,
-                                platform: .init(platform.bundleIDPlatform),
-                                identifier: newBundleID
-                            )
-                        )
-                    )
-                )
-            )
-            appID = try createResponse.created.body.json.data
-        }
-
-        let existingCapabilitiesList = try await context.developerAPIClient
-            .bundleIdsBundleIdCapabilitiesGetToManyRelated(.init(path: .init(id: appID.id)))
-            .ok.body.json.data
-        let existingCapabilities = [Components.Schemas.CapabilityType: Components.Schemas.BundleIdCapability](
-            existingCapabilitiesList.compactMap { cap in
-                (cap.attributes?.capabilityType).map { ($0, cap) }
-            },
-            uniquingKeysWith: { $1 }
-        )
-
-        let wantedCapabilitiesList = try entitlements.entitlements().compactMap(\.anyCapability)
-        let wantedCapabilities = [Components.Schemas.CapabilityType: [Components.Schemas.CapabilitySetting]](
-            wantedCapabilitiesList.map { ($0.capabilityType, $0.settings ?? []) },
-            uniquingKeysWith: { $1 }
-        )
-
-        for (typ, cap) in existingCapabilities {
-            if let wantedSettings = wantedCapabilities[typ] {
-                if wantedSettings != (cap.attributes?.settings ?? []) {
-                    _ = try await context.developerAPIClient.bundleIdCapabilitiesUpdateInstance(
-                        path: .init(id: cap.id),
-                        body: .json(
-                            .init(
-                                data: .init(
-                                    _type: .bundleIdCapabilities,
-                                    id: cap.id,
-                                    attributes: .init(
-                                        capabilityType: typ,
-                                        settings: wantedSettings
-                                    )
-                                )
-                            )
-                        )
-                    )
-                    .ok
-                }
-            } else {
-                // DeveloperServices doesn't allow deleting these capabilities
-                let requiredCapabilities: Set<Components.Schemas.CapabilityType.Value1Payload> = [.inAppPurchase]
-                if let capType = cap.attributes?.capabilityType?.value1, !requiredCapabilities.contains(capType) {
-                    _ = try await context.developerAPIClient
-                        .bundleIdCapabilitiesDeleteInstance(path: .init(id: cap.id))
-                        .noContent
-                }
-            }
-        }
-        for (typ, settings) in wantedCapabilities {
-            guard existingCapabilities[typ] == nil else { continue }
-            _ = try await context.developerAPIClient.bundleIdCapabilitiesCreateInstance(
-                body: .json(.init(data: .init(
-                    _type: .bundleIdCapabilities,
-                    attributes: .init(
-                        capabilityType: typ,
-                        settings: settings
-                    ),
-                    relationships: .init(
-                        bundleId: .init(
-                            data: .init(
-                                _type: .bundleIds,
-                                id: appID.id
-                            )
-                        ),
-                        // not public but required when using ds2 API
-                        capability: .init(
-                            data: .init(
-                                _type: .capabilities,
-                                id: typ
-                            )
-                        )
-                    )
-                )))
-            )
-            .created.body
-        }
-
-        return appID
+        try await DeveloperServicesUpsertAppOperation(
+            context: context,
+            originalBundleID: bundleID,
+            newBundleID: ProvisioningIdentifiers.identifier(fromSanitized: bundleID, context: context),
+            entitlements: entitlements,
+            platform: platform
+        ).perform()
     }
 
     /// Registers the app and creates a profile. Returns the resultant entitlements as well as

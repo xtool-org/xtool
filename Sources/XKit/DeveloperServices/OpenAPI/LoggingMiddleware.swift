@@ -25,6 +25,11 @@ struct LoggingMiddleware: ClientMiddleware {
 
         print("\n\(operationID) response status -> \(response.status)")
 
+        // Certificate-only provisioning must never log profile payloads, even
+        // when the legacy developer logging environment variable is enabled.
+        guard !ProvisioningAPICallObserver.suppressResponseBodies else {
+            return (response, body)
+        }
         if let unwrapped = body {
             let data = try await Data(collecting: unwrapped, upTo: .max)
             // body may only be consumable once, replace it with the collected data

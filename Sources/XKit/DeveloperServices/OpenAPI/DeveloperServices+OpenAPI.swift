@@ -21,6 +21,7 @@ extension DeveloperAPIClient {
             transport: httpClient.asOpenAPITransport,
             middlewares: [
                 auth.middleware,
+                DeveloperServicesAPIObservationMiddleware(),
                 LoggingMiddleware(),
             ]
         )

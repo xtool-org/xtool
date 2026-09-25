@@ -101,6 +101,8 @@ public struct DeveloperServicesClient: Sendable {
 
         let body = try request.apiVersion.body(withParameters: request.parameters)
 
+        try Task.checkCancellation()
+        ProvisioningAPICallObserver.observer(request.action)
         let (_, data) = try await httpClient.makeRequest(httpRequest, body: body)
 
 //        String(data: data, encoding: .utf8).map { print("\(url): \($0)") }
