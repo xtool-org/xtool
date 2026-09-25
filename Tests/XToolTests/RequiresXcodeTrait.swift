@@ -24,13 +24,12 @@ enum TestXcode {
             return URL(filePath: xcode)
         }
         #if os(macOS)
-        if
-            let output = try await Subprocess.run(
-                .path("/usr/bin/xcode-select"),
-                arguments: ["-p"],
-                output: .string(limit: .max, encoding: UTF8.self),
-            ).standardOutput?.trimmingCharacters(in: .whitespacesAndNewlines),
-            output.hasSuffix(".app/Contents/Developer") {
+        let output = try await Subprocess.run(
+            .path("/usr/bin/xcode-select"),
+            arguments: ["-p"],
+            output: .string(limit: .max),
+        ).standardOutput.trimmingCharacters(in: .whitespacesAndNewlines)
+        if output.hasSuffix(".app/Contents/Developer") {
             return URL(filePath: output).deletingLastPathComponent().deletingLastPathComponent()
         }
         #endif

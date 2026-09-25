@@ -79,7 +79,7 @@ public struct BuildSettings: Sendable {
             arguments: .init(arguments),
             output: .string(limit: .max)
         ).checkSuccess()
-        return result.standardOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return result.standardOutput.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private static let _swiftURL = Task {
@@ -137,7 +137,7 @@ public struct BuildSettings: Sendable {
         }
 
         return Configuration(
-            executable,
+            executable: executable,
             arguments: .init(baseArguments + resolvedBaseOptions + arguments),
             environment: .inherit.updating(sdkEnvironment),
             platformOptions: .withGracefulShutDown,

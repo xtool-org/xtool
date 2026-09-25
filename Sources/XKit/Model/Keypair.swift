@@ -9,7 +9,7 @@
 import Foundation
 import Crypto
 import X509
-import _CryptoExtras
+import CryptoExtras
 
 public struct PrivateKey: Codable, Sendable {
     // pem encoded
