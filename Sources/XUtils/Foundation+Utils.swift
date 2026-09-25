@@ -43,7 +43,7 @@ extension FileManager {
             do {
                 try result.checkSuccess()
             } catch {
-                print("Error copying \(srcURL.path) to \(dstURL.path): \(result.standardError ?? "unknown")")
+                print("Error copying \(srcURL.path) to \(dstURL.path): \(result.standardError)")
                 throw error
             }
             return

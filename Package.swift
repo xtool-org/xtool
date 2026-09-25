@@ -56,15 +56,18 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-system", from: "1.4.0"),
         .package(url: "https://github.com/apple/swift-http-types", from: "1.3.1"),
         .package(url: "https://github.com/apple/swift-certificates", from: "1.0.0"),
-        .package(url: "https://github.com/apple/swift-crypto", from: "4.5.0"),
+        .package(url: "https://github.com/apple/swift-crypto", from: "5.0.0"),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.5.0"),
         .package(url: "https://github.com/apple/swift-openapi-generator", from: "1.6.0"),
         .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-openapi-urlsession", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-nio", from: "2.77.0"),
+        // v1.7.0 has a crash on old OSes: https://github.com/apple/swift-collections/issues/733.
+        // pin 1.6.0 until 1.7.1 is released.
+        .package(url: "https://github.com/apple/swift-collections", exact: "1.6.0"),
 
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.0.0"),
-        .package(url: "https://github.com/swiftlang/swift-subprocess", .upToNextMinor(from: "0.5.0")),
+        .package(url: "https://github.com/swiftlang/swift-subprocess", from: "1.0.0"),
 
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.0"),
         .package(url: "https://github.com/swift-server/swift-openapi-async-http-client", from: "1.0.0"),
@@ -73,7 +76,7 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-concurrency-extras", from: "1.3.0"),
         .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.6.2"),
 
-        .package(url: "https://github.com/attaswift/BigInt", from: "5.5.0"),
+        .package(url: "https://github.com/attaswift/BigInt", from: "6.0.0"),
         .package(url: "https://github.com/mxcl/Version", from: "2.1.0"),
         .package(url: "https://github.com/jpsim/Yams", from: "5.1.3"),
         .package(url: "https://github.com/saagarjha/unxip", from: "3.2.0"),
@@ -129,7 +132,7 @@ let package = Package(
                 .product(name: "ProtoCodable", package: "xtool-core"),
                 .product(name: "Superutils", package: "xtool-core"),
                 .product(name: "Crypto", package: "swift-crypto"),
-                .product(name: "_CryptoExtras", package: "swift-crypto"),
+                .product(name: "CryptoExtras", package: "swift-crypto"),
                 .product(name: "X509", package: "swift-certificates"),
                 .product(name: "BigInt", package: "BigInt"),
                 .product(name: "HTTPTypes", package: "swift-http-types"),

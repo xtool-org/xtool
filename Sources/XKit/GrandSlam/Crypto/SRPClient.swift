@@ -8,7 +8,7 @@
 
 import Foundation
 import Crypto
-import _CryptoExtras
+import CryptoExtras
 import BigInt
 
 struct SRPClient {

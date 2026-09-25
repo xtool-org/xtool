@@ -23,7 +23,7 @@ struct DevBSPCommand: AsyncParsableCommand {
         )
         try await Subprocess.run(
             settings.buildServerInvocation(),
-            input: .standardInput,
+            input: .currentStandardInput,
             output: .currentStandardOutput,
             error: .currentStandardError,
         )
