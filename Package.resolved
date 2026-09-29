@@ -1,5 +1,5 @@
 {
-  "originHash" : "620fe2137ddd7e1d0019d9cd9996d4cabd23df9ace27d4864ff674e76a6ad178",
+  "originHash" : "6ff0ca636961eba7aa3ddcac99a2a0fd3b52e096d2101e9e81ce93b79ac02a53",
   "pins" : [
     {
       "identity" : "aexml",
@@ -177,8 +177,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/xibbon/swift-dependencies",
       "state" : {
-        "revision" : "a10f9feeb214bc72b5337b6ef6d5a029360db4cc",
-        "version" : "1.10.0"
+        "revision" : "8dc1fbf2f6255a73dec53b4648164884898db4c5",
+        "version" : "1.14.1"
       }
     },
     {
@@ -346,10 +346,10 @@
     {
       "identity" : "swift-syntax",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/swift-precompiled/swift-syntax.git",
+      "location" : "https://github.com/swiftlang/swift-syntax.git",
       "state" : {
-        "branch" : "release/6.1",
-        "revision" : "fc197a24fb2e77609fbe3d94624e36f84d758099"
+        "revision" : "79e4b74a295b6eb74a8b585e3a39d29e70c1dbd1",
+        "version" : "603.0.2"
       }
     },
     {
@@ -373,10 +373,10 @@
     {
       "identity" : "swiftymobiledevice",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/xtool-org/SwiftyMobileDevice",
+      "location" : "https://github.com/xibbon/SwiftyMobileDevice.git",
       "state" : {
-        "revision" : "280d0dc8153469944491aee2f19af29e9c7a77f0",
-        "version" : "1.5.0"
+        "branch" : "main",
+        "revision" : "0341bbabcc6bed04be4a1f250aea35555af017be"
       }
     },
     {
