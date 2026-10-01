@@ -25,7 +25,7 @@ jobs:
       - name: Build and test
         run: |
           docker compose run --build -e XTL_CI=1 xtool bash -c \
-            "swift build --product xtool && .build/debug/xtool --help && swift test"
+            "swift build --force-resolved-versions --product xtool && .build/debug/xtool --help && swift test"
   build-macos:
     runs-on: macos-26
     steps:
@@ -34,7 +34,7 @@ jobs:
       - uses: ./.github/actions/configure-xcode
       - name: Build
         run: |
-          swift build --product xtool && .build/debug/xtool --help
+          swift build --force-resolved-versions --product xtool && .build/debug/xtool --help
       - name: Run tests
         run: |
           swift test
