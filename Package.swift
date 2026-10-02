@@ -75,6 +75,9 @@ let package = Package(
 
         .package(url: "https://github.com/pointfreeco/swift-concurrency-extras", from: "1.3.0"),
         .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.6.2"),
+        // we don't use this but need the explicit dependency to keep the lockfile stable.
+        // TODO: remove once https://github.com/pointfreeco/combine-schedulers/issues/120 is fixed
+        .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.14.0"),
 
         .package(url: "https://github.com/attaswift/BigInt", from: "6.0.0"),
         .package(url: "https://github.com/mxcl/Version", from: "2.1.0"),
