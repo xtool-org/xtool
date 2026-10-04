@@ -193,7 +193,7 @@ public struct Packer: Sendable {
             if product.type == .application {
                 info["UIRequiredDeviceCapabilities"] = ["arm64"]
                 info["LSRequiresIPhoneOS"] = true
-                info["CFBundleSupportedPlatforms"] = ["iPhoneOS"]
+                info["CFBundleSupportedPlatforms"] = Packer.cfBundleSupportedPlatforms(for: buildSettings.triple)
             }
 
             if let iconPath = product.iconPath {
@@ -208,6 +208,26 @@ public struct Packer: Sendable {
                 options: 0
             )
             try encodedPlist.write(to: infoPath)
+        }
+    }
+
+    static func cfBundleSupportedPlatforms(for triple: String) -> [String] {
+        let components = triple.split(separator: "-").map(String.init)
+        guard let appleIndex = components.firstIndex(of: "apple"),
+              components.indices.contains(appleIndex + 1) else {
+            return ["iPhoneOS"]
+        }
+
+        let os = components[appleIndex + 1].prefix { !$0.isNumber }
+        switch os {
+        case "ios" where components.contains("simulator"):
+            return ["iPhoneSimulator"]
+        case "ios":
+            return ["iPhoneOS"]
+        case "macos", "macosx":
+            return ["MacOSX"]
+        default:
+            return ["iPhoneOS"]
         }
     }
 }
