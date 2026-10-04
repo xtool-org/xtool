@@ -13,7 +13,7 @@ fi
 rm -rf staging/tmp
 mkdir -p staging/tmp staging/linuxdeploy
 
-swift build --package-path .. -c release --product xtool --static-swift-stdlib
+swift build --package-path .. -c release --product xtool
 bin="$(swift build --package-path .. -c release --show-bin-path)"
 strip "${bin}/xtool"
 
