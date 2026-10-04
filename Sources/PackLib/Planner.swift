@@ -131,6 +131,7 @@ public struct Planner: Sendable {
         )
         var resources: [Plan.Resource] = []
         var visited: Set<String> = []
+        var recordedLibraries: Set<String> = []
         var targets = library.targets.map { (graph.root, $0) }
         while let (targetPackage, targetName) = targets.popLast() {
             guard let target = targetPackage.targets?.first(where: { $0.name == targetName }) else {
@@ -152,7 +153,11 @@ public struct Planner: Sendable {
             }
             for productName in (target.productDependencies ?? []) {
                 let (package, product) = try graph.product(name: productName)
-                if product.type == .dynamicLibrary {
+                // the same product can be reachable over several dependency edges;
+                // embed each dynamic library only once (packing it twice fails
+                // with NSCocoaErrorDomain 516 "File exists")
+                if product.type == .dynamicLibrary,
+                   recordedLibraries.insert(productName).inserted {
                     resources.append(.library(name: productName))
                 }
                 targets.append(contentsOf: product.targets.map { (package, $0) })
