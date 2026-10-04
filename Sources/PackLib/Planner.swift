@@ -77,7 +77,7 @@ public struct Planner: Sendable {
 
         let graph = try await buildGraph()
 
-        let app = try await product(
+        var app = try await product(
             from: graph,
             matching: schema.product,
             type: .application,
@@ -111,7 +111,6 @@ public struct Planner: Sendable {
             extensionProducts = []
         }
 
-        var app = app
         for ext in extensionProducts {
             for resource in ext.resources {
                 guard case .library = resource, !app.resources.contains(resource) else { continue }
