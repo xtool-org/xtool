@@ -173,6 +173,7 @@ public struct Packer: Sendable {
                         try await packFile(srcName: "\(name).framework", dstName: "Frameworks/\(name).framework", sign: true)
                     }
                 case .library(let name):
+                    guard product.type == .application else { break }
                     try await packFile(srcName: "lib\(name).dylib", dstName: "Frameworks/lib\(name).dylib", sign: true)
                 case .root(let source):
                     try await packFileToRoot(srcName: source)
@@ -251,8 +252,6 @@ extension Plan.Product {
                 "-Xlinker", "-e", "-Xlinker", "_NSExtensionMain",
                 // Include frameworks that the host app may use
                 "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks",
-                // ...as well as our own
-                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
             ]),
         ]
         """

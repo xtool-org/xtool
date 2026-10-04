@@ -111,6 +111,13 @@ public struct Planner: Sendable {
             extensionProducts = []
         }
 
+        var app = app
+        for ext in extensionProducts {
+            for resource in ext.resources {
+                guard case .library = resource, !app.resources.contains(resource) else { continue }
+                app.resources.append(resource)
+            }
+        }
         return Plan(app: app, extensions: extensionProducts)
     }
 
