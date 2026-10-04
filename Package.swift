@@ -82,7 +82,7 @@ let package = Package(
         .package(url: "https://github.com/attaswift/BigInt", from: "6.0.0"),
         .package(url: "https://github.com/mxcl/Version", from: "2.1.0"),
         .package(url: "https://github.com/jpsim/Yams", from: "5.1.3"),
-        .package(url: "https://github.com/saagarjha/unxip", from: "3.2.0"),
+        .package(url: "https://github.com/kabiroberai/unxip", revision: "1b6f5c0d9d7f11fbda270ca346cb6aa09064660b"),
 
         // TODO: just depend on tuist/XcodeProj instead
         .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.45.4"),
@@ -178,7 +178,7 @@ let package = Package(
                 .product(name: "SystemPackage", package: "swift-system"),
                 .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "Version", package: "Version"),
-                .product(name: "libunxip", package: "unxip"),
+                .product(name: "libunxipDynamic", package: "unxip"),
             ],
             cSettings: cSettings,
             swiftSettings: swiftSettings,
