@@ -233,16 +233,30 @@ public struct Packer: Sendable {
 }
 
 extension Plan.Product {
+    fileprivate var dynamicLibraries: [String] {
+        resources.compactMap {
+            if case .library(let name) = $0 { return name } else { return nil }
+        }
+    }
+
     fileprivate var linkerSettings: String {
         switch self.type {
-        case .application: """
+        case .application:
+            // SwiftBuild only embeds dynamic library products; without an explicit
+            // link the app executable never references them and dies at load time
+            // (or at link time when they are needed to satisfy imports).
+            let linkLines = dynamicLibraries.map { name in
+                "\n            .linkedLibrary(\"\(name)\"),"
+            }.joined()
+            return """
         [
             .unsafeFlags([
                 "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
-            ]),
+            ]),\(linkLines)
         ]
-        """
-        case .appExtension: """
+"""
+        case .appExtension:
+            return """
         [
             // Link to Foundation framework which implements the _NSExtensionMain entrypoint
             .linkedFramework("Foundation"),
