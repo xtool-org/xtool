@@ -196,12 +196,35 @@ struct SDKBuilder {
         // this toolset works with the swiftbuild system on Linux
         // note that we need Swift 6.4+ because 6.3 has bugs in
         // resolving the librarian and linker paths.
+        //
+        // The linker options make `type: .dynamic` library products linkable:
+        // the driver force-loads the Swift back-deploy compatibility archives
+        // into dylib links, and those reference the Swift runtime, whose import
+        // stubs live in the platform SDK's usr/lib/swift. Executable links
+        // resolve the same symbols against the OS runtime, so the flags are
+        // redundant (and harmless) there. -all_load is needed because SwiftPM
+        // compiles the modules of a dynamic product for static linking (it only
+        // opts out on Windows), leaving the product dylib an archive-derived
+        // link with an empty exports trie otherwise.
+        //
+        // extraCLIOptions are passed to the linker verbatim; only toolset
+        // `rootPath`/`path` entries are resolved against the toolset location,
+        // so the -L has to be absolute.
+        let iPhoneOSSwiftLibDir = output
+            .appendingPathComponent(
+                "Developer/Platforms/iPhoneOS.platform/Developer/SDKs/\(iPhoneOSSDK)/usr/lib/swift"
+            ).path
         try """
         {
             "schemaVersion": "1.0",
             "rootPath": "toolset/bin",
             "linker": {
-                "path": "ld64.lld"
+                "path": "ld64.lld",
+                "extraCLIOptions": [
+                    "-lswiftCore",
+                    "-L\(iPhoneOSSwiftLibDir)",
+                    "-all_load"
+                ]
             },
             "librarian": {
                 "path": "llvm-lib"
