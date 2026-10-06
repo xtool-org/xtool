@@ -81,7 +81,6 @@ let package = Package(
         .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.14.0"),
 
         .package(url: "https://github.com/attaswift/BigInt", from: "6.0.0"),
-        .package(url: "https://github.com/mxcl/Version", from: "2.1.0"),
         .package(url: "https://github.com/jpsim/Yams", from: "5.1.3"),
         .package(url: "https://github.com/saagarjha/unxip", from: "3.2.0"),
 
@@ -198,7 +197,6 @@ let package = Package(
                 "XcodeProjects",
                 .product(name: "Superutils", package: "xtool-core"),
                 .product(name: "Yams", package: "Yams"),
-                .product(name: "Version", package: "Version"),
                 .product(name: "XcodeProjectFormat", package: "xcode-project-format"),
             ],
             swiftSettings: swiftSettings,
