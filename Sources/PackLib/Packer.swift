@@ -246,7 +246,7 @@ extension Plan.Product {
             // link the app executable never references them and dies at load time
             // (or at link time when they are needed to satisfy imports).
             let linkLines = dynamicLibraries.map { name in
-                "\n            .linkedLibrary(\"\(name)\"),"
+                "\n            .linkedLibrary(\(String(reflecting: name))),"
             }.joined()
             return """
         [
