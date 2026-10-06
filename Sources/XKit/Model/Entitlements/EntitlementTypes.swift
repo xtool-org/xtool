@@ -26,6 +26,7 @@ extension EntitlementContainer {
         SiriKitEntitlement.self,
         InterAppAudioEntitlement.self,
         WirelessAccessoryEntitlement.self,
+        WiFiAwareEntitlement.self,
         HomeKitEntitlement.self,
         HealthKitEntitlement.self,
     ]
@@ -153,6 +154,21 @@ public struct WirelessAccessoryEntitlement: Entitlement, RawRepresentable {
 
     public var rawValue: Bool
     public init(rawValue: Bool) { self.rawValue = rawValue }
+}
+
+public struct WiFiAwareEntitlement: Entitlement, RawRepresentable {
+    public static let identifier = "com.apple.developer.wifi-aware"
+
+    public var rawValue: [String]
+    public init(rawValue: [String]) { self.rawValue = rawValue }
+
+    public init(from decoder: Decoder) throws {
+        rawValue = try decoder.singleValueContainer().decode([String].self)
+    }
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 public struct HomeKitEntitlement: Entitlement, RawRepresentable {

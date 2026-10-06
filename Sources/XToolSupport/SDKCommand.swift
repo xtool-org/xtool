@@ -5,6 +5,7 @@ import ArgumentParser
 import Dependencies
 import PackLib
 import XUtils
+import Subprocess
 
 struct SDKCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -12,6 +13,7 @@ struct SDKCommand: AsyncParsableCommand {
         abstract: "Manage the Darwin Swift SDK",
         subcommands: [
             DevSDKInstallCommand.self,
+            DevSDKUpdateCommand.self,
             DevSDKRemoveCommand.self,
             DevSDKBuildCommand.self,
             DevSDKStatusCommand.self,
@@ -47,9 +49,10 @@ struct DevSDKBuildCommand: AsyncParsableCommand {
     func run() async throws {
         let builderArch = try arch.sdkBuilderArch
         let input = try SDKBuilder.Input(path: path)
-        let builder = SDKBuilder(input: input, outputPath: outputDir, arch: builderArch)
-        let sdkPath = try await builder.buildSDK()
-        print("Built SDK at \(sdkPath)")
+        let output = URL(fileURLWithPath: outputDir, isDirectory: true).appending(path: "darwin.xtoolsdk")
+        let builder = SDKBuilder(input: input, output: output, arch: builderArch, mode: .buildSlim)
+        try await builder.buildSDK()
+        print("Built SDK at \(output.path). You can install it with `xtool sdk install`.")
     }
 }
 
@@ -83,13 +86,29 @@ struct DevSDKInstallCommand: AsyncParsableCommand {
     )
 
     @Argument(
-        help: "Path to Xcode.xip or Xcode.app",
-        completion: .file(extensions: ["xip", "app"])
+        help: "Path to Xcode.xip, Xcode.app, or darwin.xtoolsdk",
+        completion: .file(extensions: ["xip", "app", "xtoolsdk"])
     )
     var path: String
 
+    @Flag(
+        help: "Install a slim SDK (uses less disk space). Slim SDKs cannot be updated in place."
+    )
+    var slim = false
+
     func run() async throws {
-        try await InstallSDKOperation(path: path).run()
+        try await InstallSDKOperation(path: path, slim: slim).run()
+    }
+}
+
+struct DevSDKUpdateCommand: AsyncParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "update",
+        abstract: "Update the installed Darwin Swift SDK"
+    )
+
+    func run() async throws {
+        try await UpdateSDKOperation().run()
     }
 }
 
@@ -100,7 +119,7 @@ struct DevSDKRemoveCommand: AsyncParsableCommand {
     )
 
     func run() async throws {
-        guard let sdk = try await DarwinSDK.current() else {
+        guard let sdk = try DarwinSDK.current() else {
             throw Console.Error("Cannot remove SDK: no Darwin SDK installed")
         }
         try sdk.remove()
@@ -115,151 +134,154 @@ struct DevSDKStatusCommand: AsyncParsableCommand {
     )
 
     func run() async throws {
-        if let sdk = try await DarwinSDK.current() {
-            print("Installed at \(sdk.bundle.path)")
+        if let sdk = try DarwinSDK.current() {
+            print("Darwin SDK is installed")
+            print("  Path: \(sdk.bundle.path)")
+            print("  Flavor: \(sdk.flavor)")
+            print("  Version: \(sdk.version)")
         } else {
             print("Not installed")
         }
     }
 }
 
-struct DarwinSDK {
-    let bundle: URL
-    let version: String
-
-    init?(bundle: URL) {
-        self.bundle = bundle
-        if let version = try? Data(contentsOf: bundle.appendingPathComponent("darwin-sdk-version.txt")) {
-            self.version = String(decoding: version, as: UTF8.self)
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-        } else if bundle.lastPathComponent == "darwin.artifactbundle" {
-            self.version = "unknown"
-        } else {
-            return nil
-        }
-    }
-
-    static func install(from path: String) async throws {
-        // we can't just move into ~/.swiftpm/swift-sdks because the swiftpm directory
-        // location depends on factors like $XDG_CONFIG_HOME. Rather than replicating
-        // SwiftPM's logic, which may change, it's more reliable to directly invoke
-        // `swift sdk install`. See: https://github.com/xtool-org/xtool/pull/40
-
-        let url = URL(fileURLWithPath: path)
-        guard DarwinSDK(bundle: url) != nil else { throw Console.Error("Invalid Darwin SDK at '\(path)'")}
-
-        let process = Process()
-        process.executableURL = try await ToolRegistry.locate("swift")
-        process.arguments = ["sdk", "install", url.path]
-        try await process.runUntilExit()
-    }
-
-    static func current() async throws -> DarwinSDK? {
-        let output = Pipe()
-
-        let process = Process()
-        process.executableURL = try await ToolRegistry.locate("swift")
-        process.arguments = ["sdk", "configure", "darwin", "arm64-apple-ios", "--show-configuration"]
-        process.standardOutput = output
-        process.standardError = FileHandle.nullDevice
-
-        async let outputData = Data(reading: output.fileHandleForReading)
-
-        do {
-            try await process.runUntilExit()
-        } catch Process.Failure.exit {
-            return nil
-        }
-
-        // should be something like
-        // swiftResourcesPath: /home/user/.swiftpm/swift-sdks/darwin.artifactbundle/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift
-        // swiftlint:disable:previous line_length
-        let resourcesPathPrefix = "swiftResourcesPath: "
-        let outputString = String(decoding: try await outputData, as: UTF8.self)
-
-        guard let resourcesPath = outputString
-            .split(separator: "\n")
-            .first(where: { $0.hasPrefix(resourcesPathPrefix) })?
-            .dropFirst(resourcesPathPrefix.count)
-            else { return nil }
-
-        var resourcesURL = URL(fileURLWithPath: String(resourcesPath))
-        for _ in 0..<6 {
-            resourcesURL = resourcesURL.deletingLastPathComponent()
-        }
-
-        return DarwinSDK(bundle: resourcesURL)
-    }
-
+extension DarwinSDK {
     func isUpToDate() -> Bool {
-        true
-    }
-
-    func remove() throws {
-        try FileManager.default.removeItem(at: bundle)
+        version == SDKBuilder.currentSDKVersion
     }
 }
 
-private enum SwiftVersion {}
-extension SwiftVersion {
-    static func current() async throws -> Version {
-        let outPipe = Pipe()
-        let errPipe = Pipe()
-        let swift = Process()
-        swift.executableURL = try await ToolRegistry.locate("swift")
-        swift.arguments = ["--version"]
-        swift.standardOutput = outPipe
-        swift.standardError = errPipe
-        async let outputTask = outPipe.fileHandleForReading.readToEnd()
-        do {
-            try await swift.runUntilExit()
-        } catch is Process.Failure {
-            throw Console.Error("Failed to obtain Swift version")
+struct EnsureSDKOperation {
+    let quiet: Bool
+
+    func run() async throws {
+        #if os(macOS)
+        if !quiet {
+            print("Skipping Darwin SDK setup since we're on macOS.")
         }
-        let outputData = try await outputTask
-        var output = String(decoding: outputData ?? Data(), as: UTF8.self)[...]
-        if output.hasPrefix("Apple ") {
-            output = output.dropFirst("Apple ".count)
+        #else
+        let sdk = try DarwinSDK.current()
+        switch sdk.map({ ($0.isUpToDate(), $0.flavor) }) {
+        case (true, _)?: // swiftlint:disable:this optional_enum_case_matching
+            if !quiet {
+                print("Darwin SDK is up to date.")
+            }
+        case (false, .slim)?: // swiftlint:disable:this optional_enum_case_matching
+            throw Console.Error("""
+            Darwin SDK is out of date, and was installed in 'slim' mode.
+
+            Slim SDKs take less disk space, but can't be auto-updated.
+            Please install a new SDK with
+                xtool sdk install [--slim]
+            """)
+        case (false, .normal)?: // swiftlint:disable:this optional_enum_case_matching
+            print("Darwin SDK is out of date. Rebuilding...")
+            try await UpdateSDKOperation().run()
+        case (false, .legacy)?: // swiftlint:disable:this optional_enum_case_matching
+            print("""
+            Darwin SDK is incompatible: built with an older version of xtool.
+
+            Requesting re-install. This is a one-time rebuild; after this,
+            xtool will be able to resolve incompatibilities automatically.
+
+            """)
+            try await generateSDK()
+        case nil:
+            print("Now generating the Darwin SDK.\n")
+            try await generateSDK()
         }
-        guard output.hasPrefix("Swift version ") else {
-            throw Console.Error("Could not parse Swift version: '\(output)'")
+
+        func generateSDK() async throws {
+            let path = try await Console.prompt("""
+            Please download Xcode from http://developer.apple.com/download/all/?q=Xcode
+            and enter the path to the downloaded Xcode.xip.
+
+            Path to Xcode.xip: \("" /* pacify swiftlint trailing_whitespace */)
+            """)
+
+            let expanded = (path as NSString).expandingTildeInPath
+
+            try await InstallSDKOperation(path: expanded).run()
         }
-        output = output.dropFirst("Swift version ".count)
-        guard let space = output.firstIndex(of: " ") else {
-            throw Console.Error("Could not parse Swift version: '\(output)'")
-        }
-        output = output[..<space]
-        guard let version = Version(tolerant: output) else {
-            throw Console.Error("Could not parse Swift version: '\(output)'")
-        }
-        return version
+        #endif
     }
 }
 
 struct InstallSDKOperation {
     let path: String
+    let slim: Bool
+
+    init(path: String, slim: Bool = false) {
+        self.path = path
+        self.slim = slim
+    }
 
     func run() async throws {
         #if os(macOS)
         print("Skipping SDK install; the iOS SDK ships with Xcode on macOS")
         #else
-        // validate input before removing existing SDK
-        let input = try SDKBuilder.Input(path: path)
-        let arch = try ArchSelection.auto.sdkBuilderArch
 
-        if let sdk = try await DarwinSDK.current() {
+        let temporaryBundle = try DarwinSDK.prepareTemporaryBundle()
+
+        if path.hasSuffix(".xtoolsdk") {
+            print("Installing prebuilt SDK...")
+            try await FileManager.default.copyItem(at: URL(filePath: path), to: temporaryBundle.url, preserveOwner: false)
+        } else {
+            // validate input before removing existing SDK
+            let input = try SDKBuilder.Input(path: path)
+            let arch = try ArchSelection.auto.sdkBuilderArch
+
+            let mode: SDKBuilder.Mode = slim ? .buildSlim : .buildNormal
+            let builder = SDKBuilder(input: input, output: temporaryBundle.url, arch: arch, mode: mode)
+            try await builder.buildSDK()
+        }
+
+        if let sdk = try DarwinSDK.current() {
             print("Removing existing SDK...")
             try sdk.remove()
         }
 
-        let tempDir = try TemporaryDirectory(name: "DarwinSDKBuild")
-        let builder = SDKBuilder(input: input, outputPath: tempDir.url.path, arch: arch)
-        let sdkPath = try await builder.buildSDK()
+        try await temporaryBundle.install()
+        #endif
+    }
+}
 
-        try await DarwinSDK.install(from: sdkPath)
+struct UpdateSDKOperation {
+    func run() async throws {
+        #if os(macOS)
+        print("Skipping SDK install; the iOS SDK ships with Xcode on macOS")
+        #else
+        guard let existing = try DarwinSDK.current() else {
+            throw Console.Error("Could not locate existing SDK; cannot perform update.")
+        }
+        let xcode = existing.bundle.appendingPathComponent("Xcode.app")
+        guard xcode.dirExists else {
+            // This includes prebuilt .xtoolsdk installs and installs created with --slim.
+            throw Console.Error("""
+            The installed SDK was built in 'slim' mode and cannot be updated in place. \
+            Please install a new copy with `xtool sdk install`.
+            """)
+        }
 
-        // don't destroy tempDir before this point
-        withExtendedLifetime(tempDir) {}
+        let input = try SDKBuilder.Input(path: xcode.path)
+        let arch = try ArchSelection.auto.sdkBuilderArch
+
+        let temporaryBundle = try DarwinSDK.prepareTemporaryBundle()
+        let builder = SDKBuilder(input: input, output: temporaryBundle.url, arch: arch, mode: .update)
+        try await builder.buildSDK()
+
+        guard DarwinSDK(bundle: temporaryBundle.url) != nil else {
+            throw Console.Error("Invalid Darwin SDK at '\(temporaryBundle.url.path)'")
+        }
+
+        try FileManager.default.moveItem(
+            at: xcode,
+            to: temporaryBundle.url.appendingPathComponent("Xcode.app")
+        )
+        try existing.remove()
+        try await temporaryBundle.install()
+
+        print("Updated SDK")
         #endif
     }
 }

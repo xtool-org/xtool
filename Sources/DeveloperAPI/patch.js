@@ -65,7 +65,7 @@ function openAll(schema, path = []) {
 function patch(schema) {
   const schemas = schema.components.schemas;
   
-  // this field is required when using the private Xcode API
+  // this field is required iff using the private Xcode API
   update(schemas.BundleIdCapabilityCreateRequest.properties.data.properties.relationships, {
     properties: {
       capability: {
@@ -86,7 +86,6 @@ function patch(schema) {
         required: ['data'],
       }
     },
-    required: ['capability'],
   })
   
   // we don't use this but it triggers a deprecation warning. see:

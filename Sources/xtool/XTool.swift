@@ -8,7 +8,7 @@ import Dependencies
 enum XToolMain {
     static func main() async throws {
         prepareDependencies { _ in
-            #warning("Improve persistence mechanism")
+            // TODO: Improve persistence mechanism
             // for Windows, we could use dpapi.h or wincred.h.
             // for Linux, maybe use libsecret?
             // see https://github.com/atom/node-keytar

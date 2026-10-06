@@ -137,8 +137,8 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
                                 id: appID.id
                             )
                         ),
-                        // not public but required when using ds2 API
-                        capability: .init(
+                        // not public but required iff using ds2 API
+                        capability: context.auth.isPublicAPI ? nil : .init(
                             data: .init(
                                 _type: .capabilities,
                                 id: typ

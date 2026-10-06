@@ -22,7 +22,7 @@ struct DSTeamsListCommand: AsyncParsableCommand {
     func run() async throws {
         let token = try AuthToken.saved()
 
-        guard case let .xcode(authData) = try token.authData() else {
+        guard case let .xcode(authData) = token.authData() else {
             throw Console.Error("This command requires password-based authentication")
         }
         let client = DeveloperServicesClient(authData: authData)

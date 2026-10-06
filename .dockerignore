@@ -1,0 +1,8 @@
+*
+!/Package.swift
+!/Package.resolved
+!/Sources
+!/Tests
+!/Linux
+/Linux/packages
+/Linux/staging

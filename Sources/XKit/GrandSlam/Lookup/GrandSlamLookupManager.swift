@@ -39,6 +39,7 @@ actor GrandSlamLookupManager {
         } */
         var request = HTTPRequest(url: Self.lookupURL)
         request.headerFields = [
+            .userAgent: deviceInfo.clientInfo.userAgent,
             .init(DeviceInfo.clientInfoKey)!: deviceInfo.clientInfo.clientString,
             .init(DeviceInfo.deviceIDKey)!: deviceInfo.deviceID,
             .init(AnisetteData.iLocaleKey)!: Locale.current.identifier,

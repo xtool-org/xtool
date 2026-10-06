@@ -6,6 +6,8 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+env:
+  XTL_CI: "1"
 jobs:
   build-linux:
     strategy:
@@ -19,24 +21,29 @@ jobs:
     runs-on: ${{ matrix.host.runner }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-      - name: Build
+        uses: actions/checkout@v6
+      - name: Build and test
         run: |
-          docker compose run --build --rm xtool bash -c \
-            "swift build --product xtool && .build/debug/xtool --help"
+          docker compose run --build -e XTL_CI=1 xtool bash -c \
+            "swift build --product xtool && .build/debug/xtool --help && swift test"
   build-macos:
-    runs-on: macos-26
+    runs-on: xcode-27
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+      - uses: ./.github/actions/configure-xcode
       - name: Build
         run: |
           swift build --product xtool && .build/debug/xtool --help
+      - name: Run tests
+        run: |
+          swift test
   build-ios:
-    runs-on: macos-26
+    runs-on: xcode-27
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+      - uses: ./.github/actions/configure-xcode
       - name: Build
         run: |
           set -o pipefail \

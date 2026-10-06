@@ -27,6 +27,17 @@ struct PackOperation {
 
     @discardableResult
     func run() async throws -> URL {
+        // TODO: support running inside a child directory
+
+        let contents = try FileManager.default.contentsOfDirectory(atPath: ".")
+        guard contents.contains("Package.swift")
+            || contents.contains(where: { $0.hasPrefix("Package@") && $0.hasSuffix(".swift") })
+            else {
+            throw Console.Error("Could not find Package.swift in this directory.")
+        }
+
+        try await EnsureSDKOperation(quiet: true).run()
+
         print("Planning...")
 
         let schema: PackSchema
@@ -40,6 +51,8 @@ struct PackOperation {
             configuration with 'com.example' organization ID.
             """)
         }
+
+        await LSPConfig.tryEnsure(using: schema)
 
         let buildSettings = try await BuildSettings(
             configuration: buildOptions.configuration,
@@ -80,7 +93,7 @@ struct PackOperation {
                 }
                 return try await group.reduce(into: [:]) { $0[$1.0] = $1.1 }
             }
-            print("Pseudo-signing...")
+            print("Applying entitlements...")
             try await Signer.first().sign(
                 app: bundle,
                 identity: .adhoc,
@@ -117,6 +130,12 @@ struct DevBuildCommand: AsyncParsableCommand {
     @OptionGroup var packOptions: PackOperation.BuildOptions
 
     @Flag(
+        name: .shortAndLong,
+        help: "Codesign the built app",
+    ) var sign = false
+
+    @Flag(
+        name: .shortAndLong,
         help: "Output a .ipa file instead of a .app"
     ) var ipa = false
 
@@ -128,10 +147,37 @@ struct DevBuildCommand: AsyncParsableCommand {
     ) var triple: String?
 
     func run() async throws {
+        let signingAuthToken: AuthToken?
+        if sign {
+            guard let token = try AuthToken.savedIfPresent() else {
+                throw Console.Error("`build --sign` requires logging in with `xtool auth`")
+            }
+            signingAuthToken = token
+        } else {
+            signingAuthToken = nil
+        }
+
         let url = try await PackOperation(
             triple: triple,
             buildOptions: packOptions
         ).run()
+
+        if let signingAuthToken {
+            let installDelegate = XToolInstallerDelegate()
+            let installer = IntegratedInstaller(
+                auth: signingAuthToken.authData(),
+                delegate: installDelegate
+            )
+            do {
+                defer { print() }
+                try await installer.signInPlace(app: url)
+            } catch let error as CancellationError {
+                throw error
+            } catch {
+                print("Error: \(error)")
+                throw ExitCode.failure
+            }
+        }
 
         let finalURL: URL
         if ipa {
@@ -211,17 +257,19 @@ struct DevRunCommand: AsyncParsableCommand {
 
         let installDelegate = XToolInstallerDelegate()
         let installer = IntegratedInstaller(
-            udid: client.udid,
-            lookupMode: .only(client.connectionType),
-            auth: try token.authData(),
-            configureDevice: false,
+            auth: token.authData(),
             delegate: installDelegate
         )
 
         defer { print() }
 
         do {
-            try await installer.install(app: output)
+            try await installer.install(
+                app: output,
+                udid: client.udid,
+                lookupMode: .only(client.connectionType),
+                configureDevice: false,
+            )
         } catch let error as CancellationError {
             throw error
         } catch {
@@ -239,6 +287,7 @@ struct DevCommand: AsyncParsableCommand {
             DevXcodeCommand.self,
             DevBuildCommand.self,
             DevRunCommand.self,
+            DevBSPCommand.self,
         ],
         defaultSubcommand: DevRunCommand.self
     )
@@ -247,6 +296,8 @@ struct DevCommand: AsyncParsableCommand {
 extension BuildConfiguration: ExpressibleByArgument {}
 
 #if os(macOS)
+import Subprocess
+
 struct SimInstallOperation {
     var path: URL
 
@@ -254,10 +305,12 @@ struct SimInstallOperation {
     var simulator = "booted"
 
     func run() async throws {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        process.arguments = ["simctl", "install", simulator, path.path]
-        try await process.runUntilExit()
+        try await Subprocess.run(
+            .path("/usr/bin/xcrun"),
+            arguments: ["simctl", "install", simulator, path.path],
+            output: .discarded
+        )
+        .checkSuccess()
         print("Installed to simulator")
     }
 }

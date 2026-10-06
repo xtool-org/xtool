@@ -1,5 +1,6 @@
 import Foundation
 import XUtils
+import Subprocess
 
 public struct Packer: Sendable {
     public let buildSettings: BuildSettings
@@ -54,22 +55,27 @@ public struct Packer: Sendable {
             try Data().write(to: sources.appendingPathComponent("stub.c", isDirectory: false))
         }
 
-        let builder = try await buildSettings.swiftPMInvocation(
-            forTool: "build",
-            arguments: [
-                "--package-path", packageDir.path,
-                "--scratch-path", ".build",
-                // resolving can cause SwiftPM to overwrite the root package deps
-                // with just the deps needed for the builder package (which is to
-                // say, any "dev dependencies" of the root package may be removed.)
-                // fortunately we've already resolved the root package by this point
-                // in order to dump the plan, so we can skip resolution here to skirt
-                // the issue.
-                "--disable-automatic-resolution",
-            ]
+        let buildConfig = try await buildSettings
+            .withPackagePath(packageDir.path)
+            .swiftPMInvocation(
+                forTool: "build",
+                arguments: [
+                    "--scratch-path", ".build",
+                    // resolving can cause SwiftPM to overwrite the root package deps
+                    // with just the deps needed for the builder package (which is to
+                    // say, any "dev dependencies" of the root package may be removed.)
+                    // fortunately we've already resolved the root package by this point
+                    // in order to dump the plan, so we can skip resolution here to skirt
+                    // the issue.
+                    "--disable-automatic-resolution",
+                ],
+            )
+        try await Subprocess.run(
+            buildConfig,
+            output: .currentStandardOutput,
+            error: .currentStandardError,
         )
-        builder.standardOutput = FileHandle.standardError
-        try await builder.runUntilExit()
+        .checkSuccess()
     }
 
     public func pack() async throws -> URL {
@@ -79,8 +85,16 @@ public struct Packer: Sendable {
 
         let outputURL = output.url
 
+        let binPath: String
+        switch buildSettings.buildSystem {
+        case .swiftPM:
+            binPath = "\(buildSettings.triple)/\(buildSettings.configuration.rawValue)"
+        case .swiftBuild:
+            let platformName = buildSettings.triple.contains("simulator") ? "iphonesimulator" : "iphoneos"
+            binPath = "out/Products/\(buildSettings.configuration.swiftBuildValue)-\(platformName)"
+        }
         let binDir = URL(
-            fileURLWithPath: ".build/\(buildSettings.triple)/\(buildSettings.configuration.rawValue)",
+            fileURLWithPath: ".build/\(binPath)",
             isDirectory: true
         )
 
@@ -179,7 +193,7 @@ public struct Packer: Sendable {
             if product.type == .application {
                 info["UIRequiredDeviceCapabilities"] = ["arm64"]
                 info["LSRequiresIPhoneOS"] = true
-                info["CFBundleSupportedPlatforms"] = ["iPhoneOS"]
+                info["CFBundleSupportedPlatforms"] = Packer.cfBundleSupportedPlatforms(for: buildSettings.triple)
             }
 
             if let iconPath = product.iconPath {
@@ -194,6 +208,26 @@ public struct Packer: Sendable {
                 options: 0
             )
             try encodedPlist.write(to: infoPath)
+        }
+    }
+
+    static func cfBundleSupportedPlatforms(for triple: String) -> [String] {
+        let components = triple.split(separator: "-").map(String.init)
+        guard let appleIndex = components.firstIndex(of: "apple"),
+              components.indices.contains(appleIndex + 1) else {
+            return ["iPhoneOS"]
+        }
+
+        let os = components[appleIndex + 1].prefix { !$0.isNumber }
+        switch os {
+        case "ios" where components.contains("simulator"):
+            return ["iPhoneSimulator"]
+        case "ios":
+            return ["iPhoneOS"]
+        case "macos", "macosx":
+            return ["MacOSX"]
+        default:
+            return ["iPhoneOS"]
         }
     }
 }

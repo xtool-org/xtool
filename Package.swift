@@ -1,4 +1,4 @@
-// swift-tools-version:6.0
+// swift-tools-version:6.2
 
 import PackageDescription
 
@@ -19,11 +19,19 @@ let cSettings: [CSetting] = [
     .define("_GNU_SOURCE", .when(platforms: [.linux])),
 ]
 
+let swiftSettings: [SwiftSetting] = {
+    var settings: [SwiftSetting] = []
+    if Context.environment["XTL_CI"] == "1" {
+        settings.append(.treatAllWarnings(as: .error))
+    }
+    return settings
+}()
+
 let package = Package(
     name: "xtool",
     platforms: [
-        .iOS(.v16),
-        .macOS(.v13),
+        .iOS(.v17),
+        .macOS(.v14),
     ],
     products: [
         .library(
@@ -40,21 +48,26 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/xtool-org/xtool-core", .upToNextMinor(from: "1.4.0")),
-        .package(url: "https://github.com/xtool-org/SwiftyMobileDevice", .upToNextMinor(from: "1.5.0")),
-        .package(url: "https://github.com/xtool-org/zsign", .upToNextMinor(from: "1.7.0")),
+        .package(url: "https://github.com/xtool-org/xtool-core", .upToNextMinor(from: "1.5.0")),
+        .package(url: "https://github.com/xtool-org/SwiftyMobileDevice", .upToNextMinor(from: "1.7.0")),
+        .package(url: "https://github.com/xtool-org/zsign", .upToNextMinor(from: "1.9.0")),
+        .package(url: "https://github.com/xtool-org/xadi", .upToNextMinor(from: "0.4.2")),
 
         .package(url: "https://github.com/apple/swift-system", from: "1.4.0"),
         .package(url: "https://github.com/apple/swift-http-types", from: "1.3.1"),
         .package(url: "https://github.com/apple/swift-certificates", from: "1.0.0"),
-        .package(url: "https://github.com/apple/swift-crypto", from: "3.9.1"),
+        .package(url: "https://github.com/apple/swift-crypto", from: "5.0.0"),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.5.0"),
         .package(url: "https://github.com/apple/swift-openapi-generator", from: "1.6.0"),
         .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-openapi-urlsession", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-nio", from: "2.77.0"),
+        // v1.7.0 has a crash on old OSes: https://github.com/apple/swift-collections/issues/733.
+        // pin 1.6.0 until 1.7.1 is released.
+        .package(url: "https://github.com/apple/swift-collections", exact: "1.6.0"),
 
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.0.0"),
+        .package(url: "https://github.com/swiftlang/swift-subprocess", from: "1.0.0"),
 
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.0"),
         .package(url: "https://github.com/swift-server/swift-openapi-async-http-client", from: "1.0.0"),
@@ -62,17 +75,19 @@ let package = Package(
 
         .package(url: "https://github.com/pointfreeco/swift-concurrency-extras", from: "1.3.0"),
         .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.6.2"),
+        // we don't use this but need the explicit dependency to keep the lockfile stable.
+        // TODO: remove once https://github.com/pointfreeco/combine-schedulers/issues/120 is fixed
+        .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.14.0"),
 
-        .package(url: "https://github.com/attaswift/BigInt", from: "5.5.0"),
+        .package(url: "https://github.com/attaswift/BigInt", from: "6.0.0"),
         .package(url: "https://github.com/mxcl/Version", from: "2.1.0"),
         .package(url: "https://github.com/jpsim/Yams", from: "5.1.3"),
         .package(url: "https://github.com/saagarjha/unxip", from: "3.2.0"),
 
         // TODO: just depend on tuist/XcodeProj instead
-        .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.43.0"),
+        .package(url: "https://github.com/yonaskolb/XcodeGen", from: "2.45.4"),
     ],
     targets: [
-        .systemLibrary(name: "XADI"),
         .target(
             name: "CXKit",
             dependencies: [
@@ -89,17 +104,29 @@ let package = Package(
             dependencies: [
                 .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
             ],
-            exclude: ["openapi-generator-config.yaml", "patch.js"]
+            exclude: ["openapi-generator-config.yaml", "patch.js"],
+            swiftSettings: swiftSettings,
         ),
         // common utilities shared across xtool targets
-        .target(name: "XUtils"),
+        .target(
+            name: "XUtils",
+            dependencies: [
+                .product(name: "SystemPackage", package: "swift-system"),
+                .product(
+                    name: "Subprocess",
+                    package: "swift-subprocess",
+                    condition: .when(platforms: [.linux, .macOS])
+                ),
+            ],
+            swiftSettings: swiftSettings,
+        ),
         .target(
             name: "XKit",
             dependencies: [
                 "DeveloperAPI",
                 "CXKit",
                 "XUtils",
-                .byName(name: "XADI", condition: .when(platforms: [.linux])),
+                .product(name: "XADI", package: "xadi", condition: .when(platforms: [.linux, .macOS])),
                 .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
                 .product(name: "SwiftyMobileDevice", package: "SwiftyMobileDevice"),
@@ -108,7 +135,7 @@ let package = Package(
                 .product(name: "ProtoCodable", package: "xtool-core"),
                 .product(name: "Superutils", package: "xtool-core"),
                 .product(name: "Crypto", package: "swift-crypto"),
-                .product(name: "_CryptoExtras", package: "swift-crypto"),
+                .product(name: "CryptoExtras", package: "swift-crypto"),
                 .product(name: "X509", package: "swift-certificates"),
                 .product(name: "BigInt", package: "BigInt"),
                 .product(name: "HTTPTypes", package: "swift-http-types"),
@@ -130,27 +157,16 @@ let package = Package(
                     condition: .when(platforms: [.linux])
                 ),
             ],
-            cSettings: cSettings
+            cSettings: cSettings,
+            swiftSettings: swiftSettings,
         ),
         .testTarget(
             name: "XToolTests",
             dependencies: [
-                "XToolSupport",
-            ]
-        ),
-        .testTarget(
-            name: "XKitTests",
-            dependencies: [
                 "XKit",
-                .product(name: "SuperutilsTestSupport", package: "xtool-core")
+                "XToolSupport",
             ],
-            exclude: [
-                "config/config-template.json",
-            ],
-            resources: [
-                .copy("config/config.json"),
-                .copy("config/test.app"),
-            ]
+            swiftSettings: swiftSettings,
         ),
         .target(
             name: "XToolSupport",
@@ -164,15 +180,18 @@ let package = Package(
                 .product(name: "Version", package: "Version"),
                 .product(name: "libunxip", package: "unxip"),
             ],
-            cSettings: cSettings
+            cSettings: cSettings,
+            swiftSettings: swiftSettings,
         ),
         .target(
             name: "PackLib",
             dependencies: [
                 "XUtils",
+                .product(name: "Superutils", package: "xtool-core"),
                 .product(name: "Yams", package: "Yams"),
                 .product(name: "XcodeGenKit", package: "XcodeGen", condition: .when(platforms: [.macOS])),
-            ]
+            ],
+            swiftSettings: swiftSettings,
         ),
         .executableTarget(
             name: "xtool",
@@ -181,7 +200,8 @@ let package = Package(
                 "XKit",
                 "XToolSupport",
             ],
-            cSettings: cSettings
+            cSettings: cSettings,
+            swiftSettings: swiftSettings,
         ),
     ]
 )

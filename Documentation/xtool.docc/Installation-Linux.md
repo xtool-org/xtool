@@ -14,16 +14,22 @@ If you're on Windows, you can use xtool via [Windows Subsystem for Linux](https:
 
 Once you install WSL, you'll also need to set up USB passthrough. See Microsoft's instructions on [installing USBIPD](https://learn.microsoft.com/en-us/windows/wsl/connect-usb). Make sure you're able to bind your iOS device to WSL via USB.
 
+> Note:
+>
+> If you encounter `Error: AFCClient.Error.muxError`, follow the steps described in [this issue comment](https://github.com/xtool-org/xtool/issues/19#issuecomment-2898986718) from user rena2019.
+>
+> This relays the device connection from iTunes on Windows, instead of relying on USBIPD.
+
 ### Swift
 
-Install the Swift 6.2 toolchain for your Linux distribution from <https://swift.org/install/linux>.
+Install the Swift 6.4 toolchain for your Linux distribution from <https://swift.org/install/linux>.
 
 After following the steps there, confirm that Swift is installed correctly:
 
 ```bash
 swift --version
 # should say something like:
-# Swift version 6.2 (swift-6.2-RELEASE)
+# Swift version 6.4 (swift-6.4-RELEASE)
 ```
 
 ### usbmuxd
@@ -62,7 +68,7 @@ sudo apt-get install usbmuxd
 
 ### Xcode.xip
 
-Download **Xcode 26** from <https://download.developer.apple.com/Developer_Tools/Xcode_26.0.1/Xcode_26.0.1_Apple_silicon.xip>. Note the path where `Xcode_26.0.1_Apple_silicon.xip` is saved.
+Download **Xcode 27** from <https://developer.apple.com/download/all/?q=Xcode>. Note the path where `Xcode.xip` is saved.
 
 > Note:
 >
@@ -125,7 +131,7 @@ Choice (0-1): 0
 Path to Xcode.xip:
 ```
 
-Enter the path (for example `~/Downloads/Xcode_16.3.xip`) and hit enter. xtool will extract the Xcode XIP to generate and install an iOS Swift SDK for you.
+Enter the path (for example `~/Downloads/Xcode_27.0.xip`) and hit enter. xtool will extract the Xcode XIP to generate and install an iOS Swift SDK for you.
 
 Confirm that it worked:
 

@@ -121,17 +121,6 @@ struct NewCommand: AsyncParsableCommand {
             ),
 
             (
-                ".sourcekit-lsp/config.json",
-                """
-                {
-                    "swiftPM": {
-                        "swiftSDK": "arm64-apple-ios"
-                    }
-                }
-                """
-            ),
-
-            (
                 "Sources/\(moduleName)/\(moduleName)App.swift",
                 """
                 import SwiftUI
@@ -176,6 +165,12 @@ struct NewCommand: AsyncParsableCommand {
             print("Creating \(path)")
             try "\(contents)\n".write(to: url, atomically: true, encoding: .utf8)
         }
+
+        await LSPConfig.tryEnsure(
+            using: .default,
+            quiet: true,
+            currentDirectory: baseURL,
+        )
 
         print("\nFinished generating project \(name). Next steps:")
         print("- Enter the directory with `cd \(name)`")

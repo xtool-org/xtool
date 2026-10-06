@@ -45,10 +45,7 @@ public actor IntegratedInstaller {
         case unlockDevice
     }
 
-    let udid: String
-    let lookupMode: LookupMode
     let auth: DeveloperAPIAuthData
-    let configureDevice: Bool
     public weak var delegate: IntegratedInstallerDelegate?
 
     @Dependency(\.zipCompressor) private var compressor
@@ -102,16 +99,10 @@ public actor IntegratedInstaller {
     }
 
     public init(
-        udid: String,
-        lookupMode: LookupMode,
         auth: DeveloperAPIAuthData,
-        configureDevice: Bool,
         delegate: IntegratedInstallerDelegate
     ) {
-        self.udid = udid
-        self.lookupMode = lookupMode
         self.auth = auth
-        self.configureDevice = configureDevice
         self.delegate = delegate
     }
 
@@ -144,7 +135,7 @@ public actor IntegratedInstaller {
         }
     }
 
-    private func fetchPairingKeys(with lockdownClient: LockdownClient) async throws -> Data {
+    private func fetchPairingKeys(with lockdownClient: LockdownClient, udid: String) async throws -> Data {
         try lockdownClient.setValue(udid, forDomain: "com.apple.mobile.wireless_lockdown", key: "WirelessBuddyID")
         try lockdownClient.setValue(true, forDomain: "com.apple.mobile.wireless_lockdown", key: "EnableWifiConnections")
 
@@ -201,7 +192,12 @@ public actor IntegratedInstaller {
     }
 
     @discardableResult
-    public func install(app: URL) async throws -> String {
+    public func install(
+        app: URL,
+        udid: String,
+        lookupMode: LookupMode,
+        configureDevice: Bool,
+    ) async throws -> String {
         try await self.updateStage(to: "Unpacking app", initialProgress: nil)
 
         let _tempDir = try TemporaryDirectory(name: "staging")
@@ -254,7 +250,7 @@ public actor IntegratedInstaller {
         let deviceName = try lockdownClient.deviceName()
 
         let pairingKeys: Data? = if configureDevice {
-            try await fetchPairingKeys(with: lockdownClient)
+            try await fetchPairingKeys(with: lockdownClient, udid: udid)
         } else {
             nil
         }
@@ -262,30 +258,9 @@ public actor IntegratedInstaller {
 
         try await updateProgress(to: 1)
 
-        let context = try SigningContext(
-            auth: auth,
-            targetDevice: .init(udid: udid, name: deviceName)
-        )
-
-        let signer = AutoSigner(context: context) { certs in
-            await self.delegate?.confirmRevocation(of: certs) ?? false
-        }
-        let bundleID = try await signer.sign(
+        let bundleID = try await signInPlace(
             app: appDir,
-            status: { @Sendable status in
-                self.queueUpdateTask {
-                    $0.updateStageIgnoringCancellation(to: status)
-                }
-            },
-            progress: { progress in
-                self.queueUpdateTask {
-                    $0.updateProgressIgnoringCancellation(to: progress)
-                }
-            },
-            didProvision: { @Sendable [self] in
-                // TODO: reintroduce Superconfig
-                _ = self
-            }
+            targetDevice: .init(udid: udid, name: deviceName),
         )
 
         try await self.updateStage(to: "Packaging", initialProgress: nil)
@@ -312,6 +287,39 @@ public actor IntegratedInstaller {
             }
         )
         return bundleID
+    }
+
+    @discardableResult
+    public func signInPlace(
+        app: URL,
+        targetDevice: SigningContext.TargetDevice? = nil,
+    ) async throws -> String {
+        let context = try SigningContext(
+            auth: auth,
+            targetDevice: targetDevice,
+        )
+
+        let signer = AutoSigner(context: context) { certs in
+            await self.delegate?.confirmRevocation(of: certs) ?? false
+        }
+
+        return try await signer.sign(
+            app: app,
+            status: { @Sendable status in
+                self.queueUpdateTask {
+                    $0.updateStageIgnoringCancellation(to: status)
+                }
+            },
+            progress: { progress in
+                self.queueUpdateTask {
+                    $0.updateProgressIgnoringCancellation(to: progress)
+                }
+            },
+            didProvision: { @Sendable [self] in
+                // TODO: reintroduce Superconfig
+                _ = self
+            }
+        )
     }
 
 }

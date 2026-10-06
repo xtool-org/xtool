@@ -49,9 +49,9 @@ public struct XcodePacker {
             let encodedPlist = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
             try infoPath.write(encodedPlist)
 
-            var buildSettings: [String: Any] = [
-                "PRODUCT_BUNDLE_IDENTIFIER": product.bundleID,
-                "TARGETED_DEVICE_FAMILY": families.map { "\($0)" }.joined(separator: ","),
+            var buildSettings: [String: BuildSetting] = [
+                "PRODUCT_BUNDLE_IDENTIFIER": .string(product.bundleID),
+                "TARGETED_DEVICE_FAMILY": .string(families.map { "\($0)" }.joined(separator: ",")),
             ]
 
             if product.type == .appExtension {
@@ -59,7 +59,7 @@ public struct XcodePacker {
             }
 
             if let entitlementsPath = product.entitlementsPath {
-                buildSettings["CODE_SIGN_ENTITLEMENTS"] = fromProjectToRoot + Path(entitlementsPath)
+                buildSettings["CODE_SIGN_ENTITLEMENTS"] = .string((fromProjectToRoot + Path(entitlementsPath)).string)
             }
 
             let additionalDependencies: [Dependency] = if product.type == .application {

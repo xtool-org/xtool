@@ -1,3 +1,13 @@
 {
     "swiftlint.path": "./.tmp/swiftlint/swiftlint",
+    "files.watcherExclude":{
+        "*/.git/**": true,
+        "*/.build/**": true,
+        "*/.tmp/**": true,
+    },
+    "search.exclude": {
+        "*/.git/**": true,
+        "*/.build/**": true,
+        "*/.tmp/**": true,
+    }
 }

@@ -1,7 +1,9 @@
 # Note: We use 22.04 since AppImage recommends building on the
 # oldest configuration that you support
 
-FROM swift:6.2-jammy AS build-base
+ARG SWIFT_VERSION=6.4.0
+
+FROM swift:${SWIFT_VERSION}-jammy AS build-base
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -66,23 +68,13 @@ RUN cd libimobiledevice \
     && make install DESTDIR=/prefix
 
 
-FROM build-base AS build-xadi
-
-RUN mkdir -p /prefix/usr/lib
-
-RUN curl -fsS https://dlang.org/install.sh | bash -s ldc
-
-ADD https://github.com/xtool-org/xadi.git#main /xadi
-
-RUN cd xadi \
-    && /bin/bash -c 'source $(/root/dlang/install.sh ldc -a) && dub build --build=release' \
-    && cp -r bin/libxadi.so /prefix/usr/lib/libxadi.so
-
-
-FROM build-base
+FROM build-base AS build-xtool-base
 
 COPY --from=build-limd /prefix/usr /usr
-COPY --from=build-xadi /prefix/usr /usr
+
+WORKDIR /xtool
+
+FROM build-xtool-base AS dev
 
 # Docker doesn't support FUSE
 ENV APPIMAGE_EXTRACT_AND_RUN=1
@@ -92,6 +84,30 @@ ENV APPIMAGE_EXTRACT_AND_RUN=1
 # socat -dd TCP-LISTEN:27015,range=127.0.0.1/32,reuseaddr,fork UNIX-CLIENT:/var/run/usbmuxd
 ENV USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015
 
-WORKDIR /xtool
-
 CMD [ "/bin/bash" ]
+
+FROM dev AS dev-test
+
+ENV XTL_TEST_ENV=1
+
+COPY --from=bats/bats:latest /opt/bats /opt/bats
+COPY --from=bats/bats:latest /usr/lib/bats /usr/lib/bats
+RUN ln -s /opt/bats/bin/bats /usr/local/bin/bats
+
+FROM build-xtool-base AS build-xtool
+
+ARG XTL_CI
+
+ADD Package.swift Package.resolved /xtool/
+RUN swift package resolve
+
+ADD . /xtool
+RUN ./Linux/build.sh
+
+FROM swift:${SWIFT_VERSION} AS xtool
+
+COPY --from=build-xtool /xtool/Linux/packages/xtool-*.AppImage /xtool/xtool.AppImage
+RUN (cd /xtool && ./xtool.AppImage --appimage-extract) \
+    && mv /xtool/squashfs-root /usr/local/xtool \
+    && rm -rf /xtool \
+    && ln -s /usr/local/xtool/AppRun /usr/local/bin/xtool

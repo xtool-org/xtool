@@ -3,6 +3,9 @@ on:
     tags:
       - "*"
 
+env:
+  XTL_CI: "1"
+
 jobs:
   build-linux:
     strategy:
@@ -18,26 +21,28 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Build
         run: |
           docker compose run --build \
             -e XTOOL_VERSION=${{ github.ref_name }} \
+            -e XTL_CI=1 \
             --rm xtool Linux/build.sh
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: xtool-${{ matrix.host.arch }}
           path: |
             Linux/packages/xtool-${{ matrix.host.arch }}.AppImage
             Linux/packages/xtool-${{ matrix.host.arch }}.AppImage.zsync
   build-mac:
-    runs-on: macos-26
+    runs-on: xcode-27
     permissions:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+      - uses: ./.github/actions/configure-xcode
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -55,7 +60,7 @@ jobs:
           cd macOS
           bundle exec fastlane package
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: xtool-mac
           path: |
@@ -69,9 +74,9 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: xtool-*
           path: output
@@ -80,3 +85,24 @@ jobs:
           TAG="${{ github.ref_name }}"
           gh release create "$TAG" --draft --title "v$TAG"
           gh release upload "$TAG" output/**/*.{AppImage,AppImage.zsync,app.zip,app.dSYM.zip}
+  docker:
+    uses: docker/github-builder/.github/workflows/build.yml@v1
+    permissions:
+      contents: read # to fetch the repository content
+      id-token: write # for signing attestations and cache entries with GitHub OIDC
+      packages: write # to push built images to GitHub Container Registry
+    with:
+      build-args: |
+        XTL_CI=1
+      output: image
+      push: true
+      platforms: linux/amd64,linux/arm64
+      meta-images: |
+        ghcr.io/xtool-org/xtool
+      meta-tags: |
+        type=semver,pattern={{version}}
+    secrets:
+      registry-auths: |
+        - registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}

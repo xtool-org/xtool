@@ -18,6 +18,10 @@ public protocol HTTPClientProtocol: Sendable {
     var asOpenAPITransport: ClientTransport { get }
 
     func makeWebSocket(url: URL) async throws -> WebSocketSession
+
+    func withEphemeralClient<T>(
+        perform: (any HTTPClientProtocol) async throws -> T
+    ) async throws -> T
 }
 
 extension HTTPClientProtocol {
@@ -41,26 +45,70 @@ extension HTTPClientProtocol {
     public func makeRequest(
         _ request: HTTPRequest,
         body: Data? = nil,
+        requireHTTPSuccess: Bool = true,
         onProgress: @isolated(any) (Double?) -> Void = { _ in }
     ) async throws -> (response: HTTPResponse, body: Data) {
         await onProgress(0)
-        let (response, body) = try await send(request, body: body.map { HTTPBody($0) })
-        guard let body else {
-            return (response, Data())
+        let (response, responseBody) = try await send(request, body: body.map { HTTPBody($0) })
+        guard !requireHTTPSuccess || ![.clientError, .serverError].contains(response.status.kind) else {
+            let errorBody = (try? await responseBody.collect()) ?? Data()
+            throw HTTPResponseError(
+                method: request.method,
+                url: "\(request.scheme ?? "https")://\(request.authority ?? "")\(request.path ?? "")",
+                status: response.status,
+                // we don't use `decoding:as:` because we want to validate the UTF8
+                body: String(data: errorBody, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
+            )
         }
-        switch body.length {
+        return (response, try await responseBody.collect(onProgress: onProgress))
+    }
+}
+
+extension HTTPBody? {
+    fileprivate func collect(
+        onProgress: @isolated(any) (Double?) -> Void = { _ in }
+    ) async throws -> Data {
+        try await self?.collect(onProgress: onProgress) ?? Data()
+    }
+}
+
+extension HTTPBody {
+    fileprivate func collect(
+        onProgress: @isolated(any) (Double?) -> Void
+    ) async throws -> Data {
+        switch self.length {
         case .unknown:
-            return (response, try await body.reduce(into: Data()) { $0 += $1 })
+            return try await self.reduce(into: Data()) { $0 += $1 }
         case .known(let length):
             var data = Data(capacity: Int(length))
             let total = Double(length)
-            for try await chunk in body {
+            for try await chunk in self {
                 data += chunk
-                await onProgress(min(Double(data.count) / total, 1))
+                await onProgress(Swift.min(Double(data.count) / total, 1))
             }
-            return (response, data)
+            return data
         }
     }
+}
+
+public struct HTTPResponseError: Error, LocalizedError, Sendable, CustomStringConvertible {
+    public let method: HTTPRequest.Method
+    public let url: String
+    public let status: HTTPResponse.Status
+    public let body: String?
+
+    public var description: String {
+        var description = "\(method.rawValue) \(url) failed: HTTP \(status.code)"
+        if !status.reasonPhrase.isEmpty {
+            description += " \(status.reasonPhrase)"
+        }
+        if let body, !body.isEmpty {
+            description += ". Details:\n\(body)"
+        }
+        return description
+    }
+
+    public var errorDescription: String? { description }
 }
 
 private struct UnimplementedHTTPClient: HTTPClientProtocol, ClientTransport {
@@ -82,6 +130,12 @@ private struct UnimplementedHTTPClient: HTTPClientProtocol, ClientTransport {
     ) async throws -> HTTPResponse {
         let closure: () throws -> HTTPResponse = unimplemented()
         return try closure()
+    }
+
+    func withEphemeralClient<T>(
+        perform: (any HTTPClientProtocol) async throws -> T
+    ) async throws -> T {
+        try await perform(self)
     }
 
     public func makeWebSocket(url: URL) async throws -> any WebSocketSession {

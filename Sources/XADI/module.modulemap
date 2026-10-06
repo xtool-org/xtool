@@ -1,4 +1,0 @@
-module XADI [extern_c] {
-    header "xadi.h"
-    link "xadi"
-}

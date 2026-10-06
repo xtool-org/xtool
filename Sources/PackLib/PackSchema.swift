@@ -22,6 +22,9 @@ public struct PackSchemaBase: Codable, Sendable {
 
     public var extensions: [Extension]?
 
+    /// Skip auto-creating the LSP support file if it's missing.
+    public var skipLSP: Bool?
+
     public struct Extension: Codable, Sendable {
         public var product: String
         public var bundleID: String?
