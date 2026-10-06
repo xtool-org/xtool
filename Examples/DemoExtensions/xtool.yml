@@ -1,0 +1,6 @@
+version: 1
+bundleID: sh.xtool.examples.DemoExtensions
+product: DemoExtensions
+extensions:
+- product: DemoExtensionsWidget
+  infoPath: Support/DemoExtensionsWidget-Info.plist

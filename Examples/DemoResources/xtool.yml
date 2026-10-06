@@ -1,0 +1,4 @@
+version: 1
+bundleID: sh.xtool.examples.DemoResources
+resources:
+- Resources/top.txt
