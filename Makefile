@@ -132,7 +132,8 @@ docs-preview:
 
 SWIFTLINT_VERSION = $(shell head -1 .swiftlint.yml | cut -d' ' -f2)
 SWIFTLINT_BIN = .tmp/swiftlint/swiftlint-$(SWIFTLINT_VERSION)
-SWIFTLINT_URL = https://github.com/realm/SwiftLint/releases/download/$(SWIFTLINT_VERSION)/$(if $(IS_MAC),portable_swiftlint,swiftlint_linux).zip
+SWIFTLINT_ARCH = $(subst aarch64,arm64,$(subst x86_64,amd64,$(shell uname -m)))
+SWIFTLINT_URL = https://github.com/realm/SwiftLint/releases/download/$(SWIFTLINT_VERSION)/$(if $(IS_MAC),portable_swiftlint,swiftlint_linux_$(SWIFTLINT_ARCH)).zip
 
 .PHONY: lint
 lint: $(SWIFTLINT_BIN)
