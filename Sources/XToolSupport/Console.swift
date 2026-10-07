@@ -3,9 +3,20 @@ import XKit
 import XUtils
 import NIOPosix
 import NIOCore
+#if os(Linux)
+#if canImport(Glibc)
+import Glibc
+#elseif canImport(Musl)
+import Musl
+#endif
+#endif
 
 enum Console {
+    private static let fallbackReadBufferSize = 256
+
     private static func withStdio<T>(
+        input: CInt,
+        output: CInt,
         _ body: (
             _ stdin: NIOAsyncChannelInboundStream<ByteBuffer>,
             _ stdout: NIOAsyncChannelOutboundWriter<ByteBuffer>
@@ -13,8 +24,8 @@ enum Console {
     ) async throws -> T {
         try await NIOPipeBootstrap(group: .singletonMultiThreadedEventLoopGroup)
             .takingOwnershipOfDescriptors(
-                input: FileDescriptor.standardInput.duplicate().rawValue,
-                output: FileDescriptor.standardOutput.duplicate().rawValue
+                input: FileDescriptor(rawValue: input).duplicate().rawValue,
+                output: FileDescriptor(rawValue: output).duplicate().rawValue
             )
             .flatMapThrowing { try NIOAsyncChannel(wrappingChannelSynchronously: $0) }
             .get()
@@ -22,8 +33,61 @@ enum Console {
     }
 
     static func prompt(_ message: String) async throws -> String {
-        try await withStdio { stdin, stdout in
-            try await stdout.write(ByteBuffer(bytes: message.utf8))
+        try await prompt(
+            message,
+            input: FileDescriptor.standardInput.rawValue,
+            output: FileDescriptor.standardOutput.rawValue
+        )
+    }
+
+    static func prompt(_ message: String, input: CInt, output: CInt) async throws -> String {
+        if isEpollRegisterable(input), isEpollRegisterable(output) {
+            return try await promptUsingNIO(message, input: input, output: output)
+        }
+        return try await promptUsingFileDescriptors(message, input: input, output: output)
+    }
+
+    /// Linux `epoll_ctl` returns `EPERM` for `/dev/null`, and SwiftNIO turns that into a fatal error.
+    /// `isatty` and `poll` miss it: non-ttys already work, and `poll` reports `/dev/null` as ready.
+    #if os(Linux)
+    static func isEpollRegisterable(_ descriptor: CInt) -> Bool {
+        let epollFD = epoll_create1(numericCast(EPOLL_CLOEXEC))
+        guard epollFD >= 0 else {
+            return true
+        }
+        defer { try? FileDescriptor(rawValue: epollFD).close() }
+
+        var event = epoll_event()
+        // Glibc imports these as an enum; Musl imports them as integers.
+        #if canImport(Musl)
+        event.events = numericCast(EPOLLERR) | numericCast(EPOLLHUP)
+        #else
+        event.events = numericCast(EPOLLERR.rawValue) | numericCast(EPOLLHUP.rawValue)
+        #endif
+        guard epoll_ctl(epollFD, numericCast(EPOLL_CTL_ADD), descriptor, &event) == 0 else {
+            return errno != EPERM
+        }
+        return true
+    }
+    #else
+    static func isEpollRegisterable(_: CInt) -> Bool {
+        true
+    }
+    #endif
+
+    private static func promptUsingNIO(
+        _ message: String,
+        input: CInt,
+        output: CInt
+    ) async throws -> String {
+        try await withStdio(input: input, output: output) { stdin, stdout in
+            do {
+                try await stdout.write(ByteBuffer(bytes: message.utf8))
+            } catch ChannelError.ioOnClosedChannel {
+                // An already-closed pipe is drained and the channel closed before this write.
+                // Those bytes are buffered on `stdin`; the caller's output descriptor is still open.
+                try FileDescriptor(rawValue: output).writeAll(message.utf8)
+            }
 
             fflush(stdoutSafe)
 
@@ -39,6 +103,39 @@ enum Console {
             }
             return String(decoding: data, as: UTF8.self)
         }
+    }
+
+    private static func promptUsingFileDescriptors(
+        _ message: String,
+        input: CInt,
+        output: CInt
+    ) async throws -> String {
+        try FileDescriptor(rawValue: output).writeAll(message.utf8)
+        fflush(stdoutSafe)
+        return try await Task.detached {
+            try Self.readLine(from: input)
+        }.value
+    }
+
+    private static func readLine(from descriptor: CInt) throws -> String {
+        let input = FileDescriptor(rawValue: descriptor)
+        var data = Data()
+        var buffer = [UInt8](repeating: 0, count: fallbackReadBufferSize)
+        while true {
+            let bytesRead = try buffer.withUnsafeMutableBytes { rawBuffer in
+                try input.read(into: rawBuffer)
+            }
+            if bytesRead == 0 {
+                break
+            }
+            let chunk = buffer.prefix(bytesRead)
+            if let newline = chunk.firstIndex(of: UInt8(ascii: "\n")) {
+                data.append(contentsOf: chunk[..<newline])
+                break
+            }
+            data.append(contentsOf: chunk)
+        }
+        return String(decoding: data, as: UTF8.self)
     }
 
     static func promptRequired(_ message: String, existing: String?) async throws -> String {
