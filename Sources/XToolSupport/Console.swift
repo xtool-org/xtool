@@ -47,27 +47,25 @@ enum Console {
         return try await promptUsingFileDescriptors(message, input: input, output: output)
     }
 
-    /// Linux `epoll_ctl` returns `EPERM` for `/dev/null`, and SwiftNIO turns that into a fatal error.
-    /// `isatty` and `poll` miss it: non-ttys already work, and `poll` reports `/dev/null` as ready.
+    /// Linux `epoll_ctl` returns `EPERM` for `/dev/null` and regular files, and SwiftNIO turns that
+    /// into a fatal error. `isatty` and `poll` miss it: non-ttys already work, and `poll` reports
+    /// `/dev/null` as ready. The Glibc and Musl modules do not export `<sys/epoll.h>`, so classify
+    /// the descriptor with `fstat`: regular files, directories and non-tty character devices
+    /// (such as `/dev/null`) cannot be registered; pipes, sockets and ttys can.
     #if os(Linux)
     static func isEpollRegisterable(_ descriptor: CInt) -> Bool {
-        let epollFD = epoll_create1(numericCast(EPOLL_CLOEXEC))
-        guard epollFD >= 0 else {
+        var info = stat()
+        guard fstat(descriptor, &info) == 0 else {
             return true
         }
-        defer { try? FileDescriptor(rawValue: epollFD).close() }
-
-        var event = epoll_event()
-        // Glibc imports these as an enum; Musl imports them as integers.
-        #if canImport(Musl)
-        event.events = numericCast(EPOLLERR) | numericCast(EPOLLHUP)
-        #else
-        event.events = numericCast(EPOLLERR.rawValue) | numericCast(EPOLLHUP.rawValue)
-        #endif
-        guard epoll_ctl(epollFD, numericCast(EPOLL_CTL_ADD), descriptor, &event) == 0 else {
-            return errno != EPERM
+        switch info.st_mode & mode_t(0o170000) {
+        case mode_t(0o100000), mode_t(0o040000):
+            return false
+        case mode_t(0o020000):
+            return isatty(descriptor) == 1
+        default:
+            return true
         }
-        return true
     }
     #else
     static func isEpollRegisterable(_: CInt) -> Bool {
