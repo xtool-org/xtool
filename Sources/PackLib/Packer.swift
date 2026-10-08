@@ -49,6 +49,20 @@ public struct Packer: Sendable {
         """
         try Data(contents.utf8).write(to: packageSwift)
 
+        // The builder package is built with --disable-automatic-resolution, which
+        // requires a Package.resolved. Without one, any branch-pinned dependency of
+        // the root package fails the build ("a resolved file is required when
+        // automatic dependency resolution is disabled ... but now has a different
+        // revision-based requirement"). The root package was resolved when the plan
+        // was dumped, so reuse its pins.
+        let rootResolved = URL(fileURLWithPath: "Package.resolved")
+        if FileManager.default.fileExists(atPath: rootResolved.path) {
+            try FileManager.default.copyItem(
+                at: rootResolved,
+                to: packageDir.appendingPathComponent("Package.resolved")
+            )
+        }
+
         for product in plan.allProducts {
             let sources: URL = packageDir.appendingPathComponent("Sources/\(product.targetName)", isDirectory: true)
             try FileManager.default.createDirectory(at: sources, withIntermediateDirectories: true)
