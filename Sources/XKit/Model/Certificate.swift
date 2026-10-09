@@ -57,12 +57,23 @@ public struct Certificate: Codable, Sendable {
     }
 
     public func serialNumber() -> String {
-        // big endian, hex-encoded
-        let content = raw.serialNumber.bytes.lazy
+        // big endian, hex-encoded. Leading zero bytes are dropped, but not leading zero
+        // nibbles: Apple formats serials like "03AB…", not "3AB…" (#305).
+        raw.serialNumber.bytes
+            .drop { $0 == 0 }
             .map { String(format: "%02hhX", $0) }
             .joined()
-            .drop { $0 == "0" }
-        return String(content)
+    }
+
+    /// Whether `serialNumber` (hex-encoded, e.g. by the App Store Connect API)
+    /// is this certificate's serial number.
+    ///
+    /// Compares numerically, so case and leading zeros don't matter.
+    public func hasSerialNumber(_ serialNumber: String) -> Bool {
+        func normalized(_ hex: String) -> Substring {
+            hex.uppercased().drop { $0 == "0" }
+        }
+        return normalized(serialNumber) == normalized(self.serialNumber())
     }
 
     public func wasIssuedBefore(_ other: Certificate) -> Bool {
