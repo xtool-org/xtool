@@ -166,6 +166,8 @@ let package = Package(
                 "XKit",
                 "XToolSupport",
                 "PackLib",
+                .product(name: "Crypto", package: "swift-crypto"),
+                .product(name: "X509", package: "swift-certificates"),
             ],
             swiftSettings: swiftSettings,
         ),
