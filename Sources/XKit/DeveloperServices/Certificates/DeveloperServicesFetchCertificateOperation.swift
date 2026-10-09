@@ -100,8 +100,9 @@ public struct DeveloperServicesFetchCertificateOperation: DeveloperServicesOpera
             return try await self.replaceCertificates(certificates, requireConfirmation: true)
         }
 
-        let knownSerialNumber = signingInfo.certificate.serialNumber()
-        guard let certificate = certificates.first(where: { $0.attributes?.serialNumber == knownSerialNumber }) else {
+        guard let certificate = certificates.first(where: {
+            $0.attributes?.serialNumber.map(signingInfo.certificate.hasSerialNumber) == true
+        }) else {
             // we need to revoke existing certs, otherwise it doesn't always let us make a new one
             return try await self.replaceCertificates(certificates, requireConfirmation: true)
         }
