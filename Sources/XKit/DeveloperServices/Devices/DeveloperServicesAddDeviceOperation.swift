@@ -10,6 +10,20 @@ public struct DeveloperServicesAddDeviceOperation: DeveloperServicesOperation {
     public func perform() async throws {
         guard let targetDevice = context.targetDevice else { return }
 
+        // a free team at its device limit answers 403 FORBIDDEN instead of
+        // 409 CONFLICT, even for a device it already has: look it up first.
+        let client = context.developerAPIClient
+        let registered = try await DeveloperAPIPages {
+            try await client.devicesGetCollection().ok.body.json
+        } next: {
+            $0.links.next
+        }
+        .map(\.data)
+        .reduce(into: [], +=)
+        if registered.contains(where: { $0.attributes?.udid?.lowercased() == targetDevice.udid.lowercased() }) {
+            return
+        }
+
         // try to register the device
         let response = try await context.developerAPIClient.devicesCreateInstance(
             body: .json(.init(data: .init(
