@@ -60,7 +60,9 @@ private final class IDTable: @unchecked Sendable {
 /// sourceKitOptions responses (compiler args) are mapped symlink -> real so the
 /// whole compile and the index stay in real-path space.
 struct BSPSourcePathProxy {
-    func run(_ invocation: Subprocess.Configuration) async throws {
+    /// `input` is the fd the LSP client writes to (stdin in production,
+    /// injectable so tests can drive a pipe).
+    func run(_ invocation: Subprocess.Configuration, input: Int32 = STDIN_FILENO) async throws {
         var outPipe: [Int32] = [0, 0]
         guard pipe(&outPipe) == 0 else {
             throw Console.Error("BSP proxy: pipe() failed")
@@ -68,16 +70,17 @@ struct BSPSourcePathProxy {
         let (outReadFd, outWriteFd) = (outPipe[0], outPipe[1])
         defer {
             close(outReadFd)
-            close(outWriteFd)
         }
         // The child's stdout is pumped through a raw pipe with POSIX reads:
         // Subprocess's `.sequence` (AsyncBuffers) and Foundation FileHandle
         // reads both consume bytes on this Linux toolchain without ever
-        // delivering them.
+        // delivering them. `closeAfterSpawningProcess: true` hands the write
+        // end to Subprocess, which closes its copy right after spawn (and on
+        // spawn failure), so the pump below sees EOF when the child exits.
         let result = try await Subprocess.run(
             invocation,
             input: .inputWriter,
-            output: .fileDescriptor(FileDescriptor(rawValue: outWriteFd), closeAfterSpawningProcess: false),
+            output: .fileDescriptor(FileDescriptor(rawValue: outWriteFd), closeAfterSpawningProcess: true),
             error: .currentStandardError,
         ) { execution in
             let stdin = execution.standardInputWriter
@@ -87,8 +90,7 @@ struct BSPSourcePathProxy {
 
             let outTask = Task.detached {
                 var parser = LSPFrameParser()
-                while true {
-                    guard let chunk = Self.readChunk(fd: outReadFd) else { break }
+                for await chunk in Self.pump(fd: outReadFd) {
                     parser.feed(chunk)
                     for frame in parser.popFrames() {
                         Self.handleServerFrame(frame, ids: ids, map: map, output: output)
@@ -98,12 +100,9 @@ struct BSPSourcePathProxy {
 
             // client -> child, rewriting real paths back to the symlink paths
             // SwiftPM registered, and remembering request ids so a response can
-            // be attributed to the method that produced it. Raw POSIX read:
-            // Foundation's FileHandle.readData consumes bytes on Linux without
-            // ever returning them.
+            // be attributed to the method that produced it.
             var clientParser = LSPFrameParser()
-            while true {
-                guard let chunk = Self.readChunk(fd: 0) else { break }
+            for await chunk in Self.pump(fd: input) {
                 clientParser.feed(chunk)
                 for frame in clientParser.popFrames() {
                     let forwarded = Self.handleClientFrame(frame, map: map)
@@ -299,6 +298,24 @@ struct BSPSourcePathProxy {
             out += "/"
         }
         return URL(fileURLWithPath: out).absoluteString
+    }
+
+    /// Streams `fd` until EOF or error. The blocking read(2) parks its thread
+    /// for the whole session, so it runs on a dedicated Thread instead of the
+    /// cooperative pool (width ~ core count; two parked loops can drain it
+    /// entirely on 1-2 core machines).
+    private static func pump(fd: Int32) -> AsyncStream<[UInt8]> {
+        AsyncStream { continuation in
+            let thread = Thread {
+                while true {
+                    guard let chunk = readChunk(fd: fd) else { break }
+                    continuation.yield(chunk)
+                }
+                continuation.finish()
+            }
+            thread.name = "BSPSourcePathProxy pump fd \(fd)"
+            thread.start()
+        }
     }
 
     /// One chunk from a blocking file descriptor. nil on EOF or error.
