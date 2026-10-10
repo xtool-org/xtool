@@ -11,17 +11,18 @@ public struct DeveloperServicesAddDeviceOperation: DeveloperServicesOperation {
         guard let targetDevice = context.targetDevice else { return }
 
         // a free team at its device limit answers 403 FORBIDDEN instead of
-        // 409 CONFLICT, even for a device it already has: look it up first.
+        // 409 CONFLICT, even for a device it already has: look it up first,
+        // page by page, and stop as soon as it shows up.
         let client = context.developerAPIClient
-        let registered = try await DeveloperAPIPages {
+        let pages = DeveloperAPIPages {
             try await client.devicesGetCollection().ok.body.json
         } next: {
             $0.links.next
         }
-        .map(\.data)
-        .reduce(into: [], +=)
-        if registered.contains(where: { $0.attributes?.udid?.lowercased() == targetDevice.udid.lowercased() }) {
-            return
+        for try await page in pages {
+            if page.data.contains(where: { $0.attributes?.udid?.lowercased() == targetDevice.udid.lowercased() }) {
+                return
+            }
         }
 
         // try to register the device
