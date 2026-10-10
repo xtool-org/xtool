@@ -20,8 +20,13 @@ enum EntitlementsDER {
                 self = .string(value)
             } else if let value = try? container.decode([Value].self) {
                 self = .array(value)
+            } else if let value = try? container.decode([String: Value].self) {
+                self = .dictionary(value)
             } else {
-                self = .dictionary(try container.decode([String: Value].self))
+                throw DecodingError.dataCorruptedError(
+                    in: container,
+                    debugDescription: "Unsupported entitlement value type; expected bool, integer, string, array, or dictionary."
+                )
             }
         }
     }
