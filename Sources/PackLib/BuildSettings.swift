@@ -29,6 +29,10 @@ public struct BuildSettings: Sendable {
         configOptions + sdkOptions + customOptions
     }
 
+    public var isSimulator: Bool {
+        triple.contains("simulator")
+    }
+
     public init(
         configuration: BuildConfiguration,
         triple: String,
