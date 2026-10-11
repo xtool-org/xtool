@@ -37,7 +37,7 @@ infoPath: path/to/Info.plist
 
 > Tip:
 >
-> After running `xtool dev [build]`, you can inspect the built app bundle at `./xtool/YourApp.app` to view its `Info.plist` and other resources. 
+> After running `xtool build` (or `xtool dev build`), you can inspect the built app bundle at `./xtool/YourApp.app` to view its `Info.plist` and other resources. 
 
 For example, you might create an `Info.plist` file that looks something like
 

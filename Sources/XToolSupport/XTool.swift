@@ -10,7 +10,7 @@ public enum XTool {
     }
 }
 
-private struct XToolCommand: AsyncParsableCommand {
+struct XToolCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "xtool",
         abstract: "Cross-platform Xcode replacement",
@@ -29,6 +29,7 @@ private struct XToolCommand: AsyncParsableCommand {
                 subcommands: [
                     NewCommand.self,
                     DevCommand.self,
+                    BuildCommand.self,
                     DSCommand.self,
                 ]
             ),
