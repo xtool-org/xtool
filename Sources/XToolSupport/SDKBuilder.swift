@@ -242,6 +242,15 @@ struct SDKBuilder {
             withIntermediateDirectories: false
         )
 
+        if let local = ProcessInfo.processInfo.environment["XTOOL_TOOLSET_TARBALL"] {
+            let tar = Process()
+            // /bin/sh finds tar on PATH (the Nix build sandbox has no /usr/bin/env)
+            tar.executableURL = URL(fileURLWithPath: "/bin/sh")
+            tar.arguments = ["-c", "exec tar xzf \"$0\" -C \"$1\"", local, toolsetDir.path]
+            try tar.run()
+            tar.waitUntilExit()
+            guard tar.terminationStatus == 0 else { throw Console.Error("Could not unpack toolset \(local)") }
+        } else {
         @Dependency(\.httpClient) var httpClient
         let url = URL(string: """
         https://github.com/xtool-org/darwin-tools-linux-llvm/releases/download/\
@@ -280,6 +289,7 @@ struct SDKBuilder {
             try await execution.standardInputWriter.finish()
         }
         .checkSuccess()
+        }
 
         // swift-build assumes we have an Apple-flavored librarian for Apple platforms
         // (https://github.com/swiftlang/swift-build/blob/b2433e74e/Sources/SWBCore/SpecImplementations/Tools/LinkerTools.swift#L1735)
@@ -386,6 +396,13 @@ struct SDKBuilder {
     }
 
     private func installMacros(in output: URL) async throws {
+        if let local = ProcessInfo.processInfo.environment["XTOOL_OAM_SERVER"] {
+            let dest = output.appendingPathComponent("OpenAppleMacrosServer")
+            // write a new file: a copy would keep the read-only mode of the Nix store
+            try Data(contentsOf: URL(fileURLWithPath: local)).write(to: dest)
+            try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: dest.path)
+            return
+        }
         @Dependency(\.httpClient) var httpClient
         let url = URL(string: """
         https://github.com/xtool-org/OpenAppleMacros/releases/download/\
