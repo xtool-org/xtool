@@ -15,6 +15,44 @@ bundleID: com.example.Hello
 EOF
 ```
 
+## Build your app
+
+Use the `xtool build` command to compile your SwiftPM package into an app bundle. Run it from the directory that contains your `Package.swift` and `xtool.yml`:
+
+```bash
+xtool build
+```
+
+By default this produces a debug `.app` at `./xtool/YourApp.app`. The same command is also available as `xtool dev build` for backwards compatibility.
+
+### Options
+
+- `-c, --configuration <debug|release>` — build configuration. Defaults to `debug`. Use `release` for an optimized build suitable for distribution.
+- `-s, --sign` — codesign the built app using the credentials saved by `xtool auth`. Off by default. If you pass `--sign` without logging in first, the command exits with ``` `build --sign` requires logging in with `xtool auth` ```.
+- `-i, --ipa` — package the result as a `.ipa` file instead of a `.app` directory. Off by default.
+- `--triple <triple>` — override the target triple used for compilation. Defaults to the host-appropriate iOS device triple, e.g. `arm64-apple-ios`.
+
+### Examples
+
+Debug build (default output: `./xtool/YourApp.app`):
+
+```bash
+xtool build
+```
+
+Signed release IPA, suitable for installing on a real device. Make sure you've run `xtool auth` first so a signing identity is available:
+
+```bash
+xtool auth    # one-time, if you haven't already
+xtool build --configuration release --sign --ipa
+```
+
+Build for a specific target triple — useful when cross-compiling or targeting a non-default iOS version:
+
+```bash
+xtool build --triple arm64-apple-ios17.0
+```
+
 ## Change your bundle ID
 
 You can update your app's bundle ID by editing the `bundleID` field in `xtool.yml`.
