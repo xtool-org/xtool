@@ -25,7 +25,13 @@ struct GrandSlamValidateRequest: GrandSlamTwoFactorRequest {
 
 struct GrandSlamValidateSMSRequest: GrandSlamTwoFactorRequest {
     struct Decoder: GrandSlamDataDecoder {
-        static func decode(data: Data) throws {}
+        static func decode(data: Data) throws {
+            if let alert = BuddyMLAlertParser.parse(data) {
+                throw GrandSlamTwoFactorAuthenticateOperation.Error.smsRejected(
+                    title: alert.title, message: alert.message
+                )
+            }
+        }
     }
 
     static let endpoint: GrandSlamEndpoint = .url(URL(

@@ -32,7 +32,13 @@ struct GrandSlamSecondaryAuthRequest: GrandSlamTwoFactorRequest {
 
 struct GrandSlamSMSAuthRequest: GrandSlamTwoFactorRequest {
     struct Decoder: GrandSlamDataDecoder {
-        static func decode(data: Data) throws {}
+        static func decode(data: Data) throws {
+            if let alert = BuddyMLAlertParser.parse(data) {
+                throw GrandSlamTwoFactorAuthenticateOperation.Error.smsRejected(
+                    title: alert.title, message: alert.message
+                )
+            }
+        }
     }
 
     static let endpoint: GrandSlamEndpoint = .url(URL(string: "https://gsa.apple.com/auth/verify/phone/put?mode=sms")!)
