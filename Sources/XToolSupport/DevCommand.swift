@@ -4,6 +4,9 @@ import PackLib
 import XKit
 import Dependencies
 import XUtils
+#if os(macOS) || os(Linux)
+import Subprocess
+#endif
 
 struct PackOperation {
     struct BuildOptions: ParsableArguments {
@@ -268,6 +271,11 @@ struct DevRunCommand: AsyncParsableCommand {
                 lookupMode: .only(client.connectionType),
                 configureDevice: false,
             )
+
+            print("\nSuccessfully installed!")
+            if try await Console.confirm("Would you like to monitor logs?") {
+                try await LogMonitorOperation(app: output).run()
+            }
         } catch let error as CancellationError {
             throw error
         } catch {
@@ -294,8 +302,6 @@ struct DevCommand: AsyncParsableCommand {
 extension BuildConfiguration: ExpressibleByArgument {}
 
 #if os(macOS)
-import Subprocess
-
 struct SimInstallOperation {
     var path: URL
 
@@ -310,6 +316,34 @@ struct SimInstallOperation {
         )
         .checkSuccess()
         print("Installed to simulator")
+    }
+}
+#endif
+
+#if os(macOS) || os(Linux)
+struct LogMonitorOperation {
+    var app: URL
+
+    func run() async throws {
+        let infoPath = app.appendingPathComponent("Info.plist")
+        let infoData = try Data(contentsOf: infoPath)
+        guard
+            let info = try PropertyListSerialization.propertyList(from: infoData, format: nil)
+                as? [String: Any],
+            let processName = info["CFBundleExecutable"] as? String,
+            !processName.isEmpty
+        else {
+            throw Console.Error("Could not determine the app process name from '\(infoPath.path)'")
+        }
+
+        print("Monitoring logs for \(processName). Press Ctrl-C to stop.")
+        try await Subprocess.run(
+            .name("idevicesyslog"),
+            arguments: ["-p", processName],
+            output: .currentStandardOutput,
+            error: .currentStandardError
+        )
+        .checkSuccess()
     }
 }
 #endif
