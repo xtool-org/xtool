@@ -371,30 +371,27 @@ private func happyPath(
     @Test func resolvesTheAppFromTheBundleID() async throws {
         let attempts = LockIsolated(0)
         let client = MockHTTPClient { request in
-            switch request.path.split(separator: "?").first.map(String.init) ?? "" {
-            case "/v1/bundleIds":
-                // the identifier filter is not an exact match
-                return .init(200, """
-                {"data": [
-                  {"type": "bundleIds", "id": "B0", "attributes": {"identifier": "com.example.App.extension"}},
-                  {"type": "bundleIds", "id": "B1", "attributes": {"identifier": "com.example.App"}}
-                ], \(links)}
-                """)
-            case "/v1/bundleIds/B1/app":
-                // App Store Connect sometimes answers 404 for an app that does exist
-                return attempts.withValue { $0 += 1; return $0 } == 1
-                    ? .init(404, #"{"errors": [{"title": "There is no resource of type 'apps'"}]}"#)
-                    : .init(200, #"{"data": {"type": "apps", "id": "APP1"}, \#(links)}"#)
-            default:
-                return .init(500)
+            guard request.path.hasPrefix("/v1/apps?") else { return .init(500) }
+            // App Store Connect sometimes answers 404 for an app that does exist
+            if attempts.withValue({ $0 += 1; return $0 }) == 1 {
+                return .init(404, #"{"errors": [{"title": "There is no resource of type 'apps'"}]}"#)
             }
+            return .init(200, """
+            {"data": [
+              {"type": "apps", "id": "111", "attributes": {"bundleId": "com.example.App.extension", "name": "Ext"}},
+              {"type": "apps", "id": "222", "attributes": {"bundleId": "com.example.App", "name": "App"}}
+            ], \(links)}
+            """)
         }
 
         let appID = try await withMock(client) {
             try await BuildUploader(key: makeKey()).resolveApp(bundleID: "com.example.App")
         }
-        #expect(appID == "APP1")
+        #expect(appID == "222")
         #expect(attempts.value == 2)
+        let request = try #require(client.requests.value.last)
+        #expect(request.path.contains("filter%5BbundleId%5D=com.example.App"))
+        #expect(request.headers[.authorization]?.hasPrefix("Bearer ") == true)
     }
 
     @Test func reportsAnUnknownApp() async throws {

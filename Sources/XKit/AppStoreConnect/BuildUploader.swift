@@ -81,6 +81,9 @@ public struct BuildUploader: Sendable {
     }
 
     private let client: DeveloperAPIClient
+    private let auth: DeveloperAPIASCAuthMiddleware
+    private let transport: any ClientTransport
+    private let baseURL: URL
     private let configuration: Configuration
     @Dependency(\.httpClient) private var httpClient
     @Dependency(\.continuousClock) private var clock
@@ -88,16 +91,15 @@ public struct BuildUploader: Sendable {
     public init(key: ASCKey, configuration: Configuration = .init()) {
         @Dependency(\.httpClient) var httpClient
         self.configuration = configuration
+        self.auth = DeveloperAPIASCAuthMiddleware(key: key)
+        self.transport = httpClient.asOpenAPITransport
+        // swiftlint:disable:next force_try
+        self.baseURL = try! Servers.Server1.url()
         self.client = DeveloperAPIClient(
-            // swiftlint:disable:next force_try
-            serverURL: try! Servers.Server1.url(),
+            serverURL: baseURL,
             configuration: .init(dateTranscoder: LenientISO8601DateTranscoder()),
-            transport: httpClient.asOpenAPITransport,
-            middlewares: [
-                DeveloperAPIASCAuthMiddleware(key: key),
-                HTTPStatusMiddleware(),
-                LoggingMiddleware(),
-            ]
+            transport: transport,
+            middlewares: [auth, HTTPStatusMiddleware(), LoggingMiddleware()]
         )
     }
 
@@ -105,22 +107,49 @@ public struct BuildUploader: Sendable {
 
     /// Finds the App Store Connect app ID for a bundle ID.
     public func resolveApp(bundleID: String) async throws -> String {
-        // the identifier filter is not an exact match
-        let bundleIDs = try await retrying {
-            try await client.bundleIdsGetCollection(query: .init(
-                filter_lbrack_identifier_rbrack_: [bundleID]
-            )).ok.body.json.data
-        }
-        guard let resource = bundleIDs.first(where: { $0.attributes?.identifier == bundleID }) else {
-            throw Error.appNotFound(bundleID: bundleID)
-        }
-        do {
-            return try await retrying {
-                try await client.bundleIdsAppGetToOneRelated(path: .init(id: resource.id)).ok.body.json.data.id
+        // `GET /v1/apps` is not part of the generated client: its schemas (an app and everything
+        // that can be included with it) would add ~10k lines for one filtered lookup. So this request
+        // is made by hand, through the same authentication and error handling as the generated ones.
+        struct Apps: Decodable {
+            struct App: Decodable {
+                struct Attributes: Decodable { var bundleId: String? }
+                var id: String
+                var attributes: Attributes?
             }
-        } catch Error.http(status: 404, _) {
+            var data: [App]
+        }
+        let query = bundleID.addingPercentEncoding(withAllowedCharacters: .alphanumerics.union(.init(charactersIn: "-._")))
+            ?? bundleID
+        let request = HTTPRequest(
+            method: .get,
+            scheme: "https",
+            authority: baseURL.host,
+            path: "/v1/apps?filter%5BbundleId%5D=\(query)&fields%5Bapps%5D=bundleId&limit=200"
+        )
+        let data = try await retrying {
+            try await get(request)
+        }
+        let apps = try JSONDecoder().decode(Apps.self, from: data)
+        // the filter is not guaranteed to be an exact match
+        guard let app = apps.data.first(where: { $0.attributes?.bundleId == bundleID }) else {
             throw Error.appNotFound(bundleID: bundleID)
         }
+        return app.id
+    }
+
+    private func get(_ request: HTTPRequest) async throws -> Data {
+        let transport = transport
+        let (_, body) = try await auth.intercept(
+            request, body: nil, baseURL: baseURL, operationID: "apps_getCollection"
+        ) { request, body, baseURL in
+            try await HTTPStatusMiddleware().intercept(
+                request, body: body, baseURL: baseURL, operationID: "apps_getCollection"
+            ) { request, body, baseURL in
+                try await transport.send(request, body: body, baseURL: baseURL, operationID: "apps_getCollection")
+            }
+        }
+        guard let body else { return Data() }
+        return try await Data(collecting: body, upTo: 10 << 20)
     }
 
     // MARK: - Uploading
