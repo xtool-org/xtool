@@ -41,7 +41,7 @@ infoPath: path/to/Info.plist
 
 ### Apple build keys
 
-For device builds, xtool also stamps the keys that Xcode writes to describe the toolchain it built with: `DTXcode`, `DTXcodeBuild`, `DTSDKName`, `DTSDKBuild`, `DTPlatformName`, `DTPlatformVersion`, `DTPlatformBuild` and `DTCompiler`. They go into the app and every app extension. App Store Connect rejects uploads that lack them.
+For device builds, xtool also stamps the keys that Xcode writes to describe the toolchain it built with: `DTXcode`, `DTXcodeBuild`, `DTSDKName`, `DTSDKBuild`, `DTPlatformName`, `DTPlatformVersion`, `DTPlatformBuild` and `DTCompiler`. They go into the app and every app extension. App Store Connect expects them on uploaded builds.
 
 The values come from the Xcode you installed the Darwin SDK from. `xtool sdk install` records them (also with `--slim`) in `xtool-sdk-info.json` inside the SDK. A key that you set yourself in your `Info.plist` is never overwritten.
 
