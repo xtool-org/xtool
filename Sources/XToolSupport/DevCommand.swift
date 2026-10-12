@@ -144,6 +144,14 @@ struct DevBuildCommand: AsyncParsableCommand {
         )
     ) var triple: String?
 
+    @OptionGroup(title: "Distribution signing") var distribution: DistributionSigningOptions
+
+    func validate() throws {
+        if sign && distribution.isEnabled {
+            throw ValidationError("--sign (development) cannot be combined with --p12 (distribution).")
+        }
+    }
+
     func run() async throws {
         let signingAuthToken: AuthToken?
         if sign {
@@ -175,6 +183,10 @@ struct DevBuildCommand: AsyncParsableCommand {
                 print("Error: \(error)")
                 throw ExitCode.failure
             }
+        }
+
+        if distribution.isEnabled {
+            try await distribution.sign(app: url)
         }
 
         let finalURL: URL
