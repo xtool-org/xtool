@@ -38,14 +38,13 @@ private func product(
     #expect(icons["CFBundleIconName"] as? String == "AppIcon")
 }
 
-// Xcode 14+ defaults to a single 1024x1024 "universal" icon with no scale. AssetKit does not handle
-// that format yet, so this is expected to fail until it does; `withKnownIssue` will flag when it starts to pass.
+// Xcode 14+ defaults to a single 1024x1024 "universal" icon with no scale.
 @Test func compileAssetsSingleSizeAppIcon() async throws {
     let catalog = fixtures.appendingPathComponent("SingleSize.xcassets")
-    await withKnownIssue("AssetKit rejects single-size universal app icons") {
-        let assets = try #require(try await Packer.compileAssets(for: product(catalog: catalog)))
-        #expect(assets.hasAppIcon)
-    }
+    let assets = try #require(try await Packer.compileAssets(for: product(catalog: catalog)))
+    #expect(assets.hasAppIcon)
+    #expect(assets.infoPlistAdditions["CFBundleIconName"] as? String == "AppIcon")
+    #expect(assets.looseFiles.contains { $0.name == "AppIcon60x60@2x.png" })
 }
 
 @Test func catalogAppIconOverridesIconPath() async throws {

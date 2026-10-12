@@ -52,8 +52,8 @@ let package = Package(
         .package(url: "https://github.com/xtool-org/SwiftyMobileDevice", .upToNextMinor(from: "1.7.0")),
         .package(url: "https://github.com/xtool-org/zsign", .upToNextMinor(from: "1.9.0")),
         .package(url: "https://github.com/xtool-org/xadi", .upToNextMinor(from: "0.4.2")),
-        // TODO: switch to a version requirement once AssetKit tags a release with LZFSE compression (post 1.0.0).
-        .package(url: "https://github.com/xtool-org/AssetKit", revision: "e763558b55fcbb5a443b1d7b2c6f0972d8bd14f7"),
+        // TODO: use a version requirement once AssetKit tags a release with LZFSE and single-size app icons.
+        .package(url: "https://github.com/xtool-org/AssetKit", revision: "1336918b969a44b0bb3596cb0ff45908f755d6d7"),
 
         .package(url: "https://github.com/apple/swift-system", from: "1.4.0"),
         .package(url: "https://github.com/apple/swift-http-types", from: "1.3.1"),

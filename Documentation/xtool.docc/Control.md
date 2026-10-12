@@ -123,7 +123,7 @@ Extensions can have their own catalog via an `assetCatalogs` key on the extensio
 
 > Note:
 >
-> xtool compiles catalogs itself, so it works on Linux. It supports PNG, JPEG and SVG images (SVG needs `rsvg-convert` installed), colors, and app icons with per-size entries. It does not yet support single-size (1024x1024 "universal") app icons, PDF vectors, data sets, sticker packs or other specialized asset types. When you generate an Xcode project with `xtool dev generate-xcode-project`, the catalog is passed to Xcode unchanged.
+> xtool compiles catalogs itself, so it works on Linux. It supports PNG, JPEG and SVG images (SVG needs `rsvg-convert` installed), colors, and app icons with per-size entries. Single-size (1024x1024 "universal") app icons are supported, but their dark and tinted variants are ignored. PDF vectors, data sets, sticker packs and other specialized asset types are not supported. When you generate an Xcode project with `xtool dev generate-xcode-project`, the catalog is passed to Xcode unchanged.
 
 ## Add entitlements
 
