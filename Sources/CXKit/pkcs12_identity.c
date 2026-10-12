@@ -1,3 +1,4 @@
+#include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
 #include <openssl/bio.h>
@@ -8,11 +9,19 @@
 #include <openssl/x509.h>
 #include "pkcs12_identity.h"
 
-static void load_providers(void) {
+static pthread_once_t providers_once = PTHREAD_ONCE_INIT;
+
+static void load_providers_once(void) {
     // archives exported by older keychains use RC2/3DES, which OpenSSL 3 only
     // provides through the legacy provider. It's fine if it isn't available.
     OSSL_PROVIDER_load(NULL, "default");
     OSSL_PROVIDER_load(NULL, "legacy");
+}
+
+static void load_providers(void) {
+    // loading providers concurrently races with PKCS12_parse on other threads
+    // (seen as a parse that succeeds without a key or certificate), so do it once
+    pthread_once(&providers_once, load_providers_once);
 }
 
 pkcs12_identity_status_t pkcs12_identity_extract(
