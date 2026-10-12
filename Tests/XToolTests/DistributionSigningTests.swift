@@ -302,6 +302,11 @@ private func resolved(
             #expect(ents["aps-environment"] as? String == "production")
         }
 
+        // a single SHA-256 CodeDirectory, as Xcode emits: App Store Connect rejects SHA-1 + SHA-256 (90034)
+        for bundle in [app, widget] {
+            #expect(try FakeApp.codeDirectoryHashTypes(ofExecutable: bundle.appendingPathComponent("main")) == [2])
+        }
+
         // each bundle carries the profile that matches it
         let appProfile = try Mobileprovision(contentsOf: app.appendingPathComponent("embedded.mobileprovision"))
         let widgetProfile = try Mobileprovision(contentsOf: widget.appendingPathComponent("embedded.mobileprovision"))

@@ -60,6 +60,33 @@ enum FakeApp {
         return url
     }
 
+    /// The hash type (1 = SHA-1, 2 = SHA-256) of every CodeDirectory in the executable's signature, in slot order
+    static func codeDirectoryHashTypes(ofExecutable url: URL) throws -> [Int] {
+        let data = try Data(contentsOf: url)
+        func u32(_ offset: Int, bigEndian: Bool = false) -> Int {
+            let value = (0..<4).reduce(UInt32(0)) { $0 | UInt32(data[offset + $1]) << (8 * UInt32($1)) }
+            return Int(bigEndian ? value.byteSwapped : value)
+        }
+        var offset = 32
+        for _ in 0..<u32(16) {
+            if u32(offset) == 0x1d {
+                let base = u32(offset + 8)
+                var types: [Int] = []
+                for index in 0..<u32(base + 8, bigEndian: true) {
+                    let entry = base + 12 + index * 8
+                    let slot = u32(entry, bigEndian: true)
+                    // CSSLOT_CODEDIRECTORY and the alternate CodeDirectories (0x1000...)
+                    guard slot == 0 || (0x1000..<0x1005).contains(slot) else { continue }
+                    let blob = base + u32(entry + 4, bigEndian: true)
+                    types.append(Int(data[blob + 37]))
+                }
+                return types
+            }
+            offset += u32(offset + 4)
+        }
+        return []
+    }
+
     /// The entitlements plist stored in the executable's embedded signature, parsed by hand from the
     /// SuperBlob (slot 5) rather than through the signer, so the check doesn't trust the code under test.
     static func entitlements(ofExecutable url: URL) throws -> [String: Any]? {
