@@ -170,6 +170,7 @@ let package = Package(
                 "XCLIUtils",
                 "PackLib",
                 .product(name: "Crypto", package: "swift-crypto"),
+                .product(name: "Dependencies", package: "swift-dependencies"),
                 .product(name: "X509", package: "swift-certificates"),
                 .product(name: "CustomDump", package: "swift-custom-dump"),
             ],
