@@ -5,7 +5,7 @@ import Foundation
 enum FakeApp {
 
     /// A just-valid arm64 `MH_EXECUTE` with room for a code signature
-    static func machO() -> Data {
+    static func machO(sectionName: String = "__text", contentOffset: UInt32 = 0x1000) -> Data {
         var data = Data()
         func append<T: FixedWidthInteger>(_ value: T) {
             withUnsafeBytes(of: value.littleEndian) { data.append(contentsOf: $0) }
@@ -23,9 +23,9 @@ enum FakeApp {
             append(vmaddr); append(vmsize); append(fileoff); append(filesize)
             append(prot); append(prot); append(sectionCount); append(UInt32(0))
             if sectionCount > 0 {
-                name("__text"); name("__TEXT")
+                name(sectionName); name("__TEXT")
                 append(UInt64(0x100001000)); append(UInt64(0x100))
-                append(UInt32(0x1000)); append(UInt32(2)); append(UInt32(0)); append(UInt32(0))
+                append(contentOffset); append(UInt32(2)); append(UInt32(0)); append(UInt32(0))
                 append(UInt32(0x80000400)); append(UInt32(0)); append(UInt32(0)); append(UInt32(0))
             }
         }
@@ -46,12 +46,14 @@ enum FakeApp {
     }
 
     @discardableResult
-    static func writeBundle(at url: URL, id: String, executable: String = "main") throws -> URL {
+    static func writeBundle(
+        at url: URL, id: String, executable: String = "main", machO: Data = FakeApp.machO()
+    ) throws -> URL {
         try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         let info: [String: Any] = ["CFBundleIdentifier": id, "CFBundleExecutable": executable]
         try PropertyListSerialization.data(fromPropertyList: info, format: .xml, options: 0)
             .write(to: url.appendingPathComponent("Info.plist"))
-        try machO().write(to: url.appendingPathComponent(executable))
+        try machO.write(to: url.appendingPathComponent(executable))
         try FileManager.default.setAttributes(
             [.posixPermissions: 0o755], ofItemAtPath: url.appendingPathComponent(executable).path
         )
