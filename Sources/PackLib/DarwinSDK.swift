@@ -41,6 +41,25 @@ public struct DarwinSDK {
     public let version: String
     public let flavor: Flavor
 
+    /// The SDK directory (e.g. `iPhoneOS27.1.sdk`) that builds for `triple` link against, if installed.
+    ///
+    /// The unversioned `iPhoneOS.sdk` symlink is not used because its target is what carries the version.
+    package func sdkRoot(forTriple triple: String) -> URL? {
+        let platform: String
+        switch Packer.cfBundleSupportedPlatforms(for: triple) {
+        case ["iPhoneSimulator"]: platform = "iPhoneSimulator"
+        case ["MacOSX"]: platform = "MacOSX"
+        default: platform = "iPhoneOS"
+        }
+        let sdks = bundle.appendingPathComponent("Developer/Platforms/\(platform).platform/Developer/SDKs")
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: sdks.path)) ?? []
+        let versioned = names
+            .filter { $0.hasPrefix(platform) && $0.hasSuffix(".sdk") && $0 != "\(platform).sdk" }
+            .sorted { $0.compare($1, options: .numeric) == .orderedAscending }
+        return (versioned.last ?? names.first { $0 == "\(platform).sdk" })
+            .map { sdks.appendingPathComponent($0, isDirectory: true) }
+    }
+
     static func swiftPMDirectory(
         environment: [String: String] = ProcessInfo.processInfo.environment,
         homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
