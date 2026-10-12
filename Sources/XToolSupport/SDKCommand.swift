@@ -45,13 +45,44 @@ struct DevSDKBuildCommand: AsyncParsableCommand {
         )
     ) var arch: ArchSelection = .auto
 
+    @Option(
+        help: ArgumentHelp(
+            "The host OS the SDK is being built for.",
+            discussion: "Defaults to 'linux'. Use 'windows' to produce an SDK consumable by Swift for Windows."
+        )
+    ) var host: HostSelection = .linux
+
+    @Option(
+        help: "Directory with a prebuilt toolset/bin (required for --host windows)."
+    )
+    var toolsetDir: String?
+
     func run() async throws {
         let builderArch = try arch.sdkBuilderArch
         let input = try SDKBuilder.Input(path: path)
         let output = URL(fileURLWithPath: outputDir, isDirectory: true).appending(path: "darwin.xtoolsdk")
-        let builder = SDKBuilder(input: input, output: output, arch: builderArch, mode: .buildSlim)
+        let builder = SDKBuilder(
+            input: input,
+            output: output,
+            arch: builderArch,
+            host: host.host,
+            toolsetDir: toolsetDir.map { URL(fileURLWithPath: $0, isDirectory: true) },
+            mode: .buildSlim
+        )
         try await builder.buildSDK()
         print("Built SDK at \(output.path). You can install it with `xtool sdk install`.")
+    }
+}
+
+enum HostSelection: String, ExpressibleByArgument {
+    case linux
+    case windows
+
+    var host: SDKBuilder.Host {
+        switch self {
+        case .linux: .linux
+        case .windows: .windows
+        }
     }
 }
 
