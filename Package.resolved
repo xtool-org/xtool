@@ -454,10 +454,9 @@
     {
       "identity" : "zsign",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/xtool-org/zsign",
+      "location" : "https://github.com/TartanLeGrand/zsign",
       "state" : {
-        "revision" : "f6158be9e62a5ce2a53d72b1a6d880880da956c8",
-        "version" : "1.9.0"
+        "revision" : "4d2eb4c07e26cf56b6a161fa4a1c4eb4eb56cbc2"
       }
     }
   ],
