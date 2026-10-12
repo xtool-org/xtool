@@ -13,9 +13,9 @@
     {
       "identity" : "assetkit",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/xtool-org/AssetKit",
+      "location" : "https://github.com/TartanLeGrand/AssetKit",
       "state" : {
-        "revision" : "1336918b969a44b0bb3596cb0ff45908f755d6d7"
+        "revision" : "90281d6dc0c4edef6176f9283283271198e4bafd"
       }
     },
     {
