@@ -167,16 +167,17 @@ private func resolved(
         #expect(ents["com.apple.developer.associated-domains"] == nil)
     }
 
-    @Test func neverIncludesGetTaskAllow() throws {
-        for data in [SigningFixtures.appstoreProfile, SigningFixtures.adhocProfile, SigningFixtures.wildcardProfile] {
-            #expect(try resolved(data)["get-task-allow"] == nil)
+    @Test func getTaskAllowIsNeverTrue() throws {
+        let profiles = [
+            SigningFixtures.appstoreProfile, SigningFixtures.adhocProfile,
+            SigningFixtures.wildcardProfile, SigningFixtures.developmentProfile,
+        ]
+        for data in profiles {
+            #expect(try resolved(data)["get-task-allow"] as? Bool == false)
         }
         // even when the app (or a debug signature it came with) asks for it
         let ents = try resolved(SigningFixtures.appstoreProfile, requested: ["get-task-allow": true])
-        #expect(ents["get-task-allow"] == nil)
-        // and when the profile itself is a development one
-        let fromDevelopment = try resolved(SigningFixtures.developmentProfile)
-        #expect(fromDevelopment["get-task-allow"] == nil)
+        #expect(ents["get-task-allow"] as? Bool == false)
     }
 
     @Test func wildcardProfileNamesTheActualApp() throws {
@@ -201,6 +202,11 @@ private func resolved(
         #expect(ents["keychain-access-groups"] as? [String] == ["\(SigningFixtures.teamID).shared"])
         // identity keys always come from the profile
         #expect(ents["application-identifier"] as? String == appID)
+        // like Xcode, we don't claim capabilities the app did not ask for...
+        #expect(ents["aps-environment"] == nil)
+        #expect(ents["com.apple.security.application-groups"] == nil)
+        // ...except the ones the profile enables for every build
+        #expect(ents["beta-reports-active"] as? Bool == true)
     }
 
     @Test func rejectsEntitlementsTheProfileDoesNotAllow() throws {
@@ -292,7 +298,7 @@ private func resolved(
         #expect(appEnts["keychain-access-groups"] as? [String] == ["\(team).\(SigningFixtures.bundleID)"])
         #expect(widgetEnts["keychain-access-groups"] as? [String] == ["\(team).\(widgetID)"])
         for ents in [appEnts, widgetEnts] {
-            #expect(ents["get-task-allow"] == nil)
+            #expect(ents["get-task-allow"] as? Bool == false)
             #expect(ents["aps-environment"] as? String == "production")
         }
 
@@ -302,6 +308,12 @@ private func resolved(
         #expect(try appProfile.data() == profile(SigningFixtures.appstoreProfile).mobileprovision.data())
         #expect(try widgetProfile.data() == profile(SigningFixtures.appextensionProfile).mobileprovision.data())
         #expect(app.appendingPathComponent("_CodeSignature/CodeResources").exists)
+
+        // rewriting an executable to make room for the signature must not drop its permissions
+        for bundle in [app, widget] {
+            let attributes = try FileManager.default.attributesOfItem(atPath: bundle.appendingPathComponent("main").path)
+            #expect((attributes[.posixPermissions] as? Int).map { $0 & 0o111 != 0 } == true)
+        }
         #expect(widget.appendingPathComponent("_CodeSignature/CodeResources").exists)
     }
 }

@@ -14,6 +14,9 @@ public enum DistributionEntitlements {
         "get-task-allow",
     ]
 
+    /// Granted by the profile and claimed whether or not the app asks for them (Xcode does the same).
+    private static let alwaysClaimedKeys: Set<String> = ["beta-reports-active"]
+
     public static func resolve(
         profile: DistributionProfile,
         bundleID: String,
@@ -25,17 +28,21 @@ public enum DistributionEntitlements {
         let team = profile.digest.teamIdentifiers.first?.rawValue ?? ""
         let applicationIdentifier = "\(team).\(bundleID)"
 
+        // Like Xcode, only claim what the app asked for. If we know nothing about the app
+        // (it carries no entitlements of its own), fall back to what the profile grants.
+        let appAsksForSomething = requested.keys.contains { !profileOwnedKeys.contains($0) }
+
         var result: [String: Any] = [:]
-        for (key, grant) in granted where key != "get-task-allow" {
-            if profileOwnedKeys.contains(key) || requested[key] == nil {
-                if let value = narrow(key: key, grant: grant, applicationIdentifier: applicationIdentifier) {
-                    result[key] = value
-                }
-            } else if let request = requested[key] {
+        for (key, grant) in granted where !profileOwnedKeys.contains(key) {
+            if let request = requested[key] {
                 guard permits(grant: grant, request: request) else {
                     throw DistributionSigningError.entitlementNotInProfile(key: key, profile: profile.name)
                 }
                 result[key] = request
+            } else if !appAsksForSomething || alwaysClaimedKeys.contains(key) {
+                if let value = narrow(key: key, grant: grant, applicationIdentifier: applicationIdentifier) {
+                    result[key] = value
+                }
             }
         }
 
@@ -45,6 +52,8 @@ public enum DistributionEntitlements {
 
         // a wildcard profile has `<team>.*`: the signed entitlement must name the actual app
         result["application-identifier"] = applicationIdentifier
+        // distribution builds explicitly opt out of debugging, as Xcode's do
+        result["get-task-allow"] = false
         result["com.apple.developer.team-identifier"] = team
 
         return try entitlements(from: result)

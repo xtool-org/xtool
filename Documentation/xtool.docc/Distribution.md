@@ -48,10 +48,10 @@ xtool checks the inputs before it signs anything, and refuses to continue if:
 The entitlements are derived from the profile, so that the signature matches what the profile allows:
 
 - `application-identifier` and `com.apple.developer.team-identifier` always come from the profile.
-- `get-task-allow` is never included.
-- Capabilities the profile grants, such as `aps-environment` (`production` in a distribution profile), app groups and `beta-reports-active`, are carried over.
+- `get-task-allow` is always `false`.
+- Like Xcode, xtool claims what the app asks for (the entitlements already in its signature, for instance those from your `.entitlements` file), checked against what the profile allows. Asking for something the profile doesn't allow is an error. `beta-reports-active` is carried over when the profile has it.
+- If the app has no entitlements of its own, everything the profile grants is claimed, such as `aps-environment` (`production` in a distribution profile) and app groups.
 - Wildcards in the profile are resolved for your app. For example, `keychain-access-groups` of `<team>.*` becomes your app's own group.
-- Entitlements already present in the app's signature (for instance those from your `.entitlements` file) narrow what is taken from the profile. Asking for something the profile doesn't allow is an error.
 
 To use a specific set of entitlements instead of the ones already in the app, pass `--entitlements Entitlements.plist`.
 

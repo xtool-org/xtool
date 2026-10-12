@@ -52,6 +52,9 @@ enum FakeApp {
         try PropertyListSerialization.data(fromPropertyList: info, format: .xml, options: 0)
             .write(to: url.appendingPathComponent("Info.plist"))
         try machO().write(to: url.appendingPathComponent(executable))
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o755], ofItemAtPath: url.appendingPathComponent(executable).path
+        )
         return url
     }
 
