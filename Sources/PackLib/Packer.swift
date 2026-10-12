@@ -11,12 +11,37 @@ public struct Packer: Sendable {
         self.buildSettings = buildSettings
     }
 
+    /// Linker flags that make clang read the SDK's `SDKSettings.json`.
+    ///
+    /// swiftc links through clang but hands it `--sysroot <SDK>`. Clang's Darwin driver only derives the
+    /// SDK version from `-isysroot`, so without this the `-platform_version` it gives the linker has
+    /// the deployment target in the SDK slot, and `LC_BUILD_VERSION.sdk` ends up equal to `minos`
+    /// (e.g. 17.0 instead of 27.1). App Store Connect checks that field against its minimum SDK.
+    ///
+    /// This lives here and not in the Swift SDK's toolset because toolset options cannot be relative
+    /// to the SDK, whereas the installed SDK's location is known when we write the package, and it
+    /// also fixes SDKs installed before this was added.
+    package static func sysrootLinkerFlags(sdkRoot: URL?) -> [String] {
+        guard let sdkRoot else { return [] }
+        return ["-Xclang-linker", "-isysroot", "-Xclang-linker", sdkRoot.path]
+    }
+
+    private func sdkRootForLinking() -> URL? {
+        #if os(macOS)
+        // Xcode's toolchain already passes -isysroot.
+        return nil
+        #else
+        return (try? DarwinSDK.current())?.sdkRoot(forTriple: buildSettings.triple)
+        #endif
+    }
+
     private func build() async throws {
         let xtoolDir = URL(fileURLWithPath: "xtool")
         let packageDir = xtoolDir.appendingPathComponent(".xtool-tmp")
         try? FileManager.default.removeItem(at: packageDir)
         try FileManager.default.createDirectory(at: packageDir, withIntermediateDirectories: true)
 
+        let sysrootFlags = Packer.sysrootLinkerFlags(sdkRoot: sdkRootForLinking())
         let packageSwift = packageDir.appendingPathComponent("Package.swift")
         let contents = """
         // swift-tools-version: 6.0
@@ -38,7 +63,7 @@ public struct Packer: Sendable {
                             dependencies: [
                                 .product(name: "\($0.product)", package: "RootPackage"),
                             ],
-                            linkerSettings: \($0.linkerSettings)
+                            linkerSettings: \($0.linkerSettings(extraFlags: sysrootFlags))
                         )
                         """
                     }
@@ -233,16 +258,19 @@ public struct Packer: Sendable {
 }
 
 extension Plan.Product {
-    fileprivate var linkerSettings: String {
+    /// Swift source for the `linkerSettings:` argument of the generated target.
+    package func linkerSettings(extraFlags: [String]) -> String {
+        let extra = extraFlags.map { "\"\($0.swiftStringEscaped)\"," }.joined(separator: "\n")
         switch self.type {
-        case .application: """
+        case .application: return """
         [
             .unsafeFlags([
                 "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
+                \(extra)
             ]),
         ]
         """
-        case .appExtension: """
+        case .appExtension: return """
         [
             // Link to Foundation framework which implements the _NSExtensionMain entrypoint
             .linkedFramework("Foundation"),
@@ -253,9 +281,16 @@ extension Plan.Product {
                 "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks",
                 // ...as well as our own
                 "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
+                \(extra)
             ]),
         ]
         """
         }
+    }
+}
+
+private extension String {
+    var swiftStringEscaped: String {
+        replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"")
     }
 }
