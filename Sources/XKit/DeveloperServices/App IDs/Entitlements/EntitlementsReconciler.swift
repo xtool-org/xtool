@@ -36,6 +36,19 @@ public enum EntitlementsReconciler {
         public var errorDescription: String? { message }
     }
 
+    /// Entitlements only meaningful for a distribution build (an Xcode-exported or xtool-distribution-signed
+    /// IPA carries them). A development profile never grants them, so re-signing for development drops them.
+    private static let distributionOnlyKeys: Set<String> = [
+        "beta-reports-active",
+        "com.apple.developer.icloud-container-environment",
+    ]
+
+    public struct Result {
+        public var entitlements: Entitlements
+        /// Distribution-only entitlements that were dropped because the profile doesn't grant them
+        public var removed: [String]
+    }
+
     private static let appGroupsKey = AppGroupEntitlement.identifier
     private static let apsEnvironmentKey = APSEnvironmentEntitlement.identifier
 
@@ -54,7 +67,8 @@ public enum EntitlementsReconciler {
     /// - Parameters:
     ///   - entitlements: What the app is going to be signed with.
     ///   - granted: The entitlements of the provisioning profile.
-    /// - Returns: `entitlements`, with the values the profile dictates replaced.
+    /// - Returns: `entitlements`, with the values the profile dictates replaced and the distribution-only
+    ///   entitlements it doesn't grant removed.
     /// - Throws: ``Error`` if the app claims something the profile doesn't grant.
     ///
     /// Only entitlements xtool knows how to provision are checked. Others are passed through
@@ -63,9 +77,12 @@ public enum EntitlementsReconciler {
         _ entitlements: Entitlements,
         with granted: Entitlements,
         profileName: String
-    ) throws -> Entitlements {
+    ) throws -> Result {
         let grants = try granted.plistDictionary()
         var result = try entitlements.plistDictionary()
+
+        let removed = distributionOnlyKeys.filter { result[$0] != nil && grants[$0] == nil }.sorted()
+        removed.forEach { result[$0] = nil }
 
         for key in result.keys.sorted() where knownKeys.contains(key) {
             guard let request = result[key] else { continue }
@@ -92,7 +109,7 @@ public enum EntitlementsReconciler {
             }
         }
 
-        return try Entitlements(plistDictionary: result)
+        return Result(entitlements: try Entitlements(plistDictionary: result), removed: removed)
     }
 
     /// Whether `grant` (a value from a profile, possibly with wildcards) allows `request`

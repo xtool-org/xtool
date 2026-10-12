@@ -13,7 +13,7 @@ import Testing
     ) throws -> [String: Any] {
         try EntitlementsReconciler.reconcile(
             entitlements(requested), with: entitlements(granted), profileName: "dev profile"
-        ).plistDictionary()
+        ).entitlements.plistDictionary()
     }
 
     /// What a development profile created through the ASC API grants an app with push but no groups
@@ -102,5 +102,31 @@ import Testing
         let result = try reconcile(requested, granted: developmentGrants)
         #expect(result["aps-environment"] as? String == "development")
         #expect(Set(result.keys) == Set(requested.keys))
+    }
+
+    @Test func distributionOnlyEntitlementsAreDroppedWhenNotGranted() throws {
+        let outcome = try EntitlementsReconciler.reconcile(
+            entitlements([
+                "beta-reports-active": true,
+                "aps-environment": "production",
+                "get-task-allow": false,
+            ]),
+            with: entitlements(developmentGrants),
+            profileName: "dev profile"
+        )
+        let result = try outcome.entitlements.plistDictionary()
+        #expect(outcome.removed == ["beta-reports-active"])
+        #expect(result["beta-reports-active"] == nil)
+        #expect(result["aps-environment"] as? String == "development")
+    }
+
+    @Test func distributionOnlyEntitlementsAreKeptWhenGranted() throws {
+        var granted = developmentGrants
+        granted["beta-reports-active"] = true
+        let outcome = try EntitlementsReconciler.reconcile(
+            entitlements(["beta-reports-active": true]), with: entitlements(granted), profileName: "p"
+        )
+        #expect(outcome.removed.isEmpty)
+        #expect(try outcome.entitlements.plistDictionary()["beta-reports-active"] as? Bool == true)
     }
 }
