@@ -39,6 +39,16 @@ infoPath: path/to/Info.plist
 >
 > After running `xtool dev [build]`, you can inspect the built app bundle at `./xtool/YourApp.app` to view its `Info.plist` and other resources. 
 
+### Apple build keys
+
+For device builds, xtool also stamps the keys that Xcode writes to describe the toolchain it built with: `DTXcode`, `DTXcodeBuild`, `DTSDKName`, `DTSDKBuild`, `DTPlatformName`, `DTPlatformVersion`, `DTPlatformBuild` and `DTCompiler`. They go into the app and every app extension. App Store Connect rejects uploads that lack them.
+
+The values come from the Xcode you installed the Darwin SDK from. `xtool sdk install` records them (also with `--slim`) in `xtool-sdk-info.json` inside the SDK. A key that you set yourself in your `Info.plist` is never overwritten.
+
+An SDK installed by an older xtool may not have this file. Normal (non-slim) SDKs are read from their retained `Xcode.app`. For an older slim SDK xtool prints a warning and leaves the keys out; reinstall the SDK with `xtool sdk install` to add them.
+
+`BuildMachineOSBuild` is the build number of the macOS that ran the build, which does not exist on Linux, so xtool leaves it out. To stamp one anyway, set the `XTOOL_BUILD_MACHINE_OS_BUILD` environment variable, for example `XTOOL_BUILD_MACHINE_OS_BUILD=25G83 xtool dev build`.
+
 For example, you might create an `Info.plist` file that looks something like
 
 ```plist
