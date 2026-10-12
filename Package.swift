@@ -52,6 +52,8 @@ let package = Package(
         .package(url: "https://github.com/xtool-org/SwiftyMobileDevice", .upToNextMinor(from: "1.7.0")),
         .package(url: "https://github.com/xtool-org/zsign", .upToNextMinor(from: "1.9.0")),
         .package(url: "https://github.com/xtool-org/xadi", .upToNextMinor(from: "0.4.2")),
+        // TODO: switch to a version requirement once AssetKit tags a release with LZFSE compression (post 1.0.0).
+        .package(url: "https://github.com/xtool-org/AssetKit", revision: "e763558b55fcbb5a443b1d7b2c6f0972d8bd14f7"),
 
         .package(url: "https://github.com/apple/swift-system", from: "1.4.0"),
         .package(url: "https://github.com/apple/swift-http-types", from: "1.3.1"),
@@ -167,6 +169,9 @@ let package = Package(
                 "XToolSupport",
                 "PackLib",
             ],
+            resources: [
+                .copy("Fixtures"),
+            ],
             swiftSettings: swiftSettings,
         ),
         .target(
@@ -195,6 +200,7 @@ let package = Package(
             dependencies: [
                 "XUtils",
                 "XcodeProjects",
+                .product(name: "AssetKit", package: "AssetKit"),
                 .product(name: "Superutils", package: "xtool-core"),
                 .product(name: "Yams", package: "Yams"),
                 .product(name: "XcodeProjectFormat", package: "xcode-project-format"),

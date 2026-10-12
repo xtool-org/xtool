@@ -1,6 +1,7 @@
 import Foundation
 import XUtils
 import Subprocess
+import AssetKit
 
 public struct Packer: Sendable {
     public let buildSettings: BuildSettings
@@ -100,7 +101,7 @@ public struct Packer: Sendable {
 
         try await withThrowingTaskGroup(of: Void.self) { group in
             for product in plan.allProducts {
-                try pack(
+                try await pack(
                     product: product,
                     binDir: binDir,
                     outputURL: product.directory(inApp: outputURL),
@@ -131,7 +132,7 @@ public struct Packer: Sendable {
         binDir: URL,
         outputURL: URL,
         _ group: inout ThrowingTaskGroup<Void, Error>
-    ) throws {
+    ) async throws {
         @Sendable func packFileToRoot(srcName: String) async throws {
             let srcURL = URL(fileURLWithPath: srcName)
             let destURL = outputURL.appendingPathComponent(srcURL.lastPathComponent)
@@ -151,6 +152,9 @@ public struct Packer: Sendable {
 
         // Ensure output directory is available
         try? FileManager.default.createDirectory(at: outputURL, withIntermediateDirectories: true)
+
+        let assets = try await Packer.compileAssets(for: product)
+        let iconPath = Packer.iconPath(for: product, assets: assets)
 
         for command in product.resources {
             group.addTask {
@@ -179,9 +183,15 @@ public struct Packer: Sendable {
                 }
             }
         }
-        if let iconPath = product.iconPath {
+        if let iconPath {
             group.addTask {
                 try await packFileToRoot(srcName: iconPath)
+            }
+        }
+        if let assets {
+            group.addTask {
+                try assets.write(into: outputURL)
+                try Task.checkCancellation()
             }
         }
         group.addTask {
@@ -196,7 +206,11 @@ public struct Packer: Sendable {
                 info["CFBundleSupportedPlatforms"] = Packer.cfBundleSupportedPlatforms(for: buildSettings.triple)
             }
 
-            if let iconPath = product.iconPath {
+            if let assets {
+                info.merge(assets.infoPlistAdditions) { _, new in new }
+            }
+
+            if let iconPath {
                 let iconName = URL(fileURLWithPath: iconPath).deletingPathExtension().lastPathComponent
                 info["CFBundleIconFile"] = iconName
             }
@@ -209,6 +223,49 @@ public struct Packer: Sendable {
             )
             try encodedPlist.write(to: infoPath)
         }
+    }
+
+    /// The output of compiling a product's asset catalog.
+    struct CompiledAssets: Sendable {
+        /// The contents of `Assets.car`.
+        var carData: Data
+        /// Copies of the app icon renditions to place next to `Assets.car`, which SpringBoard falls back to.
+        var looseFiles: [LooseFile] = []
+        /// Keys such as `CFBundleIcons` to merge into the product's Info.plist.
+        var infoPlistAdditions: [String: any Sendable] = [:]
+
+        var hasAppIcon: Bool { !infoPlistAdditions.isEmpty }
+
+        /// Writes `Assets.car` and the loose icon files into a product's bundle directory.
+        func write(into directory: URL) throws {
+            try carData.write(to: directory.appendingPathComponent("Assets.car"))
+            for file in looseFiles {
+                try file.data.write(to: directory.appendingPathComponent(file.name))
+            }
+        }
+    }
+
+    /// The loose `iconPath` file to pack. The catalog's AppIcon takes precedence over it.
+    static func iconPath(for product: Plan.Product, assets: CompiledAssets?) -> String? {
+        guard let iconPath = product.iconPath, assets?.hasAppIcon == true else { return product.iconPath }
+        FileHandle.standardError.write(Data(
+            "warning: ignoring iconPath '\(iconPath)' because the asset catalog defines an AppIcon.\n".utf8
+        ))
+        return nil
+    }
+
+    /// Compiles the product's asset catalog, if any.
+    ///
+    /// `XcodePacker` does not use this: it hands the catalog to Xcode, where actool compiles it.
+    static func compileAssets(for product: Plan.Product) async throws -> CompiledAssets? {
+        guard let catalogPath = product.assetCatalogPath else { return nil }
+        let result = try await XCAssetCompiler(deploymentTarget: product.deploymentTarget)
+            .compile(catalog: URL(fileURLWithPath: catalogPath))
+        return CompiledAssets(
+            carData: result.carData,
+            looseFiles: result.appIconBundle?.looseFiles ?? [],
+            infoPlistAdditions: result.appIconBundle?.infoPlistAdditions ?? [:]
+        )
     }
 
     static func cfBundleSupportedPlatforms(for triple: String) -> [String] {

@@ -85,6 +85,7 @@ public struct Planner: Sendable {
             idSpecifier: schema.idSpecifier,
             iconPath: schema.iconPath,
             rootResources: schema.resources,
+            assetCatalogPath: schema.assetCatalogs?.first,
             entitlementsPath: schema.entitlementsPath
         )
 
@@ -101,6 +102,7 @@ public struct Planner: Sendable {
                             idSpecifier: ext.bundleID.flatMap(PackSchema.IDSpecifier.bundleID) ?? .orgID(app.bundleID),
                             iconPath: nil,
                             rootResources: ext.resources,
+                            assetCatalogPath: ext.assetCatalogs?.first,
                             entitlementsPath: ext.entitlementsPath
                         )
                     }
@@ -123,6 +125,7 @@ public struct Planner: Sendable {
         idSpecifier: PackSchema.IDSpecifier,
         iconPath: String?,
         rootResources: [String]?,
+        assetCatalogPath: String?,
         entitlementsPath: String?
     ) async throws -> Plan.Product {
         let library = try selectLibrary(
@@ -214,7 +217,8 @@ public struct Planner: Sendable {
             infoPlist: infoPlist,
             resources: resources,
             iconPath: iconPath,
-            entitlementsPath: entitlementsPath
+            entitlementsPath: entitlementsPath,
+            assetCatalogPath: assetCatalogPath
         )
     }
 
@@ -319,6 +323,8 @@ public struct Plan: Sendable {
         public var resources: [Resource]
         public var iconPath: String?
         public var entitlementsPath: String?
+        /// Path to an `.xcassets` catalog, relative to the package root.
+        public var assetCatalogPath: String?
 
         public var targetName: String {
             "\(self.product)-\(self.type.targetSuffix)"
