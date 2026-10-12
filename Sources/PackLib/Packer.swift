@@ -188,13 +188,7 @@ public struct Packer: Sendable {
             try await packFile(srcName: product.targetName, dstName: product.product)
         }
         group.addTask {
-            var info = product.infoPlist
-
-            if product.type == .application {
-                info["UIRequiredDeviceCapabilities"] = ["arm64"]
-                info["LSRequiresIPhoneOS"] = true
-                info["CFBundleSupportedPlatforms"] = Packer.cfBundleSupportedPlatforms(for: buildSettings.triple)
-            }
+            var info = Packer.platformInfoPlist(product.infoPlist, type: product.type, triple: buildSettings.triple)
 
             if let iconPath = product.iconPath {
                 let iconName = URL(fileURLWithPath: iconPath).deletingPathExtension().lastPathComponent
@@ -209,6 +203,43 @@ public struct Packer: Sendable {
             )
             try encodedPlist.write(to: infoPath)
         }
+    }
+
+    /// Adds the keys that tie a bundle to its platform, without discarding what the user declared.
+    static func platformInfoPlist(
+        _ plist: [String: any Sendable],
+        type: Plan.ProductType,
+        triple: String
+    ) -> [String: any Sendable] {
+        var info = plist
+
+        info["CFBundleSupportedPlatforms"] = cfBundleSupportedPlatforms(for: triple)
+        info["UIRequiredDeviceCapabilities"] = requiredDeviceCapabilities(merging: plist["UIRequiredDeviceCapabilities"])
+
+        switch type {
+        case .application:
+            info["LSRequiresIPhoneOS"] = true
+        case .appExtension:
+            if info["UIDeviceFamily"] == nil {
+                info["UIDeviceFamily"] = [1, 2]
+            }
+        }
+
+        return info
+    }
+
+    /// `UIRequiredDeviceCapabilities` is either an array of names or a dictionary of name to Bool.
+    /// Whichever form the user picked, `arm64` is guaranteed to be required.
+    private static func requiredDeviceCapabilities(merging existing: (any Sendable)?) -> any Sendable {
+        if var dictionary = existing as? [String: any Sendable] {
+            dictionary["arm64"] = true
+            return dictionary
+        }
+        var array = existing as? [String] ?? []
+        if !array.contains("arm64") {
+            array.insert("arm64", at: 0)
+        }
+        return array
     }
 
     static func cfBundleSupportedPlatforms(for triple: String) -> [String] {
