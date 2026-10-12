@@ -10,12 +10,12 @@ import Foundation
 /// catches the difference before it reaches the device.
 public enum EntitlementsReconciler {
 
-    public enum Error: LocalizedError, Equatable {
+    public enum Error: LocalizedError, CustomStringConvertible, Equatable {
         case appGroupsNotGranted(groups: [String], profile: String)
         case notGranted(key: String, profile: String)
         case valueNotGranted(key: String, profile: String)
 
-        public var errorDescription: String? {
+        private var message: String {
             switch self {
             case .appGroupsNotGranted(let groups, let profile):
                 "The provisioning profile '\(profile)' does not include the app groups "
@@ -30,6 +30,10 @@ public enum EntitlementsReconciler {
                 "The value of the entitlement '\(key)' is not allowed by the provisioning profile '\(profile)'."
             }
         }
+
+        // the CLI prints errors with string interpolation, which ignores `errorDescription`
+        public var description: String { message }
+        public var errorDescription: String? { message }
     }
 
     private static let appGroupsKey = AppGroupEntitlement.identifier

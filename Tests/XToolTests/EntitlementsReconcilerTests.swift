@@ -45,6 +45,9 @@ import Testing
         let message = try #require(error.errorDescription)
         #expect(message.contains("group.com.example.app"))
         #expect(message.contains("xtool auth login --mode password"))
+        // what the CLI prints for `"\(error)"`
+        #expect("\(error)" == message)
+        #expect(String(describing: error as any Swift.Error) == message)
     }
 
     @Test func appGroupsAreKeptWhenTheProfileHasThem() throws {
