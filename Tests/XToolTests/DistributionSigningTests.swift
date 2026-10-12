@@ -265,18 +265,43 @@ private func resolved(
         #expect(!app.appendingPathComponent("embedded.mobileprovision").exists)
     }
 
-    @Test func refusesExtensionsUntilTheSignerSupportsThem() async throws {
-        let app = try makeApp(extensions: ["\(SigningFixtures.bundleID).widget"])
-        defer { try? FileManager.default.removeItem(at: app.deletingLastPathComponent()) }
+    @Test func signsEachBundleWithItsOwnProfileAndEntitlements() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let app = try FakeApp.writeBundle(
+            at: root.appendingPathComponent("Test.app"), id: SigningFixtures.bundleID
+        )
+        let widgetID = "\(SigningFixtures.bundleID).widget"
+        let widget = try FakeApp.writeBundle(
+            at: app.appendingPathComponent("PlugIns/Widget.appex"), id: widgetID
+        )
 
         let signer = try DistributionSigner(
             identity: identity(),
             profiles: [profile(SigningFixtures.appstoreProfile), profile(SigningFixtures.appextensionProfile)]
         )
-        await #expect(throws: DistributionSigningError.extensionsNotSupported(["\(SigningFixtures.bundleID).widget"])) {
-            try await signer.sign(app: app)
+        let result = try await signer.sign(app: app)
+        #expect(result.bundleID == SigningFixtures.bundleID)
+
+        let appEnts = try #require(try FakeApp.entitlements(ofExecutable: app.appendingPathComponent("main")))
+        let widgetEnts = try #require(try FakeApp.entitlements(ofExecutable: widget.appendingPathComponent("main")))
+        let team = SigningFixtures.teamID
+        #expect(appEnts["application-identifier"] as? String == "\(team).\(SigningFixtures.bundleID)")
+        #expect(widgetEnts["application-identifier"] as? String == "\(team).\(widgetID)")
+        #expect(appEnts["keychain-access-groups"] as? [String] == ["\(team).\(SigningFixtures.bundleID)"])
+        #expect(widgetEnts["keychain-access-groups"] as? [String] == ["\(team).\(widgetID)"])
+        for ents in [appEnts, widgetEnts] {
+            #expect(ents["get-task-allow"] == nil)
+            #expect(ents["aps-environment"] as? String == "production")
         }
-        // nothing is modified when we bail out
-        #expect(!app.appendingPathComponent("embedded.mobileprovision").exists)
+
+        // each bundle carries the profile that matches it
+        let appProfile = try Mobileprovision(contentsOf: app.appendingPathComponent("embedded.mobileprovision"))
+        let widgetProfile = try Mobileprovision(contentsOf: widget.appendingPathComponent("embedded.mobileprovision"))
+        #expect(try appProfile.data() == profile(SigningFixtures.appstoreProfile).mobileprovision.data())
+        #expect(try widgetProfile.data() == profile(SigningFixtures.appextensionProfile).mobileprovision.data())
+        #expect(app.appendingPathComponent("_CodeSignature/CodeResources").exists)
+        #expect(widget.appendingPathComponent("_CodeSignature/CodeResources").exists)
     }
 }

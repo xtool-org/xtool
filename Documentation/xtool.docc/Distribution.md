@@ -55,8 +55,6 @@ The entitlements are derived from the profile, so that the signature matches wha
 
 To use a specific set of entitlements instead of the ones already in the app, pass `--entitlements Entitlements.plist`.
 
-The profile is copied into the app as `embedded.mobileprovision`.
+Extensions (`.appex`) are signed with their own profile and entitlements. Pass one `--profile` per bundle: each bundle uses the profile that best matches its bundle ID.
 
-## Limitations
-
-Apps with extensions (`.appex`) or a watch app can't be signed for distribution yet. The signer applies a single set of entitlements to the whole bundle, and an extension needs its own. xtool stops with an error instead of producing a signature the App Store would reject.
+The profile is copied into each bundle as `embedded.mobileprovision`.

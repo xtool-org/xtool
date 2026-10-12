@@ -75,10 +75,6 @@ public struct DistributionSigner: Sendable {
             ))
         }
 
-        if prepared.count > 1 && !Signer.appliesEntitlementsPerBundle {
-            throw DistributionSigningError.extensionsNotSupported(prepared.dropFirst().map(\.bundleID))
-        }
-
         for bundle in prepared {
             let destination = bundle.url.appendingPathComponent("embedded.mobileprovision")
             if destination.exists {

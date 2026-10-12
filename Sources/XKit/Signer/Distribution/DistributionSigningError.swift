@@ -15,7 +15,6 @@ public enum DistributionSigningError: LocalizedError, Equatable {
     case noMatchingProfile(bundleID: String)
     case entitlementNotInProfile(key: String, profile: String)
     case invalidApp(String)
-    case extensionsNotSupported([String])
 
     public var errorDescription: String? {
         switch self {
@@ -50,9 +49,6 @@ public enum DistributionSigningError: LocalizedError, Equatable {
             "The entitlement '\(key)' is requested but not allowed by the profile '\(profile)'."
         case .invalidApp(let reason):
             "Invalid app: \(reason)"
-        case .extensionsNotSupported(let bundleIDs):
-            "Signing app extensions for distribution is not supported yet (\(bundleIDs.joined(separator: ", "))). "
-                + "The signer applies a single entitlements set to the whole bundle (see #131)."
         }
     }
 }
