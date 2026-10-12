@@ -225,6 +225,12 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
             signingInfo: signingInfo
         ).perform()
 
+        // the profile is created last and doesn't necessarily grant everything we're about to claim
+        let profile = try mobileprovision.digest()
+        entitlements = try EntitlementsReconciler.reconcile(
+            entitlements, with: profile.entitlements, profileName: profile.name
+        )
+
         return ProvisioningInfo(
             newBundleID: newBundleID,
             entitlements: entitlements,
