@@ -31,6 +31,11 @@ public actor Signer {
         }
     }
 
+    /// Whether `sign` honours a separate entitlements set for each bundle in the mapping.
+    /// This is `false` until Zupersign can do so (#131): it currently signs every executable
+    /// with the entitlements of the root app.
+    public static let appliesEntitlementsPerBundle = false
+
     public enum Identity {
         case real(Certificate, PrivateKey)
         case adhoc

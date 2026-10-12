@@ -65,6 +65,17 @@ public struct Certificate: Codable, Sendable {
         return String(content)
     }
 
+    public var expirationDate: Date {
+        raw.notValidAfter
+    }
+
+    /// Whether the certificate is an Apple Distribution (or legacy iPhone Distribution) identity,
+    /// as opposed to a development one. Apple encodes this in the common name.
+    public func isDistribution() throws -> Bool {
+        let name = try developerIdentity()
+        return name.hasPrefix("Apple Distribution:") || name.hasPrefix("iPhone Distribution:")
+    }
+
     public func wasIssuedBefore(_ other: Certificate) -> Bool {
         raw.notValidBefore < other.raw.notValidBefore
     }
