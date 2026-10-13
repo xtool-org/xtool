@@ -71,15 +71,26 @@ enum MacRunOperation {
     }
 }
 
-struct DevVerifyCommand: ParsableCommand {
+struct DevVerifyCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "verify", abstract: "Verify a macOS app and its unchanged deferred-signing handoff"
+        commandName: "verify", abstract: "Verify a macOS build handoff or signed artifact"
     )
     @Argument(help: "Path to the .app; its .artifact.json and signing inputs must remain beside it")
     var app: String
 
-    func run() throws {
-        try MacArtifact.verify(bundle: URL(fileURLWithPath: app))
-        print("Verified artifact and signing inputs: \(app)")
+    @Flag(help: "Verify the adjacent signing receipt and native signatures instead of the pre-signing handoff")
+    var signed = false
+
+    func run() async throws {
+        let bundle = URL(fileURLWithPath: app)
+        if signed {
+            let receipt = try MacSigningReceipt.verify(bundle: bundle)
+            // The receipt check already verified the inventory.
+            _ = try await MacSigningOperation.verify(bundle: bundle, receipt: receipt, verifyInventory: false)
+            print("Verified signed artifact and signatures: \(app)")
+        } else {
+            try MacArtifact.verify(bundle: bundle)
+            print("Verified artifact and signing inputs: \(app)")
+        }
     }
 }

@@ -70,7 +70,7 @@ xtool dev run --app /path/to/MyApp.app -- --your-app-argument
 
 The app runs in the foreground with terminal output and exit-status propagation. Ctrl-C
 cancels the child process. Apps requiring entitlements or additional signing must be signed
-externally first; this workflow does not provision, sign, notarize or install applications.
+first; the run command does not add signatures or install applications.
 
 Copy the `.app`, `.artifact.json`, `.signing.json`, and `.signing-inputs/` together for a
 portable handoff. `dev verify` checks the unchanged **pre-signing** bundle, resource files,
@@ -80,8 +80,34 @@ The inventory also records nested-code signing order and audits static Mach-O de
 It detects changes, but does not authenticate who built the app or prove arbitrary `dlopen` paths.
 
 Linux builds remain Release-only. A prepared SDK can be selected with `--swift-sdks-path`,
-and `--scratch-path` selects a separate macOS build directory. macOS project generation,
-identity signing and notarization remain separate work.
+and `--scratch-path` selects a separate macOS build directory. macOS project generation
+and provisioning remain separate work.
+
+### macOS signing
+
+Sign a verified build handoff on a Mac into a **new** output directory:
+
+```sh
+xtool dev sign xtool/MyApp.app --output signed --mode ad-hoc --dry-run
+xtool dev sign xtool/MyApp.app --output signed --mode ad-hoc
+xtool dev verify signed/MyApp.app --signed
+# Certificate modes require an explicit certificate SHA-1 fingerprint:
+xtool dev sign xtool/MyApp.app --output release-signed --mode developer-id --identity "$CERTIFICATE_SHA1"
+```
+
+`development` selects an Apple Development certificate; `developer-id` requires a
+Developer ID Application certificate, hardened runtime and a secure timestamp. The signer
+checks the actual certificate fingerprint and category. It does not select identities,
+create certificates or provision capabilities. Provisioning-dependent entitlements are rejected.
+
+Signing works on a private copy, applies each product's own entitlements in nested-code order,
+and verifies signatures and effective entitlements before publishing. Input files remain unchanged;
+existing output directories are rejected. The adjacent `.signing-receipt.json` records the original
+artifact digest, signed inventory and verified signing metadata. Keep it with the signed app.
+`dev verify --signed` checks that receipt and native signatures on a Mac. Inventories cover file
+contents, executable bits and symlinks, not extended attributes, and are local integrity records
+rather than authenticated build attestations. Old content-addressed entitlement inputs are retained
+when replacing a build handoff so an interrupted update cannot delete the previous inputs.
 
 ### Library
 

@@ -56,6 +56,10 @@ public struct ArtifactInventory: Codable, Sendable, Equatable {
         }
     }
 
+    public static func hash(data: Data) -> String {
+        SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+    }
+
     public static func hash(_ url: URL) throws -> String {
         let handle = try FileHandle(forReadingFrom: url)
         defer { try? handle.close() }

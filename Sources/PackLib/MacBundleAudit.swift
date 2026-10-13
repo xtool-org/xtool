@@ -26,7 +26,7 @@ public enum MacBundleAudit {
         let main = try executable(in: root)
         let inventory = try ArtifactInventory(directory: root, hashContents: false)
         var code: [String: MachOBinary.Slice] = [:]
-        var signing: Set<String> = [""]
+        var signing: Set<String> = []
         for (path, entry) in inventory.files where entry.kind == "file" {
             let url = root.appendingPathComponent(path)
             let handle = try FileHandle(forReadingFrom: url)
@@ -41,7 +41,10 @@ public enum MacBundleAudit {
                 throw StringError("Incompatible nested code: \(path)")
             }
             code[path] = slice
-            signing.insert(signingPath(path))
+            let node = try signingPath(for: path, in: root)
+            guard signing.insert(node).inserted else {
+                throw StringError("Multiple principal executables share signing node '\(node)'; keep one framework version")
+            }
         }
         let mainPath = String(main.path.dropFirst(root.path.count + 1))
         guard code[mainPath]?.fileType == 2 else { throw StringError("Application executable is not macOS Mach-O code") }
@@ -52,16 +55,56 @@ public enum MacBundleAudit {
         }
     }
 
-    private static func signingPath(_ path: String) -> String {
+    /// Maps only a bundle's declared principal executable to its signing node.
+    /// Additional Mach-O files remain separate nodes, even in Contents/MacOS.
+    public static func signingPath(for executablePath: String, in bundle: URL) throws -> String {
+        try ResourceDestination.validateRelativePath(executablePath)
+        let root = bundle.resolvingSymlinksInPath().standardizedFileURL
+        let executable = root.appendingPathComponent(executablePath).resolvingSymlinksInPath().standardizedFileURL
+        guard executable.path.hasPrefix(root.path + "/") else {
+            throw StringError("Signing executable escapes bundle: \(executablePath)")
+        }
+        let path = String(executable.path.dropFirst(root.path.count + 1))
         let parts = path.split(separator: "/").map(String.init)
-        if let index = parts.lastIndex(where: { $0.hasSuffix(".framework") }),
-           String(parts[index].dropLast(".framework".count)) == parts.last {
-            return parts[...index].joined(separator: "/")
+        if let index = parts.lastIndex(where: { $0.hasSuffix(".framework") }) {
+            let frameworkPath = parts[...index].joined(separator: "/")
+            let framework = root.appendingPathComponent(frameworkPath)
+            let version = executable.deletingLastPathComponent()
+            let candidates = [version.appendingPathComponent("Resources/Info.plist"),
+                              framework.appendingPathComponent("Resources/Info.plist"),
+                              framework.appendingPathComponent("Info.plist")]
+            if let plist = candidates.first(where: { FileManager.default.fileExists(atPath: $0.path) }) {
+                let info = try metadata(at: plist)
+                if let name = info["CFBundleExecutable"] as? String {
+                    try ResourceDestination.validateRelativePath(name)
+                    guard !name.contains("/") else { throw StringError("Invalid framework executable name") }
+                    let expected = version.appendingPathComponent(name).resolvingSymlinksInPath()
+                    // A helper's directory is not a framework principal location.
+                    let principalDirectory = parts.count == index + 2 ||
+                        (parts.count == index + 4 && parts[index + 1] == "Versions")
+                    if principalDirectory && expected == executable { return frameworkPath }
+                }
+            } else if String(parts[index].dropLast(".framework".count)) == parts.last,
+                      parts.count == index + 2 || (parts.count == index + 4 && parts[index + 1] == "Versions") {
+                // Preserve support for minimal frameworks without metadata.
+                return frameworkPath
+            }
         }
         if parts.count >= 3, parts[parts.count - 3] == "Contents", parts[parts.count - 2] == "MacOS" {
-            return parts.dropLast(3).joined(separator: "/")
+            let bundlePath = parts.dropLast(3).joined(separator: "/")
+            let plist = root.appendingPathComponent(bundlePath).appendingPathComponent("Contents/Info.plist")
+            if FileManager.default.fileExists(atPath: plist.path),
+               try metadata(at: plist)["CFBundleExecutable"] as? String == parts.last {
+                return bundlePath
+            }
         }
         return path
+    }
+
+    private static func metadata(at url: URL) throws -> [String: Any] {
+        guard let info = try PropertyListSerialization.propertyList(from: Data(contentsOf: url), format: nil)
+            as? [String: Any] else { throw StringError("Invalid bundle metadata: \(url.path)") }
+        return info
     }
 
     private static func validateDependencies(_ code: [String: MachOBinary.Slice], root: URL, main: String) throws {

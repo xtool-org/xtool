@@ -78,6 +78,7 @@ public struct MacArtifact: Codable, Sendable {
             throw StringError("Invalid deferred signing product inventory")
         }
         let root = bundle.resolvingSymlinksInPath()
+        var nodes: Set<String> = []
         for product in manifest.products {
             try ResourceDestination.validateRelativePath(product.executablePath)
             if !product.bundlePath.isEmpty { try ResourceDestination.validateRelativePath(product.bundlePath) }
@@ -85,11 +86,25 @@ public struct MacArtifact: Codable, Sendable {
             guard executable.path.hasPrefix(root.path + "/"), FileManager.default.isExecutableFile(atPath: executable.path) else {
                 throw StringError("Missing signing product executable: \(product.executablePath)")
             }
+            let canonicalPath = String(executable.path.dropFirst(root.path.count + 1))
+            guard canonicalPath == product.executablePath else {
+                throw StringError("Signing product executable must use its canonical path")
+            }
+            let node = try MacBundleAudit.signingPath(for: canonicalPath, in: root)
+            guard nodes.insert(node).inserted, node == product.bundlePath else {
+                throw StringError("Signing products must identify unique signing nodes")
+            }
+            let name = executable.lastPathComponent
+            let layout = BundleLayout(platform: .macOS, kind: product.kind, name: name)
+            guard product.bundlePath == layout.bundlePath, product.executablePath == layout.executablePath else {
+                throw StringError("Signing product kind does not match its bundle location")
+            }
             if product.kind != .helperExecutable {
                 let plist = root.appendingPathComponent(product.bundlePath).appendingPathComponent("Contents/Info.plist")
                 let info = try PropertyListSerialization.propertyList(from: Data(contentsOf: plist), format: nil) as? [String: Any]
                 guard info?["CFBundleIdentifier"] as? String == product.bundleID,
-                      info?["CFBundleExecutable"] as? String == executable.lastPathComponent else {
+                      info?["CFBundleExecutable"] as? String == name,
+                      info?["CFBundlePackageType"] as? String == product.kind.fourCharCode else {
                     throw StringError("Signing product identity differs from Info.plist: \(product.bundleID)")
                 }
             }

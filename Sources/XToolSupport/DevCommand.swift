@@ -459,16 +459,15 @@ enum DeferredSigningHandoff {
             guard try PropertyListSerialization.propertyList(from: data, options: [], format: nil) is [String: Any] else {
                 throw Console.Error("Entitlements must be a property-list dictionary: \(path)")
             }
-            let filename = "\(index).entitlements.plist"
+            let filename = "\(index)-\(ArtifactInventory.hash(data: data)).entitlements.plist"
             files.append((filename, data))
             manifest.products[index].entitlementsPath = "\(inputs.lastPathComponent)/\(filename)"
         }
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         let data = try encoder.encode(manifest)
-        if FileManager.default.fileExists(atPath: inputs.path) {
-            try FileManager.default.removeItem(at: inputs)
-        }
+        // Content-addressed inputs keep the previous manifest usable until atomic replacement.
+        // Retain older generations: an interrupted build must not invalidate existing handoffs.
         if !files.isEmpty {
             try FileManager.default.createDirectory(at: inputs, withIntermediateDirectories: true)
             for (filename, contents) in files {
@@ -537,6 +536,7 @@ struct DevCommand: AsyncParsableCommand {
             DevBuildCommand.self,
             DevRunCommand.self,
             DevVerifyCommand.self,
+            MacSignCommand.self,
             DevBSPCommand.self,
         ],
         defaultSubcommand: DevRunCommand.self

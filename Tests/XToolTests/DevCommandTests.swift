@@ -300,6 +300,29 @@ struct DevCommandTests {
         }
     }
 
+    @Test func replacingHandoffPreservesPreviousEntitlementGeneration() throws {
+        let directory = try root()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let source = directory.appendingPathComponent("entitlements.plist")
+        let first = try PropertyListSerialization.data(fromPropertyList: ["test.flag": true], format: .xml, options: 0)
+        try first.write(to: source)
+        let target = try ResolvedTarget.resolve(cliTarget: "arm64-apple-macosx15.0")
+        let app = product("App", kind: .application, target: target, entitlements: "entitlements.plist")
+        let plan = try Plan(target: target, app: app)
+        let bundle = directory.appendingPathComponent("App.app")
+        let url = try DeferredSigningHandoff.write(plan: plan, bundle: bundle, sourceDirectory: directory)
+        let previous = try JSONDecoder().decode(DeferredSigningManifest.self, from: Data(contentsOf: url))
+        let previousPath = try #require(previous.products.first?.entitlementsPath)
+        let second = try PropertyListSerialization.data(fromPropertyList: ["test.flag": false], format: .xml, options: 0)
+        try second.write(to: source)
+        _ = try DeferredSigningHandoff.write(plan: plan, bundle: bundle, sourceDirectory: directory)
+        let current = try JSONDecoder().decode(DeferredSigningManifest.self, from: Data(contentsOf: url))
+        let currentPath = try #require(current.products.first?.entitlementsPath)
+        #expect(currentPath != previousPath)
+        #expect(try Data(contentsOf: directory.appendingPathComponent(previousPath)) == first)
+        #expect(try Data(contentsOf: directory.appendingPathComponent(currentPath)) == second)
+    }
+
     @Test func malformedEntitlementsRejectWithoutWritingHandoff() throws {
         let directory = try root()
         defer { try? FileManager.default.removeItem(at: directory) }

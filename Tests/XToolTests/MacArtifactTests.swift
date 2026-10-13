@@ -76,7 +76,10 @@ struct MacArtifactTests {
         let directory = try root()
         defer { try? FileManager.default.removeItem(at: directory) }
         let app = try handoff(at: directory)
-        try Data("changed".utf8).write(to: directory.appendingPathComponent("App.signing-inputs/0.entitlements.plist"))
+        let manifest = try JSONDecoder().decode(DeferredSigningManifest.self,
+                                                from: Data(contentsOf: directory.appendingPathComponent("App.signing.json")))
+        let input = try #require(manifest.products.first?.entitlementsPath)
+        try Data("changed".utf8).write(to: directory.appendingPathComponent(input))
         #expect(throws: (any Error).self) { try MacArtifact.verify(bundle: app) }
     }
 
