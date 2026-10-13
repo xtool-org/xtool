@@ -109,6 +109,34 @@ contents, executable bits and symlinks, not extended attributes, and are local i
 rather than authenticated build attestations. Old content-addressed entitlement inputs are retained
 when replacing a build handoff so an interrupted update cannot delete the previous inputs.
 
+### macOS notarization
+
+Use the Developer ID signed output and an existing, explicitly selected `notarytool`
+keychain profile. These commands run on a Mac:
+
+```sh
+xtool dev notarize submit release-signed/MyApp.app --output notarized --keychain-profile "$NOTARY_PROFILE"
+xtool dev notarize resume notarized --keychain-profile "$NOTARY_PROFILE" --timeout 60
+xtool dev notarize log notarized --keychain-profile "$NOTARY_PROFILE"
+# Once accepted:
+xtool dev notarize staple notarized
+xtool dev notarize verify notarized
+```
+
+`status` queries without waiting. `submit` never reuses an existing output directory.
+An interrupted submission with no recorded UUID remains uncertain: recover with
+`resume --submission-id UUID` only when Apple's completed log matches the original upload
+SHA-256. Status, resume and log never upload again. A wait timeout leaves the recorded attempt
+available for later queries. Credentials are neither created nor selected automatically.
+
+The release directory retains the original signed snapshot and upload ZIP, append-only receipt
+files, and the Apple log binding acceptance to that exact archive. Stapling publishes a separate
+`distribution/` containing the app, `distribution.zip` and a recovery receipt. Verification checks
+that final inventory, archive hash, native signatures and stapled ticket. Interrupted distribution
+publication can be resumed with `staple`. Preserve the complete directory for later verification.
+These local receipts are not authenticated attestations or a guarantee of Gatekeeper approval.
+The existing Fastlane release of xtool itself remains independent.
+
 ### Library
 
 xtool includes a library that you can use to interact with Apple Developer Services, iOS devices, and more from your own app. You can use this by adding `XKit` as a SwiftPM dependency.
