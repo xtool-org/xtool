@@ -43,8 +43,40 @@ public struct DarwinSDK {
 
     /// The SDK directory (e.g. `iPhoneOS27.1.sdk`) that builds for `triple` link against, if installed.
     ///
-    /// The unversioned `iPhoneOS.sdk` symlink is not used because its target is what carries the version.
+    /// This is the SDK `swift-sdk.json` names for the triple, i.e. the one SwiftPM compiles against, so
+    /// the link uses the same SDK as the compilation. Bundles from before that file listed it fall back
+    /// to the newest versioned SDK on disk.
     package func sdkRoot(forTriple triple: String) -> URL? {
+        sdkRootFromMetadata(forTriple: triple) ?? newestSDKRoot(forTriple: triple)
+    }
+
+    private func sdkRootFromMetadata(forTriple triple: String) -> URL? {
+        struct Definition: Decodable {
+            struct Target: Decodable {
+                let sdkRootPath: String
+            }
+            let targetTriples: [String: Target]
+        }
+        guard let data = try? Data(contentsOf: bundle.appendingPathComponent("swift-sdk.json")),
+              let definition = try? JSONDecoder().decode(Definition.self, from: data)
+        else { return nil }
+
+        // `triple` may carry an OS version (arm64-apple-ios17.0-simulator) that the keys don't
+        let wanted = Self.versionless(triple)
+        let target = definition.targetTriples.first { Self.versionless($0.key) == wanted }?.value
+        return target
+            .map { bundle.appendingPathComponent($0.sdkRootPath, isDirectory: true) }
+            .flatMap { $0.dirExists ? $0 : nil }
+    }
+
+    /// `arm64-apple-ios17.0-simulator` -> `arm64-apple-ios-simulator`
+    private static func versionless(_ triple: String) -> String {
+        triple.split(separator: "-", omittingEmptySubsequences: false)
+            .map { $0.prefix { !$0.isNumber } }
+            .joined(separator: "-")
+    }
+
+    private func newestSDKRoot(forTriple triple: String) -> URL? {
         let platform: String
         switch Packer.cfBundleSupportedPlatforms(for: triple) {
         case ["iPhoneSimulator"]: platform = "iPhoneSimulator"

@@ -67,3 +67,38 @@ func generatedLinkerSettingsIncludeSysroot(type: Plan.ProductType) {
     #expect(sdk.sdkRoot(forTriple: "arm64-apple-ios17.0-simulator")?.lastPathComponent == "iPhoneSimulator27.1.sdk")
     #expect(sdk.sdkRoot(forTriple: "arm64-apple-macosx") == nil)
 }
+
+@Test func sdkRootFollowsSwiftSDKMetadata() throws {
+    let bundle = FileManager.default.temporaryDirectory
+        .appendingPathComponent("SysrootMetadataTests-\(UUID().uuidString)", isDirectory: true)
+    defer { try? FileManager.default.removeItem(at: bundle) }
+    for sdk in [
+        "iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk",
+        "iPhoneOS.platform/Developer/SDKs/iPhoneOS27.1.sdk",
+        "iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk",
+        "iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk",
+    ] {
+        try FileManager.default.createDirectory(
+            at: bundle.appendingPathComponent("Developer/Platforms/\(sdk)"),
+            withIntermediateDirectories: true
+        )
+    }
+    try Data("epoch=4\n".utf8).write(to: bundle.appendingPathComponent("darwin-sdk-version.txt"))
+    // SDKBuilder records the first matching SDK, which is not the newest one here
+    let metadata = """
+    {"schemaVersion": "4.0", "targetTriples": {
+      "arm64-apple-ios": {"sdkRootPath": "Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk"},
+      "arm64-apple-ios-simulator": {
+        "sdkRootPath": "Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk"
+      }
+    }}
+    """
+    try Data(metadata.utf8).write(to: bundle.appendingPathComponent("swift-sdk.json"))
+    let sdk = try #require(DarwinSDK(bundle: bundle))
+
+    #expect(sdk.sdkRoot(forTriple: "arm64-apple-ios")?.lastPathComponent == "iPhoneOS26.5.sdk")
+    #expect(sdk.sdkRoot(forTriple: "arm64-apple-ios17.0")?.lastPathComponent == "iPhoneOS26.5.sdk")
+    #expect(sdk.sdkRoot(forTriple: "arm64-apple-ios17.0-simulator")?.lastPathComponent == "iPhoneSimulator26.5.sdk")
+    // a triple the metadata doesn't list falls back to the newest SDK on disk
+    #expect(sdk.sdkRoot(forTriple: "x86_64-apple-ios-simulator")?.lastPathComponent == "iPhoneSimulator27.1.sdk")
+}
