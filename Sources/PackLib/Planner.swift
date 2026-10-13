@@ -20,10 +20,6 @@ public struct Planner: Sendable {
         return decoder
     }()
 
-    // anything older than this requires bundling the stdlib which
-    // is doable but probably not worth the effort
-    private static let minSupportedIOSVersion = "13.0"
-
     private func buildGraph() async throws -> PackageGraph {
         let dependencyRoot = try await dumpDependencies()
 
@@ -75,10 +71,33 @@ public struct Planner: Sendable {
     public func createPlan() async throws -> Plan {
         // TODO: cache plan using (Package.swift+Package.resolved) as the key?
 
+        // Validate the selected platform before invoking SwiftPM. The CLI supplies
+        // schema/override precedence through BuildSettings in the command integration.
+        let selectedTriple = try TargetTriple(buildSettings.triple)
+        try schema.validate(for: selectedTriple.platform)
+        guard selectedTriple.platform != .macOS else {
+            throw StringError("macOS product planning is not implemented yet")
+        }
+        guard schema.target == nil else {
+            throw StringError("Schema target selection is not integrated with the build command yet; use --triple")
+        }
+        guard schema.source == nil, schema.resourceCopies == nil, schema.nestedProducts == nil,
+              !(schema.extensions ?? []).contains(where: { $0.source != nil || $0.resourceCopies != nil }) else {
+            throw StringError("Version 2 product sources and resource destinations are not implemented yet")
+        }
         let graph = try await buildGraph()
+        let target = try ResolvedTarget.resolve(
+            cliTarget: buildSettings.triple,
+            schema: schema,
+            packageDeploymentTargets: Dictionary(
+                (graph.root.platforms ?? []).map { ($0.name, $0.version) },
+                uniquingKeysWith: { first, _ in first }
+            )
+        )
 
         let app = try await product(
             from: graph,
+            target: target,
             matching: schema.product,
             type: .application,
             plist: schema.infoPath,
@@ -95,6 +114,7 @@ public struct Planner: Sendable {
                     group.addTask {
                         try await product(
                             from: graph,
+                            target: target,
                             matching: ext.product,
                             type: .appExtension,
                             plist: ext.infoPath,
@@ -111,12 +131,13 @@ public struct Planner: Sendable {
             extensionProducts = []
         }
 
-        return Plan(app: app, extensions: extensionProducts)
+        return try Plan(target: target, app: app, extensions: extensionProducts)
     }
 
     // swiftlint:disable cyclomatic_complexity function_parameter_count
     private func product(
         from graph: PackageGraph,
+        target: ResolvedTarget,
         matching name: String?,
         type: Plan.ProductType,
         plist: String?,
@@ -164,8 +185,7 @@ public struct Planner: Sendable {
         }
 
         let bundleID = idSpecifier.formBundleID(product: library.name)
-        let deploymentTarget = graph.root.platforms?.first { $0.name == "ios" }?.version
-            ?? Self.minSupportedIOSVersion
+        let deploymentTarget = target.deploymentTarget
 
         var infoPlist: [String: Sendable] = [
             "CFBundleInfoDictionaryVersion": "6.0",
@@ -191,6 +211,8 @@ public struct Planner: Sendable {
                 "UIInterfaceOrientationLandscapeRight",
             ]
             infoPlist["UILaunchScreen"] = [:] as [String: Sendable]
+        case .xpcService, .helperExecutable:
+            throw StringError("macOS nested product planning is not implemented yet")
         case .appExtension:
             // Should set default parameters?
             infoPlist["NSExtension"] = [:] as [String: Sendable]
@@ -207,9 +229,9 @@ public struct Planner: Sendable {
         }
 
         return Plan.Product(
+            target: target,
             type: type,
             product: library.name,
-            deploymentTarget: deploymentTarget,
             bundleID: bundleID,
             infoPlist: infoPlist,
             resources: resources,
@@ -291,69 +313,6 @@ public struct Planner: Sendable {
                 """)
             }
             return product
-        }
-    }
-}
-
-public struct Plan: Sendable {
-    public var app: Product
-    public var extensions: [Product]
-
-    public var allProducts: [Product] {
-        [app] + extensions
-    }
-
-    public enum Resource: Codable, Sendable, Hashable {
-        case bundle(package: String, target: String)
-        case binaryTarget(name: String)
-        case library(name: String)
-        case root(source: String)
-    }
-
-    public struct Product: Sendable {
-        public var type: ProductType
-        public var product: String
-        public var deploymentTarget: String
-        public var bundleID: String
-        public var infoPlist: [String: any Sendable]
-        public var resources: [Resource]
-        public var iconPath: String?
-        public var entitlementsPath: String?
-
-        public var targetName: String {
-            "\(self.product)-\(self.type.targetSuffix)"
-        }
-
-        public func directory(inApp baseDir: URL) -> URL {
-            switch type {
-            case .application:
-                baseDir
-                    .appendingPathComponent(".", isDirectory: true)
-            case .appExtension:
-                baseDir
-                    .appendingPathComponent("PlugIns", isDirectory: true)
-                    .appendingPathComponent(product, isDirectory: true)
-                    .appendingPathExtension("appex")
-            }
-        }
-    }
-
-    public enum ProductType: Sendable {
-        case application
-        case appExtension
-
-        fileprivate var targetSuffix: String {
-            switch self {
-            case .application: "App"
-            case .appExtension: "Extension"
-            }
-        }
-
-        fileprivate var fourCharCode: String {
-            switch self {
-            case .application: "APPL"
-            case .appExtension: "XPC!"
-            }
         }
     }
 }

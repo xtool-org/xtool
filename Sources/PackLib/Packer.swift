@@ -1,108 +1,43 @@
 import Foundation
 import XUtils
-import Subprocess
+import Dependencies
 
 public struct Packer: Sendable {
     public let buildSettings: BuildSettings
     public let plan: Plan
+
+    @Dependency(\.productBuilder) private var productBuilder
 
     public init(buildSettings: BuildSettings, plan: Plan) {
         self.plan = plan
         self.buildSettings = buildSettings
     }
 
-    private func build() async throws {
-        let xtoolDir = URL(fileURLWithPath: "xtool")
-        let packageDir = xtoolDir.appendingPathComponent(".xtool-tmp")
-        try? FileManager.default.removeItem(at: packageDir)
-        try FileManager.default.createDirectory(at: packageDir, withIntermediateDirectories: true)
-
-        let packageSwift = packageDir.appendingPathComponent("Package.swift")
-        let contents = """
-        // swift-tools-version: 6.0
-        import PackageDescription
-        let package = Package(
-            name: "\(plan.app.product)-Builder",
-            platforms: [
-                .iOS("\(plan.app.deploymentTarget)"),
-            ],
-            dependencies: [
-                .package(name: "RootPackage", path: "../.."),
-            ],
-            targets: [
-                \(
-                    plan.allProducts.map {
-                        """
-                        .executableTarget(
-                            name: "\($0.targetName)",
-                            dependencies: [
-                                .product(name: "\($0.product)", package: "RootPackage"),
-                            ],
-                            linkerSettings: \($0.linkerSettings)
-                        )
-                        """
-                    }
-                    .joined(separator: ",\n")
-                )
-            ]
-        )\n
-        """
-        try Data(contents.utf8).write(to: packageSwift)
-
-        for product in plan.allProducts {
-            let sources: URL = packageDir.appendingPathComponent("Sources/\(product.targetName)", isDirectory: true)
-            try FileManager.default.createDirectory(at: sources, withIntermediateDirectories: true)
-            try Data().write(to: sources.appendingPathComponent("stub.c", isDirectory: false))
+    public func pack() async throws -> URL {
+        guard plan.target.platform != .macOS else {
+            throw StringError("macOS bundle assembly is not implemented yet")
         }
-
-        let buildConfig = try await buildSettings
-            .withPackagePath(packageDir.path)
-            .swiftPMInvocation(
-                forTool: "build",
-                arguments: [
-                    "--scratch-path", ".build",
-                    // resolving can cause SwiftPM to overwrite the root package deps
-                    // with just the deps needed for the builder package (which is to
-                    // say, any "dev dependencies" of the root package may be removed.)
-                    // fortunately we've already resolved the root package by this point
-                    // in order to dump the plan, so we can skip resolution here to skirt
-                    // the issue.
-                    "--disable-automatic-resolution",
-                ],
-            )
-        try await Subprocess.run(
-            buildConfig,
-            output: .currentStandardOutput,
-            error: .currentStandardError,
-        )
-        .checkSuccess()
+        let artifacts = try await productBuilder.build(buildSettings, plan)
+        return try await assemble(artifacts: artifacts)
     }
 
-    public func pack() async throws -> URL {
-        try await build()
+    /// Assembly consumes completed build artifacts and never compiles or signs.
+    public func assemble(artifacts: BuildArtifacts) async throws -> URL {
+        guard plan.target.platform != .macOS else {
+            throw StringError("macOS bundle assembly is not implemented yet")
+        }
+        let binDir = artifacts.directory
 
         let output = try TemporaryDirectory(name: "\(plan.app.product).app")
 
         let outputURL = output.url
-
-        let binPath: String
-        switch buildSettings.buildSystem {
-        case .swiftPM:
-            binPath = "\(buildSettings.triple)/\(buildSettings.configuration.rawValue)"
-        case .swiftBuild:
-            let platformName = buildSettings.triple.contains("simulator") ? "iphonesimulator" : "iphoneos"
-            binPath = "out/Products/\(buildSettings.configuration.swiftBuildValue)-\(platformName)"
-        }
-        let binDir = URL(
-            fileURLWithPath: ".build/\(binPath)",
-            isDirectory: true
-        )
 
         try await withThrowingTaskGroup(of: Void.self) { group in
             for product in plan.allProducts {
                 try pack(
                     product: product,
                     binDir: binDir,
+                    executable: artifacts.executables[product.product],
                     outputURL: product.directory(inApp: outputURL),
                     &group
                 )
@@ -129,6 +64,7 @@ public struct Packer: Sendable {
     @Sendable private func pack(
         product: Plan.Product,
         binDir: URL,
+        executable: URL?,
         outputURL: URL,
         _ group: inout ThrowingTaskGroup<Void, Error>
     ) throws {
@@ -174,6 +110,8 @@ public struct Packer: Sendable {
                     }
                 case .library(let name):
                     try await packFile(srcName: "lib\(name).dylib", dstName: "Frameworks/lib\(name).dylib", sign: true)
+                case .copy:
+                    throw StringError("Explicit resource destinations are not implemented yet")
                 case .root(let source):
                     try await packFileToRoot(srcName: source)
                 }
@@ -185,7 +123,10 @@ public struct Packer: Sendable {
             }
         }
         group.addTask {
-            try await packFile(srcName: product.targetName, dstName: product.product)
+            guard let executable else {
+                throw StringError("No built executable for product '\(product.product)'")
+            }
+            try await packFile(srcName: executable.path, dstName: product.product)
         }
         group.addTask {
             var info = product.infoPlist
@@ -193,7 +134,7 @@ public struct Packer: Sendable {
             if product.type == .application {
                 info["UIRequiredDeviceCapabilities"] = ["arm64"]
                 info["LSRequiresIPhoneOS"] = true
-                info["CFBundleSupportedPlatforms"] = Packer.cfBundleSupportedPlatforms(for: buildSettings.triple)
+                info["CFBundleSupportedPlatforms"] = [plan.target.platform.supportedPlatform]
             }
 
             if let iconPath = product.iconPath {
@@ -208,54 +149,6 @@ public struct Packer: Sendable {
                 options: 0
             )
             try encodedPlist.write(to: infoPath)
-        }
-    }
-
-    static func cfBundleSupportedPlatforms(for triple: String) -> [String] {
-        let components = triple.split(separator: "-").map(String.init)
-        guard let appleIndex = components.firstIndex(of: "apple"),
-              components.indices.contains(appleIndex + 1) else {
-            return ["iPhoneOS"]
-        }
-
-        let os = components[appleIndex + 1].prefix { !$0.isNumber }
-        switch os {
-        case "ios" where components.contains("simulator"):
-            return ["iPhoneSimulator"]
-        case "ios":
-            return ["iPhoneOS"]
-        case "macos", "macosx":
-            return ["MacOSX"]
-        default:
-            return ["iPhoneOS"]
-        }
-    }
-}
-
-extension Plan.Product {
-    fileprivate var linkerSettings: String {
-        switch self.type {
-        case .application: """
-        [
-            .unsafeFlags([
-                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
-            ]),
-        ]
-        """
-        case .appExtension: """
-        [
-            // Link to Foundation framework which implements the _NSExtensionMain entrypoint
-            .linkedFramework("Foundation"),
-            .unsafeFlags([
-                // Set the entry point to Foundation`_NSExtensionMain
-                "-Xlinker", "-e", "-Xlinker", "_NSExtensionMain",
-                // Include frameworks that the host app may use
-                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks",
-                // ...as well as our own
-                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
-            ]),
-        ]
-        """
         }
     }
 }
