@@ -129,4 +129,25 @@ import Testing
         #expect(outcome.removed.isEmpty)
         #expect(try outcome.entitlements.plistDictionary()["beta-reports-active"] as? Bool == true)
     }
+
+    private let environmentKey = "com.apple.developer.icloud-container-environment"
+
+    @Test func iCloudContainerEnvironmentTheProfileLacksIsAnError() throws {
+        let error = try #require(throws: EntitlementsReconciler.Error.self) {
+            try reconcile([environmentKey: "Production"], granted: developmentGrants)
+        }
+        #expect(error == .notGranted(key: environmentKey, profile: "dev profile"))
+    }
+
+    @Test func iCloudContainerEnvironmentMustBeOneTheProfileAllows() throws {
+        var granted = developmentGrants
+        granted[environmentKey] = ["Development", "Production"]
+        let result = try reconcile([environmentKey: "Development"], granted: granted)
+        #expect(result[environmentKey] as? String == "Development")
+
+        granted[environmentKey] = ["Development"]
+        #expect(throws: EntitlementsReconciler.Error.valueNotGranted(key: environmentKey, profile: "dev profile")) {
+            try reconcile([environmentKey: "Production"], granted: granted)
+        }
+    }
 }

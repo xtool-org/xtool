@@ -40,6 +40,12 @@ public enum EntitlementsReconciler {
     /// IPA carries them). A development profile never grants them, so re-signing for development drops them.
     private static let distributionOnlyKeys: Set<String> = [
         "beta-reports-active",
+    ]
+
+    /// Entitlements that are checked against the profile although xtool has no type for them. Dropping
+    /// these silently would change behavior without telling (the iCloud container environment decides
+    /// which CloudKit database the app talks to), so a profile that doesn't grant one is an error.
+    private static let checkedKeys: Set<String> = [
         "com.apple.developer.icloud-container-environment",
     ]
 
@@ -62,7 +68,7 @@ public enum EntitlementsReconciler {
 
     private static let knownKeys: Set<String> = Set(
         EntitlementContainer.supportedTypes.compactMap { ($0 as? any Entitlement.Type)?.identifier }
-    ).subtracting(derivedKeys)
+    ).subtracting(derivedKeys).union(checkedKeys)
 
     /// - Parameters:
     ///   - entitlements: What the app is going to be signed with.
@@ -115,6 +121,11 @@ public enum EntitlementsReconciler {
     /// Whether `grant` (a value from a profile, possibly with wildcards) allows `request`
     static func permits(grant: Any, request: Any) -> Bool {
         switch (grant, request) {
+        case let (grant as [String], request as String):
+            // a profile lists every value it allows, e.g. [Development, Production]
+            return permits(grant: grant, request: [request])
+        case let (grant as String, request as [String]):
+            return permits(grant: [grant], request: request)
         case let (grant as [String], request as [String]):
             return request.allSatisfy { item in
                 grant.contains { $0 == item || ($0.hasSuffix("*") && item.hasPrefix(String($0.dropLast()))) }
