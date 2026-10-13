@@ -220,12 +220,23 @@ public struct Packer: Sendable {
         case .application:
             info["LSRequiresIPhoneOS"] = true
         case .appExtension:
-            if info["UIDeviceFamily"] == nil {
-                info["UIDeviceFamily"] = [1, 2]
-            }
+            info["UIDeviceFamily"] = universalDeviceFamily(merging: plist["UIDeviceFamily"])
         }
 
         return info
+    }
+
+    /// App Review requires app extensions to be universal, whatever the containing app targets, so
+    /// iPhone (1) and iPad (2) are always present. A narrower value the user declared is widened.
+    private static func universalDeviceFamily(merging existing: (any Sendable)?) -> [Int] {
+        let declared = existing as? [Int] ?? []
+        let universal = Array(Set(declared).union([1, 2])).sorted()
+        if !declared.isEmpty, Set(declared) != Set(universal) {
+            let message = "warning: UIDeviceFamily \(declared) in an app extension Info.plist is not universal; "
+                + "using \(universal), as App Review requires\n"
+            FileHandle.standardError.write(Data(message.utf8))
+        }
+        return universal
     }
 
     /// `UIRequiredDeviceCapabilities` is either an array of names or a dictionary of name to Bool.
