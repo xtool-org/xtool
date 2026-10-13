@@ -37,7 +37,9 @@ public struct BundleLayout: Sendable, Equatable {
     }
 
     public var resourcesPath: String {
-        joined(contentsPath, platform == .macOS ? "Resources" : "")
+        // Helpers is a nested-code location; codeless payloads belong in the outer resource seal.
+        if platform == .macOS && kind == .helperExecutable { return "Contents/Resources" }
+        return joined(contentsPath, platform == .macOS ? "Resources" : "")
     }
 
     public var frameworksPath: String { joined(contentsPath, "Frameworks") }

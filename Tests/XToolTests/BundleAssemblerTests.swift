@@ -45,7 +45,8 @@ struct BundleAssemblerTests {
         let app = try product(resources: [.copy(.init(source: "agent.plist", destination: destination))])
         let ext = try product("Preview", kind: .appExtension)
         let xpc = try product("Service", kind: .xpcService)
-        let helper = try product("Helper", kind: .helperExecutable)
+        let helper = try product("Helper", kind: .helperExecutable,
+                                 resources: [.copy(.init(source: "agent.plist", destination: .init(path: "Helper.plist")))])
         let plan = try Plan(target: app.target, app: app, extensions: [ext], nestedProducts: [xpc, helper])
         let artifacts = try artifacts(plan, in: root)
         let output = root.appendingPathComponent("App.app")
@@ -70,7 +71,28 @@ struct BundleAssemblerTests {
         #expect(FileManager.default.fileExists(atPath: output.appendingPathComponent("Contents/Helpers/Helper").path))
         let agentCopy = output.appendingPathComponent("Contents/Library/LaunchAgents/test.plist")
         #expect(try Data(contentsOf: agentCopy) == Data(contentsOf: agent))
+        #expect(try Data(contentsOf: output.appendingPathComponent("Contents/Resources/Helper.plist")) == Data(contentsOf: agent))
         #expect(!FileManager.default.fileExists(atPath: output.appendingPathComponent("Contents/Helpers/Info.plist").path))
+    }
+
+    @Test func macOSResourceBundlesNeverCreateBundleRootAliases() throws {
+        let root = try root()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let resources: [Plan.Resource] = [.bundle(package: "Package", target: "Resources")]
+        let app = try product(resources: resources)
+        let ext = try product("Preview", kind: .appExtension, resources: resources)
+        let xpc = try product("Service", kind: .xpcService, resources: resources)
+        let plan = try Plan(target: app.target, app: app, extensions: [ext], nestedProducts: [xpc])
+        let artifacts = try artifacts(plan, in: root)
+        try write(at: artifacts.directory.appendingPathComponent("Package_Resources.bundle/message.txt"))
+        let output = root.appendingPathComponent("App.app")
+        try BundleAssembler(plan: plan, sourceDirectory: root).assemble(artifacts: artifacts, at: output)
+        for product in plan.allProducts {
+            let bundle = output.appendingPathComponent(product.layout.bundlePath)
+            #expect(try FileManager.default.contentsOfDirectory(atPath: bundle.path) == ["Contents"])
+            let resource = output.appendingPathComponent(product.layout.resourcesPath + "/Package_Resources.bundle/message.txt")
+            #expect(try String(contentsOf: resource, encoding: .utf8) == "fixture")
+        }
     }
 
     private func framework(_ name: String, in directory: URL, binary: String = "dynamic fixture") throws -> URL {
@@ -140,8 +162,9 @@ struct BundleAssemblerTests {
         let library = relocated.appendingPathComponent("Contents/Helpers/Frameworks/libShared.dylib")
         #expect(try String(contentsOf: library, encoding: .utf8) == "dynamic library")
         let alias = relocated.appendingPathComponent("Contents/Helpers/Shared_Resources.bundle")
-        #expect(try FileManager.default.destinationOfSymbolicLink(atPath: alias.path) == "Resources/Shared_Resources.bundle")
+        #expect(try FileManager.default.destinationOfSymbolicLink(atPath: alias.path) == "../Resources/Shared_Resources.bundle")
         #expect(try String(contentsOf: alias.appendingPathComponent("message.txt"), encoding: .utf8) == "shared resource")
+        #expect(!FileManager.default.fileExists(atPath: relocated.appendingPathComponent("Contents/Helpers/Resources").path))
     }
 
     @Test(arguments: [Plan.Resource.bundle(package: "Shared", target: "Resources"),
@@ -355,28 +378,49 @@ struct BundleAssemblerTests {
     }
 
     #if os(macOS)
-    @Test func generatedSwiftPMAccessorFindsRelocatedResources() async throws {
+    @Test(arguments: [BuildConfiguration.debug, .release])
+    func generatedSwiftPMAccessorFindsRelocatedResources(configuration: BuildConfiguration) async throws {
         let root = try root()
         defer { try? FileManager.default.removeItem(at: root) }
         let package = root.appendingPathComponent("package")
-        let manifest = """
+        try write("""
         // swift-tools-version: 6.0
         import PackageDescription
         let package = Package(name: "RelocationFixture", platforms: [.macOS("15.0")],
-                              products: [.executable(name: "Reader", targets: ["Reader"])],
-                              targets: [.executableTarget(name: "Reader", resources: [.copy("message.txt")])])
+                              products: [.library(name: "ResourceLibrary", type: .dynamic, targets: ["Resources"])],
+                              targets: [.target(name: "Resources", resources: [.copy("message.txt")])])
+        """, at: package.appendingPathComponent("Dependency/Package.swift"))
+        let manifest = """
+        // swift-tools-version: 6.0
+        import PackageDescription
+        let dependency: Target.Dependency = .product(name: "ResourceLibrary", package: "Dependency")
+        let package = Package(name: "Readers", platforms: [.macOS("15.0")], dependencies: [.package(path: "Dependency")],
+                              targets: [.executableTarget(name: "Reader", dependencies: [dependency]),
+                                        .executableTarget(name: "Service", dependencies: [dependency]),
+                                        .executableTarget(name: "Helper", dependencies: [dependency])])
         """
         try write(manifest, at: package.appendingPathComponent("Package.swift"))
-        try write("relocated resource", at: package.appendingPathComponent("Sources/Reader/message.txt"))
+        try write("relocated resource", at: package.appendingPathComponent("Dependency/Sources/Resources/message.txt"))
         try write("""
         import Foundation
-        let file = Bundle.module.url(forResource: "message", withExtension: "txt")!
-        print(try String(contentsOf: file, encoding: .utf8))
-        """, at: package.appendingPathComponent("Sources/Reader/main.swift"))
-        var app = try product(resources: [.bundle(package: "RelocationFixture", target: "Reader")])
+        public func readResource() throws -> String {
+            let file = Bundle.module.url(forResource: "message", withExtension: "txt")!
+            return try String(contentsOf: file, encoding: .utf8)
+        }
+        """, at: package.appendingPathComponent("Dependency/Sources/Resources/Resources.swift"))
+        for name in ["Reader", "Service", "Helper"] {
+            try write("import Resources\nprint(try readResource())", at: package.appendingPathComponent("Sources/\(name)/main.swift"))
+        }
+        let resources: [Plan.Resource] = [.bundle(package: "RelocationFixture", target: "Resources"),
+                                          .library(name: "ResourceLibrary")]
+        var app = try product(resources: resources)
         app.source = .executable(product: "Reader")
-        let plan = try Plan(target: app.target, app: app)
-        let settings = try await BuildSettings(configuration: .debug, triple: app.target.triple, buildSystem: .swiftPM,
+        var service = try product("Service", kind: .xpcService, resources: resources)
+        service.source = .executable(product: "Service")
+        var helper = try product("Helper", kind: .helperExecutable, resources: resources)
+        helper.source = .executable(product: "Helper")
+        let plan = try Plan(target: app.target, app: app, nestedProducts: [service, helper])
+        let settings = try await BuildSettings(configuration: configuration, triple: app.target.triple, buildSystem: .swiftPM,
                                                packagePath: package.path)
         let artifacts = try await withDependencies {
             $0.productBuildRunner = .liveValue
@@ -389,18 +433,35 @@ struct BundleAssemblerTests {
         try FileManager.default.createDirectory(at: relocated.deletingLastPathComponent(), withIntermediateDirectories: true)
         try FileManager.default.moveItem(at: output, to: relocated)
         try FileManager.default.removeItem(at: package)
-        let link = relocated.appendingPathComponent("RelocationFixture_Reader.bundle")
-        let resourcePath = "Contents/Resources/RelocationFixture_Reader.bundle"
-        #expect(try FileManager.default.destinationOfSymbolicLink(atPath: link.path) == resourcePath)
-        #expect(try String(contentsOf: link.appendingPathComponent("message.txt"), encoding: .utf8) == "relocated resource")
+        #expect(try FileManager.default.contentsOfDirectory(atPath: relocated.path) == ["Contents"])
+        let alias = relocated.appendingPathComponent("Contents/Helpers/RelocationFixture_Resources.bundle")
+        #expect(try FileManager.default.destinationOfSymbolicLink(atPath: alias.path)
+                == "../Resources/RelocationFixture_Resources.bundle")
+        #expect(!FileManager.default.fileExists(atPath: relocated.appendingPathComponent("Contents/Helpers/Resources").path))
+        for product in [helper, service, app] {
+            // Disposable local fixture only. Sign inside out, then verify the complete resource seal.
+            let library = relocated.appendingPathComponent(product.layout.frameworksPath + "/libResourceLibrary.dylib")
+            _ = try run(URL(fileURLWithPath: "/usr/bin/codesign"), arguments: ["--force", "--sign", "-", library.path])
+            let signedPath = relocated.appendingPathComponent(product.layout.bundlePath).path
+            _ = try run(URL(fileURLWithPath: "/usr/bin/codesign"), arguments: ["--force", "--sign", "-", signedPath])
+        }
+        _ = try run(URL(fileURLWithPath: "/usr/bin/codesign"), arguments: ["--verify", "--deep", "--strict", relocated.path])
+        for product in plan.allProducts {
+            let executable = relocated.appendingPathComponent(product.layout.executablePath)
+            #expect(try run(executable) == "relocated resource\n")
+        }
+    }
+
+    private func run(_ executable: URL, arguments: [String] = []) throws -> String {
         let process = Process()
-        process.executableURL = relocated.appendingPathComponent("Contents/MacOS/App")
+        process.executableURL = executable
+        process.arguments = arguments
         let pipe = Pipe()
         process.standardOutput = pipe
         try process.run()
         process.waitUntilExit()
-        #expect(process.terminationStatus == 0)
-        #expect(String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) == "relocated resource\n")
+        try #require(process.terminationStatus == 0)
+        return try #require(String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8))
     }
     #endif
 }

@@ -46,7 +46,7 @@ public struct BundleAssembler: Sendable {
     private struct Assembly {
         var directories: Set<String> = []
         var operations: [Operation] = []
-        var helperDependencies: [Operation: Set<String>] = [:]
+        var dependencyProducts: [Operation: Set<String>] = [:]
     }
 
     private func operations(artifacts: BuildArtifacts) throws -> Assembly {
@@ -92,13 +92,11 @@ public struct BundleAssembler: Sendable {
             let path = joined(layout.resourcesPath, name)
             appendDependency(.init(path: path, payload: .copy(artifacts.directory.appendingPathComponent(name))),
                              product: product, to: &assembly)
-            if product.platform == .macOS {
-                // SwiftPM's generated Bundle.module accessor searches beside Bundle.main.bundleURL.
-                // Keep one payload in Resources and expose that path through a relocatable relative link.
-                let aliasBase = product.type == .helperExecutable ? layout.contentsPath : layout.bundlePath
-                appendDependency(.init(path: joined(aliasBase, name),
-                                       payload: .symlink(product.type == .helperExecutable
-                                                        ? "Resources/\(name)" : "Contents/Resources/\(name)")),
+            if product.platform == .macOS && product.type == .helperExecutable {
+                // Bare helpers retain SwiftPM's executable-directory lookup. Real bundles use
+                // the resourceURL accessor compiled by ProductBuilder; root aliases cannot be signed.
+                appendDependency(.init(path: joined(layout.contentsPath, name),
+                                       payload: .symlink("../Resources/\(name)")),
                                  product: product, to: &assembly)
             }
         case .binaryTarget(let name):
@@ -145,12 +143,10 @@ public struct BundleAssembler: Sendable {
     }
 
     private func appendDependency(_ operation: Operation, product: Plan.Product, to assembly: inout Assembly) {
-        if product.type == .helperExecutable {
-            // Helpers share dependency directories. Coalesce exact generated operations across helpers,
-            // but retain repeated declarations within one helper so collision validation still rejects them.
-            let inserted = assembly.helperDependencies[operation, default: []].insert(product.product).inserted
-            if inserted && assembly.helperDependencies[operation]?.count != 1 { return }
-        }
+        // Helpers share resources with the app and dependencies with other helpers. Coalesce exact
+        // generated operations across products, but reject repeated declarations within one product.
+        let inserted = assembly.dependencyProducts[operation, default: []].insert(product.product).inserted
+        if inserted && assembly.dependencyProducts[operation]?.count != 1 { return }
         assembly.operations.append(operation)
     }
 

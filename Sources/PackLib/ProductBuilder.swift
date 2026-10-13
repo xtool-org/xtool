@@ -75,6 +75,11 @@ public struct ProductBuilder: Sendable {
                 throw StringError("Build backend produced products in different resource directories")
             }
             directory = binDir
+            if let overlay = try SwiftPMResourceAccessor.overlay(for: product, in: binDir, output: wrapper) {
+                // SwiftPM regenerates accessors during planning. A compiler overlay adapts only
+                // generated target sources, without editing dependencies or racing that regeneration.
+                try await runner.build(productSettings, arguments + ["-Xswiftc", "-vfsoverlay", "-Xswiftc", overlay.path])
+            }
             let executable = binDir.appendingPathComponent(name)
             guard FileManager.default.isExecutableFile(atPath: executable.path) else {
                 throw StringError("Build backend did not produce executable '\(name)' at \(executable.path)")
@@ -164,7 +169,11 @@ public struct ProductBuilder: Sendable {
             }
             switch product.resolvedSource {
             case .prebuilt:
-                break
+                if product.platform == .macOS && product.type != .helperExecutable
+                    && product.resources.contains(where: { if case .bundle = $0 { return true }; return false }) {
+                    throw StringError("Prebuilt macOS product '\(product.product)' cannot adapt SwiftPM resource accessors; "
+                                      + "build it from source or supply resources with an explicit copy and its own lookup")
+                }
             case .executable where buildSettings.buildSystem != .swiftPM:
                 throw StringError("Direct executable products currently require the SwiftPM backend")
             case .library(let name), .executable(let name):

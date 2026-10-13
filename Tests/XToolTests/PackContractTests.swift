@@ -109,6 +109,7 @@ struct PackContractTests {
         let helper = BundleLayout(platform: .macOS, kind: .helperExecutable, name: "Helper")
         #expect(helper.executablePath == "Contents/Helpers/Helper")
         #expect(helper.infoPlistPath == nil)
+        #expect(helper.resourcesPath == "Contents/Resources")
         let ios = BundleLayout(platform: .iOS, kind: .appExtension, name: "Extension")
         #expect(ios.executablePath == "PlugIns/Extension.appex/Extension")
         #expect(ios.resourcesPath == "PlugIns/Extension.appex")
