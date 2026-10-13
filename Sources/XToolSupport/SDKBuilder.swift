@@ -284,9 +284,11 @@ struct SDKBuilder {
         )
 
         if let local = ProcessInfo.processInfo.environment["XTOOL_TOOLSET_TARBALL"] {
+            // absolute: tar runs in toolsetDir, where a relative path would point
+            let tarball = URL(fileURLWithPath: local).standardizedFileURL.path
             try await Subprocess.run(
                 .name("tar"),
-                arguments: ["xzf", local],
+                arguments: ["xzf", tarball],
                 workingDirectory: FilePath(toolsetDir),
                 output: .discarded,
                 error: .discarded,
