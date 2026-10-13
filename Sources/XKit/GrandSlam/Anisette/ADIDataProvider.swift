@@ -249,11 +249,7 @@ public struct ADIDataProvider: AnisetteDataProvider {
     }
 
     private static var providerID: String? {
-        #if os(macOS)
-        return "1"
-        #else
-        return nil
-        #endif
+        "2"
     }
 
     public var providerID: String? { Self.providerID }
