@@ -110,6 +110,31 @@ struct BundleAssemblerTests {
         #expect(FileManager.default.fileExists(atPath: output.appendingPathComponent("Contents/Frameworks/libShared.dylib").path))
     }
 
+    @Test func validatedLooseStaticTargetIsNotEmbeddedAndMissingArchiveFails() throws {
+        let packageRoot = try root()
+        defer { try? FileManager.default.removeItem(at: packageRoot) }
+        let app = try product(resources: [.binaryTarget(name: "StaticProbe")])
+        let plan = try Plan(target: app.target, app: app)
+        let built = try artifacts(plan, in: packageRoot)
+        try write("!<arch>\nstatic archive fixture", at: built.directory.appendingPathComponent("libStaticProbe.a"))
+        let marked = BuildArtifacts(directory: built.directory, executables: built.executables,
+                                    staticBinaryTargets: ["StaticProbe"])
+        let output = packageRoot.appendingPathComponent("App.app")
+        try BundleAssembler(plan: plan, sourceDirectory: packageRoot).assemble(artifacts: marked, at: output)
+        let embeddedStaticFramework = output.appendingPathComponent("Contents/Frameworks/StaticProbe.framework")
+        #expect(!FileManager.default.fileExists(atPath: embeddedStaticFramework.path))
+
+        let missingRoot = try self.root()
+        defer { try? FileManager.default.removeItem(at: missingRoot) }
+        let missingBuilt = try artifacts(plan, in: missingRoot)
+        let missing = BuildArtifacts(directory: missingBuilt.directory, executables: missingBuilt.executables,
+                                     staticBinaryTargets: ["StaticProbe"])
+        #expect(throws: (any Error).self) {
+            try BundleAssembler(plan: plan, sourceDirectory: missingRoot)
+                .assemble(artifacts: missing, at: missingRoot.appendingPathComponent("Missing.app"))
+        }
+    }
+
     @Test func preparedAssetsAndIconAreCopied() throws {
         let root = try root()
         defer { try? FileManager.default.removeItem(at: root) }

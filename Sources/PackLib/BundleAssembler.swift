@@ -102,6 +102,16 @@ public struct BundleAssembler: Sendable {
             try validateName(name)
             let source = artifacts.directory.appendingPathComponent("\(name).framework")
             let binary = source.appendingPathComponent(name)
+            if artifacts.staticBinaryTargets.contains(name) {
+                let looseArchive = artifacts.directory.appendingPathComponent("lib\(name).a")
+                guard FileManager.default.fileExists(atPath: binary.path)
+                    || FileManager.default.fileExists(atPath: looseArchive.path) else {
+                    throw StringError("Missing validated static binary target '\(name)' in \(artifacts.directory.path)")
+                }
+                // ProductBuilder inspected the archive and confirmed that SwiftPM
+                // linked it into the executable. Static code is not embedded.
+                return
+            }
             // iOS SwiftPM omits some linked static binary targets from the output tree.
             // Retain that legacy omission; macOS declared inputs must be present and classified.
             if product.platform != .macOS && !FileManager.default.fileExists(atPath: binary.path) { return }

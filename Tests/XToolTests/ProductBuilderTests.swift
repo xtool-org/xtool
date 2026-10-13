@@ -40,7 +40,8 @@ struct ProductBuilderTests {
 
         nonisolated var runner: ProductBuildRunner {
             ProductBuildRunner(build: { try await self.build($0, arguments: $1) },
-                               binaryPath: { await self.binaryPath($0, arguments: $1) })
+                               binaryPath: { await self.binaryPath($0, arguments: $1) },
+                               sdkLinkerArguments: { _ in [] })
         }
     }
 
@@ -203,14 +204,19 @@ struct ProductBuilderTests {
         let helper = root.appendingPathComponent("Sources/Helper")
         try FileManager.default.createDirectory(at: direct, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: helper.appendingPathComponent("include"), withIntermediateDirectories: true)
-        try Data("print(\"builder fixture\")".utf8).write(to: direct.appendingPathComponent("main.swift"))
+        try Data("import AppKit\nprint(NSApplication.self)".utf8).write(to: direct.appendingPathComponent("main.swift"))
         try Data("resource fixture".utf8).write(to: direct.appendingPathComponent("message.txt"))
-        try Data("int main(void) { return 0; }".utf8).write(to: helper.appendingPathComponent("Entry.c"))
+        try Data("#include <vector>\nint main() { std::vector<int> values(3, 1); return values.at(1); }".utf8)
+            .write(to: helper.appendingPathComponent("Entry.cpp"))
         let target = try ResolvedTarget.resolve(cliTarget: "arm64-apple-macos15.0")
         let plan = try Plan(target: target,
                             app: product("App", source: .executable(product: "DirectExecutable"), target: target),
+                            extensions: [product("Preview", source: .library(product: "HelperLibrary"),
+                                                 kind: .appExtension, target: target)],
                             nestedProducts: [product("Helper", source: .library(product: "HelperLibrary"),
-                                                     kind: .helperExecutable, target: target)])
+                                                     kind: .helperExecutable, target: target),
+                                             product("Service", source: .library(product: "HelperLibrary"),
+                                                     kind: .xpcService, target: target)])
         let settings = try await BuildSettings(configuration: configuration, triple: target.triple, buildSystem: .swiftPM,
                                                packagePath: root.path)
         let artifacts = try await withDependencies {
@@ -218,10 +224,21 @@ struct ProductBuilderTests {
         } operation: {
             try await ProductBuilder(buildSettings: settings, plan: plan).build()
         }
-        #expect(artifacts.executables.count == 2)
+        #expect(artifacts.executables.count == 4)
         #expect(artifacts.directory.lastPathComponent == configuration.rawValue)
         #expect(FileManager.default.isExecutableFile(atPath: try #require(artifacts.executables["App"]).path))
         #expect(FileManager.default.isExecutableFile(atPath: try #require(artifacts.executables["Helper"]).path))
+        let expectedSDK = try #require(try await settings.withTarget(target).macOSLinkerArguments().last)
+        for product in plan.allProducts {
+            let executable = try #require(artifacts.executables[product.product])
+            let slice = try #require(MachOBinary.inspect(Array(Data(contentsOf: executable))).first)
+            #expect(slice.platform == 1)
+            #expect(slice.minimumOS == MachOBinary.packedVersion("15.0"))
+            #expect(slice.sdk == MachOBinary.packedVersion(expectedSDK))
+            #expect(Set(product.runtimeSearchPaths).isSubset(of: Set(slice.rpaths)))
+            // An ARM64 linker signature is not Developer ID or release signing.
+            #expect(slice.hasCodeSignature)
+        }
         let resource = artifacts.directory.appendingPathComponent("BuilderFixture_Direct.bundle/message.txt")
         #expect(try String(contentsOf: resource, encoding: .utf8) == "resource fixture")
     }

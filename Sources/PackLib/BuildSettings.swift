@@ -163,6 +163,62 @@ public struct BuildSettings: Sendable {
         }
     }
 
+    /// LLD otherwise records the deployment version as the SDK version on Linux.
+    /// Keep this target-only: SwiftPM CLI linker flags also affect host macros.
+    func macOSLinkerArguments() async throws -> [String] {
+        let sdkRoot: URL
+        if let custom = swiftSDKsPath {
+            sdkRoot = try Self.macOSSDKRoot(in: URL(fileURLWithPath: custom), architecture: try TargetTriple(triple).architecture)
+        } else {
+            #if os(macOS)
+            sdkRoot = URL(fileURLWithPath: try await Self.xcrun(["--sdk", "macosx", "--show-sdk-path"]))
+            #else
+            guard let sdk = try DarwinSDK.current() else {
+                throw StringError("No Darwin SDK configured. Please run `xtool setup`.")
+            }
+            sdkRoot = try Self.macOSSDKRoot(in: sdk.bundle.deletingLastPathComponent(),
+                                            architecture: try TargetTriple(triple).architecture)
+            #endif
+        }
+        let data = try Data(contentsOf: sdkRoot.appendingPathComponent("SDKSettings.json"))
+        guard let settings = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let version = settings["Version"] as? String else {
+            throw StringError("Missing SDK version in \(sdkRoot.path)/SDKSettings.json")
+        }
+        try TargetTriple.validateVersion(version)
+        let tripleIndex = sdkOptions.firstIndex(of: "--triple")
+        let target = try TargetTriple(tripleIndex.map { sdkOptions[$0 + 1] } ?? triple)
+        return ["-Xlinker", "-platform_version", "-Xlinker", "macos", "-Xlinker",
+                target.deploymentTarget ?? target.platform.minimumDeploymentTarget, "-Xlinker", version]
+    }
+
+    private var swiftSDKsPath: String? {
+        for (index, option) in customOptions.enumerated() {
+            if option.hasPrefix("--swift-sdks-path=") { return String(option.dropFirst("--swift-sdks-path=".count)) }
+            if option == "--swift-sdks-path", index + 1 < customOptions.count { return customOptions[index + 1] }
+        }
+        return nil
+    }
+
+    private static func macOSSDKRoot(in directory: URL, architecture: String) throws -> URL {
+        let bundles = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
+            .filter { $0.pathExtension == "artifactbundle" }
+        var roots: [URL] = []
+        for bundle in bundles {
+            let metadata = bundle.appendingPathComponent("swift-sdk.json")
+            guard FileManager.default.fileExists(atPath: metadata.path) else { continue }
+            let data = try Data(contentsOf: metadata)
+            guard let settings = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let triples = settings["targetTriples"] as? [String: [String: Any]],
+                  let path = triples["\(architecture)-apple-macosx"]?["sdkRootPath"] as? String else { continue }
+            roots.append(URL(fileURLWithPath: path, relativeTo: bundle).standardizedFileURL)
+        }
+        guard roots.count == 1, let root = roots.first else {
+            throw StringError("Expected exactly one macOS Swift SDK in \(directory.path); found \(roots.count)")
+        }
+        return root
+    }
+
     /// Reject combinations whose failure is already known, before a builder
     /// creates its wrapper or starts resolving/compiling a package.
     func validateProductBuild(for target: ResolvedTarget, hostIsMacOS: Bool) throws {
