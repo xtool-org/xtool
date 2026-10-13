@@ -55,9 +55,6 @@ public struct Planner: Sendable {
     public func createPlan() async throws -> Plan {
         let platform = try TargetTriple(buildSettings.triple).platform
         try schema.validate(for: platform)
-        guard schema.target == nil else {
-            throw StringError("Schema target selection is not integrated with the build command yet; use --triple")
-        }
         let graph = try await buildGraph()
         let target = try ResolvedTarget.resolve(
             cliTarget: buildSettings.triple, schema: schema,

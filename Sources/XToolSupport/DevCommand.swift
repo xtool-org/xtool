@@ -111,7 +111,10 @@ struct DevXcodeCommand: AsyncParsableCommand {
     )
 
     func run() async throws {
-        let result = try await PackOperation(xcode: true).run()
+        let request = try await DevBuildRequest.load()
+        try request.validate(route: .xcode)
+        @Dependency(\.devCommandClient) var client
+        let result = try await client.legacyPack(request.triple, .debug, true)
         print("Wrote to \(result.path)")
     }
 }
@@ -121,7 +124,10 @@ struct DevBuildCommand: AsyncParsableCommand {
         commandName: "build",
         abstract: "Build app with SwiftPM",
         discussion: """
-        This command builds the SwiftPM-based iOS app in the current directory
+        Build the SwiftPM-based app in the current directory. macOS targets require
+        --defer-signing and produce an app plus a signing manifest and preserved
+        entitlement inputs for signing later on a Mac. This command does not issue
+        Developer ID certificates or notarize apps.
         """
     )
 
@@ -137,14 +143,27 @@ struct DevBuildCommand: AsyncParsableCommand {
         help: "Output a .ipa file instead of a .app"
     ) var ipa = false
 
+    @Flag(help: "Defer macOS signing and preserve inputs for a downstream Mac signer")
+    var deferSigning = false
+
     @Option(
         help: ArgumentHelp(
             "Custom target triple to build for",
-            discussion: "Defaults to '\(PackOperation.defaultTriple)'"
+            discussion: "Overrides xtool.yml target; otherwise defaults to '\(PackOperation.defaultTriple)'"
         )
     ) var triple: String?
 
     func run() async throws {
+        let request = try await DevBuildRequest.load(cliTriple: triple)
+        try request.validate(route: .build(sign: sign, ipa: ipa, deferSigning: deferSigning))
+
+        if request.platform == .macOS {
+            let output = try await DeferredMacBuildOperation(request: request, configuration: packOptions.configuration).run()
+            print("Wrote to \(output.bundle.path)")
+            print("Signing inputs: \(output.manifest.path)")
+            return
+        }
+
         let signingAuthToken: AuthToken?
         if sign {
             guard let token = try AuthToken.savedIfPresent() else {
@@ -155,10 +174,8 @@ struct DevBuildCommand: AsyncParsableCommand {
             signingAuthToken = nil
         }
 
-        let url = try await PackOperation(
-            triple: triple,
-            buildOptions: packOptions
-        ).run()
+        @Dependency(\.devCommandClient) var client
+        let url = try await client.legacyPack(request.triple, packOptions.configuration, false)
 
         if let signingAuthToken {
             let installDelegate = XToolInstallerDelegate()
@@ -239,7 +256,11 @@ struct DevRunCommand: AsyncParsableCommand {
     @OptionGroup var connectionOptions: ConnectionOptions
 
     func run() async throws {
-        let output = try await PackOperation(triple: triple, buildOptions: packOptions).run()
+        // Validate the configured target before the simulator override can hide it.
+        let request = try await DevBuildRequest.load()
+        try request.validate(route: .run)
+        @Dependency(\.devCommandClient) var client
+        let output = try await client.legacyPack(triple ?? request.triple, packOptions.configuration, false)
 
         #if os(macOS)
         if simulator {
@@ -250,8 +271,8 @@ struct DevRunCommand: AsyncParsableCommand {
 
         let token = try AuthToken.saved()
 
-        let client = try await connectionOptions.client()
-        print("Installing to device: \(client.deviceName) (udid: \(client.udid))")
+        let device = try await connectionOptions.client()
+        print("Installing to device: \(device.deviceName) (udid: \(device.udid))")
 
         let installDelegate = XToolInstallerDelegate()
         let installer = IntegratedInstaller(
@@ -264,8 +285,8 @@ struct DevRunCommand: AsyncParsableCommand {
         do {
             try await installer.install(
                 app: output,
-                udid: client.udid,
-                lookupMode: .only(client.connectionType),
+                udid: device.udid,
+                lookupMode: .only(device.connectionType),
                 configureDevice: false,
             )
         } catch let error as CancellationError {
@@ -274,6 +295,183 @@ struct DevRunCommand: AsyncParsableCommand {
             print("\nError: \(error)")
             throw ExitCode.failure
         }
+    }
+}
+
+/// Select the effective target before auth, SDK setup, LSP writes, or packing.
+/// Planner resolves the deployment minimum later, with package metadata available.
+struct DevBuildRequest: Sendable {
+    enum Route {
+        case build(sign: Bool, ipa: Bool, deferSigning: Bool)
+        case run
+        case xcode
+    }
+
+    let schema: PackSchema
+    let triple: String
+    let platform: TargetPlatform
+    let directory: URL
+
+    init(schema: PackSchema, cliTriple: String? = nil, directory: URL) throws {
+        self.schema = schema
+        self.triple = cliTriple ?? schema.target ?? ResolvedTarget.defaultTriple
+        self.platform = try TargetTriple(triple).platform
+        self.directory = directory
+        try schema.validate(for: platform)
+    }
+
+    static func load(cliTriple: String? = nil) async throws -> Self {
+        @Dependency(\.devCommandClient) var client
+        let directory = client.currentDirectory()
+        let schema = try await client.loadSchema(directory)
+        return try Self(schema: schema, cliTriple: cliTriple, directory: directory)
+    }
+
+    func validate(route: Route) throws {
+        switch route {
+        case .build(let sign, let ipa, let deferSigning):
+            if platform == .macOS {
+                guard !sign, !ipa else {
+                    throw Console.Error("""
+                    macOS builds do not support --sign, IPA packaging, or device provisioning; use --defer-signing
+                    """)
+                }
+                guard deferSigning else {
+                    throw Console.Error("macOS builds require --defer-signing; sign the resulting app later on a Mac")
+                }
+            } else if deferSigning {
+                throw Console.Error("--defer-signing requires a macOS target")
+            }
+        case .run, .xcode:
+            guard platform != .macOS else {
+                throw Console.Error("""
+                macOS targets support only `xtool dev build --defer-signing`; run and Xcode project generation are unsupported
+                """)
+            }
+        }
+    }
+}
+
+struct DeferredMacBuildOperation {
+    let request: DevBuildRequest
+    let configuration: BuildConfiguration
+
+    struct Output {
+        let bundle: URL
+        let manifest: URL
+    }
+
+    func run() async throws -> Output {
+        guard request.platform == .macOS else {
+            throw Console.Error("Deferred macOS packing requires a macOS target")
+        }
+        #if !os(macOS)
+        guard configuration == .release else {
+            throw Console.Error("macOS Debug builds on Linux need unavailable codesign support; use --configuration release")
+        }
+        #endif
+        let contents = try FileManager.default.contentsOfDirectory(atPath: request.directory.path)
+        guard contents.contains("Package.swift")
+            || contents.contains(where: { $0.hasPrefix("Package@") && $0.hasSuffix(".swift") }) else {
+            throw Console.Error("Could not find Package.swift in this directory.")
+        }
+        @Dependency(\.devCommandClient) var client
+        try await client.ensureSDK()
+        print("Planning...")
+        let settings = try await BuildSettings(
+            configuration: configuration, triple: request.triple,
+            buildSystem: .swiftPM, packagePath: request.directory.path
+        )
+        let plan = try await Planner(buildSettings: settings, schema: request.schema).createPlan()
+        // This deliberately bypasses PackOperation's automatic entitlement signing.
+        let bundle = try await client.deferredPack(settings, plan)
+        let manifest = try DeferredSigningHandoff.write(plan: plan, bundle: bundle, sourceDirectory: request.directory)
+        return Output(bundle: bundle, manifest: manifest)
+    }
+}
+
+enum DeferredSigningHandoff {
+    /// Keep signing inputs outside the bundle, so they cannot alter bundle resources.
+    static func write(plan: Plan, bundle: URL, sourceDirectory: URL) throws -> URL {
+        guard plan.target.platform == .macOS else {
+            throw Console.Error("Deferred signing handoffs require a macOS plan")
+        }
+        var manifest = DeferredSigningManifest(plan: plan)
+        let name = bundle.deletingPathExtension().lastPathComponent
+        let parent = bundle.deletingLastPathComponent()
+        let inputs = parent.appendingPathComponent("\(name).signing-inputs", isDirectory: true)
+        let manifestURL = parent.appendingPathComponent("\(name).signing.json")
+        var files: [(String, Data)] = []
+        for index in manifest.products.indices {
+            guard let path = manifest.products[index].entitlementsPath else { continue }
+            let source = URL(fileURLWithPath: path, relativeTo: sourceDirectory)
+            let data = try Data(contentsOf: source)
+            guard try PropertyListSerialization.propertyList(from: data, options: [], format: nil) is [String: Any] else {
+                throw Console.Error("Entitlements must be a property-list dictionary: \(path)")
+            }
+            let filename = "\(index).entitlements.plist"
+            files.append((filename, data))
+            manifest.products[index].entitlementsPath = "\(inputs.lastPathComponent)/\(filename)"
+        }
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        let data = try encoder.encode(manifest)
+        if !files.isEmpty {
+            try FileManager.default.createDirectory(at: inputs, withIntermediateDirectories: true)
+            for (filename, contents) in files {
+                try contents.write(to: inputs.appendingPathComponent(filename), options: .atomic)
+            }
+        }
+        try data.write(to: manifestURL, options: .atomic)
+        return manifestURL
+    }
+}
+
+/// External effects are replaceable through swift-dependencies, including packing.
+struct DevCommandClient: Sendable {
+    var currentDirectory: @Sendable () -> URL
+    var loadSchema: @Sendable (URL) async throws -> PackSchema
+    var ensureSDK: @Sendable () async throws -> Void
+    var legacyPack: @Sendable (String, BuildConfiguration, Bool) async throws -> URL
+    var deferredPack: @Sendable (BuildSettings, Plan) async throws -> URL
+}
+
+extension DevCommandClient: DependencyKey {
+    static let liveValue = Self(
+        currentDirectory: { URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true) },
+        loadSchema: { directory in
+            let path = directory.appendingPathComponent("xtool.yml")
+            if FileManager.default.fileExists(atPath: path.path) {
+                return try await PackSchema(url: path)
+            }
+            print("""
+            warning: Could not locate configuration file '\(path.path)'. Using default \
+            configuration with 'com.example' organization ID.
+            """)
+            return .default
+        },
+        ensureSDK: { try await EnsureSDKOperation(quiet: true).run() },
+        legacyPack: { triple, configuration, xcode in
+            try await PackOperation(triple: triple, buildOptions: .init(configuration: configuration), xcode: xcode).run()
+        },
+        deferredPack: { settings, plan in
+            try await Packer(buildSettings: settings, plan: plan).pack()
+        }
+    )
+
+    static let testValue = Self(
+        currentDirectory: { URL(fileURLWithPath: "/unexpected-command-directory") },
+        loadSchema: { _ in throw StringError("Unexpected schema load") },
+        ensureSDK: { throw StringError("Unexpected SDK setup") },
+        legacyPack: { _, _, _ in throw StringError("Unexpected iOS packing") },
+        deferredPack: { _, _ in throw StringError("Unexpected deferred packing") }
+    )
+}
+
+extension DependencyValues {
+    var devCommandClient: DevCommandClient {
+        get { self[DevCommandClient.self] }
+        set { self[DevCommandClient.self] = newValue }
     }
 }
 
