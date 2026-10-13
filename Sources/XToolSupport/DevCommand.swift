@@ -131,6 +131,7 @@ struct DevBuildCommand: AsyncParsableCommand {
     )
 
     @OptionGroup var packOptions: PackOperation.BuildOptions
+    @OptionGroup var macOptions: MacBuildOptions
 
     @Flag(
         name: .shortAndLong,
@@ -157,11 +158,15 @@ struct DevBuildCommand: AsyncParsableCommand {
         try request.validate(route: .build(sign: sign, ipa: ipa, deferSigning: deferSigning))
 
         if request.platform == .macOS {
-            let output = try await DeferredMacBuildOperation(request: request, configuration: packOptions.configuration).run()
+            let output = try await DeferredMacBuildOperation(
+                request: request, configuration: packOptions.configuration, options: macOptions
+            ).run()
             print("Wrote to \(output.bundle.path)")
             print("Signing inputs: \(output.manifest.path)")
+            print("Artifact inventory: \(MacArtifact.manifestURL(for: output.bundle).path)")
             return
         }
+        guard macOptions.arguments.isEmpty else { throw Console.Error("SDK and scratch overrides require a macOS target") }
 
         let signingAuthToken: AuthToken?
         if sign {
@@ -224,11 +229,24 @@ struct DevRunCommand: AsyncParsableCommand {
         commandName: "run",
         abstract: "Build and run app with SwiftPM",
         discussion: """
-        This command deploys the SwiftPM-based iOS app in the current directory
+        Build and run the configured app. macOS apps run locally without adding signatures.
+        Use --app to run an existing macOS app without rebuilding. Output is streamed to
+        this terminal and the app's exit status is returned.
         """
     )
 
     @OptionGroup var packOptions: PackOperation.BuildOptions
+
+    @Option(help: "Override the configured target triple")
+    var triple: String?
+
+    @Option(help: "Run an existing macOS .app without building or signing it")
+    var app: String?
+
+    @Argument(parsing: .captureForPassthrough, help: "Arguments passed to the macOS app after --")
+    var arguments: [String] = []
+
+    var appArguments: [String] { arguments.first == "--" ? Array(arguments.dropFirst()) : arguments }
 
     #if os(macOS)
     @Flag(
@@ -236,7 +254,7 @@ struct DevRunCommand: AsyncParsableCommand {
         help: "Target the iOS Simulator"
     ) var simulator = false
 
-    var triple: String? {
+    var simulatorTriple: String? {
         if simulator {
             #if arch(arm64)
             return "arm64-apple-ios-simulator"
@@ -249,17 +267,32 @@ struct DevRunCommand: AsyncParsableCommand {
         return nil
     }
     #else
-    var triple: String? { nil }
+    var simulatorTriple: String? { nil }
     #endif
 
     @OptionGroup var connectionOptions: ConnectionOptions
 
     func run() async throws {
+        if let app {
+            guard triple == nil, simulatorTriple == nil else {
+                throw Console.Error("--app cannot be combined with --triple or --simulator")
+            }
+            try await MacRunOperation.run(bundle: URL(fileURLWithPath: app), arguments: appArguments)
+            return
+        }
         // Validate the configured target before the simulator override can hide it.
-        let request = try await DevBuildRequest.load()
+        let request = try await DevBuildRequest.load(cliTriple: triple)
         try request.validate(route: .run)
+        if request.platform == .macOS {
+            guard simulatorTriple == nil else { throw Console.Error("--simulator cannot run a macOS target") }
+            try MacRunOperation.requireHost()
+            let output = try await DeferredMacBuildOperation(request: request, configuration: packOptions.configuration).run()
+            try await MacRunOperation.run(bundle: output.bundle, arguments: appArguments)
+            return
+        }
+        guard arguments.isEmpty else { throw Console.Error("App arguments currently require a macOS target") }
         @Dependency(\.devCommandClient) var client
-        let output = try await client.legacyPack(triple ?? request.triple, packOptions.configuration, false)
+        let output = try await client.legacyPack(simulatorTriple ?? request.triple, packOptions.configuration, false)
 
         #if os(macOS)
         if simulator {
@@ -341,19 +374,35 @@ struct DevBuildRequest: Sendable {
             } else if deferSigning {
                 throw Console.Error("--defer-signing requires a macOS target")
             }
-        case .run, .xcode:
+        case .run:
+            break
+        case .xcode:
             guard platform != .macOS else {
                 throw Console.Error("""
-                macOS targets support only `xtool dev build --defer-signing`; run and Xcode project generation are unsupported
+                Xcode project generation for macOS is unsupported
                 """)
             }
         }
     }
 }
 
+struct MacBuildOptions: ParsableArguments {
+    @Option(name: .customLong("swift-sdks-path"), help: "Use a prepared Swift SDK directory for macOS builds")
+    var swiftSDKsPath: String?
+
+    @Option(help: "Use a separate SwiftPM scratch directory for macOS builds")
+    var scratchPath: String?
+
+    var arguments: [String] {
+        (swiftSDKsPath.map { ["--swift-sdks-path", $0] } ?? [])
+            + (scratchPath.map { ["--scratch-path", $0] } ?? [])
+    }
+}
+
 struct DeferredMacBuildOperation {
     let request: DevBuildRequest
     let configuration: BuildConfiguration
+    var options: MacBuildOptions?
 
     struct Output {
         let bundle: URL
@@ -375,17 +424,18 @@ struct DeferredMacBuildOperation {
             throw Console.Error("Could not find Package.swift in this directory.")
         }
         @Dependency(\.devCommandClient) var client
-        try await client.ensureSDK()
+        if options?.swiftSDKsPath == nil { try await client.ensureSDK() }
         print("Planning...")
         let settings = try await BuildSettings(
             configuration: configuration, triple: request.triple,
-            buildSystem: .swiftPM, packagePath: request.directory.path
+            buildSystem: .swiftPM, packagePath: request.directory.path, options: options?.arguments ?? []
         )
         let plan = try await Planner(buildSettings: settings, schema: request.schema).createPlan()
         await LSPConfig.tryEnsure(plan: plan, settings: settings, schema: request.schema, currentDirectory: request.directory)
         // This deliberately bypasses PackOperation's automatic entitlement signing.
         let bundle = try await client.deferredPack(settings, plan)
         let manifest = try DeferredSigningHandoff.write(plan: plan, bundle: bundle, sourceDirectory: request.directory)
+        try MacArtifact.write(bundle: bundle, signingManifest: manifest)
         return Output(bundle: bundle, manifest: manifest)
     }
 }
@@ -400,7 +450,7 @@ enum DeferredSigningHandoff {
         let name = bundle.deletingPathExtension().lastPathComponent
         let parent = bundle.deletingLastPathComponent()
         let inputs = parent.appendingPathComponent("\(name).signing-inputs", isDirectory: true)
-        let manifestURL = parent.appendingPathComponent("\(name).signing.json")
+        let manifestURL = MacArtifact.signingManifestURL(for: bundle)
         var files: [(String, Data)] = []
         for index in manifest.products.indices {
             guard let path = manifest.products[index].entitlementsPath else { continue }
@@ -416,6 +466,9 @@ enum DeferredSigningHandoff {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         let data = try encoder.encode(manifest)
+        if FileManager.default.fileExists(atPath: inputs.path) {
+            try FileManager.default.removeItem(at: inputs)
+        }
         if !files.isEmpty {
             try FileManager.default.createDirectory(at: inputs, withIntermediateDirectories: true)
             for (filename, contents) in files {
@@ -483,6 +536,7 @@ struct DevCommand: AsyncParsableCommand {
             DevXcodeCommand.self,
             DevBuildCommand.self,
             DevRunCommand.self,
+            DevVerifyCommand.self,
             DevBSPCommand.self,
         ],
         defaultSubcommand: DevRunCommand.self

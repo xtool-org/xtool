@@ -78,10 +78,8 @@ struct DevCommandTests {
         try macOverride.validate(route: .build(sign: false, ipa: false, deferSigning: true))
     }
 
-    @Test func unsupportedRunAndXcodeTripleOptionsRejectDuringParsing() {
-        #expect(throws: (any Error).self) {
-            try DevRunCommand.parse(["--triple", "arm64-apple-macosx"])
-        }
+    @Test func runAcceptsTripleAndXcodeStillRejectsIt() throws {
+        #expect(try DevRunCommand.parse(["--triple", "arm64-apple-macosx"]).triple == "arm64-apple-macosx")
         #expect(throws: (any Error).self) {
             try DevXcodeCommand.parse(["--triple", "arm64-apple-macosx"])
         }
@@ -223,9 +221,8 @@ struct DevCommandTests {
             #expect(plan.target.deploymentTarget == "15.0")
             #expect(plan.app.resolvedSource == .executable(product: "Executable"))
             await recorder.record("deferred-pack")
-            // Assembly is stubbed; this test covers routing and the signing handoff.
             let bundle = directory.appendingPathComponent("App.app", isDirectory: true)
-            try FileManager.default.createDirectory(at: bundle, withIntermediateDirectories: true)
+            try MacArtifactTests.fixture(at: bundle)
             return bundle
         }
         let inspection = try packageInspection(root: directory)

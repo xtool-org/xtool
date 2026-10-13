@@ -34,8 +34,9 @@ the manifest. Transfer all three together. The manifest has `version: 1`,
 their entitlement associations. It records signing intent, not release approval.
 
 This route performs no Apple account provisioning or identity signing. Linker
-ad-hoc signatures may already be present. `--sign`, IPA output, `xtool dev run`,
-and Xcode project generation are unavailable for macOS targets. A downstream
+ad-hoc signatures may already be present. `--sign`, IPA output and Xcode
+project generation are unavailable for macOS targets. `xtool dev run` builds
+and launches a local Mac app; `--app` launches an existing app without rebuilding. A downstream
 Mac signer must sign nested code before the outer app and validate the result.
 The generic handoff does not select certificates or publish releases.
 
@@ -45,6 +46,8 @@ The Swift Testing suite in `Tests/XToolTests` covers product selection, target
 validation, nested bundle assembly, resource relocation and signing handoffs.
 On macOS it compiles and executes disposable packages to test generated
 `Bundle.module` lookup after removing the original build directory.
+The Bats suite in `integration-tests/suite` exercises the public CLI using the
+installed Darwin SDK.
 
 ## Boundaries
 

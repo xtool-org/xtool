@@ -380,6 +380,32 @@ struct MachOBinary {
         var installName: String?
         var rpaths: [String] = []
         var hasCodeSignature = false
+        struct Dependency {
+            var path: String
+            var weak: Bool
+        }
+        var dependencies: [Dependency] = []
+
+        mutating func read(command: UInt32, load: [UInt8]) throws {
+            switch command {
+            case 0x32: // LC_BUILD_VERSION
+                guard platform == nil else { throw StringError("Duplicate Mach-O platform metadata") }
+                platform = try MachOBinary.word(load, 8)
+                minimumOS = try MachOBinary.word(load, 12)
+                sdk = try MachOBinary.word(load, 16)
+            case 0x24, 0x25: // legacy LC_VERSION_MIN_MACOSX / IPHONEOS
+                guard platform == nil else { throw StringError("Duplicate Mach-O platform metadata") }
+                platform = command == 0x24 ? 1 : 2
+                minimumOS = try MachOBinary.word(load, 8)
+                sdk = try MachOBinary.word(load, 12)
+            case 0xd: installName = try MachOBinary.loadString(load)
+            case 0xc, 0x80000018, 0x8000001f, 0x80000023:
+                dependencies.append(.init(path: try MachOBinary.loadString(load), weak: command == 0x80000018))
+            case 0x8000001c: rpaths.append(try MachOBinary.loadString(load))
+            case 0x1d: hasCodeSignature = true
+            default: break
+            }
+        }
     }
 
     @discardableResult
@@ -508,22 +534,7 @@ struct MachOBinary {
             let length = Int(try word(bytes, offset + 4))
             guard length >= 8, length <= 32 + size - offset else { throw StringError("Invalid Mach-O load command") }
             let load = Array(bytes[offset..<(offset + length)])
-            switch command {
-            case 0x32: // LC_BUILD_VERSION
-                guard slice.platform == nil else { throw StringError("Duplicate Mach-O platform metadata") }
-                slice.platform = try word(load, 8)
-                slice.minimumOS = try word(load, 12)
-                slice.sdk = try word(load, 16)
-            case 0x24, 0x25: // legacy LC_VERSION_MIN_MACOSX / IPHONEOS
-                guard slice.platform == nil else { throw StringError("Duplicate Mach-O platform metadata") }
-                slice.platform = command == 0x24 ? 1 : 2
-                slice.minimumOS = try word(load, 8)
-                slice.sdk = try word(load, 12)
-            case 0xd: slice.installName = try loadString(load)
-            case 0x8000001c: slice.rpaths.append(try loadString(load))
-            case 0x1d: slice.hasCodeSignature = true
-            default: break
-            }
+            try slice.read(command: command, load: load)
             offset += length
         }
         guard offset == 32 + size else { throw StringError("Inconsistent Mach-O command size") }
