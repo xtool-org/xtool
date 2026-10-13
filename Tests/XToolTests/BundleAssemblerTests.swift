@@ -110,6 +110,80 @@ struct BundleAssemblerTests {
         #expect(FileManager.default.fileExists(atPath: output.appendingPathComponent("Contents/Frameworks/libShared.dylib").path))
     }
 
+    @Test func helpersShareGeneratedDependenciesAfterRelocation() throws {
+        let root = try root()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let resources: [Plan.Resource] = [.binaryTarget(name: "Dynamic"), .library(name: "Shared"),
+                                          .bundle(package: "Shared", target: "Resources")]
+        let app = try product()
+        let helpers = try ["FirstHelper", "SecondHelper"].map {
+            try product($0, kind: .helperExecutable, resources: resources)
+        }
+        let plan = try Plan(target: app.target, app: app, nestedProducts: helpers)
+        let artifacts = try artifacts(plan, in: root)
+        _ = try framework("Dynamic", in: artifacts.directory)
+        try write("dynamic library", at: artifacts.directory.appendingPathComponent("libShared.dylib"))
+        try write("shared resource", at: artifacts.directory.appendingPathComponent("Shared_Resources.bundle/message.txt"))
+        let output = root.appendingPathComponent("App.app")
+        try BundleAssembler(plan: plan, sourceDirectory: root).assemble(artifacts: artifacts, at: output)
+
+        let relocated = root.appendingPathComponent("Relocated.app")
+        try FileManager.default.moveItem(at: output, to: relocated)
+        try FileManager.default.removeItem(at: artifacts.directory)
+        for helper in helpers {
+            #expect(FileManager.default.isExecutableFile(atPath: relocated.appendingPathComponent(helper.layout.executablePath).path))
+        }
+        let framework = relocated.appendingPathComponent("Contents/Helpers/Frameworks/Dynamic.framework")
+        #expect(try String(contentsOf: framework.appendingPathComponent("Dynamic"), encoding: .utf8) == "dynamic fixture")
+        let current = framework.appendingPathComponent("Versions/Current")
+        #expect(try FileManager.default.destinationOfSymbolicLink(atPath: current.path) == "A")
+        let library = relocated.appendingPathComponent("Contents/Helpers/Frameworks/libShared.dylib")
+        #expect(try String(contentsOf: library, encoding: .utf8) == "dynamic library")
+        let alias = relocated.appendingPathComponent("Contents/Helpers/Shared_Resources.bundle")
+        #expect(try FileManager.default.destinationOfSymbolicLink(atPath: alias.path) == "Resources/Shared_Resources.bundle")
+        #expect(try String(contentsOf: alias.appendingPathComponent("message.txt"), encoding: .utf8) == "shared resource")
+    }
+
+    @Test(arguments: [Plan.Resource.bundle(package: "Shared", target: "Resources"),
+                      .binaryTarget(name: "Dynamic"), .library(name: "Shared")])
+    func duplicateGeneratedDependenciesWithinHelperReject(resource: Plan.Resource) throws {
+        let root = try root()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let app = try product()
+        let helper = try product("Helper", kind: .helperExecutable, resources: [resource, resource])
+        let plan = try Plan(target: app.target, app: app, nestedProducts: [helper])
+        let artifacts = try artifacts(plan, in: root)
+        _ = try framework("Dynamic", in: artifacts.directory)
+        try write(at: artifacts.directory.appendingPathComponent("libShared.dylib"))
+        try write(at: artifacts.directory.appendingPathComponent("Shared_Resources.bundle/message.txt"))
+        let output = root.appendingPathComponent("App.app")
+        #expect(throws: (any Error).self) {
+            try BundleAssembler(plan: plan, sourceDirectory: root).assemble(artifacts: artifacts, at: output)
+        }
+        #expect(!FileManager.default.fileExists(atPath: output.path))
+    }
+
+    @Test(arguments: ["build/Shared_Resources.bundle", "alternate/Shared_Resources.bundle"],
+          ["Shared_Resources.bundle", "shared_resources.bundle", "Shared_Resources.bundle/child"])
+    func explicitHelperCopiesCollidingWithGeneratedDependenciesReject(source: String, path: String) throws {
+        let root = try root()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let app = try product()
+        let first = try product("FirstHelper", kind: .helperExecutable,
+                                resources: [.bundle(package: "Shared", target: "Resources")])
+        let second = try product("SecondHelper", kind: .helperExecutable,
+                                 resources: [.copy(.init(source: source, destination: .init(path: path)))])
+        let plan = try Plan(target: app.target, app: app, nestedProducts: [first, second])
+        let artifacts = try artifacts(plan, in: root)
+        try write(at: artifacts.directory.appendingPathComponent("Shared_Resources.bundle/message.txt"))
+        try write(at: root.appendingPathComponent("alternate/Shared_Resources.bundle/message.txt"))
+        let output = root.appendingPathComponent("App.app")
+        #expect(throws: (any Error).self) {
+            try BundleAssembler(plan: plan, sourceDirectory: root).assemble(artifacts: artifacts, at: output)
+        }
+        #expect(!FileManager.default.fileExists(atPath: output.path))
+    }
+
     @Test func validatedLooseStaticTargetIsNotEmbeddedAndMissingArchiveFails() throws {
         let packageRoot = try root()
         defer { try? FileManager.default.removeItem(at: packageRoot) }

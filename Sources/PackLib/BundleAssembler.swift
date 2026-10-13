@@ -32,13 +32,13 @@ public struct BundleAssembler: Sendable {
         }
     }
 
-    private enum Payload {
+    private enum Payload: Hashable {
         case copy(URL)
         case data(Data)
         case symlink(String)
     }
 
-    private struct Operation {
+    private struct Operation: Hashable {
         var path: String
         var payload: Payload
     }
@@ -46,6 +46,7 @@ public struct BundleAssembler: Sendable {
     private struct Assembly {
         var directories: Set<String> = []
         var operations: [Operation] = []
+        var helperDependencies: [Operation: Set<String>] = [:]
     }
 
     private func operations(artifacts: BuildArtifacts) throws -> Assembly {
@@ -89,14 +90,16 @@ public struct BundleAssembler: Sendable {
             try validateName(target)
             let name = "\(package)_\(target).bundle"
             let path = joined(layout.resourcesPath, name)
-            assembly.operations.append(.init(path: path, payload: .copy(artifacts.directory.appendingPathComponent(name))))
+            appendDependency(.init(path: path, payload: .copy(artifacts.directory.appendingPathComponent(name))),
+                             product: product, to: &assembly)
             if product.platform == .macOS {
                 // SwiftPM's generated Bundle.module accessor searches beside Bundle.main.bundleURL.
                 // Keep one payload in Resources and expose that path through a relocatable relative link.
                 let aliasBase = product.type == .helperExecutable ? layout.contentsPath : layout.bundlePath
-                assembly.operations.append(.init(path: joined(aliasBase, name),
-                                                 payload: .symlink(product.type == .helperExecutable
-                                                                  ? "Resources/\(name)" : "Contents/Resources/\(name)")))
+                appendDependency(.init(path: joined(aliasBase, name),
+                                       payload: .symlink(product.type == .helperExecutable
+                                                        ? "Resources/\(name)" : "Contents/Resources/\(name)")),
+                                 product: product, to: &assembly)
             }
         case .binaryTarget(let name):
             try validateName(name)
@@ -120,16 +123,16 @@ public struct BundleAssembler: Sendable {
                 throw StringError("Framework '\(name)' has no readable binary at \(binary.path)")
             }
             if try !isArchive(binary) {
-                assembly.operations.append(.init(path: joined(layout.frameworksPath, source.lastPathComponent),
-                                                 payload: .copy(source)))
+                appendDependency(.init(path: joined(layout.frameworksPath, source.lastPathComponent), payload: .copy(source)),
+                                 product: product, to: &assembly)
             }
         case .library(let name):
             try validateName(name)
             let source = artifacts.directory.appendingPathComponent("lib\(name).dylib")
             try validateInput(source)
             if try !isArchive(source) {
-                assembly.operations.append(.init(path: joined(layout.frameworksPath, source.lastPathComponent),
-                                                 payload: .copy(source)))
+                appendDependency(.init(path: joined(layout.frameworksPath, source.lastPathComponent), payload: .copy(source)),
+                                 product: product, to: &assembly)
             }
         case .root(let path):
             let source = sourceURL(path)
@@ -139,6 +142,16 @@ public struct BundleAssembler: Sendable {
         case .copy(let copy):
             assembly.operations.append(.init(path: try layout.path(for: copy.destination), payload: .copy(sourceURL(copy.source))))
         }
+    }
+
+    private func appendDependency(_ operation: Operation, product: Plan.Product, to assembly: inout Assembly) {
+        if product.type == .helperExecutable {
+            // Helpers share dependency directories. Coalesce exact generated operations across helpers,
+            // but retain repeated declarations within one helper so collision validation still rejects them.
+            let inserted = assembly.helperDependencies[operation, default: []].insert(product.product).inserted
+            if inserted && assembly.helperDependencies[operation]?.count != 1 { return }
+        }
+        assembly.operations.append(operation)
     }
 
     private func plist(for product: Plan.Product) throws -> Data {
