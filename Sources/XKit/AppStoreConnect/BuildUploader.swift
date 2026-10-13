@@ -80,6 +80,9 @@ public struct BuildUploader: Sendable {
         public var errorDescription: String? { description }
     }
 
+    /// How long before its expiration a pre-signed URL is considered stale.
+    static let urlRefreshMargin: TimeInterval = 60
+
     private let client: DeveloperAPIClient
     private let auth: DeveloperAPIASCAuthMiddleware
     private let transport: any ClientTransport
@@ -87,6 +90,7 @@ public struct BuildUploader: Sendable {
     private let configuration: Configuration
     @Dependency(\.httpClient) private var httpClient
     @Dependency(\.continuousClock) private var clock
+    @Dependency(\.date) private var date
 
     public init(key: ASCKey, configuration: Configuration = .init()) {
         @Dependency(\.httpClient) var httpClient
@@ -279,7 +283,8 @@ public struct BuildUploader: Sendable {
             var operation = operation
             try await retrying(isRetryable: Self.isRetryablePut) {
                 // pre-signed URLs stop working at some point. The reservation can be read again to get new ones.
-                if let expiration = operation.expiration, expiration <= Date() {
+                // refresh a bit early: our clock and the storage backend's may disagree
+                if let expiration = operation.expiration, expiration <= date.now.addingTimeInterval(Self.urlRefreshMargin) {
                     operation = try await refreshed(operation, fileID: fileID)
                 }
                 guard let url = operation.url.flatMap({ URL(string: $0) }) else {

@@ -368,6 +368,41 @@ private func happyPath(
         #expect(client.recorded(.put, "/part1").count == 1)
     }
 
+    @Test func getsFreshURLsWhenAPartExpiresWithinTheMargin() async throws {
+        let ipa = try makeIPA()
+        defer { try? FileManager.default.removeItem(at: ipa) }
+
+        // "now" is 2030-01-01T00:00:00Z: part 1 expires 30 s later (inside the margin), part 2 an hour later
+        let now = Date(timeIntervalSince1970: 1_893_456_000)
+        let soon = fileJSON(operations: [
+            operation(part: 1, offset: 0, length: 4, expiration: "2030-01-01T00:00:30Z"),
+            operation(part: 2, offset: 4, length: 3, expiration: "2030-01-01T01:00:00Z"),
+        ])
+        let client = MockHTTPClient { request in
+            switch (request.method, request.path) {
+            case (.post, "/v1/buildUploadFiles"):
+                return .init(201, soon)
+            case (.get, "/v1/buildUploadFiles/F1"):
+                return .init(200, twoParts)
+            default:
+                return try await happyPath().handler(request)
+            }
+        }
+
+        let result = try await withDependencies {
+            $0.date = .constant(now)
+        } operation: {
+            try await withMock(client) {
+                try await BuildUploader(key: makeKey()).upload(ipa: ipa, info: info, appID: "APP1", wait: true)
+            }
+        }
+        #expect(result.state == "COMPLETE")
+        // only the part inside the margin triggers a refresh
+        #expect(client.recorded(.get, "/v1/buildUploadFiles/F1").count == 1)
+        #expect(client.recorded(.put, "/part1").count == 1)
+        #expect(client.recorded(.put, "/part2").count == 1)
+    }
+
     @Test func resolvesTheAppFromTheBundleID() async throws {
         let attempts = LockIsolated(0)
         let client = MockHTTPClient { request in
