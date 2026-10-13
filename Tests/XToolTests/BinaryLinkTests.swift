@@ -167,6 +167,36 @@ struct BinaryLinkTests {
         await #expect(throws: (any Error).self) { try await ProductBuilder(buildSettings: settings, plan: plan).build() }
     }
 
+    @Test func staticBinaryTargetArchiveUsesXCFrameworkLibraryPath() async throws {
+        let scratch = try temporaryRoot()
+        defer { try? FileManager.default.removeItem(at: scratch) }
+        let root = scratch.appendingPathComponent("arm64-apple-macosx/release")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let xcframework = scratch.appendingPathComponent("artifacts/package/Static/Static.xcframework")
+        try FileManager.default.createDirectory(at: xcframework, withIntermediateDirectories: true)
+        let libraries: [[String: Any]] = [
+            ["LibraryPath": "libstatic-ios.a", "SupportedPlatform": "ios", "SupportedArchitectures": ["arm64"]],
+            ["LibraryPath": "libstatic-fat.a", "SupportedPlatform": "macos", "SupportedArchitectures": ["arm64", "x86_64"]],
+        ]
+        try PropertyListSerialization.data(fromPropertyList: ["AvailableLibraries": libraries], format: .xml, options: 0)
+            .write(to: xcframework.appendingPathComponent("Info.plist"))
+        let target = try ResolvedTarget.resolve(cliTarget: "arm64-apple-macosx15.0")
+        try write(binary(), to: root.appendingPathComponent("App"))
+        var app = product("App", kind: .application, target: target)
+        app.resources = [.binaryTarget(name: "Static")]
+        let plan = try Plan(target: target, app: app)
+        let object = binary(type: 1)
+        let size = String(object.count).padding(toLength: 10, withPad: " ", startingAt: 0)
+        let header = "file.o/         0           0     0     100644  \(size)`\n"
+        try (Data("!<arch>\n\(header)".utf8) + object).write(to: root.appendingPathComponent("libstatic-fat.a"))
+        let settings = try await BuildSettings(configuration: .release, triple: target.triple, packagePath: root.path)
+        let artifacts = try await ProductBuilder(buildSettings: settings, plan: plan).build()
+        #expect(artifacts.staticBinaryTargets == ["Static"])
+        let output = scratch.appendingPathComponent("App.app")
+        try BundleAssembler(plan: plan, sourceDirectory: root).assemble(artifacts: artifacts, at: output)
+        #expect(!FileManager.default.fileExists(atPath: output.appendingPathComponent("Contents/Frameworks/Static.framework").path))
+    }
+
     @Test func dynamicInstallNameMustResolveInsideEmbeddedFramework() throws {
         let root = try temporaryRoot()
         defer { try? FileManager.default.removeItem(at: root) }

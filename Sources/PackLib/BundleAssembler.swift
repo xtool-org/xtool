@@ -104,7 +104,8 @@ public struct BundleAssembler: Sendable {
             let source = artifacts.directory.appendingPathComponent("\(name).framework")
             let binary = source.appendingPathComponent(name)
             if artifacts.staticBinaryTargets.contains(name) {
-                let looseArchive = artifacts.directory.appendingPathComponent("lib\(name).a")
+                let looseArchive = ProductBuilder.staticArchive(forBinaryTarget: name, in: artifacts.directory,
+                                                                target: plan.target)
                 guard FileManager.default.fileExists(atPath: binary.path)
                     || FileManager.default.fileExists(atPath: looseArchive.path) else {
                     throw StringError("Missing validated static binary target '\(name)' in \(artifacts.directory.path)")
