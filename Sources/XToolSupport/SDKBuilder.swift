@@ -234,23 +234,7 @@ struct SDKBuilder {
     }
 
     // swiftlint:disable:next function_body_length
-    private func installToolset(in output: URL) async throws {
-        let toolsetDir = output.appendingPathComponent("toolset")
-
-        try FileManager.default.createDirectory(
-            at: toolsetDir,
-            withIntermediateDirectories: false
-        )
-
-        if let local = ProcessInfo.processInfo.environment["XTOOL_TOOLSET_TARBALL"] {
-            let tar = Process()
-            // /bin/sh finds tar on PATH (the Nix build sandbox has no /usr/bin/env)
-            tar.executableURL = URL(fileURLWithPath: "/bin/sh")
-            tar.arguments = ["-c", "exec tar xzf \"$0\" -C \"$1\"", local, toolsetDir.path]
-            try tar.run()
-            tar.waitUntilExit()
-            guard tar.terminationStatus == 0 else { throw Console.Error("Could not unpack toolset \(local)") }
-        } else {
+    private func downloadToolset(into toolsetDir: URL) async throws {
         @Dependency(\.httpClient) var httpClient
         let url = URL(string: """
         https://github.com/xtool-org/darwin-tools-linux-llvm/releases/download/\
@@ -289,6 +273,27 @@ struct SDKBuilder {
             try await execution.standardInputWriter.finish()
         }
         .checkSuccess()
+    }
+
+    private func installToolset(in output: URL) async throws {
+        let toolsetDir = output.appendingPathComponent("toolset")
+
+        try FileManager.default.createDirectory(
+            at: toolsetDir,
+            withIntermediateDirectories: false
+        )
+
+        if let local = ProcessInfo.processInfo.environment["XTOOL_TOOLSET_TARBALL"] {
+            try await Subprocess.run(
+                .name("tar"),
+                arguments: ["xzf", local],
+                workingDirectory: FilePath(toolsetDir),
+                output: .discarded,
+                error: .discarded,
+            )
+            .checkSuccess()
+        } else {
+            try await downloadToolset(into: toolsetDir)
         }
 
         // swift-build assumes we have an Apple-flavored librarian for Apple platforms
@@ -396,11 +401,13 @@ struct SDKBuilder {
     }
 
     private func installMacros(in output: URL) async throws {
+        let outputPath = output.appendingPathComponent("OpenAppleMacrosServer").path
         if let local = ProcessInfo.processInfo.environment["XTOOL_OAM_SERVER"] {
-            let dest = output.appendingPathComponent("OpenAppleMacrosServer")
-            // write a new file: a copy would keep the read-only mode of the Nix store
-            try Data(contentsOf: URL(fileURLWithPath: local)).write(to: dest)
-            try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: dest.path)
+            // copyItem copies a symlink as a symlink (it may be relative): copy its target
+            let source = URL(fileURLWithPath: local).resolvingSymlinksInPath().path
+            try FileManager.default.copyItem(atPath: source, toPath: outputPath)
+            // the source may be read-only (e.g. in /nix/store); the copy keeps its mode
+            try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: outputPath)
             return
         }
         @Dependency(\.httpClient) var httpClient
@@ -417,7 +424,6 @@ struct SDKBuilder {
         case .unknown: nil
         }
 
-        let outputPath = output.appendingPathComponent("OpenAppleMacrosServer").path
         do {
             let handle = try FileDescriptor.open(
                 FilePath(outputPath),
