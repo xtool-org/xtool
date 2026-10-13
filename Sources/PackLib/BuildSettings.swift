@@ -40,7 +40,16 @@ public struct BuildSettings: Sendable {
         self.configuration = configuration
         self.customOptions = options
         self.triple = triple
-        self.buildSystem = if let buildSystem { buildSystem } else { try await .default() }
+        let target = try TargetTriple(triple)
+        // SwiftBuild has not been validated for macOS cross-compilation. Keep the
+        // established iOS default, and use the proven SwiftPM backend for macOS.
+        self.buildSystem = if let buildSystem {
+            buildSystem
+        } else if target.platform == .macOS {
+            .swiftPM
+        } else {
+            try await .default()
+        }
 
         self.sdkEnvironment = [
             // xcrun passes an SDKROOT that messes with our sdk configuration
@@ -54,8 +63,14 @@ public struct BuildSettings: Sendable {
             // i.e. we can pass `--swift-sdk arm64-apple-ios` and it
             // just works. See:
             // https://github.com/swiftlang/swift-package-manager/pull/6828
-            self.sdkOptions = ["--swift-sdk", triple]
+            self.sdkOptions = ["--swift-sdk", Self.sdkIdentity(for: target)]
+            if target.deploymentTarget != nil {
+                self.sdkOptions += ["--triple", Self.compilerTriple(for: target)]
+            }
         case .swiftBuild:
+            guard target.platform != .macOS else {
+                throw StringError("macOS builds currently require the SwiftPM backend; SwiftBuild is not validated")
+            }
             self.sdkOptions = ["--triple", triple]
             #if !os(macOS)
             let darwinSDK = try DarwinSDK.current()
@@ -111,6 +126,59 @@ public struct BuildSettings: Sendable {
         var copy = self
         copy.packagePath = path
         return copy
+    }
+
+    /// An SDK's unversioned identity selects its tools and libraries; the
+    /// compiler triple separately carries the plan's effective minimum OS.
+    public func withTarget(_ target: ResolvedTarget) throws -> Self {
+        guard target.triple == triple else {
+            throw StringError("Build settings target differs from the resolved plan")
+        }
+        var copy = self
+        switch buildSystem {
+        case .swiftPM:
+            copy.sdkOptions = ["--swift-sdk", Self.sdkIdentity(for: try TargetTriple(triple)),
+                               "--triple", target.compilerTriple]
+        case .swiftBuild:
+            // Retain the backend-specific toolset selected by the initializer.
+            copy.sdkOptions = ["--triple", target.compilerTriple] + sdkOptions.dropFirst(2)
+        }
+        return copy
+    }
+
+    private static func sdkIdentity(for target: TargetTriple) -> String {
+        switch target.platform {
+        case .iOS: "\(target.architecture)-apple-ios"
+        case .iOSSimulator: "\(target.architecture)-apple-ios-simulator"
+        case .macOS: "\(target.architecture)-apple-macosx"
+        }
+    }
+
+    private static func compilerTriple(for target: TargetTriple) -> String {
+        let version = target.deploymentTarget ?? target.platform.minimumDeploymentTarget
+        return switch target.platform {
+        case .iOS: "\(target.architecture)-apple-ios\(version)"
+        case .iOSSimulator: "\(target.architecture)-apple-ios\(version)-simulator"
+        case .macOS: "\(target.architecture)-apple-macosx\(version)"
+        }
+    }
+
+    /// Reject combinations whose failure is already known, before a builder
+    /// creates its wrapper or starts resolving/compiling a package.
+    func validateProductBuild(for target: ResolvedTarget, hostIsMacOS: Bool) throws {
+        // `init` already rejects SwiftBuild for macOS, and `withTarget` a different triple.
+        guard target.platform != .macOS || hostIsMacOS || configuration == .release else {
+            throw StringError("macOS Debug builds on Linux need unavailable codesign support; use --configuration release")
+        }
+        // Build options may tune compilation, but cannot silently replace the
+        // already-resolved target, product, backend, or package.
+        let reserved = ["--triple", "--swift-sdk", "--sdk", "--arch", "--destination", "--configuration", "-c",
+                        "--build-system", "--package-path", "--product", "--target", "--show-bin-path", "--build-tests"]
+        for option in customOptions {
+            if reserved.contains(where: { option == $0 || option.hasPrefix("\($0)=") }) {
+                throw StringError("Build option '\(option)' conflicts with the resolved product build settings")
+            }
+        }
     }
 
     public func swiftPMInvocation(

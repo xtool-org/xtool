@@ -14,129 +14,212 @@ public struct ProductBuilder: Sendable {
         self.plan = plan
     }
 
-    public func build() async throws -> BuildArtifacts {
-        guard plan.target.triple == buildSettings.triple else {
-            throw StringError("Build settings target differs from the resolved plan")
-        }
-        guard plan.target.platform != .macOS,
-              plan.allProducts.allSatisfy({
-                  if case .library(let name) = $0.resolvedSource { return name == $0.product }
-                  return false
-              }) else {
-            throw StringError("Only iOS library-wrapper compilation is implemented")
-        }
-        let xtoolDir = URL(fileURLWithPath: "xtool")
-        let packageDir = xtoolDir.appendingPathComponent(".xtool-tmp")
-        try? FileManager.default.removeItem(at: packageDir)
-        try FileManager.default.createDirectory(at: packageDir, withIntermediateDirectories: true)
+    @Dependency(\.productBuildRunner) private var runner
 
-        let packageSwift = packageDir.appendingPathComponent("Package.swift")
+    public func build() async throws -> BuildArtifacts {
+        #if os(macOS)
+        let hostIsMacOS = true
+        #else
+        let hostIsMacOS = false
+        #endif
+        try buildSettings.validateProductBuild(for: plan.target, hostIsMacOS: hostIsMacOS)
+        try validateProducts()
+        let settings = try buildSettings.withTarget(plan.target)
+        let root = URL(fileURLWithPath: settings.packagePath, isDirectory: true).standardizedFileURL
+        let wrapper = root.appendingPathComponent("xtool/.xtool-tmp", isDirectory: true)
+        let libraries = plan.allProducts.filter {
+            if case .library = $0.resolvedSource { return true }
+            return false
+        }
+        if !libraries.isEmpty { try createWrapper(at: wrapper, root: root, products: libraries) }
+
+        // Share one scratch tree so resources and dependency libraries remain
+        // beside all products, including mixed direct and wrapped products.
+        let scratchOptions = settings.customOptions.contains {
+            $0 == "--scratch-path" || $0.hasPrefix("--scratch-path=")
+        } ? [] : ["--scratch-path", root.appendingPathComponent(".build").path]
+        var directory: URL?
+        var executables: [String: URL] = [:]
+        for product in plan.allProducts {
+            let package: URL
+            let name: String
+            let options: [String]
+            switch product.resolvedSource {
+            case .library:
+                package = wrapper
+                name = product.targetName
+                // Planning already resolved root dependencies; avoid dropping
+                // its development-only dependencies from Package.resolved.
+                options = ["--disable-automatic-resolution"]
+            case .executable(let sourceName):
+                package = root
+                name = sourceName
+                options = try directProductOptions(product, in: wrapper)
+            case .prebuilt:
+                // validateProducts rejects these before any side effects.
+                throw StringError("Prebuilt product compatibility validation is not implemented")
+            }
+            let productSettings = settings.withPackagePath(package.path)
+            let arguments = scratchOptions + ["--product", name] + options
+            try await runner.build(productSettings, arguments)
+            let path = try await runner.binaryPath(productSettings, arguments)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !path.isEmpty, !path.contains("\n"), path.hasPrefix("/") else {
+                throw StringError("Build backend returned an invalid binary output path: '\(path)'")
+            }
+            let binDir = URL(fileURLWithPath: path, isDirectory: true).standardizedFileURL
+            if let directory, directory != binDir {
+                throw StringError("Build backend produced products in different resource directories")
+            }
+            directory = binDir
+            let executable = binDir.appendingPathComponent(name)
+            guard FileManager.default.isExecutableFile(atPath: executable.path) else {
+                throw StringError("Build backend did not produce executable '\(name)' at \(executable.path)")
+            }
+            executables[product.product] = executable
+        }
+        guard let directory else { throw StringError("Build plan has no products") }
+        return BuildArtifacts(directory: directory, executables: executables)
+    }
+
+    private func directProductOptions(_ product: Plan.Product, in directory: URL) throws -> [String] {
+        // SwiftPM forwards CLI -Xlinker options to host macro executables too.
+        // SDK toolset options belong only to the target toolchain instead.
+        let toolsets = directory.appendingPathComponent("toolsets", isDirectory: true)
+        try FileManager.default.createDirectory(at: toolsets, withIntermediateDirectories: true)
+        let path = toolsets.appendingPathComponent("\(product.targetName).json")
+        let data = try JSONSerialization.data(withJSONObject: [
+            "schemaVersion": "1.0",
+            "swiftCompiler": ["extraCLIOptions": product.linkerArguments],
+        ], options: [.sortedKeys])
+        try data.write(to: path)
+        return ["--toolset", path.path]
+    }
+
+    private func validateProducts() throws {
+        let names = plan.allProducts.map { product -> String in
+            switch product.resolvedSource {
+            case .library: product.targetName
+            case .executable(let name): name
+            case .prebuilt: ""
+            }
+        }
+        guard Set(names).count == names.count else {
+            throw StringError("Product build output names collide")
+        }
+        for product in plan.allProducts {
+            try product.resolvedSource.validate()
+            try ResourceDestination.validateRelativePath(product.product)
+            guard !product.product.contains("/") else {
+                throw StringError("Product names must not contain path separators")
+            }
+            switch product.resolvedSource {
+            case .prebuilt:
+                throw StringError("Prebuilt product compatibility validation is not implemented; use a SwiftPM product")
+            case .executable where buildSettings.buildSystem != .swiftPM:
+                throw StringError("Direct executable products currently require the SwiftPM backend")
+            case .library(let name), .executable(let name):
+                try ResourceDestination.validateRelativePath(name)
+                guard !name.contains("/") else {
+                    throw StringError("SwiftPM product names must not contain path separators")
+                }
+            }
+        }
+    }
+
+    private func createWrapper(at directory: URL, root: URL, products: [Plan.Product]) throws {
+        try? FileManager.default.removeItem(at: directory)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let targets = products.map { product in
+            let sourceName: String
+            if case .library(let name) = product.resolvedSource { sourceName = name } else { sourceName = product.product }
+            return """
+            .executableTarget(
+                name: \(product.targetName.swiftLiteral),
+                dependencies: [.product(name: \(sourceName.swiftLiteral), package: "RootPackage")],
+                linkerSettings: \(product.linkerSettings)
+            )
+            """
+        }.joined(separator: ",\n")
+        let platform = plan.target.platform == .macOS ? "macOS" : "iOS"
         let contents = """
         // swift-tools-version: 6.0
         import PackageDescription
         let package = Package(
-            name: "\(plan.app.product)-Builder",
-            platforms: [
-                .iOS("\(plan.app.deploymentTarget)"),
-            ],
-            dependencies: [
-                .package(name: "RootPackage", path: "../.."),
-            ],
+            name: \((plan.app.product + "-Builder").swiftLiteral),
+            platforms: [.\(platform)(\(plan.target.deploymentTarget.swiftLiteral))],
+            dependencies: [.package(name: "RootPackage", path: \(root.path.swiftLiteral))],
             targets: [
-                \(
-                    plan.allProducts.map {
-                        """
-                        .executableTarget(
-                            name: "\($0.targetName)",
-                            dependencies: [
-                                .product(name: "\($0.product)", package: "RootPackage"),
-                            ],
-                            linkerSettings: \($0.linkerSettings)
-                        )
-                        """
-                    }
-                    .joined(separator: ",\n")
-                )
+                \(targets)
             ]
-        )\n
+        )
+
         """
-        try Data(contents.utf8).write(to: packageSwift)
-
-        for product in plan.allProducts {
-            let sources: URL = packageDir.appendingPathComponent("Sources/\(product.targetName)", isDirectory: true)
+        try Data(contents.utf8).write(to: directory.appendingPathComponent("Package.swift"))
+        for product in products {
+            let sources = directory.appendingPathComponent("Sources/\(product.targetName)", isDirectory: true)
             try FileManager.default.createDirectory(at: sources, withIntermediateDirectories: true)
-            try Data().write(to: sources.appendingPathComponent("stub.c", isDirectory: false))
+            try Data().write(to: sources.appendingPathComponent("stub.c"))
         }
-
-        let buildConfig = try await buildSettings
-            .withPackagePath(packageDir.path)
-            .swiftPMInvocation(
-                forTool: "build",
-                arguments: [
-                    "--scratch-path", ".build",
-                    // resolving can cause SwiftPM to overwrite the root package deps
-                    // with just the deps needed for the builder package (which is to
-                    // say, any "dev dependencies" of the root package may be removed.)
-                    // fortunately we've already resolved the root package by this point
-                    // in order to dump the plan, so we can skip resolution here to skirt
-                    // the issue.
-                    "--disable-automatic-resolution",
-                ],
-            )
-        try await Subprocess.run(
-            buildConfig,
-            output: .currentStandardOutput,
-            error: .currentStandardError,
-        )
-        .checkSuccess()
-        let binPath: String
-        switch buildSettings.buildSystem {
-        case .swiftPM:
-            binPath = "\(buildSettings.triple)/\(buildSettings.configuration.rawValue)"
-        case .swiftBuild:
-            let platformName = buildSettings.triple.contains("simulator") ? "iphonesimulator" : "iphoneos"
-            binPath = "out/Products/\(buildSettings.configuration.swiftBuildValue)-\(platformName)"
-        }
-        let binDir = URL(
-            fileURLWithPath: ".build/\(binPath)",
-            isDirectory: true
-        )
-
-        return BuildArtifacts(
-            directory: binDir,
-            executables: Dictionary(uniqueKeysWithValues: plan.allProducts.map {
-                ($0.product, binDir.appendingPathComponent($0.targetName))
-            })
-        )
     }
 }
 
+extension String {
+    /// Encode untrusted package/product names as a literal, never manifest code.
+    fileprivate var swiftLiteral: String { String(reflecting: self) }
+}
+
 extension Plan.Product {
-    fileprivate var linkerSettings: String {
-        switch self.type {
-        case .application: """
-        [
-            .unsafeFlags([
-                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
-            ]),
-        ]
-        """
-        case .xpcService, .helperExecutable: "[]"
-        case .appExtension: """
-        [
-            // Link to Foundation framework which implements the _NSExtensionMain entrypoint
-            .linkedFramework("Foundation"),
-            .unsafeFlags([
-                // Set the entry point to Foundation`_NSExtensionMain
-                "-Xlinker", "-e", "-Xlinker", "_NSExtensionMain",
-                // Include frameworks that the host app may use
-                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks",
-                // ...as well as our own
-                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
-            ]),
-        ]
-        """
+    var linkerArguments: [String] {
+        var arguments: [String] = []
+        if type == .appExtension {
+            arguments += ["-Xlinker", "-framework", "-Xlinker", "Foundation",
+                          "-Xlinker", "-e", "-Xlinker", "_NSExtensionMain"]
         }
+        // Paths follow the executable's actual position in the selected layout.
+        let own = platform == .macOS ? "@executable_path/../Frameworks" : "@executable_path/Frameworks"
+        let outer: String? = switch type {
+        case .application: nil
+        case .appExtension, .xpcService:
+            platform == .macOS ? "@executable_path/../../../../Frameworks" : "@executable_path/../../Frameworks"
+        case .helperExecutable: "@executable_path/../Frameworks"
+        }
+        if let outer { arguments += ["-Xlinker", "-rpath", "-Xlinker", outer] }
+        if outer != own { arguments += ["-Xlinker", "-rpath", "-Xlinker", own] }
+        return arguments
+    }
+
+    fileprivate var linkerSettings: String {
+        "[.unsafeFlags([\(linkerArguments.map(\.swiftLiteral).joined(separator: ", "))])]"
+    }
+}
+
+/// The build backend owns output discovery. Injection lets focused tests assert
+/// target/host separation without starting a compiler or provisioning a device.
+struct ProductBuildRunner: Sendable {
+    var build: @Sendable (BuildSettings, [String]) async throws -> Void
+    var binaryPath: @Sendable (BuildSettings, [String]) async throws -> String
+}
+
+extension ProductBuildRunner: DependencyKey {
+    static let liveValue = Self(
+        build: { settings, arguments in
+            let invocation = try await settings.swiftPMInvocation(forTool: "build", arguments: arguments)
+            try await Subprocess.run(invocation, output: .currentStandardOutput, error: .currentStandardError).checkSuccess()
+        },
+        binaryPath: { settings, arguments in
+            let invocation = try await settings.swiftPMInvocation(forTool: "build", arguments: arguments + ["--show-bin-path"])
+            let result = try await Subprocess.run(invocation, output: .string(limit: .max), error: .currentStandardError)
+                .checkSuccess()
+            return result.standardOutput
+        }
+    )
+}
+
+extension DependencyValues {
+    var productBuildRunner: ProductBuildRunner {
+        get { self[ProductBuildRunner.self] }
+        set { self[ProductBuildRunner.self] = newValue }
     }
 }
 

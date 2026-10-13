@@ -112,7 +112,7 @@ public struct ResolvedTarget: Codable, Sendable, Equatable {
         return false
     }
 
-    /// SDK identity remains `triple`; compiler invocations use this versioned target.
+    /// Canonical versioned target for compiler invocations. The SDK identity is selected separately.
     public var compilerTriple: String {
         switch platform {
         case .iOS: "\(architecture)-apple-ios\(deploymentTarget)"
