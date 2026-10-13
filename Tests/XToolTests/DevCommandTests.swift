@@ -245,8 +245,21 @@ struct DevCommandTests {
         let relative = try #require(handoff.products[0].entitlementsPath)
         let copied = manifestURL.deletingLastPathComponent().appendingPathComponent(relative)
         #expect(try Data(contentsOf: copied) == entitlementData)
-        #expect(!FileManager.default.fileExists(atPath: directory.appendingPathComponent(".bsp").path))
-        #expect(!FileManager.default.fileExists(atPath: directory.appendingPathComponent(".sourcekit-lsp").path))
+        let supportsBSP = try await SwiftVersion.current.supportsSwiftBuild
+        let editorConfigPath = supportsBSP ? LSPConfig.bsp.0 : LSPConfig.legacyLSP.0
+        let alternateConfigPath = supportsBSP ? LSPConfig.legacyLSP.0 : LSPConfig.bsp.0
+        #expect(!FileManager.default.fileExists(atPath: directory.appendingPathComponent(alternateConfigPath).path))
+        let editorConfigURL = directory.appendingPathComponent(editorConfigPath)
+        let editorConfig = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: editorConfigURL)) as? [String: Any])
+        if supportsBSP {
+            #expect(editorConfig["argv"] as? [String] == [
+                "/usr/bin/env", "xtool", "dev", "build-server", "--triple", "arm64-apple-macosx",
+            ])
+        } else {
+            #expect(editorConfig["swiftPM"] as? [String: String] == [
+                "swiftSDK": "arm64-apple-macosx", "triple": "arm64-apple-macosx15.0",
+            ])
+        }
     }
 
     private func product(_ name: String, kind: Plan.ProductType, target: ResolvedTarget, entitlements: String?) -> Plan.Product {

@@ -34,7 +34,6 @@ cd "$(dirname "$0")/.."
 project_dir="$PWD"
 
 swift build --product xtool
-swift test
 ln -fs $PWD/.build/debug/xtool /usr/local/bin/xtool
 hash -r
 
@@ -46,4 +45,5 @@ echo "Installing SDK"
 xtool sdk install --slim "$XTL_TEST_XCODE_APP"
 
 echo "Running tests..."
+swift test --package-path "$project_dir"
 bats "$project_dir/integration-tests/suite"

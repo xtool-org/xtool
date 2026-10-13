@@ -10,17 +10,15 @@ struct DevBSPCommand: AsyncParsableCommand {
         abstract: "Run build server",
     )
 
-    @Option
+    @Option(help: "Target triple; overrides xtool.yml target, otherwise defaults to arm64-apple-ios")
     var triple: String?
 
     func run() async throws {
         guard try await SwiftVersion.current.supportsSwiftBuild else {
             throw Console.Error("`xtool dev build-server` requires Swift 6.4 or later")
         }
-        let settings = try await BuildSettings(
-            configuration: .debug,
-            triple: triple ?? PackOperation.defaultTriple
-        )
+        let request = try await DevBuildRequest.load(cliTriple: triple)
+        let (settings, _) = try await EditorTarget.buildSettings(request: request)
         try await Subprocess.run(
             settings.buildServerInvocation(),
             input: .currentStandardInput,

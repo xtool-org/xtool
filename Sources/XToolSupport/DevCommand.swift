@@ -52,8 +52,6 @@ struct PackOperation {
             """)
         }
 
-        await LSPConfig.tryEnsure(using: schema)
-
         let buildSettings = try await BuildSettings(
             configuration: buildOptions.configuration,
             triple: triple ?? Self.defaultTriple,
@@ -65,6 +63,7 @@ struct PackOperation {
             schema: schema
         )
         let plan = try await planner.createPlan()
+        await LSPConfig.tryEnsure(plan: plan, settings: buildSettings, schema: schema)
 
         if xcode {
             return try await XcodePacker(plan: plan).createProject()
@@ -383,6 +382,7 @@ struct DeferredMacBuildOperation {
             buildSystem: .swiftPM, packagePath: request.directory.path
         )
         let plan = try await Planner(buildSettings: settings, schema: request.schema).createPlan()
+        await LSPConfig.tryEnsure(plan: plan, settings: settings, schema: request.schema, currentDirectory: request.directory)
         // This deliberately bypasses PackOperation's automatic entitlement signing.
         let bundle = try await client.deferredPack(settings, plan)
         let manifest = try DeferredSigningHandoff.write(plan: plan, bundle: bundle, sourceDirectory: request.directory)
