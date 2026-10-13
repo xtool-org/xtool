@@ -260,10 +260,32 @@ public struct BuildSettings: Sendable {
             baseArguments = [tool]
         }
 
+        var options = resolvedBaseOptions
+        var environment = sdkEnvironment
+        #if !os(macOS)
+        let target = try TargetTriple(triple)
+        if buildSystem == .swiftPM && target.platform == .macOS {
+            let directory: URL
+            if let path = swiftSDKsPath {
+                directory = URL(fileURLWithPath: path, isDirectory: true)
+            } else {
+                directory = try DarwinSDK.current()
+                    .orThrow(StringError("No Darwin SDK configured. Please run `xtool setup`."))
+                    .bundle.deletingLastPathComponent()
+            }
+            let cache = URL(fileURLWithPath: packagePath, isDirectory: true).appendingPathComponent(".build/xtool-sdk")
+            let destination = try SwiftSDKConfiguration.destination(in: directory, for: target, cacheDirectory: cache)
+            let compilerTriple = sdkOptions.firstIndex(of: "--triple").map { sdkOptions[$0 + 1] }
+                ?? Self.compilerTriple(for: target)
+            options = configOptions + ["--destination", destination.url.path, "--triple", compilerTriple] + customOptions
+            environment["PATH"] = (destination.toolSearchPaths + [ProcessInfo.processInfo.environment["PATH"] ?? ""])
+                .joined(separator: ":")
+        }
+        #endif
         return Configuration(
             executable: executable,
-            arguments: .init(baseArguments + resolvedBaseOptions + arguments),
-            environment: .inherit.updating(sdkEnvironment),
+            arguments: .init(baseArguments + options + arguments),
+            environment: .inherit.updating(environment),
             platformOptions: .withGracefulShutDown,
         )
     }
