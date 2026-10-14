@@ -59,5 +59,6 @@ This support excludes native execution of macOS applications on Linux, an asset
 compiler replacement, release publishing, universal binary
 production and full Xcode project ingestion. Supply prepared ICNS/PNG,
 `Assets.car`, storyboards or nibs where needed; raw asset catalogs, iconsets, storyboards
-and xibs are rejected by assembly. Certificate creation, identity selection and
+and xibs you supply are rejected by assembly. SwiftPM resource bundles are copied as
+built, so raw assets inside them stay uncompiled. Certificate creation, identity selection and
 provisioning-dependent entitlements remain separate work.

@@ -118,7 +118,8 @@ Source-built macOS SwiftPM resource accessors are adapted for relocated bundles;
 separate relocation tests exercise the adapted `Bundle.module` accessor after
 original build inputs are removed.
 Prepared assets are copied without invoking `actool` or `ibtool`. Raw
-`.xcassets`, `.iconset`, `.storyboard` and `.xib` inputs require preparation elsewhere.
+`.xcassets`, `.iconset`, `.storyboard` and `.xib` inputs require preparation elsewhere;
+SwiftPM resource bundles are copied as built, with any raw assets left uncompiled.
 
 Caller plist values override generated defaults, including identifiers. Ensure
 `CFBundleExecutable`, bundle kind and minimum OS agree with the actual product;

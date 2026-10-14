@@ -41,7 +41,7 @@ public struct BundleAssembler: Sendable {
     private struct Operation: Hashable {
         var path: String
         var payload: Payload
-        /// iOS has always copied SwiftPM resource bundles as built, including uncompiled assets.
+        /// SwiftPM resource bundles are copied as built, including the assets SwiftPM leaves uncompiled.
         var allowsRawAssets = false
     }
 
@@ -93,7 +93,7 @@ public struct BundleAssembler: Sendable {
             let name = "\(package)_\(target).bundle"
             let path = joined(layout.resourcesPath, name)
             appendDependency(.init(path: path, payload: .copy(artifacts.directory.appendingPathComponent(name)),
-                                   allowsRawAssets: product.platform != .macOS),
+                                   allowsRawAssets: true),
                              product: product, to: &assembly)
             if product.platform == .macOS && product.type == .helperExecutable {
                 // Bare helpers retain SwiftPM's executable-directory lookup. Real bundles use

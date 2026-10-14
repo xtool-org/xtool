@@ -373,7 +373,7 @@ struct BundleAssemblerTests {
     }
 
     @Test(arguments: ["arm64-apple-ios17.0", "arm64-apple-macosx15.0"])
-    func swiftPMBundlesKeepRawAssetsOnlyOnIOS(triple: String) throws {
+    func swiftPMBundlesKeepRawAssets(triple: String) throws {
         let root = try root()
         defer { try? FileManager.default.removeItem(at: root) }
         let target = try ResolvedTarget.resolve(cliTarget: triple)
@@ -387,12 +387,10 @@ struct BundleAssemblerTests {
         try write(at: bundle.appendingPathComponent("View.xib"))
         let output = root.appendingPathComponent("App.app")
         let assemble = { try BundleAssembler(plan: plan, sourceDirectory: root).assemble(artifacts: artifacts, at: output) }
-        if target.platform == .macOS {
-            #expect(throws: (any Error).self) { try assemble() }
-        } else {
-            try assemble()
-            #expect(FileManager.default.fileExists(atPath: output.appendingPathComponent("Package_Target.bundle/View.xib").path))
-        }
+        try assemble()
+        let resources = target.platform == .macOS ? "Contents/Resources/" : ""
+        #expect(FileManager.default.fileExists(
+            atPath: output.appendingPathComponent("\(resources)Package_Target.bundle/View.xib").path))
     }
 
     @Test func iosLayoutAndLegacyRootResourcesRemainFlat() throws {
