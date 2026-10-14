@@ -17,9 +17,10 @@ struct DevBSPCommand: AsyncParsableCommand {
         guard try await SwiftVersion.current.supportsSwiftBuild else {
             throw Console.Error("`xtool dev build-server` requires Swift 6.4 or later")
         }
+        let schema = try await PackSchema.load()
         let settings = try await BuildSettings(
             configuration: .debug,
-            triple: triple ?? PackOperation.defaultTriple
+            triple: triple ?? schema.defaultTriple
         )
         try await Subprocess.run(
             settings.buildServerInvocation(),

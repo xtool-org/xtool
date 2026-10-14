@@ -71,7 +71,7 @@ public struct DeveloperServicesFetchProfileOperation: DeveloperServicesOperation
 
         let allDevices = try await context.developerAPIClient.devicesGetCollection()
             .ok.body.json.data
-            .filter { $0.attributes?.deviceClass?.value1?.supportsIOSApps == true }
+            .filter { $0.attributes?.deviceClass?.value1?.supportsApps(on: context.platform) == true }
 
         let response = try await context.developerAPIClient.profilesCreateInstance(
             body: .json(
@@ -109,10 +109,14 @@ public struct DeveloperServicesFetchProfileOperation: DeveloperServicesOperation
 }
 
 extension Components.Schemas.Device.AttributesPayload.DeviceClassPayload.Value1Payload {
-    fileprivate var supportsIOSApps: Bool {
-        switch self {
-        case .ipad, .iphone, .ipod: true
-        default: false
+    func supportsApps(on platform: DeveloperServicesPlatform) -> Bool {
+        switch platform {
+        case .watchOS:
+            self == .appleWatch
+        case .iOS:
+            self == .ipad || self == .iphone || self == .ipod
+        default:
+            false
         }
     }
 }

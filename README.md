@@ -19,6 +19,10 @@ xtool is a cross-platform (Linux/WSL/macOS) tool that replicates Xcode functiona
     - [Installation (macOS)](https://xtool.sh/documentation/xtooldocs/installation-macos)
 2. Create and run your first xtool-powered app by following the [tutorial](https://xtool.sh/tutorials/xtooldocs/first-app)!
 
+Experimental standalone watchOS builds and explicit device signing are described
+in the [watchOS guide](Documentation/xtool.docc/WatchOS.md). Watch deployment uses
+a separate prototype helper; it is not integrated into `xtool dev run` yet.
+
 ## Examples
 
 ### Screenshot

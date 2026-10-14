@@ -19,8 +19,6 @@ struct PackOperation {
         }
     }
 
-    static let defaultTriple = "arm64-apple-ios"
-
     var triple: String?
     var buildOptions = BuildOptions(configuration: .debug)
     var xcode = false
@@ -36,8 +34,6 @@ struct PackOperation {
             throw Console.Error("Could not find Package.swift in this directory.")
         }
 
-        try await EnsureSDKOperation(quiet: true).run()
-
         print("Planning...")
 
         let schema: PackSchema
@@ -52,11 +48,17 @@ struct PackOperation {
             """)
         }
 
+        let resolvedTriple = triple ?? schema.defaultTriple
+        if xcode && AppPlatform(triple: resolvedTriple) == .watchOS {
+            throw Console.Error("Generating watchOS Xcode projects is not supported yet. Use `xtool dev build`.")
+        }
+        try await EnsureSDKOperation(quiet: true).run()
+
         await LSPConfig.tryEnsure(using: schema)
 
         let buildSettings = try await BuildSettings(
             configuration: buildOptions.configuration,
-            triple: triple ?? Self.defaultTriple,
+            triple: resolvedTriple,
             options: []
         )
 
@@ -121,7 +123,7 @@ struct DevBuildCommand: AsyncParsableCommand {
         commandName: "build",
         abstract: "Build app with SwiftPM",
         discussion: """
-        This command builds the SwiftPM-based iOS app in the current directory
+        This command builds the SwiftPM-based iOS or watchOS app in the current directory
         """
     )
 
@@ -140,11 +142,19 @@ struct DevBuildCommand: AsyncParsableCommand {
     @Option(
         help: ArgumentHelp(
             "Custom target triple to build for",
-            discussion: "Defaults to '\(PackOperation.defaultTriple)'"
+            discussion: "Defaults to the platform configured in xtool.yml (iOS if omitted)"
         )
     ) var triple: String?
 
     func run() async throws {
+        let schema = try await PackSchema.load()
+        let platform = AppPlatform(triple: triple ?? schema.defaultTriple)
+        if platform == .watchOS && (sign || ipa) {
+            throw Console.Error("""
+            Integrated watchOS signing and IPA packaging are not supported yet. \
+            Use `xtool dev build`, then `xtool dev sign-watch` for explicit device signing.
+            """)
+        }
         let signingAuthToken: AuthToken?
         if sign {
             guard let token = try AuthToken.savedIfPresent() else {
@@ -217,15 +227,15 @@ struct DevRunCommand: AsyncParsableCommand {
     #if os(macOS)
     @Flag(
         name: .shortAndLong,
-        help: "Target the iOS Simulator"
+        help: "Target the simulator for the project's platform"
     ) var simulator = false
 
-    var triple: String? {
+    func simulatorTriple(platform: AppPlatform) -> String? {
         if simulator {
             #if arch(arm64)
-            return "arm64-apple-ios-simulator"
+            return "arm64-apple-\(platform.rawValue)-simulator"
             #elseif arch(x86_64)
-            return "x86_64-apple-ios-simulator"
+            return "x86_64-apple-\(platform.rawValue)-simulator"
             #else
             #error("Unsupported architecture")
             #endif
@@ -233,12 +243,21 @@ struct DevRunCommand: AsyncParsableCommand {
         return nil
     }
     #else
-    var triple: String? { nil }
+    func simulatorTriple(platform: AppPlatform) -> String? { nil }
     #endif
 
     @OptionGroup var connectionOptions: ConnectionOptions
 
     func run() async throws {
+        let schema = try await PackSchema.load()
+        let platform = schema.platform ?? .iOS
+        let triple = simulatorTriple(platform: platform)
+        if platform == .watchOS && triple == nil {
+            throw Console.Error("""
+            Physical Apple Watch deployment is not supported yet. Use `xtool dev build` \
+            for an unsigned .app, or `xtool dev run --simulator` on macOS with a booted Watch simulator.
+            """)
+        }
         let output = try await PackOperation(triple: triple, buildOptions: packOptions).run()
 
         #if os(macOS)
@@ -286,12 +305,14 @@ struct DevCommand: AsyncParsableCommand {
             DevBuildCommand.self,
             DevRunCommand.self,
             DevBSPCommand.self,
+            DevWatchSignCommand.self,
         ],
         defaultSubcommand: DevRunCommand.self
     )
 }
 
 extension BuildConfiguration: ExpressibleByArgument {}
+extension AppPlatform: ExpressibleByArgument {}
 
 #if os(macOS)
 import Subprocess
