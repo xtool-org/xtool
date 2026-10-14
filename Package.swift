@@ -174,7 +174,7 @@ let package = Package(
         .target(
             name: "XToolSupport",
             dependencies: [
-                "SwiftyMobileDevice",
+                .product(name: "SwiftyMobileDevice", package: "SwiftyMobileDevice"),
                 "XKit",
                 "PackLib",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
@@ -208,7 +208,7 @@ let package = Package(
         .executableTarget(
             name: "xtool",
             dependencies: [
-                "SwiftyMobileDevice",
+                .product(name: "SwiftyMobileDevice", package: "SwiftyMobileDevice"),
                 "XKit",
                 "XToolSupport",
             ],
