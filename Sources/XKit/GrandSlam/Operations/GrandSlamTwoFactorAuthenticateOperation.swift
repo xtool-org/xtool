@@ -27,7 +27,16 @@ struct GrandSlamTwoFactorAuthenticateOperation {
     private func performSMSAuth() async throws {
         // TODO: parse phone number list from o=complete req?
         let phoneNumberID = "1"
-        try await client.send(GrandSlamSMSAuthRequest(loginData: loginData, phoneNumberID: phoneNumberID))
+        do {
+            try await client.send(GrandSlamSMSAuthRequest(loginData: loginData, phoneNumberID: phoneNumberID))
+        } catch let error as HTTPResponseError {
+            print("""
+            Could not send an SMS (HTTP \(error.status.code)). Generate a code on a trusted device instead: \
+            Settings > [your name] > Sign-In & Security > Get Verification Code
+            """)
+            try await validateCode()
+            return
+        }
         try await validateCode(phoneNumberID: phoneNumberID)
     }
 
