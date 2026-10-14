@@ -74,7 +74,8 @@ public struct ResolvedTarget: Codable, Sendable, Equatable {
 
     /// Triple precedence: CLI > schema > iOS default.
     /// Deployment precedence: selected triple's version > schema > package > platform minimum.
-    /// A selected triple cannot lower an explicit schema/package minimum.
+    /// A package minimum below xtool's platform minimum is raised to it; an explicit triple or
+    /// schema version cannot lower the schema, package or platform minimum.
     public static func resolve(
         cliTarget: String? = nil,
         schema: PackSchema = .default,
@@ -82,11 +83,13 @@ public struct ResolvedTarget: Codable, Sendable, Equatable {
     ) throws -> Self {
         let triple = cliTarget ?? schema.target ?? defaultTriple
         let parsed = try TargetTriple(triple)
+        let platformMinimum = parsed.platform.minimumDeploymentTarget
         let packageMinimum = packageDeploymentTargets[parsed.platform.packagePlatformName]
-        let deployment = parsed.deploymentTarget ?? schema.deploymentTarget
-            ?? packageMinimum ?? parsed.platform.minimumDeploymentTarget
+        if let packageMinimum { try TargetTriple.validateVersion(packageMinimum) }
+        let packageDefault = packageMinimum.map { version($0, isBelow: platformMinimum) ? platformMinimum : $0 }
+        let deployment = parsed.deploymentTarget ?? schema.deploymentTarget ?? packageDefault ?? platformMinimum
         try TargetTriple.validateVersion(deployment)
-        for minimum in [schema.deploymentTarget, packageMinimum, parsed.platform.minimumDeploymentTarget].compactMap({ $0 }) {
+        for minimum in [schema.deploymentTarget, packageMinimum, platformMinimum].compactMap({ $0 }) {
             try TargetTriple.validateVersion(minimum)
             guard !version(deployment, isBelow: minimum) else {
                 throw StringError("Deployment target \(deployment) is below required minimum \(minimum)")
