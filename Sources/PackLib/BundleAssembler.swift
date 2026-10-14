@@ -41,6 +41,8 @@ public struct BundleAssembler: Sendable {
     private struct Operation: Hashable {
         var path: String
         var payload: Payload
+        /// iOS has always copied SwiftPM resource bundles as built, including uncompiled assets.
+        var allowsRawAssets = false
     }
 
     private struct Assembly {
@@ -90,7 +92,8 @@ public struct BundleAssembler: Sendable {
             try validateName(target)
             let name = "\(package)_\(target).bundle"
             let path = joined(layout.resourcesPath, name)
-            appendDependency(.init(path: path, payload: .copy(artifacts.directory.appendingPathComponent(name))),
+            appendDependency(.init(path: path, payload: .copy(artifacts.directory.appendingPathComponent(name)),
+                                   allowsRawAssets: product.platform != .macOS),
                              product: product, to: &assembly)
             if product.platform == .macOS && product.type == .helperExecutable {
                 // Bare helpers retain SwiftPM's executable-directory lookup. Real bundles use
@@ -183,7 +186,7 @@ public struct BundleAssembler: Sendable {
             }
             destinations.append(path)
             if case .copy(let source) = operation.payload {
-                try validateInput(source)
+                try validateInput(source, allowsRawAssets: operation.allowsRawAssets)
                 let sourcePath = source.resolvingSymlinksInPath().path
                 let outputPath = outputURL.resolvingSymlinksInPath().path
                 guard outputPath != sourcePath, !outputPath.hasPrefix(sourcePath + "/") else {
@@ -193,7 +196,7 @@ public struct BundleAssembler: Sendable {
         }
     }
 
-    private func validateInput(_ source: URL) throws {
+    private func validateInput(_ source: URL, allowsRawAssets: Bool = false) throws {
         let manager = FileManager.default
         guard manager.fileExists(atPath: source.path) else {
             throw StringError("Missing bundle input: \(source.path)")
@@ -202,18 +205,20 @@ public struct BundleAssembler: Sendable {
         if try source.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink == true {
             throw StringError("Bundle input must be a payload rather than a top-level symbolic link: \(source.path)")
         }
-        try validateEntry(source, root: source)
+        try validateEntry(source, root: source, allowsRawAssets: allowsRawAssets)
         if try source.resourceValues(forKeys: [.isDirectoryKey]).isDirectory == true {
             guard let enumerator = manager.enumerator(at: source, includingPropertiesForKeys: [.isSymbolicLinkKey]) else {
                 throw StringError("Cannot enumerate bundle input: \(source.path)")
             }
-            while let entry = enumerator.nextObject() as? URL { try validateEntry(entry, root: source) }
+            while let entry = enumerator.nextObject() as? URL {
+                try validateEntry(entry, root: source, allowsRawAssets: allowsRawAssets)
+            }
         }
     }
 
-    private func validateEntry(_ entry: URL, root: URL) throws {
+    private func validateEntry(_ entry: URL, root: URL, allowsRawAssets: Bool) throws {
         let rawAssets = ["xcassets", "iconset", "storyboard", "xib"]
-        if rawAssets.contains(entry.pathExtension.lowercased()) {
+        if !allowsRawAssets && rawAssets.contains(entry.pathExtension.lowercased()) {
             throw StringError("Raw asset '\(entry.path)' requires Apple asset compilation; supply prepared "
                               + "Assets.car, .icns, or compiled resources using resource-copies instead")
         }

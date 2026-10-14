@@ -372,6 +372,29 @@ struct BundleAssemblerTests {
         #expect(rootEntries == ["Contents"])
     }
 
+    @Test(arguments: ["arm64-apple-ios17.0", "arm64-apple-macosx15.0"])
+    func swiftPMBundlesKeepRawAssetsOnlyOnIOS(triple: String) throws {
+        let root = try root()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let target = try ResolvedTarget.resolve(cliTarget: triple)
+        let app = Plan.Product(target: target, type: .application, product: "App", bundleID: "test.App", infoPlist: [:],
+                               resources: [.bundle(package: "Package", target: "Target")])
+        let plan = try Plan(target: target, app: app)
+        let artifacts = try artifacts(plan, in: root)
+        // SwiftPM's native build copies asset catalogs and XIBs into resource bundles uncompiled.
+        let bundle = artifacts.directory.appendingPathComponent("Package_Target.bundle")
+        try write("{}", at: bundle.appendingPathComponent("Media.xcassets/Contents.json"))
+        try write(at: bundle.appendingPathComponent("View.xib"))
+        let output = root.appendingPathComponent("App.app")
+        let assemble = { try BundleAssembler(plan: plan, sourceDirectory: root).assemble(artifacts: artifacts, at: output) }
+        if target.platform == .macOS {
+            #expect(throws: (any Error).self) { try assemble() }
+        } else {
+            try assemble()
+            #expect(FileManager.default.fileExists(atPath: output.appendingPathComponent("Package_Target.bundle/View.xib").path))
+        }
+    }
+
     @Test func iosLayoutAndLegacyRootResourcesRemainFlat() throws {
         let root = try root()
         defer { try? FileManager.default.removeItem(at: root) }
