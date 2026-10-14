@@ -196,6 +196,7 @@ let package = Package(
             name: "PackLib",
             dependencies: [
                 "XUtils",
+                .product(name: "Dependencies", package: "swift-dependencies"),
                 "XcodeProjects",
                 .product(name: "Superutils", package: "xtool-core"),
                 .product(name: "Yams", package: "Yams"),
