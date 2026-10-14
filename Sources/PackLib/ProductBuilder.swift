@@ -35,6 +35,7 @@ public struct ProductBuilder: Sendable {
             return false
         }
         if !libraries.isEmpty { try createWrapper(at: wrapper, root: root, products: libraries, sdkArguments: sdkArguments) }
+        let wrapperToolset = libraries.isEmpty ? [] : try toolsetOptions(name: "wrapper", swiftOptions: [], in: wrapper)
 
         // Share one scratch tree so resources and dependency libraries remain
         // beside all products, including mixed direct and wrapped products.
@@ -54,11 +55,12 @@ public struct ProductBuilder: Sendable {
                 name = product.targetName
                 // Planning already resolved root dependencies; avoid dropping
                 // its development-only dependencies from Package.resolved.
-                options = ["--disable-automatic-resolution"]
+                options = ["--disable-automatic-resolution"] + wrapperToolset
             case .executable(let sourceName):
                 package = root
                 name = sourceName
-                options = try directProductOptions(product, in: wrapper, sdkArguments: sdkArguments)
+                options = try toolsetOptions(name: product.targetName, swiftOptions: product.linkerArguments + sdkArguments,
+                                             in: wrapper)
             case .prebuilt:
                 continue
             }
@@ -179,17 +181,21 @@ public struct ProductBuilder: Sendable {
         return directory.appendingPathComponent("lib\(name).a")
     }
 
-    private func directProductOptions(
-        _ product: Plan.Product, in directory: URL, sdkArguments: [String]
-    ) throws -> [String] {
+    private func toolsetOptions(name: String, swiftOptions: [String], in directory: URL) throws -> [String] {
         // SwiftPM forwards CLI -Xlinker options to host macro executables too.
         // SDK toolset options belong only to the target toolchain instead.
+        // The SwiftPM backend compiles Darwin targets for each package's declared platform minimum
+        // and ignores the version in `--triple`, so pass the plan's deployment target explicitly.
+        let target = buildSettings.buildSystem == .swiftPM ? ["-target", plan.target.compilerTriple] : []
+        guard !(target + swiftOptions).isEmpty else { return [] }
         let toolsets = directory.appendingPathComponent("toolsets", isDirectory: true)
         try FileManager.default.createDirectory(at: toolsets, withIntermediateDirectories: true)
-        let path = toolsets.appendingPathComponent("\(product.targetName).json")
+        let path = toolsets.appendingPathComponent("\(name).json")
         let data = try JSONSerialization.data(withJSONObject: [
             "schemaVersion": "1.0",
-            "swiftCompiler": ["extraCLIOptions": product.linkerArguments + sdkArguments],
+            "swiftCompiler": ["extraCLIOptions": target + swiftOptions],
+            "cCompiler": ["extraCLIOptions": target],
+            "cxxCompiler": ["extraCLIOptions": target],
         ], options: [.sortedKeys])
         try data.write(to: path)
         return ["--toolset", path.path]

@@ -192,11 +192,10 @@ struct ProductBuilderTests {
         import PackageDescription
         let package = Package(
             name: "BuilderFixture",
-            platforms: [.macOS("15.0")],
             products: [.executable(name: "DirectExecutable", targets: ["Direct"]),
-                       .library(name: "HelperLibrary", targets: ["Helper"])],
+                       .library(name: "HelperLibrary", targets: ["Helper", "Gate"])],
             targets: [.executableTarget(name: "Direct", resources: [.copy("message.txt")]),
-                      .target(name: "Helper")]
+                      .target(name: "Helper"), .target(name: "Gate")]
         )
         """
         try Data(manifest.utf8).write(to: root.appendingPathComponent("Package.swift"))
@@ -204,7 +203,13 @@ struct ProductBuilderTests {
         let helper = root.appendingPathComponent("Sources/Helper")
         try FileManager.default.createDirectory(at: direct, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: helper.appendingPathComponent("include"), withIntermediateDirectories: true)
-        try Data("import AppKit\nprint(NSApplication.self)".utf8).write(to: direct.appendingPathComponent("main.swift"))
+        // No declared platforms: both build paths must compile for the plan's macOS 15.0 deployment
+        // target, or the macOS 15-only Mutex fails availability checking.
+        try Data("import AppKit\nimport Synchronization\nlet lock = Mutex(0)\nprint(NSApplication.self, lock.withLock { $0 })".utf8)
+            .write(to: direct.appendingPathComponent("main.swift"))
+        let gate = root.appendingPathComponent("Sources/Gate")
+        try FileManager.default.createDirectory(at: gate, withIntermediateDirectories: true)
+        try Data("import Synchronization\npublic let gate = Mutex(0)".utf8).write(to: gate.appendingPathComponent("Gate.swift"))
         try Data("resource fixture".utf8).write(to: direct.appendingPathComponent("message.txt"))
         try Data("#include <vector>\nint main() { std::vector<int> values(3, 1); return values.at(1); }".utf8)
             .write(to: helper.appendingPathComponent("Entry.cpp"))
