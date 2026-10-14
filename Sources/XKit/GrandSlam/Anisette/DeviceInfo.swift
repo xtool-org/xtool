@@ -21,7 +21,7 @@ public struct DeviceInfo: Codable, Sendable {
 
         var clientString: String {
             """
-            <\(modelID)> <macOS;27.0;26A5378j> <com.apple.AuthKit/1 (com.apple.akd/1.0)>
+            <Pixel 7> <Android;14;UQ1A.240205.002> <com.apple.AuthKit/1 (com.apple.akd/1.0)>
             """
         }
 

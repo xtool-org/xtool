@@ -37,7 +37,8 @@ enum Console {
                     data += view
                 }
             }
-            return String(decoding: data, as: UTF8.self)
+            let str = String(decoding: data, as: UTF8.self)
+            return str.hasSuffix("\r") ? String(str.dropLast()) : str
         }
     }
 
