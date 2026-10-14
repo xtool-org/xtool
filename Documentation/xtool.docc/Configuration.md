@@ -54,7 +54,7 @@ nestedProducts:
 | `infoPath` | Caller plist dictionary merged over generated defaults; caller identifiers and extension/XPC metadata are preserved. |
 | `entitlementsPath` | Caller plist dictionary associated with this product for the later signer. |
 | `iconPath` | Prepared `.png` or `.icns` in version 2; ICNS requires macOS. |
-| `resources` | Legacy list of files/directories copied to the product bundle root. |
+| `resources` | Legacy list of files/directories copied to the product's resources directory: the bundle root on iOS, `Contents/Resources` on macOS. |
 | `resourceCopies` | Explicit copies with `source` and `destination: {location, path}`. |
 | `nestedProducts` | Products with required `product`, `kind` and `source`; optional `bundleID`, `infoPath`, `entitlementsPath`, `resourceCopies`. |
 | `extensions` | Existing extension list with required `product`/`infoPath`; version 2 also accepts `source`/`resourceCopies`. |
@@ -110,8 +110,8 @@ owner's `Contents/Frameworks`; helper-owned frameworks use
 `destination.path` is a nonempty relative path appended to that base. Absolute
 paths, empty components, `.`, `..`, backslashes and NUL are rejected. Assembly
 also rejects overlapping destinations, including case/Unicode-equivalent
-collisions, and unsafe symlinks. Legacy `resources` retains bundle-root copying;
-prefer `resourceCopies` for prepared macOS resources. Explicit extension resources
+collisions, and unsafe symlinks. Legacy `resources` copies into each product's
+resources directory; use `resourceCopies` to choose another destination. Explicit extension resources
 belong in the extension's Resources directory.
 
 Source-built macOS SwiftPM resource accessors are adapted for relocated bundles;

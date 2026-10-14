@@ -135,9 +135,10 @@ public struct BundleAssembler: Sendable {
             }
         case .root(let path):
             let source = sourceURL(path)
-            // Legacy root resources retain their bundle-root destination on every platform.
-            let base = product.type == .helperExecutable ? layout.contentsPath : layout.bundlePath
-            assembly.operations.append(.init(path: joined(base, source.lastPathComponent), payload: .copy(source)))
+            // Legacy resources go where Bundle.main looks: the bundle root on iOS, Contents/Resources on
+            // macOS. The macOS bundle root is outside the code signature's resource seal.
+            let destination = ResourceDestination(path: source.lastPathComponent)
+            assembly.operations.append(.init(path: try layout.path(for: destination), payload: .copy(source)))
         case .copy(let copy):
             assembly.operations.append(.init(path: try layout.path(for: copy.destination), payload: .copy(sourceURL(copy.source))))
         }

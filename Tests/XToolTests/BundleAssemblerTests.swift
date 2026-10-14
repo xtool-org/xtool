@@ -356,6 +356,22 @@ struct BundleAssemblerTests {
         }
     }
 
+    @Test func macOSLegacyResourcesLandInsideTheResourceSeal() throws {
+        let root = try root()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try write(at: root.appendingPathComponent("legacy.txt"))
+        let app = try product(resources: [.root(source: "legacy.txt")])
+        let ext = try product("Preview", kind: .appExtension, resources: [.root(source: "legacy.txt")])
+        let plan = try Plan(target: app.target, app: app, extensions: [ext])
+        let output = root.appendingPathComponent("App.app")
+        try BundleAssembler(plan: plan, sourceDirectory: root).assemble(artifacts: try artifacts(plan, in: root), at: output)
+        #expect(FileManager.default.fileExists(atPath: output.appendingPathComponent("Contents/Resources/legacy.txt").path))
+        #expect(FileManager.default.fileExists(
+            atPath: output.appendingPathComponent("Contents/PlugIns/Preview.appex/Contents/Resources/legacy.txt").path))
+        let rootEntries = try FileManager.default.contentsOfDirectory(atPath: output.path)
+        #expect(rootEntries == ["Contents"])
+    }
+
     @Test func iosLayoutAndLegacyRootResourcesRemainFlat() throws {
         let root = try root()
         defer { try? FileManager.default.removeItem(at: root) }
