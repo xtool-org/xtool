@@ -81,9 +81,12 @@ struct DevCommandTests {
     @Test func runAcceptsTripleAndXcodeStillRejectsIt() throws {
         #expect(try DevRunCommand.parse(["--triple", "arm64-apple-macosx"]).triple == "arm64-apple-macosx")
         #expect(try DevRunCommand.parse(["--", "--cofiguration", "x"]).appArguments == ["--cofiguration", "x"])
+        #expect(try DevRunCommand.parse(["--"]).appArguments.isEmpty)
         for typo in [["--cofiguration", "release"], ["biuld"], ["--app", "App.app", "--cofiguration", "release"]] {
             #expect(throws: (any Error).self) { try DevRunCommand.parse(typo) }
         }
+        let help = #expect(throws: (any Error).self) { try DevRunCommand.parse(["--help"]) }
+        #expect(help.map { DevRunCommand.exitCode(for: $0) } == .success)
         #expect(throws: (any Error).self) {
             try DevXcodeCommand.parse(["--triple", "arm64-apple-macosx"])
         }

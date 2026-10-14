@@ -243,17 +243,8 @@ struct DevRunCommand: AsyncParsableCommand {
     @Option(help: "Run an existing macOS .app without building or signing it")
     var app: String?
 
-    @Argument(parsing: .captureForPassthrough, help: "Arguments passed to the macOS app after --")
-    var arguments: [String] = []
-
-    var appArguments: [String] { Array(arguments.dropFirst()) }
-
-    func validate() throws {
-        // Passthrough capture also swallows unknown options and words; only accept them after `--`.
-        if let first = arguments.first, first != "--" {
-            throw ValidationError("Unknown argument '\(first)'. Pass app arguments after '--'.")
-        }
-    }
+    @Argument(parsing: .postTerminator, help: "Arguments passed to the macOS app after --")
+    var appArguments: [String] = []
 
     #if os(macOS)
     @Flag(
@@ -297,7 +288,7 @@ struct DevRunCommand: AsyncParsableCommand {
             try await MacRunOperation.run(bundle: output.bundle, arguments: appArguments)
             return
         }
-        guard arguments.isEmpty else { throw Console.Error("App arguments currently require a macOS target") }
+        guard appArguments.isEmpty else { throw Console.Error("App arguments currently require a macOS target") }
         @Dependency(\.devCommandClient) var client
         let output = try await client.legacyPack(simulatorTriple ?? request.triple, packOptions.configuration, false)
 
