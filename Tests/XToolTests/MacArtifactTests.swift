@@ -117,6 +117,20 @@ struct MacArtifactTests {
         #expect(try MacBundleAudit.validate(bundle: app, target: target) == ["Contents/Frameworks/libDependency.dylib", ""])
     }
 
+    @Test func systemRpathDoesNotResolveEmbeddedLibraries() throws {
+        let directory = try root()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let app = directory.appendingPathComponent("App.app")
+        try Self.fixture(at: app)
+        let executable = app.appendingPathComponent("Contents/MacOS/App")
+        let target = try ResolvedTarget.resolve(cliTarget: "arm64-apple-macosx15.0")
+        // swiftc emits LC_RPATH /usr/lib/swift for every macOS executable.
+        try Self.binary(dependency: "@rpath/libMissing.dylib", rpath: "/usr/lib/swift").write(to: executable)
+        #expect(throws: (any Error).self) { try MacBundleAudit.validate(bundle: app, target: target) }
+        try Self.binary(dependency: "@rpath/libswift_Concurrency.dylib", rpath: "/usr/lib/swift").write(to: executable)
+        #expect(try MacBundleAudit.validate(bundle: app, target: target) == [""])
+    }
+
     @Test func existingAppRunForwardsArgumentsAndExitStatusWithoutBuilding() async throws {
         let directory = try root()
         defer { try? FileManager.default.removeItem(at: directory) }

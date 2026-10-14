@@ -137,7 +137,6 @@ public enum MacBundleAudit {
                 } else {
                     candidates = resolved(name, loader: path, executable: executable).map { [$0] } ?? []
                 }
-                if candidates.contains(where: systemLibrary) { continue }
                 let match = candidates.compactMap { candidate -> String? in
                     let url = root.appendingPathComponent(candidate).resolvingSymlinksInPath().standardizedFileURL
                     guard url.path.hasPrefix(root.path + "/") else { return nil }
@@ -146,6 +145,9 @@ public enum MacBundleAudit {
                 }.first
                 guard let match else {
                     if dependency.weak { continue }
+                    // Swift's back-deployment runtime is referenced through @rpath and ships with the OS.
+                    // Any other @rpath library must be embedded; a system rpath alone does not resolve it.
+                    if name.hasPrefix("@rpath/libswift"), candidates.contains(where: systemLibrary) { continue }
                     throw StringError("Unresolved runtime dependency '\(name)' in \(path)")
                 }
                 try visit(match, executable: executable, inherited: rpaths, visited: &visited)
