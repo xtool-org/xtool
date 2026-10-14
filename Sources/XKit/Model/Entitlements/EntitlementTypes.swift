@@ -24,6 +24,7 @@ extension EntitlementContainer {
         MultipathEntitlement.self,
         VPNConfigurationEntitlement.self,
         SiriKitEntitlement.self,
+        WeatherKitEntitlement.self,
         InterAppAudioEntitlement.self,
         WirelessAccessoryEntitlement.self,
         WiFiAwareEntitlement.self,
@@ -137,6 +138,13 @@ public struct VPNConfigurationEntitlement: Entitlement, RawRepresentable {
 
 public struct SiriKitEntitlement: Entitlement, RawRepresentable {
     public static let identifier = "com.apple.developer.siri"
+
+    public var rawValue: Bool
+    public init(rawValue: Bool) { self.rawValue = rawValue }
+}
+
+public struct WeatherKitEntitlement: Entitlement, RawRepresentable {
+    public static let identifier = "com.apple.developer.weatherkit"
 
     public var rawValue: Bool
     public init(rawValue: Bool) { self.rawValue = rawValue }

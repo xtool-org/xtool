@@ -133,6 +133,12 @@ extension SiriKitEntitlement: EntitlementWithCapability {
     }
 }
 
+extension WeatherKitEntitlement: EntitlementWithCapability {
+    var capability: DeveloperServicesCapability {
+        DeveloperServicesCapability(rawName: "WEATHERKIT", isFree: false)
+    }
+}
+
 extension WirelessAccessoryEntitlement: EntitlementWithCapability {
     var capability: DeveloperServicesCapability {
         DeveloperServicesCapability(.wirelessAccessoryConfiguration, isFree: true)
