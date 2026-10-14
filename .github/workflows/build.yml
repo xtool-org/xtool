@@ -38,6 +38,16 @@ jobs:
       - name: Run tests
         run: |
           swift test
+      - name: Run macOS integration tests
+        run: |
+          for lib in bats-core@v1.14.0 bats-support@v0.3.0 bats-assert@v2.2.4; do
+            git -c advice.detachedHead=false clone -q --depth 1 --branch "${lib#*@}" "https://github.com/bats-core/${lib%@*}" ".build/bats/${lib%@*}"
+          done
+          mkdir -p .build/integration-bin
+          ln -fs "$PWD/.build/debug/xtool" .build/integration-bin/xtool
+          ln -fs "$(xcrun -f llvm-objdump)" .build/integration-bin/llvm-objdump
+          PATH="$PWD/.build/integration-bin:$PATH" BATS_LIB_PATH="$PWD/.build/bats" \
+            .build/bats/bats-core/bin/bats integration-tests/suite/macos.bats
   build-ios:
     runs-on: xcode-27
     steps:
