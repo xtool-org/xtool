@@ -44,6 +44,7 @@ public struct ProductBuilder: Sendable {
         } ? [] : ["--scratch-path", root.appendingPathComponent(".build").path]
         var directory: URL?
         var executables = prebuilt
+        var builds: [(settings: BuildSettings, arguments: [String])] = []
         for product in plan.allProducts {
             if prebuilt[product.product] != nil { continue }
             let package: URL
@@ -78,16 +79,22 @@ public struct ProductBuilder: Sendable {
                 throw StringError("Build backend produced products in different resource directories")
             }
             directory = binDir
-            if let overlay = try SwiftPMResourceAccessor.overlay(for: product, in: binDir, output: wrapper) {
-                // SwiftPM regenerates accessors during planning. A compiler overlay adapts only
-                // generated target sources, without editing dependencies or racing that regeneration.
-                try await runner.build(productSettings, arguments + ["-Xswiftc", "-vfsoverlay", "-Xswiftc", overlay.path])
-            }
+            builds.append((productSettings, arguments))
             let executable = binDir.appendingPathComponent(name)
             guard FileManager.default.isExecutableFile(atPath: executable.path) else {
                 throw StringError("Build backend did not produce executable '\(name)' at \(executable.path)")
             }
             executables[product.product] = executable
+        }
+        let built = plan.allProducts.filter { prebuilt[$0.product] == nil }
+        if let directory, let overlay = try SwiftPMResourceAccessor.overlay(for: built, in: directory, output: wrapper) {
+            // SwiftPM regenerates accessors during planning. A compiler overlay adapts only
+            // generated target sources, without editing dependencies or racing that regeneration.
+            // Rebuild every product with the same overlay so shared modules compile once more,
+            // not once per product.
+            for build in builds {
+                try await runner.build(build.settings, build.arguments + ["-Xswiftc", "-vfsoverlay", "-Xswiftc", overlay.path])
+            }
         }
         let output = directory ?? root
         let staticTargets = try validateBinaryTargets(in: output)

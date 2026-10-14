@@ -4,9 +4,9 @@ import XUtils
 /// Native SwiftPM generates bundle-root lookup, which requires unsigned root aliases on macOS.
 /// Compile an adapted view of those generated sources; keep package sources and build fallbacks intact.
 enum SwiftPMResourceAccessor {
-    static func overlay(for product: Plan.Product, in directory: URL, output: URL) throws -> URL? {
-        guard product.platform == .macOS else { return nil }
-        let names = Set(product.resources.compactMap { resource -> String? in
+    /// One overlay covers every product: a resource target can live in a library that several products share.
+    static func overlay(for products: [Plan.Product], in directory: URL, output: URL) throws -> URL? {
+        let names = Set(products.filter { $0.platform == .macOS }.flatMap(\.resources).compactMap { resource -> String? in
             guard case .bundle(let package, let target) = resource else { return nil }
             return "\(package)_\(target).bundle"
         })
@@ -36,7 +36,7 @@ enum SwiftPMResourceAccessor {
                               + names.subtracting(matched).sorted().joined(separator: ", ")
                               + "; macOS bundles currently require Swift resource targets")
         }
-        let destination = output.appendingPathComponent("resource-accessors/\(product.targetName)")
+        let destination = output.appendingPathComponent("resource-accessors")
         try manager.createDirectory(at: destination, withIntermediateDirectories: true)
         var roots: [[String: String]] = []
         for (index, file) in files.enumerated() {

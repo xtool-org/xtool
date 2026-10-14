@@ -52,7 +52,7 @@ struct SwiftPMResourceAccessorTests {
             try manager.createDirectory(at: source.deletingLastPathComponent(), withIntermediateDirectories: true)
             try Data(generatedSource.utf8).write(to: source)
         }
-        let prepared = try SwiftPMResourceAccessor.overlay(for: product(), in: root, output: root.appendingPathComponent("owned"))
+        let prepared = try SwiftPMResourceAccessor.overlay(for: [product()], in: root, output: root.appendingPathComponent("owned"))
         let overlay = try #require(prepared)
         let json = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: overlay)) as? [String: Any])
         #expect(json["use-external-names"] as? Bool == false)
@@ -66,13 +66,13 @@ struct SwiftPMResourceAccessorTests {
         }
         // Repeated preparation stays deterministic and supports incremental/retry builds.
         let first = try Data(contentsOf: overlay)
-        _ = try SwiftPMResourceAccessor.overlay(for: product(), in: root, output: root.appendingPathComponent("owned"))
+        _ = try SwiftPMResourceAccessor.overlay(for: [product()], in: root, output: root.appendingPathComponent("owned"))
         #expect(try Data(contentsOf: overlay) == first)
     }
 
     @Test func iosKeepsNativeAccessors() throws {
         let missing = URL(fileURLWithPath: "/does-not-exist")
-        #expect(try SwiftPMResourceAccessor.overlay(for: product(platform: "ios"), in: missing, output: missing) == nil)
+        #expect(try SwiftPMResourceAccessor.overlay(for: [product(platform: "ios")], in: missing, output: missing) == nil)
     }
 
     @Test func missingResourceAccessorRejectsBeforeWriting() throws {
@@ -80,7 +80,7 @@ struct SwiftPMResourceAccessorTests {
         defer { try? FileManager.default.removeItem(at: root) }
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         #expect(throws: (any Error).self) {
-            try SwiftPMResourceAccessor.overlay(for: product(), in: root, output: root.appendingPathComponent("owned"))
+            try SwiftPMResourceAccessor.overlay(for: [product()], in: root, output: root.appendingPathComponent("owned"))
         }
         #expect(try FileManager.default.contentsOfDirectory(atPath: root.path).isEmpty)
     }
