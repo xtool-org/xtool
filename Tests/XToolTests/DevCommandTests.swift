@@ -254,7 +254,7 @@ struct DevCommandTests {
         let editorConfig = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: editorConfigURL)) as? [String: Any])
         if supportsBSP {
             #expect(editorConfig["argv"] as? [String] == [
-                "/usr/bin/env", "xtool", "dev", "build-server", "--triple", "arm64-apple-macosx",
+                "/usr/bin/env", "xtool", "dev", "build-server", "--triple", "arm64-apple-macosx15.0",
             ])
         } else {
             #expect(editorConfig["swiftPM"] as? [String: String] == [

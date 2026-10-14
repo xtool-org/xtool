@@ -503,10 +503,12 @@ extension DevCommandClient: DependencyKey {
             if FileManager.default.fileExists(atPath: path.path) {
                 return try await PackSchema(url: path)
             }
-            print("""
+            // stderr: `dev build-server` speaks the build server protocol on stdout.
+            FileHandle.standardError.write(Data("""
             warning: Could not locate configuration file '\(path.path)'. Using default \
             configuration with 'com.example' organization ID.
-            """)
+
+            """.utf8))
             return .default
         },
         ensureSDK: { try await EnsureSDKOperation(quiet: true).run() },

@@ -35,7 +35,9 @@ struct EditorConfigTests {
         try LSPConfig.ensure(target: mac, sdkOptions: [], supportsBSP: bsp, quiet: true, currentDirectory: directory)
         let object = try #require(JSONSerialization.jsonObject(with: read(path, in: directory)) as? [String: Any])
         if bsp {
-            #expect(object["argv"] as? [String] == ["/usr/bin/env", "xtool", "dev", "build-server", "--triple", mac.triple])
+            #expect(object["argv"] as? [String] == [
+                "/usr/bin/env", "xtool", "dev", "build-server", "--triple", "x86_64-apple-macosx15.0",
+            ])
         } else {
             #expect(object["swiftPM"] as? [String: String] == [
                 "swiftSDK": "x86_64-apple-macosx", "triple": "x86_64-apple-macosx15.0",
@@ -165,6 +167,33 @@ struct EditorConfigTests {
         }
     }
 
+    @Test func buildServerStartsWithoutInspectingThePackage() async throws {
+        let directory = try root()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let schema = try PackSchema(validating: .init(version: .v2, orgID: "test", product: "App", target: "arm64-apple-macosx"))
+        let request = try DevBuildRequest(schema: schema, cliTriple: "arm64-apple-macosx16.0", directory: directory)
+        let settings = try await withDependencies {
+            $0.packageInspection = PackageInspectionClient(
+                dependencies: { _ in Issue.record("Unexpected package inspection"); return Data() },
+                describe: { _ in Issue.record("Unexpected package inspection"); return Data() },
+                manifest: { _ in Issue.record("Unexpected package inspection"); return Data() }
+            )
+        } operation: {
+            try await EditorTarget.serverSettings(request: request)
+        }
+        #expect(settings.sdkOptions == ["--swift-sdk", "arm64-apple-macosx", "--triple", "arm64-apple-macosx16.0"])
+        // Configurations generated with the unversioned triple are still recognized and refreshed.
+        let old = (LSPConfig.bsp.0, """
+        {"argv": ["/usr/bin/env", "xtool", "dev", "build-server", "--triple", "arm64-apple-macosx"],
+         "bspVersion": "2.2.0", "languages": ["c", "cpp", "objective-c", "objective-cpp", "swift"],
+         "name": "xtool", "version": "1.0"}
+        """)
+        try write(old, to: directory)
+        let target = try ResolvedTarget.resolve(cliTarget: "arm64-apple-macosx16.0")
+        try LSPConfig.ensure(target: target, sdkOptions: [], supportsBSP: true, quiet: true, currentDirectory: directory)
+        #expect(String(decoding: try read(LSPConfig.bsp.0, in: directory), as: UTF8.self).contains("arm64-apple-macosx16.0"))
+    }
+
     @Test(arguments: [true, false])
     func buildServerKeepsIOSDefaultAndPackageMinimum(bsp: Bool) async throws {
         let directory = try root()
@@ -184,7 +213,7 @@ struct EditorConfigTests {
             if bsp {
                 #expect(config.0 == LSPConfig.bsp.0)
                 #expect(object["argv"] as? [String] == [
-                    "/usr/bin/env", "xtool", "dev", "build-server", "--triple", "arm64-apple-ios",
+                    "/usr/bin/env", "xtool", "dev", "build-server", "--triple", "arm64-apple-ios14.0",
                 ])
             } else {
                 #expect(config.0 == LSPConfig.legacyLSP.0)

@@ -18,7 +18,7 @@ struct DevBSPCommand: AsyncParsableCommand {
             throw Console.Error("`xtool dev build-server` requires Swift 6.4 or later")
         }
         let request = try await DevBuildRequest.load(cliTriple: triple)
-        let (settings, _) = try await EditorTarget.buildSettings(request: request)
+        let settings = try await EditorTarget.serverSettings(request: request)
         try await Subprocess.run(
             settings.buildServerInvocation(),
             input: .currentStandardInput,

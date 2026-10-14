@@ -77,11 +77,8 @@ enum LSPConfig {
         let path: String
         if bsp {
             path = Self.bsp.0
-            object = [
-                "name": "xtool", "version": "1.0", "bspVersion": "2.2.0",
-                "languages": ["c", "cpp", "objective-c", "objective-cpp", "swift"],
-                "argv": ["/usr/bin/env", "xtool", "dev", "build-server", "--triple", target.triple],
-            ]
+            // Pin the planned deployment version so starting the server needs no package inspection.
+            object = bspObject(triple: target.compilerTriple)
         } else {
             path = legacyLSP.0
             let sdkIndex = sdkOptions.firstIndex(of: "--swift-sdk")
@@ -96,6 +93,14 @@ enum LSPConfig {
         }
         let data = try JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys])
         return (path, String(decoding: data, as: UTF8.self))
+    }
+
+    private static func bspObject(triple: String) -> [String: Any] {
+        [
+            "name": "xtool", "version": "1.0", "bspVersion": "2.2.0",
+            "languages": ["c", "cpp", "objective-c", "objective-cpp", "swift"],
+            "argv": ["/usr/bin/env", "xtool", "dev", "build-server", "--triple", triple],
+        ]
     }
 
     static func ensure(
@@ -132,13 +137,13 @@ enum LSPConfig {
         if let old = try? JSONSerialization.jsonObject(with: Data(original.utf8)) as? NSDictionary, object == old {
             return true
         }
-        let triple: String?
         if bsp {
+            // Earlier generated configurations pinned the unversioned triple; recognize any valid one.
             let argv = object["argv"] as? [String]
-            triple = argv?.count == 6 ? argv?.last : nil
-        } else {
-            triple = (object["swiftPM"] as? [String: String])?["triple"]
+            guard argv?.count == 6, let triple = argv?.last, (try? TargetTriple(triple)) != nil else { return false }
+            return object == bspObject(triple: triple) as NSDictionary
         }
+        let triple = (object["swiftPM"] as? [String: String])?["triple"]
         guard let triple, let target = try? ResolvedTarget.resolve(cliTarget: triple),
               let expected = try? configuration(target: target, sdkOptions: [], bsp: bsp),
               let generated = try? JSONSerialization.jsonObject(with: Data(expected.1.utf8)) as? NSDictionary else {
@@ -154,5 +159,14 @@ enum EditorTarget {
         let settings = try await BuildSettings(configuration: .debug, triple: request.triple, packagePath: request.directory.path)
         let plan = try await Planner(buildSettings: settings, schema: request.schema).createPlan()
         return (try settings.withTarget(plan.target), plan.target)
+    }
+
+    /// The build server starts with the compiler triple pinned in the generated configuration.
+    /// Resolve it without the planner, so a broken manifest or a locked or unresolved `.build`
+    /// cannot keep the editor's build server from starting.
+    nonisolated(nonsending) static func serverSettings(request: DevBuildRequest) async throws -> BuildSettings {
+        let target = try ResolvedTarget.resolve(cliTarget: request.triple, schema: request.schema)
+        let settings = try await BuildSettings(configuration: .debug, triple: request.triple, packagePath: request.directory.path)
+        return try settings.withTarget(target)
     }
 }

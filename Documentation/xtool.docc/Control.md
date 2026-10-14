@@ -30,7 +30,7 @@ deploymentTarget: "15.0"
 
 The selected triple's OS version takes precedence over `deploymentTarget`, then the package's matching platform minimum, then xtool's platform minimum (iOS 13.0 or macOS 15.0). A package minimum below xtool's platform minimum is raised to it. An explicit version cannot lower the schema, package, or platform minimum. For example, `arm64-apple-macosx16.0` selects macOS 16.0 while the SDK identity remains `arm64-apple-macosx`.
 
-Editor support uses the same target resolution and package minimum as builds. Swift 6.4 and later use `.bsp/xtool.json`, whose build-server command selects the effective target. Earlier toolchains use `.sourcekit-lsp/config.json` with separate Swift SDK and compiler triple settings. Restart the editor after changing these files. xtool refreshes or migrates only configurations matching its complete generated content; customized files are preserved. Set `skipLSP: true` to disable automatic editor configuration.
+Editor support uses the same target resolution and package minimum as builds. Swift 6.4 and later use `.bsp/xtool.json`, whose build-server command pins the effective compiler triple (for example `arm64-apple-macosx15.0`), so starting the build server does not inspect the package. Earlier toolchains use `.sourcekit-lsp/config.json` with separate Swift SDK and compiler triple settings. Restart the editor after changing these files. xtool refreshes or migrates only configurations matching its complete generated content; customized files are preserved. Set `skipLSP: true` to disable automatic editor configuration.
 
 ## Change your bundle ID
 
