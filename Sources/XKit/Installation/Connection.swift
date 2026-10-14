@@ -105,7 +105,11 @@ public actor Connection {
         progress(3/4)
         heartbeatHandler = try await HeartbeatHandler(device: device, client: client)
         #else
-        heartbeatHandler = nil
+        if preferences == Preferences(lookupMode: .only(.network)) {
+            heartbeatHandler = try await HeartbeatHandler(device: device, client: client)
+        } else {
+            heartbeatHandler = nil
+        }
         #endif
 
         progress(4/4)
