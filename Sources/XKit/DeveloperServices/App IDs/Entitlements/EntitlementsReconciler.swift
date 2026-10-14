@@ -77,8 +77,9 @@ public enum EntitlementsReconciler {
     ///   entitlements it doesn't grant removed.
     /// - Throws: ``Error`` if the app claims something the profile doesn't grant.
     ///
-    /// Only entitlements xtool knows how to provision are checked. Others are passed through
-    /// untouched, since we can't tell whether the profile is expected to list them.
+    /// Only entitlements xtool knows how to provision, plus the ones in `checkedKeys`, are checked
+    /// against the profile. Others are passed through untouched, since we can't tell whether the
+    /// profile is expected to list them.
     public static func reconcile(
         _ entitlements: Entitlements,
         with granted: Entitlements,
