@@ -35,7 +35,6 @@ public struct ProductBuilder: Sendable {
             return false
         }
         if !libraries.isEmpty { try createWrapper(at: wrapper, root: root, products: libraries, sdkArguments: sdkArguments) }
-        let wrapperToolset = libraries.isEmpty ? [] : try toolsetOptions(name: "wrapper", linkerOptions: [], in: wrapper)
 
         // Share one scratch tree so resources and dependency libraries remain
         // beside all products, including mixed direct and wrapped products.
@@ -56,7 +55,7 @@ public struct ProductBuilder: Sendable {
                 name = product.targetName
                 // Planning already resolved root dependencies; avoid dropping
                 // its development-only dependencies from Package.resolved.
-                options = ["--disable-automatic-resolution"] + wrapperToolset
+                options = ["--disable-automatic-resolution"]
             case .executable(let sourceName):
                 package = root
                 name = sourceName
@@ -192,21 +191,15 @@ public struct ProductBuilder: Sendable {
     private func toolsetOptions(name: String, linkerOptions: [String], in directory: URL) throws -> [String] {
         // SwiftPM forwards CLI -Xlinker options to host macro executables too.
         // SDK toolset options belong only to the target toolchain instead.
-        // The SwiftPM backend compiles Darwin targets for each package's declared platform minimum
-        // and ignores the version in `--triple`, so pass the plan's deployment target explicitly.
-        // Per-product options stay in the linker section: identical compiler options let products
-        // that share a scratch path reuse each other's compiled modules.
-        let target = buildSettings.buildSystem == .swiftPM ? ["-target", plan.target.compilerTriple] : []
-        guard !(target + linkerOptions).isEmpty else { return [] }
+        // Compiler options are deliberately absent: a toolset applies to every module, and each
+        // package must compile for its own platform minimum, as with `swift build` and Xcode.
+        // Dependencies such as swift-perception declare backports `obsoleted:` at newer releases.
+        // The product's deployment target reaches the binary through `-platform_version` here.
+        guard !linkerOptions.isEmpty else { return [] }
         let toolsets = directory.appendingPathComponent("toolsets", isDirectory: true)
         try FileManager.default.createDirectory(at: toolsets, withIntermediateDirectories: true)
         let path = toolsets.appendingPathComponent("\(name).json")
-        // SwiftPM rejects a toolset entry without options.
-        var toolset: [String: Any] = ["schemaVersion": "1.0"]
-        for (tool, options) in [("swiftCompiler", target), ("cCompiler", target), ("cxxCompiler", target),
-                                ("linker", linkerOptions)] where !options.isEmpty {
-            toolset[tool] = ["extraCLIOptions": options]
-        }
+        let toolset: [String: Any] = ["schemaVersion": "1.0", "linker": ["extraCLIOptions": linkerOptions]]
         let data = try JSONSerialization.data(withJSONObject: toolset, options: [.sortedKeys])
         try data.write(to: path)
         return ["--toolset", path.path]

@@ -73,8 +73,8 @@ struct BinaryLinkTests {
         let linker = try #require(toolset["linker"] as? [String: Any])
         let arguments = try #require(linker["extraCLIOptions"] as? [String])
         let rpaths = arguments.indices.filter { arguments[$0] == "-rpath" }.map { arguments[$0 + 1] }
-        let compiler = try #require(toolset["swiftCompiler"] as? [String: Any])
-        #expect(compiler["extraCLIOptions"] as? [String] == ["-target", target.compilerTriple])
+        // Compiler options would apply to every package; deployment reaches only the link.
+        #expect(Set(toolset.keys) == ["schemaVersion", "linker"])
         #expect(rpaths == ["@executable_path/../Frameworks", "@executable_path/Frameworks"])
 
         let output = root.appendingPathComponent("Relocated/App.app")
