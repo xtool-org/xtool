@@ -1,5 +1,4 @@
 import Foundation
-import Dependencies
 import libunxip
 import Subprocess
 import XKit // HTTPClient, stdoutSafe
@@ -105,8 +104,9 @@ struct SDKBuilder {
             withIntermediateDirectories: true
         )
 
-        // TODO: parallelize these three steps
-        // we need to synchronize progress reporting though
+        // Download GitHub artifacts before unxip so a toolchain fetch failure
+        // is reported immediately and is not mistaken for a corrupt Xcode.xip.
+        // TODO: parallelize these three steps (need synchronized progress).
 
         try await installMacros(in: output)
 
@@ -242,13 +242,13 @@ struct SDKBuilder {
             withIntermediateDirectories: false
         )
 
-        @Dependency(\.httpClient) var httpClient
-        let url = URL(string: """
-        https://github.com/xtool-org/darwin-tools-linux-llvm/releases/download/\
-        v\(Self.darwinToolsVersion)/toolset-\(arch.rawValue).tar.gz
-        """)!
-        let (response, body) = try await httpClient.send(HTTPRequest(url: url))
-        guard response.status == 200, let body else { throw Console.Error("Could not fetch toolset") }
+        let artifact = SDKGitHubArtifact.toolset(arch: arch)
+        let body: HTTPBody
+        do {
+            body = try await SDKGitHubDownloader().body(for: artifact)
+        } catch let error as SDKGitHubDownloadError {
+            throw Console.Error(error.description)
+        }
         let length: Int64? = switch body.length {
         case .known(let known): known
         case .unknown: nil
@@ -273,7 +273,7 @@ struct SDKBuilder {
 
                     guard let length else { continue }
                     let progress = Int(Double(totalWritten) / Double(length) * 100)
-                    print("\r[Downloading toolset] \(progress)%", terminator: "")
+                    print("\r[\(artifact.progressLabel)] \(progress)%", terminator: "")
                     fflush(stdoutSafe)
                 }
             }
@@ -386,14 +386,13 @@ struct SDKBuilder {
     }
 
     private func installMacros(in output: URL) async throws {
-        @Dependency(\.httpClient) var httpClient
-        let url = URL(string: """
-        https://github.com/xtool-org/OpenAppleMacros/releases/download/\
-        v\(Self.oamVersion)/OpenAppleMacrosServer-\(arch.rawValue)
-        """)!
-
-        let (response, body) = try await httpClient.send(HTTPRequest(url: url))
-        guard response.status == 200, let body else { throw Console.Error("Could not fetch toolset") }
+        let artifact = SDKGitHubArtifact.openAppleMacros(arch: arch)
+        let body: HTTPBody
+        do {
+            body = try await SDKGitHubDownloader().body(for: artifact)
+        } catch let error as SDKGitHubDownloadError {
+            throw Console.Error(error.description)
+        }
 
         let length: Int64? = switch body.length {
         case .known(let known): known
@@ -417,7 +416,7 @@ struct SDKBuilder {
 
                 if let length {
                     let progress = Int(Double(written) / Double(length) * 100)
-                    print("\r[Downloading OpenAppleMacros] \(progress)%", terminator: "")
+                    print("\r[\(artifact.progressLabel)] \(progress)%", terminator: "")
                     fflush(stdoutSafe)
                 }
             }
