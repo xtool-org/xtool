@@ -70,9 +70,11 @@ struct BinaryLinkTests {
         }
         let toolsetURL = root.appendingPathComponent("xtool/.xtool-tmp/toolsets/\(helper.targetName).json")
         let toolset = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: toolsetURL)) as? [String: Any])
+        let linker = try #require(toolset["linker"] as? [String: Any])
+        let arguments = try #require(linker["extraCLIOptions"] as? [String])
+        let rpaths = arguments.indices.filter { arguments[$0] == "-rpath" }.map { arguments[$0 + 1] }
         let compiler = try #require(toolset["swiftCompiler"] as? [String: Any])
-        let arguments = try #require(compiler["extraCLIOptions"] as? [String])
-        let rpaths = arguments.indices.filter { arguments[$0] == "-rpath" }.map { arguments[$0 + 2] }
+        #expect(compiler["extraCLIOptions"] as? [String] == ["-target", target.compilerTriple])
         #expect(rpaths == ["@executable_path/../Frameworks", "@executable_path/Frameworks"])
 
         let output = root.appendingPathComponent("Relocated/App.app")

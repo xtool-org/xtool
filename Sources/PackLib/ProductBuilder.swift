@@ -35,7 +35,7 @@ public struct ProductBuilder: Sendable {
             return false
         }
         if !libraries.isEmpty { try createWrapper(at: wrapper, root: root, products: libraries, sdkArguments: sdkArguments) }
-        let wrapperToolset = libraries.isEmpty ? [] : try toolsetOptions(name: "wrapper", swiftOptions: [], in: wrapper)
+        let wrapperToolset = libraries.isEmpty ? [] : try toolsetOptions(name: "wrapper", linkerOptions: [], in: wrapper)
 
         // Share one scratch tree so resources and dependency libraries remain
         // beside all products, including mixed direct and wrapped products.
@@ -59,7 +59,8 @@ public struct ProductBuilder: Sendable {
             case .executable(let sourceName):
                 package = root
                 name = sourceName
-                options = try toolsetOptions(name: product.targetName, swiftOptions: product.linkerArguments + sdkArguments,
+                options = try toolsetOptions(name: product.targetName,
+                                             linkerOptions: Self.linkerOptions(product.linkerArguments + sdkArguments),
                                              in: wrapper)
             case .prebuilt:
                 continue
@@ -181,24 +182,35 @@ public struct ProductBuilder: Sendable {
         return directory.appendingPathComponent("lib\(name).a")
     }
 
-    private func toolsetOptions(name: String, swiftOptions: [String], in directory: URL) throws -> [String] {
+    private func toolsetOptions(name: String, linkerOptions: [String], in directory: URL) throws -> [String] {
         // SwiftPM forwards CLI -Xlinker options to host macro executables too.
         // SDK toolset options belong only to the target toolchain instead.
         // The SwiftPM backend compiles Darwin targets for each package's declared platform minimum
         // and ignores the version in `--triple`, so pass the plan's deployment target explicitly.
+        // Per-product options stay in the linker section: identical compiler options let products
+        // that share a scratch path reuse each other's compiled modules.
         let target = buildSettings.buildSystem == .swiftPM ? ["-target", plan.target.compilerTriple] : []
-        guard !(target + swiftOptions).isEmpty else { return [] }
+        guard !(target + linkerOptions).isEmpty else { return [] }
         let toolsets = directory.appendingPathComponent("toolsets", isDirectory: true)
         try FileManager.default.createDirectory(at: toolsets, withIntermediateDirectories: true)
         let path = toolsets.appendingPathComponent("\(name).json")
-        let data = try JSONSerialization.data(withJSONObject: [
-            "schemaVersion": "1.0",
-            "swiftCompiler": ["extraCLIOptions": target + swiftOptions],
-            "cCompiler": ["extraCLIOptions": target],
-            "cxxCompiler": ["extraCLIOptions": target],
-        ], options: [.sortedKeys])
+        // SwiftPM rejects a toolset entry without options.
+        var toolset: [String: Any] = ["schemaVersion": "1.0"]
+        for (tool, options) in [("swiftCompiler", target), ("cCompiler", target), ("cxxCompiler", target),
+                                ("linker", linkerOptions)] where !options.isEmpty {
+            toolset[tool] = ["extraCLIOptions": options]
+        }
+        let data = try JSONSerialization.data(withJSONObject: toolset, options: [.sortedKeys])
         try data.write(to: path)
         return ["--toolset", path.path]
+    }
+
+    /// Toolset linker options reach the linker directly; drop the compiler driver's `-Xlinker` prefixes.
+    static func linkerOptions(_ arguments: [String]) -> [String] {
+        stride(from: 0, to: arguments.count, by: 2).map { index in
+            precondition(arguments[index] == "-Xlinker" && index + 1 < arguments.count, "Expected -Xlinker pairs")
+            return arguments[index + 1]
+        }
     }
 
     private func validateProducts() throws {
