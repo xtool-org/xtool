@@ -27,7 +27,9 @@ public struct Plan: Sendable {
 
     public enum Resource: Codable, Sendable, Hashable {
         case bundle(package: String, target: String)
-        case binaryTarget(name: String)
+        /// `xcframework` is the absolute path of a local, unarchived XCFramework; SwiftPM extracts
+        /// remote and zipped binary targets into its artifacts directory instead.
+        case binaryTarget(name: String, xcframework: String? = nil)
         case library(name: String)
         case root(source: String)
         case copy(ResourceCopy)

@@ -218,6 +218,33 @@ struct BinaryLinkTests {
         #expect(!FileManager.default.fileExists(atPath: output.appendingPathComponent("Contents/Frameworks/Static.framework").path))
     }
 
+    @Test func staticBinaryTargetArchiveUsesLocalXCFrameworkLibraryPath() async throws {
+        let root = try temporaryRoot()
+        defer { try? FileManager.default.removeItem(at: root) }
+        // SwiftPM leaves local XCFrameworks in place; only the slice's library reaches the bin directory.
+        let xcframework = root.appendingPathComponent("Vendor/Static.xcframework")
+        try FileManager.default.createDirectory(at: xcframework, withIntermediateDirectories: true)
+        let libraries: [[String: Any]] = [
+            ["LibraryPath": "libvendor.a", "SupportedPlatform": "macos", "SupportedArchitectures": ["arm64"]],
+        ]
+        try PropertyListSerialization.data(fromPropertyList: ["AvailableLibraries": libraries], format: .xml, options: 0)
+            .write(to: xcframework.appendingPathComponent("Info.plist"))
+        let target = try ResolvedTarget.resolve(cliTarget: "arm64-apple-macosx15.0")
+        try write(binary(), to: root.appendingPathComponent("App"))
+        var app = product("App", kind: .application, target: target)
+        app.resources = [.binaryTarget(name: "Static", xcframework: xcframework.path)]
+        let plan = try Plan(target: target, app: app)
+        let object = binary(type: 1)
+        let size = String(object.count).padding(toLength: 10, withPad: " ", startingAt: 0)
+        let header = "file.o/         0           0     0     100644  \(size)`\n"
+        try (Data("!<arch>\n\(header)".utf8) + object).write(to: root.appendingPathComponent("libvendor.a"))
+        let settings = try await BuildSettings(configuration: .release, triple: target.triple, packagePath: root.path)
+        let artifacts = try await ProductBuilder(buildSettings: settings, plan: plan).build()
+        #expect(artifacts.staticBinaryTargets == ["Static"])
+        try BundleAssembler(plan: plan, sourceDirectory: root)
+            .assemble(artifacts: artifacts, at: root.appendingPathComponent("App.app"))
+    }
+
     @Test func dynamicInstallNameMustResolveInsideEmbeddedFramework() throws {
         let root = try temporaryRoot()
         defer { try? FileManager.default.removeItem(at: root) }

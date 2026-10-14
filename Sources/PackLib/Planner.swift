@@ -239,7 +239,9 @@ public struct Planner: Sendable {
             }
             // Compiler plugins and their dependencies run on the host, never in the bundle.
             if described.type == "macro" || ["macro", "plugin"].contains(manifest.type) { continue }
-            if described.moduleType == "BinaryTarget" { append(.binaryTarget(name: identity.name)) }
+            if described.moduleType == "BinaryTarget" {
+                append(.binaryTarget(name: identity.name, xcframework: package.description.localXCFramework(described)))
+            }
             if described.resources?.isEmpty == false {
                 append(.bundle(package: package.description.name, target: identity.name))
             }
@@ -306,6 +308,7 @@ private struct PackageDump: Decodable, Sendable {
         let name: String
         let moduleType: String
         let type: String?
+        let path: String?
         let resources: [Resource]?
     }
 
@@ -316,9 +319,17 @@ private struct PackageDump: Decodable, Sendable {
     }
 
     let name: String
+    let path: String?
     let products: [Product]?
     let targets: [Target]?
     let platforms: [Platform]?
+
+    /// Absolute path of a binary target's unarchived XCFramework inside this package.
+    func localXCFramework(_ target: Target) -> String? {
+        guard let path, let relative = target.path, relative.hasSuffix(".xcframework") else { return nil }
+        return URL(fileURLWithPath: relative, relativeTo: URL(fileURLWithPath: path, isDirectory: true))
+            .standardizedFileURL.path
+    }
 }
 
 /// `describe` supplies resource bundle names, but only `dump-package` preserves

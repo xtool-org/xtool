@@ -111,10 +111,11 @@ public struct ProductBuilder: Sendable {
         var staticTargets: Set<String> = []
         for resource in Set(plan.allProducts.flatMap(\.resources)) {
             switch resource {
-            case .binaryTarget(let name):
+            case .binaryTarget(let name, let xcframework):
                 try ResourceDestination.validateRelativePath(name)
                 let framework = directory.appendingPathComponent("\(name).framework/\(name)")
-                let archive = Self.staticArchive(forBinaryTarget: name, in: directory, target: plan.target)
+                let archive = Self.staticArchive(forBinaryTarget: name, xcframework: xcframework,
+                                                 in: directory, target: plan.target)
                 let url = FileManager.default.fileExists(atPath: framework.path) ? framework : archive
                 guard FileManager.default.fileExists(atPath: url.path) else {
                     throw StringError("Missing binary target '\(name)': expected \(framework.path) or \(archive.path)")
@@ -146,30 +147,34 @@ public struct ProductBuilder: Sendable {
     }
 
     /// SwiftPM copies a static xcframework slice into the bin directory under the slice's own
-    /// `LibraryPath`, which need not match the target name. Remote and archived binary targets are
-    /// extracted to `<scratch>/artifacts/<package>/<target>/`; otherwise expect `lib<name>.a`.
-    static func staticArchive(forBinaryTarget name: String, in directory: URL, target: ResolvedTarget) -> URL {
+    /// `LibraryPath`, which need not match the target name. Local binary targets name their
+    /// XCFramework; remote and archived ones are extracted to `<scratch>/artifacts/<package>/<target>/`.
+    /// Otherwise expect `lib<name>.a`.
+    static func staticArchive(
+        forBinaryTarget name: String, xcframework: String? = nil, in directory: URL, target: ResolvedTarget
+    ) -> URL {
         let manager = FileManager.default
         let artifacts = directory.deletingLastPathComponent().deletingLastPathComponent()
             .appendingPathComponent("artifacts", isDirectory: true)
         let variant: String? = target.platform == .iOSSimulator ? "simulator" : nil
-        let packages = (try? manager.contentsOfDirectory(atPath: artifacts.path).sorted()) ?? []
-        for package in packages {
+        var candidates = xcframework.map { [URL(fileURLWithPath: $0, isDirectory: true)] } ?? []
+        for package in (try? manager.contentsOfDirectory(atPath: artifacts.path).sorted()) ?? [] {
             let targetDirectory = artifacts.appendingPathComponent(package).appendingPathComponent(name)
             let entries = (try? manager.contentsOfDirectory(atPath: targetDirectory.path).sorted()) ?? []
-            for entry in entries where entry.hasSuffix(".xcframework") {
-                let plist = targetDirectory.appendingPathComponent(entry).appendingPathComponent("Info.plist")
-                guard let data = try? Data(contentsOf: plist),
-                      let info = try? PropertyListDecoder().decode(XCFrameworkInfo.self, from: data),
-                      let library = info.AvailableLibraries.first(where: {
-                          $0.SupportedPlatform == target.platform.packagePlatformName
-                              && $0.SupportedPlatformVariant == variant
-                              && $0.SupportedArchitectures.contains(target.architecture)
-                      }),
-                      library.LibraryPath.hasSuffix(".a"), !library.LibraryPath.contains("/"),
-                      (try? ResourceDestination.validateRelativePath(library.LibraryPath)) != nil else { continue }
-                return directory.appendingPathComponent(library.LibraryPath)
-            }
+            candidates += entries.filter { $0.hasSuffix(".xcframework") }.map { targetDirectory.appendingPathComponent($0) }
+        }
+        for candidate in candidates {
+            let plist = candidate.appendingPathComponent("Info.plist")
+            guard let data = try? Data(contentsOf: plist),
+                  let info = try? PropertyListDecoder().decode(XCFrameworkInfo.self, from: data),
+                  let library = info.AvailableLibraries.first(where: {
+                      $0.SupportedPlatform == target.platform.packagePlatformName
+                          && $0.SupportedPlatformVariant == variant
+                          && $0.SupportedArchitectures.contains(target.architecture)
+                  }),
+                  library.LibraryPath.hasSuffix(".a"), !library.LibraryPath.contains("/"),
+                  (try? ResourceDestination.validateRelativePath(library.LibraryPath)) != nil else { continue }
+            return directory.appendingPathComponent(library.LibraryPath)
         }
         return directory.appendingPathComponent("lib\(name).a")
     }

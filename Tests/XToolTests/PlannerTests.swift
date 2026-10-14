@@ -14,12 +14,12 @@ struct PlannerTests {
 
     private func package(
         _ name: String = "Root", products: [[String: Any]]? = nil, targets: [[String: Any]]? = nil,
-        dependencies: [[String: Any]] = [], platforms: [[String: String]] = []
+        dependencies: [[String: Any]] = [], platforms: [[String: String]] = [], path: String? = nil
     ) throws -> Package {
         let targets = targets ?? [target("App")]
         return try Package(
             description: json([
-                "name": name, "products": products ?? [product("App")],
+                "name": name, "path": path as Any? ?? NSNull(), "products": products ?? [product("App")],
                 "platforms": platforms, "targets": targets.map { target -> [String: Any] in
                     var described = target
                     described.removeValue(forKey: "dependencies")
@@ -244,6 +244,21 @@ struct PlannerTests {
                                        .copy(.init(source: "agent.plist", destination: .init(
                                         location: .contents, path: "Library/LaunchAgents/agent.plist")))])
         #expect(app.resources.contains(.binaryTarget(name: "Binary")))
+    }
+
+    @Test func localXCFrameworkBinaryTargetsRecordTheirPath() async throws {
+        func binary(_ name: String, path: String) -> [String: Any] {
+            var value = target(name, kind: "binary")
+            value["path"] = path
+            return value
+        }
+        let root = try package(targets: [
+            target("App", dependencies: [["target": ["Local", NSNull()]], ["target": ["Zipped", NSNull()]]]),
+            binary("Local", path: "Vendor/Local.xcframework"), binary("Zipped", path: "Vendor/Zipped.zip"),
+        ], path: "/root")
+        let app = try await plan(["root": root], triple: "arm64-apple-macosx").app
+        #expect(Set(app.resources) == [.binaryTarget(name: "Local", xcframework: "/root/Vendor/Local.xcframework"),
+                                       .binaryTarget(name: "Zipped")])
     }
 
     @Test func packageAliasesDisambiguateSameNamedProducts() async throws {

@@ -99,13 +99,13 @@ public struct BundleAssembler: Sendable {
                                        payload: .symlink("../Resources/\(name)")),
                                  product: product, to: &assembly)
             }
-        case .binaryTarget(let name):
+        case .binaryTarget(let name, let xcframework):
             try validateName(name)
             let source = artifacts.directory.appendingPathComponent("\(name).framework")
             let binary = source.appendingPathComponent(name)
             if artifacts.staticBinaryTargets.contains(name) {
-                let looseArchive = ProductBuilder.staticArchive(forBinaryTarget: name, in: artifacts.directory,
-                                                                target: plan.target)
+                let looseArchive = ProductBuilder.staticArchive(forBinaryTarget: name, xcframework: xcframework,
+                                                                in: artifacts.directory, target: plan.target)
                 guard FileManager.default.fileExists(atPath: binary.path)
                     || FileManager.default.fileExists(atPath: looseArchive.path) else {
                     throw StringError("Missing validated static binary target '\(name)' in \(artifacts.directory.path)")
