@@ -246,7 +246,14 @@ struct DevRunCommand: AsyncParsableCommand {
     @Argument(parsing: .captureForPassthrough, help: "Arguments passed to the macOS app after --")
     var arguments: [String] = []
 
-    var appArguments: [String] { arguments.first == "--" ? Array(arguments.dropFirst()) : arguments }
+    var appArguments: [String] { Array(arguments.dropFirst()) }
+
+    func validate() throws {
+        // Passthrough capture also swallows unknown options and words; only accept them after `--`.
+        if let first = arguments.first, first != "--" {
+            throw ValidationError("Unknown argument '\(first)'. Pass app arguments after '--'.")
+        }
+    }
 
     #if os(macOS)
     @Flag(
