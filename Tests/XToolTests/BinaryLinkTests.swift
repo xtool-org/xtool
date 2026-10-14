@@ -146,6 +146,27 @@ struct BinaryLinkTests {
         #expect(throws: (any Error).self) { try MachOBinary.inspect(Array(data.dropLast())) }
     }
 
+    @Test func universalStaticArchiveIsStatic() throws {
+        let root = try temporaryRoot()
+        defer { try? FileManager.default.removeItem(at: root) }
+        func archive(_ object: Data) -> Data {
+            let size = String(object.count).padding(toLength: 10, withPad: " ", startingAt: 0)
+            return Data("!<arch>\nfile.o/         0           0     0     100644  \(size)`\n".utf8) + object
+        }
+        let slices = [archive(binary(cpu: 0x01000007, type: 1)), archive(binary(type: 1))]
+        let header: [UInt32] = [0xcafebabe, 2, 0x01000007, 0, 48, UInt32(slices[0].count), 0,
+                                0x0100000c, 0, UInt32(48 + slices[0].count), UInt32(slices[1].count), 0]
+        var data = Data()
+        for word in header { data += Data((0..<4).map { UInt8(truncatingIfNeeded: word >> ((3 - $0) * 8)) }) }
+        let url = root.appendingPathComponent("Fat")
+        try (data + slices[0] + slices[1]).write(to: url)
+        for architecture in ["arm64", "x86_64"] {
+            let target = try ResolvedTarget.resolve(cliTarget: "\(architecture)-apple-macosx15.0")
+            #expect(try MachOBinary.validate(url, target: target, executable: false))
+            #expect(throws: (any Error).self) { try MachOBinary.validate(url, target: target, executable: true) }
+        }
+    }
+
     @Test func staticBinaryTargetsRequireRealArchive() async throws {
         let root = try temporaryRoot()
         defer { try? FileManager.default.removeItem(at: root) }

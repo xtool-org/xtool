@@ -380,6 +380,8 @@ struct MachOBinary {
         var installName: String?
         var rpaths: [String] = []
         var hasCodeSignature = false
+        /// Object files from a static archive, including archives inside a universal binary.
+        var archiveMember = false
         struct Dependency {
             var path: String
             var weak: Bool
@@ -414,12 +416,11 @@ struct MachOBinary {
             throw StringError("Missing binary artifact: \(url.path)")
         }
         do {
-            let bytes = [UInt8](try Data(contentsOf: url))
-            let archive = bytes.starts(with: Array("!<arch>\n".utf8))
-            let slices = try inspect(bytes)
+            let slices = try inspect([UInt8](try Data(contentsOf: url)))
             let cpu = try cpuType(for: target.architecture)
             let matching = slices.filter { $0.cpu == cpu }
             guard !matching.isEmpty else { throw StringError("Wrong architecture; expected \(target.architecture)") }
+            let archive = matching.allSatisfy(\.archiveMember)
             let platform: UInt32 = switch target.platform {
             case .macOS: 1
             case .iOS: 2
@@ -432,7 +433,7 @@ struct MachOBinary {
                 guard slice.minimumOS <= packedVersion(target.deploymentTarget) else {
                     throw StringError("Binary minimum OS exceeds deployment target \(target.deploymentTarget)")
                 }
-                let expectedType: UInt32 = executable ? 2 : (archive ? 1 : 6)
+                let expectedType: UInt32 = executable ? 2 : (slice.archiveMember ? 1 : 6)
                 guard slice.fileType == expectedType else { throw StringError("Wrong Mach-O file type; expected \(expectedType)") }
                 if expectedType == 6 {
                     try validateInstallName(slice.installName, binary: url)
@@ -513,7 +514,11 @@ struct MachOBinary {
             let actualName = nameSize > 0
                 ? String(decoding: bytes[(offset + 60)..<(offset + 60 + nameSize)], as: UTF8.self) : name
             if !actualName.hasPrefix("__.SYMDEF") && actualName != "/" && actualName != "//" {
-                slices += try inspect(Array(bytes[(offset + 60 + nameSize)..<(offset + 60 + size)]))
+                slices += try inspect(Array(bytes[(offset + 60 + nameSize)..<(offset + 60 + size)])).map {
+                    var member = $0
+                    member.archiveMember = true
+                    return member
+                }
             }
             offset += 60 + size + size % 2
         }
