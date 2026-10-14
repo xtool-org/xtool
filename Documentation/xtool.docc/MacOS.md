@@ -36,9 +36,11 @@ their entitlement associations. It records signing intent, not release approval.
 This route performs no Apple account provisioning or identity signing. Linker
 ad-hoc signatures may already be present. `--sign`, IPA output and Xcode
 project generation are unavailable for macOS targets. `xtool dev run` builds
-and launches a local Mac app; `--app` launches an existing app without rebuilding. A downstream
-Mac signer must sign nested code before the outer app and validate the result.
-The generic handoff does not select certificates or publish releases.
+and launches a local Mac app; `--app` launches an existing app without rebuilding. On a Mac,
+`xtool dev sign` signs the handoff into a new directory (ad-hoc, Apple Development or
+Developer ID, with an explicit certificate fingerprint) and `xtool dev notarize` submits
+Developer ID output with an existing `notarytool` keychain profile. The handoff does not
+select certificates or publish releases.
 
 ## Tests
 
@@ -52,8 +54,8 @@ installed Darwin SDK.
 ## Boundaries
 
 This support excludes native execution of macOS applications on Linux, an asset
-compiler replacement, release publishing, notarization, universal binary
+compiler replacement, release publishing, universal binary
 production and full Xcode project ingestion. Supply prepared ICNS/PNG,
 `Assets.car`, storyboards or nibs where needed; raw asset catalogs, iconsets, storyboards
-and xibs are rejected by assembly. Signing with Developer ID, Gatekeeper
-acceptance and application-specific entitlements require separate Mac work.
+and xibs are rejected by assembly. Certificate creation, identity selection and
+provisioning-dependent entitlements remain separate work.
