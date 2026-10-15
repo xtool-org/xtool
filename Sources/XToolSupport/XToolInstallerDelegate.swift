@@ -9,7 +9,15 @@ final class XToolAuthDelegate: TwoFactorAuthDelegate {
 }
 
 actor XToolInstallerDelegate: IntegratedInstallerDelegate {
-    init() {}
+    private let allowsRevocation: Bool
+
+    /// Set once signing asked to revoke certificates and this delegate declined without prompting.
+    private(set) var refusedRevocation = false
+
+    /// Pass `allowsRevocation: false` to refuse certificate revocation outright instead of prompting for it.
+    init(allowsRevocation: Bool = true) {
+        self.allowsRevocation = allowsRevocation
+    }
 
     private let updateTask = LockIsolated<Task<Void, Never>?>(nil)
 
@@ -85,6 +93,11 @@ actor XToolInstallerDelegate: IntegratedInstallerDelegate {
                 "- \($0.attributes!.name!) (expires \($0.attributes!.expirationDate!.formatted(date: .abbreviated, time: .shortened)))"
             }.joined(separator: "\n")
         )
+        guard allowsRevocation else {
+            print("Stopping without revoking them.")
+            refusedRevocation = true
+            return false
+        }
         do {
             return try await Console.confirm("Continue?")
         } catch {

@@ -27,9 +27,9 @@ setup() {
     xtool dev build
     llvm-objdump -p ./xtool/MyWatchApp.app/MyWatchApp | grep "\bcmd LC_BUILD_VERSION\b" -a2 | grep "\bplatform watchos\b"
     run ! xtool dev build --sign
-    assert_output --partial "watchOS signing and distribution packaging are not supported yet"
+    assert_output --partial "watchOS signing and IPA packaging are not supported yet"
     run ! xtool dev build --ipa
-    assert_output --partial "watchOS signing and distribution packaging are not supported yet"
+    assert_output --partial "watchOS signing and IPA packaging are not supported yet"
     run ! xtool dev run
     assert_output --partial "Physical Apple Watch deployment is not supported yet"
 }

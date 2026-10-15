@@ -77,8 +77,7 @@ records, credentials, or private signing keys with a project.
 ## Physical Watch probe
 
 The repository includes an interactive `Examples/WatchProbe` app and a separate
-Python helper under `tools/watchos`. The
-[helper README](https://github.com/xtool-org/xtool/blob/main/tools/watchos/README.md)
+Python helper under `tools/watchos`. The helper README at `tools/watchos/README.md`
 documents Python setup, separate Watch trust, exporting private device info,
 revealing the Developer Mode switch when missing, and streaming a signed `.app`
 or `.ipa` through a USB iPhone. This helper is experimental and is not part of the
