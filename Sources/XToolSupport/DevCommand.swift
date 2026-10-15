@@ -79,7 +79,9 @@ struct PackOperation {
         let productsWithEntitlements = plan
             .allProducts
             .compactMap { p in p.entitlementsPath.map { (p, $0) } }
-        if !productsWithEntitlements.isEmpty {
+        // simulator builds already have their entitlements linked in (see Packer), and must
+        // not carry them in the code signature
+        if !productsWithEntitlements.isEmpty, !buildSettings.isSimulator {
             let mapping = try await withThrowingTaskGroup(of: (URL, Entitlements).self) { group in
                 for (product, path) in productsWithEntitlements {
                     group.addTask {
