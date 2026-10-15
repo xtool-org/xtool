@@ -1,0 +1,7 @@
+included:
+  - Sources
+disabled_rules:
+  - trailing_comma
+  - identifier_name
+line_length: 135
+function_body_length: 100

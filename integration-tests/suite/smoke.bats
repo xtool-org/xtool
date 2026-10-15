@@ -19,3 +19,17 @@ setup() {
     run ! xtool sdk update
     assert_output --partial "cannot be updated in place"
 }
+
+@test "can build a fresh watchOS app" {
+    [ "${XTL_TEST_WATCHOS:-0}" = 1 ] || skip "Set XTL_TEST_WATCHOS=1 with the Watch SDK installed"
+    xtool new --skip-setup --platform watchos MyWatchApp
+    cd MyWatchApp
+    xtool dev build
+    llvm-objdump -p ./xtool/MyWatchApp.app/MyWatchApp | grep "\bcmd LC_BUILD_VERSION\b" -a2 | grep "\bplatform watchos\b"
+    run ! xtool dev build --sign
+    assert_output --partial "watchOS signing and IPA packaging are not supported yet"
+    run ! xtool dev build --ipa
+    assert_output --partial "watchOS signing and IPA packaging are not supported yet"
+    run ! xtool dev run
+    assert_output --partial "Physical Apple Watch deployment is not supported yet"
+}

@@ -1,0 +1,4 @@
+version: 1
+bundleID: com.example.WatchProbe
+platform: watchos
+infoPath: Support/Info.plist

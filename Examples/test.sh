@@ -23,12 +23,18 @@ cd "$(dirname "$0")"
 examples_dir="$PWD"
 out_dir="$examples_dir/out"
 
+if [[ "${1:-}" == DemoWatch ]]; then
+    echo "DemoWatch uses the separate watchOS workflow; see Documentation/xtool.docc/WatchOS.md." >&2
+    exit 1
+fi
+
 if [[ -n "${1:-}" ]]; then
     demos=("$1")
 elif [[ "$mode" == run ]]; then
     demos=()
     for app in "$out_dir"/*.app; do
         name="${app##*/}"
+        [[ "$name" != DemoWatch.app ]] || continue
         demos+=("${name%.app}")
     done
 else
@@ -36,6 +42,7 @@ else
     for demo in "$examples_dir"/Demo*/; do
         [[ -f "$demo/Package.swift" ]] || continue
         demo="${demo%/}"
+        [[ "${demo##*/}" != DemoWatch ]] || continue
         demos+=("${demo##*/}")
     done
 fi

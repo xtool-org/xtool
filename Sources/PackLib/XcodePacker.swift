@@ -1,5 +1,6 @@
 import Foundation
 import XcodeProjects
+import XUtils
 
 public struct XcodePacker {
     public var plan: Plan
@@ -12,6 +13,9 @@ public struct XcodePacker {
     public func createProject(
         at root: URL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
     ) async throws -> URL {
+        guard plan.platform != .watchOS else {
+            throw StringError("Generating watchOS Xcode projects is not supported yet.")
+        }
         let xtoolDir = root.appendingPathComponent("xtool", isDirectory: true)
         let projectDir = xtoolDir.appendingPathComponent(".xtool-tmp", isDirectory: true)
         try? FileManager.default.removeItem(at: projectDir)

@@ -10,6 +10,9 @@ struct NewCommand: AsyncParsableCommand {
 
     @Argument var name: String?
 
+    @Option(help: "App platform: ios or watchos (experimental)")
+    var platform: AppPlatform = .iOS
+
     @Flag(
         help: ArgumentHelp(
             "Skip setup steps. (default: false)",
@@ -76,7 +79,7 @@ struct NewCommand: AsyncParsableCommand {
                 let package = Package(
                     name: "\(name)",
                     platforms: [
-                        .iOS(.v17),
+                        \(platform == .watchOS ? ".watchOS(.v10)," : ".iOS(.v17),")
                         .macOS(.v14),
                     ],
                     products: [
@@ -101,6 +104,7 @@ struct NewCommand: AsyncParsableCommand {
                 """
                 version: 1
                 bundleID: com.example.\(name)
+                platform: \(platform.rawValue)
                 """
             ),
 
@@ -167,13 +171,18 @@ struct NewCommand: AsyncParsableCommand {
         }
 
         await LSPConfig.tryEnsure(
-            using: .default,
+            using: try await PackSchema.load(from: baseURL),
             quiet: true,
             currentDirectory: baseURL,
         )
 
         print("\nFinished generating project \(name). Next steps:")
         print("- Enter the directory with `cd \(name)`")
-        print("- Build and run with `xtool dev`")
+        if platform == .watchOS {
+            print("- Build the experimental Watch app with `xtool dev build`")
+            print("- Physical Watch deployment is not supported yet")
+        } else {
+            print("- Build and run with `xtool dev`")
+        }
     }
 }

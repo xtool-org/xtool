@@ -47,6 +47,11 @@ enum LSPConfig {
             return
         }
 
+        let legacyLSP = (
+            Self.legacyLSP.0,
+            Self.legacyLSP.1.replacingOccurrences(of: "arm64-apple-ios", with: schema.defaultTriple)
+        )
+
         if try await SwiftVersion.current.supportsSwiftBuild {
             try await ensure(primary: bsp, secondary: legacyLSP, quiet: quiet, currentDirectory: directory)
         } else {
