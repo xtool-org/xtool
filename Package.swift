@@ -166,6 +166,7 @@ let package = Package(
                 "XKit",
                 "XToolSupport",
                 "PackLib",
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ],
             swiftSettings: swiftSettings,
         ),

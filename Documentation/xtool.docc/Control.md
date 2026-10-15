@@ -108,6 +108,17 @@ iconPath: Resources/AppIcon.png
 >
 > Your app icon must be a png, and it should ideally have a resolution of 1024x1024px.
 
+## Limit parallel build jobs
+
+On a memory-constrained machine or a shared CI worker, use `--jobs` (or `-j`) to pass a parallel build job limit to SwiftPM:
+
+```bash
+xtool dev build --jobs 2
+xtool dev run -j 2
+```
+
+The value must be greater than zero. Omitting this option keeps SwiftPM's default behavior. This controls parallel build jobs; it does not impose a limit on total memory usage.
+
 ## Add entitlements
 
 You may need to add special [entitlements](https://developer.apple.com/documentation/bundleresources/entitlements) to your app, for example you need the `com.apple.developer.homekit` entitlement in order to connect to HomeKit devices.
