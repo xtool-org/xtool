@@ -73,9 +73,9 @@ extension DataProtectionEntitlement: EntitlementWithCapability {
 
 extension AppGroupEntitlement: EntitlementWithCapability {
     var capability: DeveloperServicesCapability {
-        // FIXME: Enable app groups on free accounts
-        // but we need to always assign only one group
-        DeveloperServicesCapability(.appGroups, isFree: false)
+        // Free teams can use App Groups too; DeveloperServicesAddAppOperation
+        // assigns them at most one.
+        DeveloperServicesCapability(.appGroups, isFree: true)
     }
 }
 
