@@ -53,7 +53,9 @@ struct GrandSlamTwoFactorAuthenticateOperation {
             try await client.send(GrandSlamSMSAuthRequest(loginData: loginData, phoneNumberID: phoneNumberID))
         } catch let error as Error {
             guard case .smsRejected(let title, _) = error else { throw error }
-            print("SMS 2FA unavailable (\(title)). Falling back to trusted-device verification.")
+            FileHandle.standardError.write(
+                Data("SMS 2FA unavailable (\(title)). Falling back to trusted-device verification.\n".utf8)
+            )
             try await performTrustedDeviceAuth()
             return
         }
@@ -74,6 +76,12 @@ struct GrandSlamTwoFactorAuthenticateOperation {
         do {
             _ = try await client.send(request)
         } catch let error as GrandSlamOperationError where error.code == -21669 {
+            throw Error.incorrectVerificationCode
+        } catch Error.smsRejected {
+            // The SMS /securitycode endpoint returned a buddyML alert. We don't have a
+            // captured payload distinguishing "bad code" from other failures, but during
+            // validate the overwhelmingly likely cause is a wrong code — surface it that
+            // way rather than as a fatal alert title.
             throw Error.incorrectVerificationCode
         }
     }
