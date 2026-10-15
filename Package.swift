@@ -50,7 +50,9 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/xtool-org/xtool-core", .upToNextMinor(from: "1.5.0")),
         .package(url: "https://github.com/xtool-org/SwiftyMobileDevice", .upToNextMinor(from: "1.7.0")),
-        .package(url: "https://github.com/xtool-org/zsign", .upToNextMinor(from: "1.9.0")),
+        // TODO: temporary, points at a branch combining xtool-org/zsign#3, #4 and #5. Switch to
+        // .upToNextMinor(from: "<tag>") once zsign tags a release including them.
+        .package(url: "https://github.com/TartanLeGrand/zsign", revision: "4d2eb4c07e26cf56b6a161fa4a1c4eb4eb56cbc2"),
         .package(url: "https://github.com/xtool-org/xadi", .upToNextMinor(from: "0.4.2")),
 
         .package(url: "https://github.com/apple/swift-system", from: "1.4.0"),
