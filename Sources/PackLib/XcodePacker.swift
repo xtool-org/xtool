@@ -61,6 +61,10 @@ public struct XcodePacker {
                     "$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks",
                 ])
             }
+            if let catalogPath = product.assetCatalogPath,
+               let iconName = Self.appIconName(inCatalogAt: URL(fileURLWithPath: catalogPath, relativeTo: root)) {
+                buildSettings["ASSETCATALOG_COMPILER_APPICON_NAME"] = .string(iconName)
+            }
             if let entitlementsPath = product.entitlementsPath {
                 let path = (entitlementsPath as NSString).isAbsolutePath
                     ? entitlementsPath
@@ -97,12 +101,14 @@ public struct XcodePacker {
                 buildFiles: [],
             )
             let resources = try resourceReferences(for: product, at: root)
+            // the catalog is passed through untouched: actool compiles it as part of the Xcode build.
+            let catalog = try product.assetCatalogPath.map { try assetCatalogReference($0, for: product) }
             groups.append(.group(.init(
                 objectID: nil,
                 name: product.product,
                 path: try .init(base: .group, path: product.product),
                 includeInIndex: nil,
-                children: [.fileReference(source), .fileReference(info)] + resources,
+                children: [.fileReference(source), .fileReference(info)] + resources + (catalog.map { [$0] } ?? []),
             )))
 
             let productFilename = "\(product.targetName).\(product.type == .application ? "app" : "appex")"
@@ -141,6 +147,9 @@ public struct XcodePacker {
                 ),
             )
             var phases = [sourcePhase, frameworksPhase]
+            if catalog != nil {
+                phases.append(.resources(.init(objectID: nil, name: nil)))
+            }
             if !resources.isEmpty {
                 phases.append(.copy(.init(
                     objectID: nil,
@@ -270,6 +279,32 @@ public struct XcodePacker {
                 )],
             ))
         }
+    }
+
+    private func assetCatalogReference(_ path: String, for product: Plan.Product) throws -> XCSchema.Reference {
+        let isAbsolute = (path as NSString).isAbsolutePath
+        let referencePath = isAbsolute ? path : ("../.." as NSString).appendingPathComponent(path)
+        return .fileReference(.init(
+            objectID: nil,
+            path: try .init(base: isAbsolute ? .absolute : .project, path: referencePath),
+            explicitFileType: .init(fileTypeID: "folder.assetcatalog"),
+            expectedSignature: nil,
+            textEncoding: nil,
+            lineEnding: nil,
+            includeInIndex: nil,
+            buildFiles: [.init(
+                objectID: nil,
+                buildPhase: .named(target: .init(targetName: product.targetName), kind: .resources, name: nil),
+                properties: buildFileProperties(),
+            )],
+        ))
+    }
+
+    /// The basename of the `.appiconset` in the catalog, which Xcode needs as `ASSETCATALOG_COMPILER_APPICON_NAME`.
+    static func appIconName(inCatalogAt catalog: URL) -> String? {
+        let contents = (try? FileManager.default.contentsOfDirectory(atPath: catalog.path)) ?? []
+        return contents.sorted().first { $0.hasSuffix(".appiconset") }
+            .map { ($0 as NSString).deletingPathExtension }
     }
 
     private func buildFileProperties(removeHeadersOnCopy: Bool = false) -> XCSchema.BuildFileProperties {

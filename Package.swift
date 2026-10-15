@@ -52,6 +52,9 @@ let package = Package(
         .package(url: "https://github.com/xtool-org/SwiftyMobileDevice", .upToNextMinor(from: "1.7.0")),
         .package(url: "https://github.com/xtool-org/zsign", .upToNextMinor(from: "1.9.0")),
         .package(url: "https://github.com/xtool-org/xadi", .upToNextMinor(from: "0.4.2")),
+        // TODO: temporary, points at the branch of xtool-org/AssetKit#2. Switch to
+        // .upToNextMinor(from: "<tag>") once AssetKit tags a release including it.
+        .package(url: "https://github.com/TartanLeGrand/AssetKit", revision: "90281d6dc0c4edef6176f9283283271198e4bafd"),
 
         .package(url: "https://github.com/apple/swift-system", from: "1.4.0"),
         .package(url: "https://github.com/apple/swift-http-types", from: "1.3.1"),
@@ -169,6 +172,9 @@ let package = Package(
                 .product(name: "Crypto", package: "swift-crypto"),
                 .product(name: "X509", package: "swift-certificates"),
             ],
+            resources: [
+                .copy("Fixtures"),
+            ],
             swiftSettings: swiftSettings,
         ),
         .target(
@@ -197,6 +203,7 @@ let package = Package(
             dependencies: [
                 "XUtils",
                 "XcodeProjects",
+                .product(name: "AssetKit", package: "AssetKit"),
                 .product(name: "Superutils", package: "xtool-core"),
                 .product(name: "Yams", package: "Yams"),
                 .product(name: "XcodeProjectFormat", package: "xcode-project-format"),

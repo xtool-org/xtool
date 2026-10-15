@@ -19,6 +19,7 @@ public struct PackSchemaBase: Codable, Sendable {
 
     public var iconPath: String?
     public var resources: [String]?
+    public var assetCatalogs: [String]?
 
     public var extensions: [Extension]?
 
@@ -30,6 +31,7 @@ public struct PackSchemaBase: Codable, Sendable {
         public var bundleID: String?
         public var infoPath: String
         public var resources: [String]?
+        public var assetCatalogs: [String]?
         public var entitlementsPath: String?
     }
 }
@@ -74,6 +76,11 @@ public struct PackSchema: Sendable {
             guard ext == "png" else {
                 throw StringError("xtool.yml: iconPath should have a 'png' path extension. Got '\(ext)'.")
             }
+        }
+
+        let catalogLists = [base.assetCatalogs] + (base.extensions ?? []).map(\.assetCatalogs)
+        if catalogLists.contains(where: { ($0?.count ?? 0) > 1 }) {
+            throw StringError("xtool.yml: assetCatalogs supports at most one catalog per product.")
         }
     }
 
