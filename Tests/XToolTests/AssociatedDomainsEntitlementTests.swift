@@ -35,3 +35,29 @@ import Testing
 
     #expect(dictionary[AssociatedDomainsEntitlement.identifier] as? [String] == ["applinks:example.com"])
 }
+
+@Test func associatedDomainsEntitlementIsRequestedForPaidTeams() throws {
+    let entitlements = try Entitlements(entitlements: [
+        AssociatedDomainsEntitlement(rawValue: ["applinks:example.com"])
+    ])
+
+    let capabilities = try DeveloperServicesAddAppOperation.capabilities(
+        for: entitlements,
+        isFreeTeam: false
+    )
+
+    #expect(capabilities[.init(.associatedDomains)] != nil)
+}
+
+@Test func associatedDomainsEntitlementIsFilteredForFreeTeams() throws {
+    let entitlements = try Entitlements(entitlements: [
+        AssociatedDomainsEntitlement(rawValue: ["applinks:example.com"])
+    ])
+
+    let capabilities = try DeveloperServicesAddAppOperation.capabilities(
+        for: entitlements,
+        isFreeTeam: true
+    )
+
+    #expect(capabilities[.init(.associatedDomains)] == nil)
+}

@@ -17,6 +17,8 @@ extension EntitlementContainer {
         TeamIdentifierEntitlement.self,
         KeychainAccessGroupsEntitlement.self,
         GetTaskAllowEntitlement.self,
+        // This was disabled in the original Supersign implementation even though
+        // the entitlement codec and capability mapping were already present.
         AssociatedDomainsEntitlement.self,
         APSEnvironmentEntitlement.self,
         AppGroupEntitlement.self,
