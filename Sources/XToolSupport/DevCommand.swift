@@ -12,10 +12,21 @@ struct PackOperation {
             help: "Build with configuration"
         ) var configuration: BuildConfiguration = .debug
 
+        @Option(
+            name: .shortAndLong,
+            help: "Maximum number of parallel build jobs"
+        ) var jobs: Int?
+
         init() {}
 
         init(configuration: BuildConfiguration) {
             self.configuration = configuration
+        }
+
+        func validate() throws {
+            if let jobs, jobs < 1 {
+                throw ValidationError("--jobs must be greater than zero")
+            }
         }
     }
 
@@ -57,7 +68,7 @@ struct PackOperation {
         let buildSettings = try await BuildSettings(
             configuration: buildOptions.configuration,
             triple: triple ?? Self.defaultTriple,
-            options: []
+            options: buildOptions.jobs.map { ["--jobs", String($0)] } ?? []
         )
 
         let planner = Planner(
