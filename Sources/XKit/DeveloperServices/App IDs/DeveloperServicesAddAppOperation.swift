@@ -37,21 +37,6 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
         self.root = root
     }
 
-    static func capabilities(
-        for entitlements: Entitlements,
-        isFreeTeam: Bool
-    ) throws -> [Components.Schemas.CapabilityType: [Components.Schemas.CapabilitySetting]] {
-        let parsedEntitlements = try entitlements.entitlements()
-        let eligibleEntitlements = isFreeTeam
-            ? parsedEntitlements.filter { $0.anyCapability?.isFree != false }
-            : parsedEntitlements
-
-        return [Components.Schemas.CapabilityType: [Components.Schemas.CapabilitySetting]](
-            eligibleEntitlements.compactMap(\.anyCapability).map { ($0.capabilityType, $0.settings ?? []) },
-            uniquingKeysWith: { $1 }
-        )
-    }
-
     /// Registers the app with the given entitlements
     private func upsertApp(
         bundleID: String,
@@ -100,7 +85,11 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
             uniquingKeysWith: { $1 }
         )
 
-        let wantedCapabilities = try Self.capabilities(for: entitlements, isFreeTeam: isFreeTeam)
+        let wantedCapabilitiesList = try entitlements.entitlements().compactMap(\.anyCapability)
+        let wantedCapabilities = [Components.Schemas.CapabilityType: [Components.Schemas.CapabilitySetting]](
+            wantedCapabilitiesList.map { ($0.capabilityType, $0.settings ?? []) },
+            uniquingKeysWith: { $1 }
+        )
 
         for (typ, cap) in existingCapabilities {
             if let wantedSettings = wantedCapabilities[typ] {
