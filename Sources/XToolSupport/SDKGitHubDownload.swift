@@ -102,11 +102,14 @@ struct SDKGitHubDownloader: Sendable {
         self.sleep = sleep
     }
 
-    func body(for artifact: SDKGitHubArtifact) async throws -> HTTPBody {
+    func body(for artifact: SDKGitHubArtifact) async throws -> Data {
+        precondition(maxAttempts >= 1, "maxAttempts must be at least 1")
         var lastError: SDKGitHubDownloadError?
         for attempt in 1...maxAttempts {
             do {
                 return try await fetch(artifact)
+            } catch let error as CancellationError {
+                throw error
             } catch let error as SDKGitHubDownloadError {
                 lastError = error
                 guard error.isRetryable, attempt < maxAttempts else { throw error }
@@ -116,12 +119,14 @@ struct SDKGitHubDownloader: Sendable {
         throw lastError!
     }
 
-    private func fetch(_ artifact: SDKGitHubArtifact) async throws -> HTTPBody {
+    private func fetch(_ artifact: SDKGitHubArtifact) async throws -> Data {
         @Dependency(\.httpClient) var httpClient
         let response: HTTPResponse
         let body: HTTPBody?
         do {
             (response, body) = try await httpClient.send(HTTPRequest(url: artifact.url))
+        } catch let error as CancellationError {
+            throw error
         } catch {
             throw SDKGitHubDownloadError.network(artifact, String(describing: error))
         }
@@ -131,6 +136,32 @@ struct SDKGitHubDownloader: Sendable {
         guard let body else {
             throw SDKGitHubDownloadError.emptyBody(artifact)
         }
-        return body
+        return try await consume(body, artifact: artifact)
+    }
+
+    private func consume(_ body: HTTPBody, artifact: SDKGitHubArtifact) async throws -> Data {
+        let total: Int64? = switch body.length {
+        case .known(let known): known
+        case .unknown: nil
+        }
+        var data = Data()
+        do {
+            for try await chunk in body {
+                data.append(contentsOf: chunk)
+                reportProgress(artifact, written: Int64(data.count), total: total)
+            }
+        } catch let error as CancellationError {
+            throw error
+        } catch {
+            throw SDKGitHubDownloadError.network(artifact, String(describing: error))
+        }
+        return data
+    }
+
+    private func reportProgress(_ artifact: SDKGitHubArtifact, written: Int64, total: Int64?) {
+        guard let total else { return }
+        let progress = Int(Double(written) / Double(total) * 100)
+        print("\r[\(artifact.progressLabel)] \(progress)%", terminator: "")
+        fflush(stdoutSafe)
     }
 }

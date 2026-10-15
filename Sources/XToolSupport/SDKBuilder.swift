@@ -243,42 +243,17 @@ struct SDKBuilder {
         )
 
         let artifact = SDKGitHubArtifact.toolset(arch: arch)
-        let body: HTTPBody
-        do {
-            body = try await SDKGitHubDownloader().body(for: artifact)
-        } catch let error as SDKGitHubDownloadError {
-            throw Console.Error(error.description)
-        }
-        let length: Int64? = switch body.length {
-        case .known(let known): known
-        case .unknown: nil
-        }
+        let data = try await download(artifact)
 
         defer { print() }
         try await Subprocess.run(
             .name("tar"),
             arguments: ["xzf", "-"],
             workingDirectory: FilePath(toolsetDir),
-            input: .inputWriter,
+            input: .data(data),
             output: .discarded,
             error: .discarded,
-        ) { execution in
-            var totalWritten: Int64 = 0
-            for try await chunk in body {
-                var remaining = chunk
-                while !remaining.isEmpty {
-                    let written = try await execution.standardInputWriter.write(Array(remaining))
-                    remaining = remaining.dropFirst(written)
-                    totalWritten += Int64(written)
-
-                    guard let length else { continue }
-                    let progress = Int(Double(totalWritten) / Double(length) * 100)
-                    print("\r[\(artifact.progressLabel)] \(progress)%", terminator: "")
-                    fflush(stdoutSafe)
-                }
-            }
-            try await execution.standardInputWriter.finish()
-        }
+        )
         .checkSuccess()
 
         // swift-build assumes we have an Apple-flavored librarian for Apple platforms
@@ -385,19 +360,17 @@ struct SDKBuilder {
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: ld64.path)
     }
 
-    private func installMacros(in output: URL) async throws {
-        let artifact = SDKGitHubArtifact.openAppleMacros(arch: arch)
-        let body: HTTPBody
+    private func download(_ artifact: SDKGitHubArtifact) async throws -> Data {
         do {
-            body = try await SDKGitHubDownloader().body(for: artifact)
+            return try await SDKGitHubDownloader().body(for: artifact)
         } catch let error as SDKGitHubDownloadError {
             throw Console.Error(error.description)
         }
+    }
 
-        let length: Int64? = switch body.length {
-        case .known(let known): known
-        case .unknown: nil
-        }
+    private func installMacros(in output: URL) async throws {
+        let artifact = SDKGitHubArtifact.openAppleMacros(arch: arch)
+        let data = try await download(artifact)
 
         let outputPath = output.appendingPathComponent("OpenAppleMacrosServer").path
         do {
@@ -408,18 +381,7 @@ struct SDKBuilder {
                 permissions: [.ownerReadWriteExecute, .groupReadExecute, .otherReadExecute]
             )
             defer { try? handle.close() }
-
-            var written: Int64 = 0
-            for try await chunk in body {
-                try handle.writeAll(chunk)
-                written += Int64(chunk.count)
-
-                if let length {
-                    let progress = Int(Double(written) / Double(length) * 100)
-                    print("\r[\(artifact.progressLabel)] \(progress)%", terminator: "")
-                    fflush(stdoutSafe)
-                }
-            }
+            try handle.writeAll(data)
         }
         print()
     }

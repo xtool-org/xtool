@@ -35,6 +35,18 @@ private final class AttemptBox: @unchecked Sendable {
     var count = 0
 }
 
+private struct MidBodyFailure: Error, CustomStringConvertible {
+    var description: String { "connection reset by peer" }
+}
+
+private func bodyThatFailsMidway(_ prefix: Data) -> HTTPBody {
+    let stream = AsyncThrowingStream<HTTPBody.ByteChunk, any Error> { continuation in
+        continuation.yield(Array(prefix)[...])
+        continuation.finish(throwing: MidBodyFailure())
+    }
+    return HTTPBody(stream, length: .unknown)
+}
+
 @Test func sdkGitHubArtifactURLsMatchPublishedReleases() {
     let toolset = SDKGitHubArtifact.toolset(arch: .x86_64, version: "1.1.0")
     #expect(toolset.name == "Darwin toolset")
@@ -118,19 +130,71 @@ private final class AttemptBox: @unchecked Sendable {
         sleep: { _ in sleeps.count += 1 }
     )
 
-    let body = try await withDependencies {
+    let data = try await withDependencies {
         $0.httpClient = client
     } operation: {
         try await downloader.body(for: artifact)
     }
     #expect(attempts.count == 3)
     #expect(sleeps.count == 2)
+    #expect(data == payload)
+}
 
-    var collected = Data()
-    for try await chunk in body {
-        collected.append(contentsOf: chunk)
+@Test func sdkGitHubDownloadRetriesMidBodyFailureAndDropsPartialBytes() async throws {
+    let attempts = AttemptBox()
+    let sleeps = AttemptBox()
+    let artifact = SDKGitHubArtifact.toolset(arch: .x86_64)
+    let partial = Data("partial-from-attempt-1".utf8)
+    let complete = Data("only-attempt-2".utf8)
+    let client = ScriptedHTTPClient { _ in
+        attempts.count += 1
+        if attempts.count == 1 {
+            return (HTTPResponse(status: .ok), bodyThatFailsMidway(partial))
+        }
+        return (HTTPResponse(status: .ok), HTTPBody(complete))
     }
-    #expect(collected == payload)
+    let downloader = SDKGitHubDownloader(
+        maxAttempts: 3,
+        retryDelay: .milliseconds(1),
+        sleep: { _ in sleeps.count += 1 }
+    )
+
+    let data = try await withDependencies {
+        $0.httpClient = client
+    } operation: {
+        try await downloader.body(for: artifact)
+    }
+    #expect(attempts.count == 2)
+    #expect(sleeps.count == 1)
+    #expect(data == complete)
+}
+
+@Test func sdkGitHubDownloadFailsWithArtifactErrorWhenBodyAlwaysFails() async throws {
+    let attempts = AttemptBox()
+    let sleeps = AttemptBox()
+    let artifact = SDKGitHubArtifact.openAppleMacros(arch: .aarch64)
+    let client = ScriptedHTTPClient { _ in
+        attempts.count += 1
+        return (HTTPResponse(status: .ok), bodyThatFailsMidway(Data("partial".utf8)))
+    }
+    let downloader = SDKGitHubDownloader(
+        maxAttempts: 3,
+        retryDelay: .zero,
+        sleep: { _ in sleeps.count += 1 }
+    )
+
+    await withDependencies {
+        $0.httpClient = client
+    } operation: {
+        await #expect(throws: SDKGitHubDownloadError.network(artifact, "connection reset by peer")) {
+            _ = try await downloader.body(for: artifact)
+        }
+    }
+    #expect(attempts.count == 3)
+    #expect(sleeps.count == 2)
+    let surfaced = SDKGitHubDownloadError.network(artifact, "connection reset by peer")
+    #expect(surfaced.description.contains(artifact.name))
+    #expect(surfaced.description.contains(artifact.url.absoluteString))
 }
 
 @Test func sdkGitHubDownloadWrapsTransportFailures() async throws {
