@@ -23,6 +23,7 @@ public struct Packer: Sendable {
     /// also fixes SDKs installed before this was added.
     package static func sysrootLinkerFlags(sdkRoot: URL?) -> [String] {
         guard let sdkRoot else { return [] }
+        // -Xclang-linker is a Swift driver flag: this only works because targets are linked through swiftc.
         return ["-Xclang-linker", "-isysroot", "-Xclang-linker", sdkRoot.path]
     }
 

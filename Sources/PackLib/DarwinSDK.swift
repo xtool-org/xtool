@@ -45,28 +45,61 @@ public struct DarwinSDK {
     ///
     /// This is the SDK `swift-sdk.json` names for the triple, i.e. the one SwiftPM compiles against, so
     /// the link uses the same SDK as the compilation. Bundles from before that file listed it fall back
-    /// to the newest versioned SDK on disk.
-    package func sdkRoot(forTriple triple: String) -> URL? {
-        sdkRootFromMetadata(forTriple: triple) ?? newestSDKRoot(forTriple: triple)
+    /// to the newest versioned SDK on disk. When the file is there but does not lead to an SDK on disk,
+    /// the fallback may differ from what SwiftPM compiles against, so `warn` is told about it.
+    package func sdkRoot(
+        forTriple triple: String,
+        warn: (String) -> Void = { stderrPrint($0) }
+    ) -> URL? {
+        let metadata = sdkRootFromMetadata(forTriple: triple)
+        if case .found(let url) = metadata { return url }
+        let fallback = newestSDKRoot(forTriple: triple)
+        let file = bundle.appendingPathComponent("swift-sdk.json").path
+        let reason: String
+        switch metadata {
+        case .found, .absent:
+            return fallback
+        case .unreadable:
+            reason = "'\(file)' could not be read"
+        case .noEntry:
+            reason = "'\(file)' has no entry for \(triple)"
+        case .missing(let url):
+            reason = "'\(file)' names an SDK for \(triple) that is not installed at '\(url.path)'"
+        }
+        let used = fallback.map { "'\($0.path)'" } ?? "none found"
+        warn("warning: \(reason); linking against a different SDK than SwiftPM compiles against (\(used))")
+        return fallback
     }
 
-    private func sdkRootFromMetadata(forTriple triple: String) -> URL? {
+    package enum MetadataSDKRoot: Equatable {
+        /// No `swift-sdk.json`, as in bundles from before it listed the SDK paths.
+        case absent
+        case unreadable
+        case noEntry
+        case missing(URL)
+        case found(URL)
+    }
+
+    package func sdkRootFromMetadata(forTriple triple: String) -> MetadataSDKRoot {
         struct Definition: Decodable {
             struct Target: Decodable {
                 let sdkRootPath: String
             }
             let targetTriples: [String: Target]
         }
-        guard let data = try? Data(contentsOf: bundle.appendingPathComponent("swift-sdk.json")),
-              let definition = try? JSONDecoder().decode(Definition.self, from: data)
-        else { return nil }
+        guard let data = try? Data(contentsOf: bundle.appendingPathComponent("swift-sdk.json")) else {
+            return .absent
+        }
+        guard let definition = try? JSONDecoder().decode(Definition.self, from: data) else {
+            return .unreadable
+        }
 
         // `triple` may carry an OS version (arm64-apple-ios17.0-simulator) that the keys don't
         let wanted = Self.versionless(triple)
-        let target = definition.targetTriples.first { Self.versionless($0.key) == wanted }?.value
-        return target
-            .map { bundle.appendingPathComponent($0.sdkRootPath, isDirectory: true) }
-            .flatMap { $0.dirExists ? $0 : nil }
+        guard let target = definition.targetTriples.first(where: { Self.versionless($0.key) == wanted })?.value
+        else { return .noEntry }
+        let url = bundle.appendingPathComponent(target.sdkRootPath, isDirectory: true)
+        return url.dirExists ? .found(url) : .missing(url)
     }
 
     /// `arm64-apple-ios17.0-simulator` -> `arm64-apple-ios-simulator`
