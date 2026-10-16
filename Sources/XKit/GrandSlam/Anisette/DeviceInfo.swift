@@ -19,14 +19,24 @@ public struct DeviceInfo: Codable, Sendable {
     public struct ClientInfo: Codable {
         public let modelID: String // e.g. MacBookPro11,5
 
+        /// Our Anisette data comes from Android ADI, so every GSA request (including
+        /// provisioning) has to identify as an Android device or GSA rejects it (-80045).
+        static let androidClientString = """
+        <Pixel 7> <Android;14;UQ1A.240205.002> <com.apple.AuthKit/1 (com.apple.akd/1.0)>
+        """
+
+        /// Only used for the GSA URL bag lookup: sending the Android client info there
+        /// returns a reduced bag pointing at gsd.apple.com, which doesn't work for us.
+        static let urlBagClientString = """
+        <Mac15,7> <macOS;27.0;26A5378j> <com.apple.AuthKit/1 (com.apple.akd/1.0)>
+        """
+
         var clientString: String {
-            """
-            <Pixel 7> <Android;14;UQ1A.240205.002> <com.apple.AuthKit/1 (com.apple.akd/1.0)>
-            """
+            Self.androidClientString
         }
 
         var userAgent: String {
-            "AuthKit/1 (Macintosh; OS X 27.0) (com.apple.dt.Xcode/26.5)"
+            "akd/1.0 CFNetwork/808.1.4"
         }
 
         public init(modelID: String) {

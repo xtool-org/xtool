@@ -28,17 +28,6 @@ struct OmnisetteADIProvider: RawADIProvider {
         return encoder
     }()
 
-    func clientInfo() async throws -> String {
-        struct ClientInfo: Decodable {
-            let clientInfo: String
-        }
-        let body = try await client.makeRequest(
-            HTTPRequest(url: url.appendingPathComponent("v3/client_info"))
-        ).body
-        let clientInfo = try Self.decoder.decode(ClientInfo.self, from: body)
-        return clientInfo.clientInfo
-    }
-
     func startProvisioning(spim: Data, userID: UUID) async throws -> (RawADIProvisioningSession, Data) {
         var url = url.appendingPathComponent("v3/provisioning_session")
         var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!

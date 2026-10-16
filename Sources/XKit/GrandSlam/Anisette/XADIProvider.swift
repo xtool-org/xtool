@@ -84,12 +84,6 @@ public actor XADIProvider: RawADIProvider {
         try await loadTask.value
     }
 
-    public func clientInfo() async throws -> String {
-        """
-        <MacBookPro13,2> <macOS;13.1;22C65> <com.apple.AuthKit/1 (com.apple.dt.Xcode/3594.4.19)>
-        """
-    }
-
     public func startProvisioning(spim: Data, userID: UUID) async throws -> (any RawADIProvisioningSession, Data) {
         try await loadADI(id: userID)
 

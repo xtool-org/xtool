@@ -78,7 +78,7 @@ struct AuthOperation {
     private func logInWithPassword() async throws -> AuthToken {
         print("""
         Heads up:
-          This works by emulating a Pixel phone/Windows PC to interact with Apple services;
+          This works by emulating a Pixel phone to interact with Apple services;
           consider using a secondary Apple ID. Credentials are only ever sent to Apple.
         """)
 
