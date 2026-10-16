@@ -14,6 +14,24 @@ public struct BuildSettings: Sendable {
     public let buildSystem: BuildSystem
     public let customOptions: [String]
 
+    package var platform: ApplePlatform {
+        ApplePlatform(triple: triple) ?? .iOS
+    }
+
+    package var sdkTriple: String {
+        var components = triple.split(separator: "-").map(String.init)
+        guard components.count >= 3 else { return triple }
+        components[2] = String(components[2].prefix { !$0.isNumber })
+        return components.joined(separator: "-")
+    }
+
+    package var tripleDeploymentTarget: String? {
+        let components = triple.split(separator: "-")
+        guard components.count >= 3 else { return nil }
+        let version = components[2].drop { !$0.isNumber }
+        return version.isEmpty ? nil : String(version)
+    }
+
     public var sdkOptions: [String]
     public var sdkEnvironment: [Environment.Key: String?]
 
@@ -56,12 +74,18 @@ public struct BuildSettings: Sendable {
             // https://github.com/swiftlang/swift-package-manager/pull/6828
             self.sdkOptions = ["--swift-sdk", triple]
         case .swiftBuild:
-            self.sdkOptions = ["--triple", triple]
+            self.sdkOptions = [
+                "--triple", triple,
+                // Match the native toolset: SwiftUI integration APIs such as PhotosPicker live in cross-import overlays.
+                "-Xswiftc", "-Xfrontend", "-Xswiftc", "-enable-cross-import-overlays",
+            ]
             #if !os(macOS)
             let darwinSDK = try DarwinSDK.current()
                 .orThrow(StringError("No Darwin SDK configured. Please run `xtool setup`."))
+            let toolset = try LinkerConfiguration.toolsetOverride(sdk: darwinSDK)
+                ?? darwinSDK.bundle.appendingPathComponent("toolset-swb.json")
             self.sdkOptions += [
-                "--toolset", "\(darwinSDK.bundle.path)/toolset-swb.json",
+                "--toolset", toolset.path,
             ]
             self.sdkEnvironment.merge([
                 "XCODE_EXTRA_PLATFORM_FOLDERS": "\(darwinSDK.bundle.path)/Developer/Platforms",
@@ -70,6 +94,29 @@ public struct BuildSettings: Sendable {
             ]) { $1 }
             #endif
         }
+
+        if platform == .macCatalyst {
+            if let sdkRoot = try await sdkRootURL() {
+                self.sdkOptions += platform.additionalSDKOptions(sdkRoot: sdkRoot)
+            }
+        }
+        #if !os(macOS)
+        if let darwinSDK = try DarwinSDK.current() {
+            try await LinkerConfiguration.validate(platform: platform, sdk: darwinSDK)
+            if self.buildSystem == .swiftPM, let toolset = try LinkerConfiguration.toolsetOverride(sdk: darwinSDK) {
+                self.sdkOptions += ["--toolset", toolset.path]
+            }
+        }
+        #endif
+    }
+
+    package func sdkRootURL() async throws -> URL? {
+        #if os(macOS)
+        let sdkName = platform.supportedPlatform(triple: triple).lowercased()
+        return URL(fileURLWithPath: try await Self.xcrun(["--sdk", sdkName, "--show-sdk-path"]))
+        #else
+        return try DarwinSDK.current()?.sdkRoot(for: sdkTriple)
+        #endif
     }
 
     #if os(macOS)
