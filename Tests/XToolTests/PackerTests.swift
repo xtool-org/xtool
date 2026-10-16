@@ -31,6 +31,8 @@ private func product(_ type: Plan.ProductType) -> Plan.Product {
     // The entry point is Foundation's, so nothing references the extension's own `main`
     // and the dead-strip would drop the whole extension unless it is forced to stay.
     #expect(flags.contains(["-Xlinker", "-u", "-Xlinker", "_main"]))
+    // ...and the generated Package.swift snippet actually carries the quoted pair.
+    #expect(product(.appExtension).linkerSettings.contains(#""-u", "-Xlinker", "_main""#))
 }
 
 @Test func applicationDoesNotForceMainSymbol() {
