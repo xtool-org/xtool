@@ -14,9 +14,29 @@ public protocol TwoFactorAuthDelegate: AnyObject, Sendable {
 
 struct GrandSlamTwoFactorAuthenticateOperation {
 
-    enum Error: Swift.Error {
+    enum Error: Swift.Error, LocalizedError {
         case incorrectVerificationCode
         case userCancelled
+        case smsRejected(title: String, message: String)
+
+        var errorDescription: String? {
+            switch self {
+            case .incorrectVerificationCode:
+                return NSLocalizedString(
+                    "apple_id_2fa.error.incorrect_code",
+                    value: "Incorrect verification code.",
+                    comment: ""
+                )
+            case .userCancelled:
+                return NSLocalizedString(
+                    "apple_id_2fa.error.user_cancelled",
+                    value: "Verification was cancelled.",
+                    comment: ""
+                )
+            case .smsRejected(let title, let message):
+                return "\(title): \(message)"
+            }
+        }
     }
 
     let client: GrandSlamClient
@@ -25,9 +45,20 @@ struct GrandSlamTwoFactorAuthenticateOperation {
     unowned let delegate: TwoFactorAuthDelegate
 
     private func performSMSAuth() async throws {
-        // TODO: parse phone number list from o=complete req?
+        // Apple's SMS endpoint expects a phoneNumber.id that identifies which trusted phone number
+        // to text. We don't yet parse the list from the o=complete response, so we try "1" first;
+        // if Apple rejects it (e.g. "No Trusted Phone Numbers"), fall back to trusted-device 2FA.
         let phoneNumberID = "1"
-        try await client.send(GrandSlamSMSAuthRequest(loginData: loginData, phoneNumberID: phoneNumberID))
+        do {
+            try await client.send(GrandSlamSMSAuthRequest(loginData: loginData, phoneNumberID: phoneNumberID))
+        } catch let error as Error {
+            guard case .smsRejected(let title, _) = error else { throw error }
+            FileHandle.standardError.write(
+                Data("SMS 2FA unavailable (\(title)). Falling back to trusted-device verification.\n".utf8)
+            )
+            try await performTrustedDeviceAuth()
+            return
+        }
         try await validateCode(phoneNumberID: phoneNumberID)
     }
 
@@ -45,6 +76,12 @@ struct GrandSlamTwoFactorAuthenticateOperation {
         do {
             _ = try await client.send(request)
         } catch let error as GrandSlamOperationError where error.code == -21669 {
+            throw Error.incorrectVerificationCode
+        } catch Error.smsRejected {
+            // The SMS /securitycode endpoint returned a buddyML alert. We don't have a
+            // captured payload distinguishing "bad code" from other failures, but during
+            // validate the overwhelmingly likely cause is a wrong code — surface it that
+            // way rather than as a fatal alert title.
             throw Error.incorrectVerificationCode
         }
     }
