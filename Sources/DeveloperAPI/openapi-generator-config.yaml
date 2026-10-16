@@ -10,3 +10,12 @@ filter:
     - Certificates
     - Devices
     - Profiles
+  # build uploads are only used for `xtool upload`. Select operations rather than whole tags,
+  # which would also pull in the relationship endpoints.
+  operations:
+    - buildUploads_createInstance
+    - buildUploads_getInstance
+    - buildUploads_deleteInstance
+    - buildUploadFiles_createInstance
+    - buildUploadFiles_getInstance
+    - buildUploadFiles_updateInstance
