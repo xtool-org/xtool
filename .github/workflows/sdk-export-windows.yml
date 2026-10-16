@@ -1,0 +1,69 @@
+name: SDK export (Windows host)
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: "Runner label; macos-26 has Xcode 26.x, xcode-27-arm64 ships Xcode 27 (Swift 6.4 stdlib)"
+        default: "macos-26"
+        type: string
+  push:
+    tags:
+      - "sdk-*"
+
+env:
+  XTL_CI: "1"
+  LLVM_VERSION: "23.1.3"
+
+jobs:
+  export-windows-sdk:
+    runs-on: ${{ github.event.inputs.runner || 'macos-26' }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build xtool
+        run: |
+          swift --version
+          swift build --product xtool -c release
+
+      - name: Install mingw-w64 (for the toolset trampoline)
+        run: |
+          brew install mingw-w64
+
+      - name: Download LLVM Windows binaries
+        run: |
+          curl -fL -o llvm-win.tar.xz \
+            "https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-pc-windows-msvc.tar.xz"
+          mkdir -p llvm-extract
+          tar -xJf llvm-win.tar.xz -C llvm-extract --strip-components=2 \
+            "clang+llvm-${LLVM_VERSION}-x86_64-pc-windows-msvc/bin/ld64.lld.exe" \
+            "clang+llvm-${LLVM_VERSION}-x86_64-pc-windows-msvc/bin/llvm-libtool-darwin.exe"
+
+      - name: Assemble Windows toolset
+        run: |
+          mkdir -p toolset-win/bin/orig
+          mv llvm-extract/ld64.lld.exe toolset-win/bin/orig/ld64.lld.exe
+          mv llvm-extract/llvm-libtool-darwin.exe toolset-win/bin/llvm-lib.exe
+          x86_64-w64-mingw32-gcc -O2 -o toolset-win/bin/ld64.lld.exe tools/windows-toolset/trampoline.c
+          x86_64-w64-mingw32-gcc -O2 -o toolset-win/bin/true.exe tools/windows-toolset/true.c
+          ls -la toolset-win/bin toolset-win/bin/orig
+
+      - name: Build Darwin SDK for Windows host
+        run: |
+          .build/release/xtool sdk build /Applications/Xcode.app ./out \
+            --arch x86_64 --host windows --toolset-dir ./toolset-win
+
+      - name: Archive bundle
+        run: |
+          ditto -c -k --keepParent out/darwin.xtoolsdk darwin-windows-sdk.zip
+          shasum -a 256 darwin-windows-sdk.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: darwin-windows-sdk
+          path: darwin-windows-sdk.zip
+          if-no-files-found: error

@@ -12,6 +12,12 @@ struct SDKBuilder {
         case aarch64
     }
 
+    /// The host OS the SDK is built for: which machine will consume the bundle.
+    enum Host: String {
+        case linux
+        case windows
+    }
+
     enum Input {
         case xip(String)
         case app(String)
@@ -73,10 +79,21 @@ struct SDKBuilder {
     let input: Input
     let output: URL
     let arch: Arch
+    let host: Host
+    let toolsetDir: URL?
     let mode: Mode
 
+    init(input: Input, output: URL, arch: Arch, host: Host = .linux, toolsetDir: URL? = nil, mode: Mode) {
+        self.input = input
+        self.output = output
+        self.arch = arch
+        self.host = host
+        self.toolsetDir = toolsetDir
+        self.mode = mode
+    }
+
     // bump this when the sdk builder logic changes
-    static let sdkEpoch = 3
+    static let sdkEpoch = 4
 
     // tag from https://github.com/xtool-org/darwin-tools-linux-llvm
     static let darwinToolsVersion = "1.1.0"
@@ -148,6 +165,10 @@ struct SDKBuilder {
         """)
 
         print("[Writing metadata]")
+        let supportedTriples: String = switch host {
+        case .linux: #"["aarch64-unknown-linux-gnu", "x86_64-unknown-linux-gnu"]"#
+        case .windows: #"["x86_64-unknown-windows-msvc"]"#
+        }
         try """
         {
             "schemaVersion": "1.0",
@@ -158,7 +179,7 @@ struct SDKBuilder {
                     "variants": [
                         {
                             "path": ".",
-                            "supportedTriples": ["aarch64-unknown-linux-gnu", "x86_64-unknown-linux-gnu"]
+                            "supportedTriples": \(supportedTriples)
                         }
                     ]
                 }
@@ -170,15 +191,20 @@ struct SDKBuilder {
             encoding: .utf8
         )
 
+        // On Windows the toolset binaries are PE executables, so SwiftPM needs
+        // the .exe suffixes. The shell trampoline used on Linux is replaced by
+        // a compiled .exe trampoline placed in toolset/bin by the workflow.
+        let linkerPath = host == .linux ? "ld64.lld" : "ld64.lld.exe"
+        let librarianPath = host == .linux ? "llvm-lib" : "llvm-lib.exe"
         try """
         {
             "schemaVersion": "1.0",
             "rootPath": "toolset/bin",
             "linker": {
-                "path": "ld64.lld"
+                "path": "\(linkerPath)"
             },
             "librarian": {
-                "path": "llvm-lib"
+                "path": "\(librarianPath)"
             },
             "swiftCompiler": {
                 "extraCLIOptions": [
@@ -201,10 +227,10 @@ struct SDKBuilder {
             "schemaVersion": "1.0",
             "rootPath": "toolset/bin",
             "linker": {
-                "path": "ld64.lld"
+                "path": "\(linkerPath)"
             },
             "librarian": {
-                "path": "llvm-lib"
+                "path": "\(librarianPath)"
             }
         }
         """.write(
@@ -241,6 +267,11 @@ struct SDKBuilder {
             at: toolsetDir,
             withIntermediateDirectories: false
         )
+
+        if host == .windows {
+            try await installWindowsToolset(in: output)
+            return
+        }
 
         @Dependency(\.httpClient) var httpClient
         let url = URL(string: """
@@ -383,6 +414,31 @@ struct SDKBuilder {
         )
         // set -x
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: ld64.path)
+    }
+
+    /// The Windows toolset is produced out-of-band by the CI workflow
+    /// (LLVM win64 release binaries + a compiled ld64.lld.exe trampoline +
+    /// true.exe) and passed via --toolset-dir.
+    /// Expected layout: <dir>/bin/{ld64.lld.exe, llvm-lib.exe, true.exe}
+    /// and <dir>/bin/orig/ld64.lld.exe (the real linker, used for non -r links).
+    private func installWindowsToolset(in output: URL) async throws {
+        guard let toolsetDir else {
+            throw Console.Error("--toolset-dir is required with --host windows")
+        }
+        let bin = toolsetDir.appending(path: "bin")
+        for name in ["ld64.lld.exe", "llvm-lib.exe", "true.exe"] {
+            guard FileManager.default.fileExists(atPath: bin.appending(path: name).path) else {
+                throw Console.Error("--toolset-dir must contain bin/\(name)")
+            }
+        }
+        let dest = output.appendingPathComponent("toolset")
+        for child in try FileManager.default.contentsOfDirectory(at: toolsetDir, includingPropertiesForKeys: nil) {
+            try await FileManager.default.copyItem(
+                at: child,
+                to: dest.appendingPathComponent(child.lastPathComponent),
+                preserveOwner: false
+            )
+        }
     }
 
     private func installMacros(in output: URL) async throws {
