@@ -2,6 +2,7 @@ import Dependencies
 import Foundation
 import Testing
 @testable import PackLib
+import XUtils
 
 struct ProductBuilderTests {
     private func product(
@@ -138,6 +139,62 @@ struct ProductBuilderTests {
         #expect(artifacts.executables["App"]?.lastPathComponent == "App-App")
         #expect(artifacts.executables["Preview"]?.lastPathComponent == "Preview-Extension")
         #expect(await recorder.builds.allSatisfy { !$0.1.contains("-Xlinker") })
+    }
+
+    @Test func macOSResourceAccessorsBuildOnceWithStableFlags() async throws {
+        let root = try temporaryRoot()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let target = try ResolvedTarget.resolve(cliTarget: "arm64-apple-macosx15.0")
+        var app = product("App", source: .library(product: "AppLibrary"), target: target)
+        app.resources = [.bundle(package: "Package", target: "Resources")]
+        var helper = product("Helper", source: .library(product: "AppLibrary"), kind: .xpcService, target: target)
+        helper.resources = app.resources
+        let plan = try Plan(target: target, app: app, nestedProducts: [helper])
+        let settings = try await BuildSettings(configuration: .release, triple: target.triple, buildSystem: .swiftPM,
+                                               packagePath: root.path)
+        let output = root.appendingPathComponent("target-output")
+        let accessor = output.appendingPathComponent("Resources.build/DerivedSources/resource_bundle_accessor.swift")
+        let generated = """
+        import Foundation
+        extension Foundation.Bundle {
+            static let module: Bundle = {
+                let mainPath = Bundle.main.bundleURL.appendingPathComponent("Package_Resources.bundle").path
+                return Bundle(path: mainPath)!
+            }()
+        }
+        """
+        func build() async throws -> [[String]] {
+            let recorder = Recorder(output: output)
+            _ = try await withDependencies {
+                $0.productBuildRunner = ProductBuildRunner(
+                    build: { settings, arguments in
+                        // SwiftPM generates the accessor while planning, before compiling.
+                        try FileManager.default.createDirectory(at: accessor.deletingLastPathComponent(),
+                                                                withIntermediateDirectories: true)
+                        try Data(generated.utf8).writeIfChanged(to: accessor)
+                        try await recorder.build(settings, arguments: arguments)
+                    },
+                    binaryPath: { await recorder.binaryPath($0, arguments: $1) },
+                    sdkLinkerArguments: { _ in [] })
+            } operation: {
+                try await ProductBuilder(buildSettings: settings, plan: plan).build()
+            }
+            return await recorder.builds.map(\.1)
+        }
+
+        // A clean build adapts the accessors only after SwiftPM generated them, so it compiles
+        // them a second time; the flags of both passes are identical, so other modules do not.
+        let clean = try await build()
+        #expect(clean.count == 4)
+        #expect(clean[0] == clean[2] && clean[1] == clean[3])
+        #expect(clean.allSatisfy { $0.contains("-vfsoverlay") })
+        let cleanDate = try FileManager.default.attributesOfItem(atPath: accessor.path)[.modificationDate] as? Date
+
+        // A no-op rebuild runs one pass per product with exactly the previous flags.
+        let rebuilt = try await build()
+        #expect(rebuilt == Array(clean.prefix(2)))
+        let rebuiltDate = try FileManager.default.attributesOfItem(atPath: accessor.path)[.modificationDate] as? Date
+        #expect(cleanDate == rebuiltDate)
     }
 
     @Test func unsupportedCombinationsReject() async throws {

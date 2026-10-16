@@ -36,14 +36,70 @@ public struct ProductBuilder: Sendable {
         }
         if !libraries.isEmpty { try createWrapper(at: wrapper, root: root, products: libraries, sdkArguments: sdkArguments) }
 
+        let builds = try invocations(settings: settings, root: root, wrapper: wrapper, prebuilt: prebuilt,
+                                     sdkArguments: sdkArguments)
+
+        // SwiftPM regenerates accessors during planning. A compiler overlay adapts only generated
+        // target sources, without editing dependencies or racing that regeneration. Every build
+        // passes the same overlay path, so flags never change and no-op rebuilds stay no-ops.
+        // The overlay covers the accessors of the previous build; a later pass recompiles any
+        // accessor that it did not adapt yet, such as on a clean build.
+        let built = builds.map(\.product)
+        var overlay: SwiftPMResourceAccessor.Overlay?
+        if let first = builds.first, !SwiftPMResourceAccessor.bundleNames(for: built).isEmpty {
+            let directory = try await binaryDirectory(first.settings, first.arguments)
+            overlay = try SwiftPMResourceAccessor.overlay(for: built, in: directory, output: wrapper, requireAll: false)
+        }
+        let overlayArguments = overlay.map { ["-Xswiftc", "-vfsoverlay", "-Xswiftc", $0.url.path] } ?? []
+
+        var directory: URL?
+        var executables = prebuilt
+        for build in builds {
+            let arguments = build.arguments + overlayArguments
+            try await runner.build(build.settings, arguments)
+            let binDir = try await binaryDirectory(build.settings, arguments)
+            if let directory, directory != binDir {
+                throw StringError("Build backend produced products in different resource directories")
+            }
+            directory = binDir
+            let executable = binDir.appendingPathComponent(build.name)
+            guard FileManager.default.isExecutableFile(atPath: executable.path) else {
+                throw StringError("Build backend did not produce executable '\(build.name)' at \(executable.path)")
+            }
+            executables[build.product.product] = executable
+        }
+        if let directory, overlay != nil,
+           let final = try SwiftPMResourceAccessor.overlay(for: built, in: directory, output: wrapper),
+           !final.changedSources.isEmpty {
+            // Touching the generated sources makes the backend recompile exactly those modules
+            // (and their dependents) with the now-current adaptation; the flags stay unchanged.
+            for source in final.changedSources {
+                try FileManager.default.setAttributes([.modificationDate: Date()], ofItemAtPath: source.path)
+            }
+            for build in builds {
+                try await runner.build(build.settings, build.arguments + overlayArguments)
+            }
+            let settled = try SwiftPMResourceAccessor.overlay(for: built, in: directory, output: wrapper)
+            guard settled?.changedSources.isEmpty != false else {
+                throw StringError("Generated SwiftPM resource accessors changed during the build")
+            }
+        }
+        let output = directory ?? root
+        let staticTargets = try validateBinaryTargets(in: output)
+        return BuildArtifacts(directory: output, executables: executables, staticBinaryTargets: staticTargets)
+    }
+
+    private typealias Invocation = (product: Plan.Product, name: String, settings: BuildSettings, arguments: [String])
+
+    private func invocations(
+        settings: BuildSettings, root: URL, wrapper: URL, prebuilt: [String: URL], sdkArguments: [String]
+    ) throws -> [Invocation] {
         // Share one scratch tree so resources and dependency libraries remain
         // beside all products, including mixed direct and wrapped products.
         let scratchOptions = settings.customOptions.contains {
             $0 == "--scratch-path" || $0.hasPrefix("--scratch-path=")
         } ? [] : ["--scratch-path", root.appendingPathComponent(".build").path]
-        var directory: URL?
-        var executables = prebuilt
-        var builds: [(settings: BuildSettings, arguments: [String])] = []
+        var builds: [Invocation] = []
         for product in plan.allProducts {
             if prebuilt[product.product] != nil { continue }
             let package: URL
@@ -65,39 +121,17 @@ public struct ProductBuilder: Sendable {
             case .prebuilt:
                 continue
             }
-            let productSettings = settings.withPackagePath(package.path)
-            let arguments = scratchOptions + ["--product", name] + options
-            try await runner.build(productSettings, arguments)
-            let path = try await runner.binaryPath(productSettings, arguments)
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !path.isEmpty, !path.contains("\n"), path.hasPrefix("/") else {
-                throw StringError("Build backend returned an invalid binary output path: '\(path)'")
-            }
-            let binDir = URL(fileURLWithPath: path, isDirectory: true).standardizedFileURL
-            if let directory, directory != binDir {
-                throw StringError("Build backend produced products in different resource directories")
-            }
-            directory = binDir
-            builds.append((productSettings, arguments))
-            let executable = binDir.appendingPathComponent(name)
-            guard FileManager.default.isExecutableFile(atPath: executable.path) else {
-                throw StringError("Build backend did not produce executable '\(name)' at \(executable.path)")
-            }
-            executables[product.product] = executable
+            builds.append((product, name, settings.withPackagePath(package.path), scratchOptions + ["--product", name] + options))
         }
-        let built = plan.allProducts.filter { prebuilt[$0.product] == nil }
-        if let directory, let overlay = try SwiftPMResourceAccessor.overlay(for: built, in: directory, output: wrapper) {
-            // SwiftPM regenerates accessors during planning. A compiler overlay adapts only
-            // generated target sources, without editing dependencies or racing that regeneration.
-            // Rebuild every product with the same overlay so shared modules compile once more,
-            // not once per product.
-            for build in builds {
-                try await runner.build(build.settings, build.arguments + ["-Xswiftc", "-vfsoverlay", "-Xswiftc", overlay.path])
-            }
+        return builds
+    }
+
+    private func binaryDirectory(_ settings: BuildSettings, _ arguments: [String]) async throws -> URL {
+        let path = try await runner.binaryPath(settings, arguments).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !path.isEmpty, !path.contains("\n"), path.hasPrefix("/") else {
+            throw StringError("Build backend returned an invalid binary output path: '\(path)'")
         }
-        let output = directory ?? root
-        let staticTargets = try validateBinaryTargets(in: output)
-        return BuildArtifacts(directory: output, executables: executables, staticBinaryTargets: staticTargets)
+        return URL(fileURLWithPath: path, isDirectory: true).standardizedFileURL
     }
 
     private func validatedPrebuiltProducts() throws -> [String: URL] {
@@ -201,7 +235,7 @@ public struct ProductBuilder: Sendable {
         let path = toolsets.appendingPathComponent("\(name).json")
         let toolset: [String: Any] = ["schemaVersion": "1.0", "linker": ["extraCLIOptions": linkerOptions]]
         let data = try JSONSerialization.data(withJSONObject: toolset, options: [.sortedKeys])
-        try data.write(to: path)
+        try data.writeIfChanged(to: path)
         return ["--toolset", path.path]
     }
 
@@ -251,7 +285,12 @@ public struct ProductBuilder: Sendable {
     private func createWrapper(
         at directory: URL, root: URL, products: [Plan.Product], sdkArguments: [String]
     ) throws {
-        try? FileManager.default.removeItem(at: directory)
+        // Keep unchanged files untouched: new timestamps would relink every product, and the
+        // directory also holds the resource-accessor overlay of the previous build.
+        let sourcesDirectory = directory.appendingPathComponent("Sources", isDirectory: true)
+        let stale = Set((try? FileManager.default.contentsOfDirectory(atPath: sourcesDirectory.path)) ?? [])
+            .subtracting(products.map(\.targetName))
+        for name in stale { try FileManager.default.removeItem(at: sourcesDirectory.appendingPathComponent(name)) }
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let targets = products.map { product in
             let sourceName: String
@@ -278,11 +317,11 @@ public struct ProductBuilder: Sendable {
         )
 
         """
-        try Data(contents.utf8).write(to: directory.appendingPathComponent("Package.swift"))
+        try Data(contents.utf8).writeIfChanged(to: directory.appendingPathComponent("Package.swift"))
         for product in products {
-            let sources = directory.appendingPathComponent("Sources/\(product.targetName)", isDirectory: true)
+            let sources = sourcesDirectory.appendingPathComponent(product.targetName, isDirectory: true)
             try FileManager.default.createDirectory(at: sources, withIntermediateDirectories: true)
-            try Data().write(to: sources.appendingPathComponent("stub.c"))
+            try Data().writeIfChanged(to: sources.appendingPathComponent("stub.c"))
         }
     }
 }

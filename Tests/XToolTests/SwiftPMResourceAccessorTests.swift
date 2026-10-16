@@ -53,7 +53,8 @@ struct SwiftPMResourceAccessorTests {
             try Data(generatedSource.utf8).write(to: source)
         }
         let prepared = try SwiftPMResourceAccessor.overlay(for: [product()], in: root, output: root.appendingPathComponent("owned"))
-        let overlay = try #require(prepared)
+        let overlay = try #require(prepared).url
+        #expect(prepared?.changedSources == [sources[0]])
         let json = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: overlay)) as? [String: Any])
         #expect(json["use-external-names"] as? Bool == false)
         let roots = try #require(json["roots"] as? [[String: String]])
@@ -66,8 +67,9 @@ struct SwiftPMResourceAccessorTests {
         }
         // Repeated preparation stays deterministic and supports incremental/retry builds.
         let first = try Data(contentsOf: overlay)
-        _ = try SwiftPMResourceAccessor.overlay(for: [product()], in: root, output: root.appendingPathComponent("owned"))
+        let repeated = try SwiftPMResourceAccessor.overlay(for: [product()], in: root, output: root.appendingPathComponent("owned"))
         #expect(try Data(contentsOf: overlay) == first)
+        #expect(repeated?.changedSources.isEmpty == true)
     }
 
     @Test func iosKeepsNativeAccessors() throws {

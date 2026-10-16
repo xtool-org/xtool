@@ -21,6 +21,15 @@ extension Data {
         try self.init(contentsOf: file)
         #endif
     }
+
+    /// Writes atomically unless the file already holds these bytes, so build systems
+    /// that compare timestamps see no change. Returns whether it wrote.
+    @discardableResult
+    package func writeIfChanged(to url: URL) throws -> Bool {
+        guard (try? Data(contentsOf: url)) != self else { return false }
+        try write(to: url, options: .atomic)
+        return true
+    }
 }
 
 extension FileManager {
