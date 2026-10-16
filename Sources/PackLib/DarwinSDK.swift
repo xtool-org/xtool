@@ -87,9 +87,9 @@ public struct DarwinSDK {
             }
             let targetTriples: [String: Target]
         }
-        guard let data = try? Data(contentsOf: bundle.appendingPathComponent("swift-sdk.json")) else {
-            return .absent
-        }
+        let file = bundle.appendingPathComponent("swift-sdk.json")
+        guard FileManager.default.fileExists(atPath: file.path) else { return .absent }
+        guard let data = try? Data(contentsOf: file) else { return .unreadable }
         guard let definition = try? JSONDecoder().decode(Definition.self, from: data) else {
             return .unreadable
         }
