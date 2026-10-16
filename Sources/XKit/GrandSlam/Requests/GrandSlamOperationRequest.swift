@@ -83,7 +83,8 @@ extension GrandSlamOperationRequest {
             "svct": "iCloud",
             "loc": Locale.current.identifier
         ]
-        clientData.merge(deviceInfo.dictionary) { _, b in b }
+        // Don't include deviceInfo.dictionary: its Mac hardware identifiers (ROM/MLB/serial)
+        // contradict the Android client info and Anisette data.
         clientData.merge(anisetteData.dictionary) { _, b in b }
 
         var request: [String: Any] = [
