@@ -1,5 +1,4 @@
 import Foundation
-import Dependencies
 import libunxip
 import Subprocess
 import XKit // HTTPClient, stdoutSafe
@@ -105,8 +104,9 @@ struct SDKBuilder {
             withIntermediateDirectories: true
         )
 
-        // TODO: parallelize these three steps
-        // we need to synchronize progress reporting though
+        // Download GitHub artifacts before unxip so a toolchain fetch failure
+        // is reported immediately and is not mistaken for a corrupt Xcode.xip.
+        // TODO: parallelize these three steps (need synchronized progress).
 
         try await installMacros(in: output)
 
@@ -242,43 +242,18 @@ struct SDKBuilder {
             withIntermediateDirectories: false
         )
 
-        @Dependency(\.httpClient) var httpClient
-        let url = URL(string: """
-        https://github.com/xtool-org/darwin-tools-linux-llvm/releases/download/\
-        v\(Self.darwinToolsVersion)/toolset-\(arch.rawValue).tar.gz
-        """)!
-        let (response, body) = try await httpClient.send(HTTPRequest(url: url))
-        guard response.status == 200, let body else { throw Console.Error("Could not fetch toolset") }
-        let length: Int64? = switch body.length {
-        case .known(let known): known
-        case .unknown: nil
-        }
+        let artifact = SDKGitHubArtifact.toolset(arch: arch)
+        let data = try await download(artifact)
 
         defer { print() }
         try await Subprocess.run(
             .name("tar"),
             arguments: ["xzf", "-"],
             workingDirectory: FilePath(toolsetDir),
-            input: .inputWriter,
+            input: .data(data),
             output: .discarded,
             error: .discarded,
-        ) { execution in
-            var totalWritten: Int64 = 0
-            for try await chunk in body {
-                var remaining = chunk
-                while !remaining.isEmpty {
-                    let written = try await execution.standardInputWriter.write(Array(remaining))
-                    remaining = remaining.dropFirst(written)
-                    totalWritten += Int64(written)
-
-                    guard let length else { continue }
-                    let progress = Int(Double(totalWritten) / Double(length) * 100)
-                    print("\r[Downloading toolset] \(progress)%", terminator: "")
-                    fflush(stdoutSafe)
-                }
-            }
-            try await execution.standardInputWriter.finish()
-        }
+        )
         .checkSuccess()
 
         // swift-build assumes we have an Apple-flavored librarian for Apple platforms
@@ -385,20 +360,17 @@ struct SDKBuilder {
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: ld64.path)
     }
 
-    private func installMacros(in output: URL) async throws {
-        @Dependency(\.httpClient) var httpClient
-        let url = URL(string: """
-        https://github.com/xtool-org/OpenAppleMacros/releases/download/\
-        v\(Self.oamVersion)/OpenAppleMacrosServer-\(arch.rawValue)
-        """)!
-
-        let (response, body) = try await httpClient.send(HTTPRequest(url: url))
-        guard response.status == 200, let body else { throw Console.Error("Could not fetch toolset") }
-
-        let length: Int64? = switch body.length {
-        case .known(let known): known
-        case .unknown: nil
+    private func download(_ artifact: SDKGitHubArtifact) async throws -> Data {
+        do {
+            return try await SDKGitHubDownloader().body(for: artifact)
+        } catch let error as SDKGitHubDownloadError {
+            throw Console.Error(error.description)
         }
+    }
+
+    private func installMacros(in output: URL) async throws {
+        let artifact = SDKGitHubArtifact.openAppleMacros(arch: arch)
+        let data = try await download(artifact)
 
         let outputPath = output.appendingPathComponent("OpenAppleMacrosServer").path
         do {
@@ -409,18 +381,7 @@ struct SDKBuilder {
                 permissions: [.ownerReadWriteExecute, .groupReadExecute, .otherReadExecute]
             )
             defer { try? handle.close() }
-
-            var written: Int64 = 0
-            for try await chunk in body {
-                try handle.writeAll(chunk)
-                written += Int64(chunk.count)
-
-                if let length {
-                    let progress = Int(Double(written) / Double(length) * 100)
-                    print("\r[Downloading OpenAppleMacros] \(progress)%", terminator: "")
-                    fflush(stdoutSafe)
-                }
-            }
+            try handle.writeAll(data)
         }
         print()
     }
