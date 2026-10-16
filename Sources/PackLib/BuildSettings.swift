@@ -140,8 +140,10 @@ public struct BuildSettings: Sendable {
             copy.sdkOptions = ["--swift-sdk", Self.sdkIdentity(for: try TargetTriple(triple)),
                                "--triple", target.compilerTriple]
         case .swiftBuild:
-            // Retain the backend-specific toolset selected by the initializer.
-            copy.sdkOptions = ["--triple", target.compilerTriple] + sdkOptions.dropFirst(2)
+            // Keep the initializer's triple and toolset. SwiftBuild applies a versioned triple's
+            // deployment target to every package, so dependencies would compile for the app's
+            // minimum instead of their own; the wrapper package's `platforms` carries the plan's.
+            break
         }
         return copy
     }

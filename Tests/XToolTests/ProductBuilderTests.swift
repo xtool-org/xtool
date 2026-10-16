@@ -65,6 +65,18 @@ struct ProductBuilderTests {
         #expect(resolved.configuration == .debug)
     }
 
+    @Test(arguments: [("arm64-apple-ios", "arm64-apple-ios17.2"), ("arm64-apple-ios18.0", "arm64-apple-ios18.0")])
+    func swiftBuildKeepsTheRequestedTriple(triple: String, planned: String) async throws {
+        // A versioned triple makes SwiftBuild compile every package for that deployment target;
+        // dependencies must keep their own minimum, so the plan's version stays out of `--triple`.
+        let target = try ResolvedTarget.resolve(cliTarget: triple, packageDeploymentTargets: ["ios": "17.2"])
+        let settings = try await BuildSettings(configuration: .release, triple: target.triple, buildSystem: .swiftBuild)
+        let resolved = try settings.withTarget(target)
+        #expect(target.compilerTriple == planned)
+        #expect(resolved.sdkOptions == settings.sdkOptions)
+        #expect(Array(resolved.sdkOptions.prefix(2)) == ["--triple", triple])
+    }
+
     @Test(arguments: [BuildConfiguration.debug, .release])
     func directExecutablesUseBackendPaths(configuration: BuildConfiguration) async throws {
         let root = try temporaryRoot()
