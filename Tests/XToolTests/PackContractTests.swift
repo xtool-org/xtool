@@ -52,8 +52,9 @@ struct PackContractTests {
         // Packages declaring an older minimum than xtool supports, such as `.iOS(.v12)`, still build.
         #expect(try ResolvedTarget.resolve(packageDeploymentTargets: ["ios": "12.0"]).deploymentTarget == "13.0")
         #expect(try ResolvedTarget.resolve(cliTarget: "arm64-apple-macosx",
-                                           packageDeploymentTargets: ["macos": "13.0"]).deploymentTarget == "15.0")
+                                           packageDeploymentTargets: ["macos": "12.0"]).deploymentTarget == "13.0")
         #expect(throws: (any Error).self) { try ResolvedTarget.resolve(cliTarget: "arm64-apple-ios12.0") }
+        #expect(throws: (any Error).self) { try ResolvedTarget.resolve(cliTarget: "arm64-apple-macosx12.0") }
         #expect(throws: (any Error).self) {
             try ResolvedTarget.resolve(cliTarget: "arm64-apple-macosx14.0", schema: config)
         }

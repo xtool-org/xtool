@@ -10,7 +10,7 @@ public enum TargetPlatform: String, Codable, Sendable, CaseIterable {
     public var minimumDeploymentTarget: String {
         switch self {
         case .iOS, .iOSSimulator: "13.0"
-        case .macOS: "15.0"
+        case .macOS: "13.0"
         }
     }
 

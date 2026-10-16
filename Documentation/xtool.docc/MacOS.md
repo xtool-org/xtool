@@ -19,7 +19,7 @@ The optional CLI `--triple arm64-apple-macosx15.0` overrides the schema target.
 Omitting both retains the existing `arm64-apple-ios` default, even on a Mac.
 The deployment version comes from the selected triple, then the schema's
 `deploymentTarget`, then the package's platform minimum, then the platform
-minimum (macOS 15.0). A selected version below any explicit schema/package
+minimum (macOS 13.0). A selected version below any explicit schema/package
 minimum or the platform minimum is rejected. The deployment version is recorded in the
 products' binaries; each package's code still compiles for its own declared platforms, as with
 `swift build`, so declare `platforms` to use newer APIs without availability checks.
