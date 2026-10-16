@@ -244,6 +244,9 @@ extension Plan.Product {
             "-Xlinker", "-e", "-Xlinker", "_NSExtensionMain",
             // Keep `main`: nothing references it when the entry point is
             // _NSExtensionMain, so the dead-strip would drop the whole extension.
+            // This makes a `main` symbol mandatory: the builder's executable target
+            // only has an empty stub.c, so it must come from the extension's own
+            // library (`@main` or top-level code). See Appex.md.
             "-Xlinker", "-u", "-Xlinker", "_main",
             // Include frameworks that the host app may use
             "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks",
@@ -253,7 +256,7 @@ extension Plan.Product {
         }
     }
 
-    fileprivate var linkerSettings: String {
+    var linkerSettings: String {
         let flags = linkerFlags.map { "\"\($0)\"" }.joined(separator: ", ")
         switch self.type {
         case .application: return """
