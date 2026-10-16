@@ -124,3 +124,20 @@ private let sdkJSON = """
     #expect(result?.lastPathComponent == "iPhoneOS27.1.sdk")
     #expect(warnings.isEmpty)
 }
+
+@Test func sdkRootWarnsWhenMetadataCannotBeRead() throws {
+    let (root, sdk) = try makeSDKBundle(swiftSDKJSON: nil, sdks: ["iPhoneOS27.1.sdk"])
+    defer { try? FileManager.default.removeItem(at: root) }
+    // present but not readable as a file
+    try FileManager.default.createDirectory(
+        at: sdk.bundle.appendingPathComponent("swift-sdk.json"),
+        withIntermediateDirectories: false
+    )
+
+    var warnings: [String] = []
+    let result = sdk.sdkRoot(forTriple: "arm64-apple-ios17.0") { warnings.append($0) }
+
+    #expect(result?.lastPathComponent == "iPhoneOS27.1.sdk")
+    #expect(warnings.count == 1)
+    #expect(warnings.first?.contains("could not be read") == true)
+}
