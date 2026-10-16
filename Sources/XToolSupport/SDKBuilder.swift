@@ -76,7 +76,7 @@ struct SDKBuilder {
     let mode: Mode
 
     // bump this when the sdk builder logic changes
-    static let sdkEpoch = 3
+    static let sdkEpoch = 4
 
     // tag from https://github.com/xtool-org/darwin-tools-linux-llvm
     static let darwinToolsVersion = "1.1.0"
@@ -205,6 +205,11 @@ struct SDKBuilder {
             },
             "librarian": {
                 "path": "llvm-lib"
+            },
+            "swiftCompiler": {
+                "extraCLIOptions": [
+                    "-Xfrontend", "-enable-cross-import-overlays"
+                ]
             }
         }
         """.write(
