@@ -12,6 +12,12 @@ public struct Packer: Sendable {
     }
 
     private func build() async throws {
+        let sdkVersion: String?
+        #if os(macOS)
+        sdkVersion = nil
+        #else
+        sdkVersion = try DarwinSDK.current()?.sdkVersion(for: buildSettings.sdkTriple)
+        #endif
         let xtoolDir = URL(fileURLWithPath: "xtool")
         let packageDir = xtoolDir.appendingPathComponent(".xtool-tmp")
         try? FileManager.default.removeItem(at: packageDir)
@@ -24,7 +30,7 @@ public struct Packer: Sendable {
         let package = Package(
             name: "\(plan.app.product)-Builder",
             platforms: [
-                .iOS("\(plan.app.deploymentTarget)"),
+                .\(buildSettings.platform.rawValue)("\(plan.app.deploymentTarget)"),
             ],
             dependencies: [
                 .package(name: "RootPackage", path: "../.."),
@@ -38,7 +44,11 @@ public struct Packer: Sendable {
                             dependencies: [
                                 .product(name: "\($0.product)", package: "RootPackage"),
                             ],
-                            linkerSettings: \($0.linkerSettings)
+                            linkerSettings: \($0.linkerSettings(
+                                platform: buildSettings.platform,
+                                triple: buildSettings.triple,
+                                sdkVersion: sdkVersion
+                            ))
                         )
                         """
                     }
@@ -90,20 +100,37 @@ public struct Packer: Sendable {
         case .swiftPM:
             binPath = "\(buildSettings.triple)/\(buildSettings.configuration.rawValue)"
         case .swiftBuild:
-            let platformName = buildSettings.triple.contains("simulator") ? "iphonesimulator" : "iphoneos"
-            binPath = "out/Products/\(buildSettings.configuration.swiftBuildValue)-\(platformName)"
+            let platformName = buildSettings.platform.buildProductsPlatform(triple: buildSettings.triple)
+            let suffix = buildSettings.platform == .macOS ? "" : "-\(platformName)"
+            binPath = "out/Products/\(buildSettings.configuration.swiftBuildValue)\(suffix)"
         }
         let binDir = URL(
             fileURLWithPath: ".build/\(binPath)",
             isDirectory: true
         )
 
+        let metadata: [String: String]
+        #if os(macOS)
+        metadata = [:]
+        #else
+        metadata = try DarwinSDK.current()?.buildMetadata(for: buildSettings.sdkTriple) ?? [:]
+        #endif
+        try await packProducts(binDir: binDir, outputURL: outputURL, buildMetadata: metadata)
+
+        let dest = URL(fileURLWithPath: "xtool").appendingPathComponent(outputURL.lastPathComponent)
+        try? FileManager.default.removeItem(at: dest)
+        try output.persist(at: dest)
+        return dest
+    }
+
+    func packProducts(binDir: URL, outputURL: URL, buildMetadata: [String: String] = [:]) async throws {
         try await withThrowingTaskGroup(of: Void.self) { group in
             for product in plan.allProducts {
                 try pack(
                     product: product,
                     binDir: binDir,
-                    outputURL: product.directory(inApp: outputURL),
+                    outputURL: product.directory(inApp: outputURL, platform: buildSettings.platform),
+                    buildMetadata: buildMetadata,
                     &group
                 )
             }
@@ -119,22 +146,22 @@ public struct Packer: Sendable {
                 }
             }
         }
-
-        let dest = URL(fileURLWithPath: "xtool").appendingPathComponent(outputURL.lastPathComponent)
-        try? FileManager.default.removeItem(at: dest)
-        try output.persist(at: dest)
-        return dest
     }
 
     @Sendable private func pack(
         product: Plan.Product,
         binDir: URL,
         outputURL: URL,
+        buildMetadata: [String: String],
         _ group: inout ThrowingTaskGroup<Void, Error>
     ) throws {
+        let platform = buildSettings.platform
+        let contentsURL = platform.contentsDirectory(in: outputURL)
+        let resourcesURL = platform.resourcesDirectory(in: outputURL)
+
         @Sendable func packFileToRoot(srcName: String) async throws {
             let srcURL = URL(fileURLWithPath: srcName)
-            let destURL = outputURL.appendingPathComponent(srcURL.lastPathComponent)
+            let destURL = resourcesURL.appendingPathComponent(srcURL.lastPathComponent)
             try FileManager.default.copyItem(at: srcURL, to: destURL)
 
             try Task.checkCancellation()
@@ -142,7 +169,7 @@ public struct Packer: Sendable {
 
         @Sendable func packFile(srcName: String, dstName: String? = nil, sign: Bool = false) async throws {
             let srcURL = URL(fileURLWithPath: srcName, relativeTo: binDir)
-            let dstURL = URL(fileURLWithPath: dstName ?? srcURL.lastPathComponent, relativeTo: outputURL)
+            let dstURL = URL(fileURLWithPath: dstName ?? srcURL.lastPathComponent, relativeTo: contentsURL)
             try? FileManager.default.createDirectory(at: dstURL.deletingLastPathComponent(), withIntermediateDirectories: true)
             try FileManager.default.copyItem(at: srcURL, to: dstURL)
 
@@ -150,13 +177,15 @@ public struct Packer: Sendable {
         }
 
         // Ensure output directory is available
-        try? FileManager.default.createDirectory(at: outputURL, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: resourcesURL, withIntermediateDirectories: true)
 
         for command in product.resources {
             group.addTask {
                 switch command {
                 case .bundle(let package, let target):
-                    try await packFile(srcName: "\(package)_\(target).bundle")
+                    let name = "\(package)_\(target).bundle"
+                    let destination = platform.usesContentsDirectory ? "Resources/\(name)" : name
+                    try await packFile(srcName: name, dstName: destination)
                 case .binaryTarget(let name):
                     let src = URL(fileURLWithPath: "\(name).framework/\(name)", relativeTo: binDir)
                     let magic = Data("!<arch>\n".utf8)
@@ -185,23 +214,29 @@ public struct Packer: Sendable {
             }
         }
         group.addTask {
-            try await packFile(srcName: product.targetName, dstName: product.product)
+            let destination = platform.usesContentsDirectory ? "MacOS/\(product.product)" : product.product
+            try await packFile(srcName: product.targetName, dstName: destination)
         }
         group.addTask {
-            var info = product.infoPlist
+            var info = product.infoPlist.merging(buildMetadata.mapValues { $0 as any Sendable }) { _, recorded in recorded }
 
             if product.type == .application {
-                info["UIRequiredDeviceCapabilities"] = ["arm64"]
-                info["LSRequiresIPhoneOS"] = true
-                info["CFBundleSupportedPlatforms"] = Packer.cfBundleSupportedPlatforms(for: buildSettings.triple)
+                if !platform.usesContentsDirectory {
+                    // Simulator builds may target x86_64 and do not require device hardware capabilities.
+                    if !buildSettings.triple.split(separator: "-").contains("simulator") {
+                        info["UIRequiredDeviceCapabilities"] = ["arm64"]
+                    }
+                    info["LSRequiresIPhoneOS"] = true
+                }
             }
+            info["CFBundleSupportedPlatforms"] = Packer.cfBundleSupportedPlatforms(for: buildSettings.triple)
 
             if let iconPath = product.iconPath {
                 let iconName = URL(fileURLWithPath: iconPath).deletingPathExtension().lastPathComponent
                 info["CFBundleIconFile"] = iconName
             }
 
-            let infoPath = outputURL.appendingPathComponent("Info.plist")
+            let infoPath = contentsURL.appendingPathComponent("Info.plist")
             let encodedPlist = try PropertyListSerialization.data(
                 fromPropertyList: info,
                 format: .xml,
@@ -212,33 +247,26 @@ public struct Packer: Sendable {
     }
 
     static func cfBundleSupportedPlatforms(for triple: String) -> [String] {
-        let components = triple.split(separator: "-").map(String.init)
-        guard let appleIndex = components.firstIndex(of: "apple"),
-              components.indices.contains(appleIndex + 1) else {
-            return ["iPhoneOS"]
-        }
-
-        let os = components[appleIndex + 1].prefix { !$0.isNumber }
-        switch os {
-        case "ios" where components.contains("simulator"):
-            return ["iPhoneSimulator"]
-        case "ios":
-            return ["iPhoneOS"]
-        case "macos", "macosx":
-            return ["MacOSX"]
-        default:
-            return ["iPhoneOS"]
-        }
+        [ApplePlatform(triple: triple)?.supportedPlatform(triple: triple) ?? "iPhoneOS"]
     }
 }
 
 extension Plan.Product {
-    fileprivate var linkerSettings: String {
-        switch self.type {
+    fileprivate func linkerSettings(platform: ApplePlatform, triple: String, sdkVersion: String?) -> String {
+        let frameworks = platform.usesContentsDirectory ? "../Frameworks" : "Frameworks"
+        let appFrameworks = platform.usesContentsDirectory ? "../../../../Frameworks" : "../../Frameworks"
+        let sdkFlags = if let sdkVersion {
+            """
+            "-Xlinker", "-platform_version", "-Xlinker", "\(platform.linkerPlatform(triple: triple))",
+            "-Xlinker", "\(deploymentTarget)", "-Xlinker", "\(sdkVersion)",
+            """
+        } else { "" }
+        return switch self.type {
         case .application: """
         [
             .unsafeFlags([
-                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
+                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/\(frameworks)",
+                \(sdkFlags)
             ]),
         ]
         """
@@ -250,9 +278,10 @@ extension Plan.Product {
                 // Set the entry point to Foundation`_NSExtensionMain
                 "-Xlinker", "-e", "-Xlinker", "_NSExtensionMain",
                 // Include frameworks that the host app may use
-                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks",
+                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/\(appFrameworks)",
                 // ...as well as our own
-                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
+                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/\(frameworks)",
+                \(sdkFlags)
             ]),
         ]
         """
