@@ -226,31 +226,51 @@ public struct Packer: Sendable {
         return info
     }
 
-    /// App Review requires app extensions to be universal, whatever the containing app targets, so
-    /// iPhone (1) and iPad (2) are always present. A narrower value the user declared is widened.
+    private static func warn(_ message: String) {
+        FileHandle.standardError.write(Data((message + "\n").utf8))
+    }
+
+    /// Apple's App Extension Programming Guide ("Ensure Your iOS App Extension Works on All Devices")
+    /// says that to pass App Review an extension must specify the iPhone/iPad (universal) targeted
+    /// device family, whatever the containing app targets. So iPhone (1) and iPad (2) are always
+    /// present, and a narrower value the user declared is widened.
     private static func universalDeviceFamily(merging existing: (any Sendable)?) -> [Int] {
         let declared = existing as? [Int] ?? []
         let universal = Array(Set(declared).union([1, 2])).sorted()
         if !declared.isEmpty, Set(declared) != Set(universal) {
-            let message = "warning: UIDeviceFamily \(declared) in an app extension Info.plist is not universal; "
-                + "using \(universal), as App Review requires\n"
-            FileHandle.standardError.write(Data(message.utf8))
+            warn(
+                "warning: UIDeviceFamily \(declared) in an app extension Info.plist is not universal; "
+                + "using \(universal), as App Review requires"
+            )
         }
         return universal
     }
 
     /// `UIRequiredDeviceCapabilities` is either an array of names or a dictionary of name to Bool.
-    /// Whichever form the user picked, `arm64` is guaranteed to be required.
+    /// Whichever form the user picked, `arm64` is guaranteed to be required. This overrides an
+    /// explicit user declaration: `"arm64": false` in the dictionary form is replaced by `true`
+    /// (with a warning), and a value of any other shape is replaced by `["arm64"]` (with a warning).
     private static func requiredDeviceCapabilities(merging existing: (any Sendable)?) -> any Sendable {
         if var dictionary = existing as? [String: any Sendable] {
+            if dictionary["arm64"] as? Bool == false {
+                warn("warning: UIRequiredDeviceCapabilities declares arm64 as false; using true, as arm64 is required")
+            }
             dictionary["arm64"] = true
             return dictionary
         }
-        var array = existing as? [String] ?? []
-        if !array.contains("arm64") {
-            array.insert("arm64", at: 0)
+        if var array = existing as? [String] {
+            if !array.contains("arm64") {
+                array.insert("arm64", at: 0)
+            }
+            return array
         }
-        return array
+        if existing != nil {
+            warn(
+                "warning: UIRequiredDeviceCapabilities must be an array of strings or a dictionary of "
+                + "name to Bool; ignoring \(String(describing: existing!)) and using [\"arm64\"]"
+            )
+        }
+        return ["arm64"]
     }
 
     static func cfBundleSupportedPlatforms(for triple: String) -> [String] {

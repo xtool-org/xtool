@@ -74,3 +74,23 @@ import Testing
     let info = Packer.platformInfoPlist(["UIDeviceFamily": [2]], type: .application, triple: "arm64-apple-ios")
     #expect(info["UIDeviceFamily"] as? [Int] == [2])
 }
+
+@Test func platformInfoPlistOverridesArm64False() {
+    let info = Packer.platformInfoPlist(
+        ["UIRequiredDeviceCapabilities": ["arm64": false, "metal": true]],
+        type: .application,
+        triple: "arm64-apple-ios"
+    )
+    #expect(info["UIRequiredDeviceCapabilities"] as? [String: Bool] == ["arm64": true, "metal": true])
+}
+
+@Test func platformInfoPlistFallsBackOnUnrecognizedCapabilities() {
+    for declared: any Sendable in ["metal", [1, 2], 3] {
+        let info = Packer.platformInfoPlist(
+            ["UIRequiredDeviceCapabilities": declared],
+            type: .application,
+            triple: "arm64-apple-ios"
+        )
+        #expect(info["UIRequiredDeviceCapabilities"] as? [String] == ["arm64"])
+    }
+}
