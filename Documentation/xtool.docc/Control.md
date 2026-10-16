@@ -131,6 +131,11 @@ Then, tell xtool about it via `xtool.yml`:
 entitlementsPath: App.entitlements
 ```
 
+For WeatherKit, add `com.apple.developer.weatherkit` with a Boolean value of `true` to your entitlements file.
+WeatherKit requires a paid Apple Developer Program membership. xtool maps this entitlement to the WeatherKit capability
+when provisioning your app. Also enable WeatherKit in the App Services tab for your App ID in the developer portal,
+as described in [Apple's WeatherKit setup instructions](https://developer.apple.com/help/account/services/weatherkit/).
+
 > Troubleshooting:
 >
 > There are a number of situations in which xtool may not be able to successfully apply an entitlement to your app.
