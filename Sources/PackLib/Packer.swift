@@ -233,27 +233,42 @@ public struct Packer: Sendable {
 }
 
 extension Plan.Product {
-    fileprivate var linkerSettings: String {
+    /// The `-Xlinker` and friends passed through `unsafeFlags` for this product.
+    var linkerFlags: [String] {
         switch self.type {
-        case .application: """
+        case .application: [
+            "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
+        ]
+        case .appExtension: [
+            // Set the entry point to Foundation`_NSExtensionMain
+            "-Xlinker", "-e", "-Xlinker", "_NSExtensionMain",
+            // Keep `main`: nothing references it when the entry point is
+            // _NSExtensionMain, so the dead-strip would drop the whole extension.
+            // This makes a `main` symbol mandatory: the builder's executable target
+            // only has an empty stub.c, so it must come from the extension's own
+            // library (`@main` or top-level code). See Appex.md.
+            "-Xlinker", "-u", "-Xlinker", "_main",
+            // Include frameworks that the host app may use
+            "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks",
+            // ...as well as our own
+            "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
+        ]
+        }
+    }
+
+    var linkerSettings: String {
+        let flags = linkerFlags.map { "\"\($0)\"" }.joined(separator: ", ")
+        switch self.type {
+        case .application: return """
         [
-            .unsafeFlags([
-                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
-            ]),
+            .unsafeFlags([\(flags)]),
         ]
         """
-        case .appExtension: """
+        case .appExtension: return """
         [
             // Link to Foundation framework which implements the _NSExtensionMain entrypoint
             .linkedFramework("Foundation"),
-            .unsafeFlags([
-                // Set the entry point to Foundation`_NSExtensionMain
-                "-Xlinker", "-e", "-Xlinker", "_NSExtensionMain",
-                // Include frameworks that the host app may use
-                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks",
-                // ...as well as our own
-                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
-            ]),
+            .unsafeFlags([\(flags)]),
         ]
         """
         }
