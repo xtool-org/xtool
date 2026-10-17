@@ -207,7 +207,9 @@ struct EditorConfigTests {
             let (settings, target) = try await EditorTarget.buildSettings(request: request)
             #expect(request.triple == ResolvedTarget.defaultTriple)
             #expect(target.compilerTriple == "arm64-apple-ios14.0")
-            #expect(settings.buildServerArguments.contains("arm64-apple-ios14.0"))
+            // SwiftBuild keeps the unversioned triple so packages index at their own minimums, as they build.
+            let indexTriple = settings.buildSystem == .swiftBuild ? "arm64-apple-ios" : "arm64-apple-ios14.0"
+            #expect(settings.buildServerArguments.suffix(2) == ["--triple", indexTriple])
             let config = try LSPConfig.configuration(target: target, sdkOptions: settings.sdkOptions, bsp: bsp)
             let object = try #require(JSONSerialization.jsonObject(with: Data(config.1.utf8)) as? [String: Any])
             if bsp {
