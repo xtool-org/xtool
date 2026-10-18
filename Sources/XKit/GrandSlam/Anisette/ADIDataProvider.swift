@@ -20,10 +20,8 @@ public protocol RawADIProvider: Sendable {
 
 extension RawADIProvider {
     public func clientInfo() async throws -> String {
-        // Looks like Apple detects attempts to use a macOS client string on Windows :/
-        """
-        <PC> <Windows;6.2(0,0);9200> <com.apple.AuthKitWin/1 (com.apple.iCloud/7.21)>
-        """
+        // Must match the client info used for GSA auth, since the ADI data is Android-generated.
+        DeviceInfo.ClientInfo.androidClientString
     }
 }
 
