@@ -18,15 +18,6 @@ public protocol RawADIProvider: Sendable {
     ) async throws -> (machineID: Data, otp: Data)
 }
 
-extension RawADIProvider {
-    public func clientInfo() async throws -> String {
-        // Looks like Apple detects attempts to use a macOS client string on Windows :/
-        """
-        <PC> <Windows;6.2(0,0);9200> <com.apple.AuthKitWin/1 (com.apple.iCloud/7.21)>
-        """
-    }
-}
-
 private struct UnimplementedRawADIProvider: RawADIProvider {
     func startProvisioning(
         spim: Data,
@@ -43,6 +34,11 @@ private struct UnimplementedRawADIProvider: RawADIProvider {
     ) async throws -> (machineID: Data, otp: Data) {
         let closure: (UUID, inout UInt64, Data) async throws -> (Data, Data) = unimplemented()
         return try await closure(userID, &routingInfo, provisioningInfo)
+    }
+
+    func clientInfo() async throws -> String {
+        let closure: () async throws -> String = unimplemented()
+        return try await closure()
     }
 }
 
@@ -179,14 +175,11 @@ public struct ADIDataProvider: AnisetteDataProvider {
         ]
         request.headerFields[.init("X-MMe-Country")!] = Locale.current.region?.identifier
 
-        request.headerFields[.init(DeviceInfo.clientInfoKey)!] = try await clientInfo()
-        request.headerFields[.init(DeviceInfo.deviceIDKey)!] = self.localUserUID.uuidString
-//        request.headers[DeviceInfo.clientInfoKey] = self.deviceInfo.clientInfo.clientString
-//        self.deviceInfo.dictionary.forEach { request.headers[$0] = $1 }
+        for (key, value) in try await deviceInfo().dictionary {
+            request.headerFields[.init(key)!] = value
+        }
 
         let (_, response) = try await self.httpClient.makeRequest(request, body: body)
-
-//        print(String(data: response, encoding: .utf8) ?? "<no utf8 data>")
 
         return try GrandSlamOperationDecoder<Response>.decode(data: response)
     }
@@ -239,7 +232,7 @@ public struct ADIDataProvider: AnisetteDataProvider {
             machineID: mid.base64EncodedString(),
             localUserID: self.localUserID,
             oneTimePassword: otp.base64EncodedString(),
-            deviceID: self.localUserUID.uuidString
+            deviceInfo: try await deviceInfo(),
         )
     }
 
@@ -284,6 +277,13 @@ public struct ADIDataProvider: AnisetteDataProvider {
         return try await fetchAnisetteData(
             routingInfo: rinfo,
             provisioningInfo: data
+        )
+    }
+
+    public func deviceInfo() async throws -> DeviceInfo {
+        DeviceInfo(
+            deviceID: localUserUID.uuidString,
+            clientInfo: try await clientInfo(),
         )
     }
 

@@ -84,9 +84,11 @@ public actor XADIProvider: RawADIProvider {
         try await loadTask.value
     }
 
+    /// XADI's Anisette data comes from Android ADI, so every GSA request (including
+    /// provisioning) has to identify as an Android device or GSA rejects it (-80045).
     public func clientInfo() async throws -> String {
         """
-        <MacBookPro13,2> <macOS;13.1;22C65> <com.apple.AuthKit/1 (com.apple.dt.Xcode/3594.4.19)>
+        <Pixel 7> <Android;14;UQ1A.240205.002> <com.apple.AuthKit/1 (com.apple.akd/1.0)>
         """
     }
 

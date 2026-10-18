@@ -40,7 +40,7 @@ struct GrandSlamSMSAuthRequest: GrandSlamTwoFactorRequest {
     let loginData: GrandSlamLoginData
     let phoneNumberID: String
 
-    func method(deviceInfo: DeviceInfo, anisetteData: AnisetteData) -> GrandSlamMethod {
+    func method(anisetteData: AnisetteData) -> GrandSlamMethod {
         .post([
             "serverInfo": [
                 "phoneNumber.id": phoneNumberID
