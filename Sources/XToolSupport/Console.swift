@@ -3,15 +3,77 @@ import XKit
 import XUtils
 
 enum Console {
+    /// Bridges the synchronous, blocking stdin read to a cancellable async
+    /// read. SIGINT is delivered as task cancellation by
+    /// XToolCommand.cancellableMain, so a prompt must observe cancellation.
+    private final class PromptRead: @unchecked Sendable {
+        private let lock = NSLock()
+        private var continuation: CheckedContinuation<String?, any Swift.Error>?
+
+        func install(_ continuation: CheckedContinuation<String?, any Swift.Error>) {
+            lock.lock()
+            defer { lock.unlock() }
+            self.continuation = continuation
+        }
+
+        func finish(returning value: String?) {
+            lock.lock()
+            defer { lock.unlock() }
+            continuation?.resume(returning: value)
+            continuation = nil
+        }
+
+        func finish(throwing error: any Swift.Error) {
+            lock.lock()
+            defer { lock.unlock() }
+            continuation?.resume(throwing: error)
+            continuation = nil
+        }
+    }
+
     static func prompt(_ message: String) async throws -> String {
         print(message, terminator: "")
         fflush(stdoutSafe)
-        guard let line = readLine() else {
-            // EOF (e.g. stdin redirected from /dev/null): surface a clean
-            // error instead of trapping on NIO's epoll registration.
-            throw Error("Unexpected end of input.")
+
+        let read = PromptRead()
+        return try await withTaskCancellationHandler {
+            let line = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String?, any Swift.Error>) in
+                read.install(continuation)
+                let thread = Thread {
+                    read.finish(returning: readLineFromStandardInput())
+                }
+                thread.name = "xtool-console-prompt"
+                thread.start()
+            }
+            guard let line else {
+                // EOF (e.g. stdin redirected from /dev/null): surface a clean
+                // error instead of trapping on NIO's epoll registration.
+                throw Error("Unexpected end of input.")
+            }
+            return line.hasSuffix("\r") ? String(line.dropLast()) : line
+        } onCancel: {
+            // Unblock the suspended continuation; the read thread's blocking
+            // read is abandoned and dies when the process exits.
+            read.finish(throwing: CancellationError())
         }
-        return line.hasSuffix("\r") ? String(line.dropLast()) : line
+    }
+
+    /// Reads a line from stdin using FileHandle (raw read(), not C stdio).
+    /// C stdio's readLine() holds the stdin lock while blocked, which
+    /// deadlocks exit() after SIGINT cancels a prompt.
+    private static func readLineFromStandardInput() -> String? {
+        var data = Data()
+        let handle = FileHandle.standardInput
+        while true {
+            guard let chunk = try? handle.read(upToCount: 1), !chunk.isEmpty else {
+                return data.isEmpty ? nil : String(decoding: data, as: UTF8.self)
+            }
+            if chunk.first == UInt8(ascii: "\n") {
+                break
+            }
+            data.append(contentsOf: chunk)
+        }
+        return String(decoding: data, as: UTF8.self)
     }
 
     static func promptRequired(_ message: String, existing: String?) async throws -> String {
