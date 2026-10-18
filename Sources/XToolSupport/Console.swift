@@ -9,11 +9,21 @@ enum Console {
     private final class PromptRead: @unchecked Sendable {
         private let lock = NSLock()
         private var continuation: CheckedContinuation<String?, any Swift.Error>?
+        private var cancelled = false
 
-        func install(_ continuation: CheckedContinuation<String?, any Swift.Error>) {
+        /// Returns true when the continuation was installed and the caller
+        /// should start the blocking read. Returns false when cancellation
+        /// already happened: the continuation is resumed immediately and no
+        /// read thread should be started.
+        func install(_ continuation: CheckedContinuation<String?, any Swift.Error>) -> Bool {
             lock.lock()
             defer { lock.unlock() }
+            if cancelled {
+                continuation.resume(throwing: CancellationError())
+                return false
+            }
             self.continuation = continuation
+            return true
         }
 
         func finish(returning value: String?) {
@@ -29,6 +39,14 @@ enum Console {
             continuation?.resume(throwing: error)
             continuation = nil
         }
+
+        func cancel() {
+            lock.lock()
+            defer { lock.unlock() }
+            cancelled = true
+            continuation?.resume(throwing: CancellationError())
+            continuation = nil
+        }
     }
 
     static func prompt(_ message: String) async throws -> String {
@@ -38,12 +56,17 @@ enum Console {
         let read = PromptRead()
         return try await withTaskCancellationHandler {
             let line = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String?, any Swift.Error>) in
-                read.install(continuation)
-                let thread = Thread {
-                    read.finish(returning: readLineFromStandardInput())
+                if read.install(continuation) {
+                    let thread = Thread {
+                        do {
+                            read.finish(returning: try readLineFromStandardInput())
+                        } catch {
+                            read.finish(throwing: error)
+                        }
+                    }
+                    thread.name = "xtool-console-prompt"
+                    thread.start()
                 }
-                thread.name = "xtool-console-prompt"
-                thread.start()
             }
             guard let line else {
                 // EOF (e.g. stdin redirected from /dev/null): surface a clean
@@ -54,18 +77,19 @@ enum Console {
         } onCancel: {
             // Unblock the suspended continuation; the read thread's blocking
             // read is abandoned and dies when the process exits.
-            read.finish(throwing: CancellationError())
+            read.cancel()
         }
     }
 
     /// Reads a line from stdin using FileHandle (raw read(), not C stdio).
     /// C stdio's readLine() holds the stdin lock while blocked, which
     /// deadlocks exit() after SIGINT cancels a prompt.
-    private static func readLineFromStandardInput() -> String? {
+    private static func readLineFromStandardInput() throws -> String? {
         var data = Data()
         let handle = FileHandle.standardInput
         while true {
-            guard let chunk = try? handle.read(upToCount: 1), !chunk.isEmpty else {
+            guard let chunk = try handle.read(upToCount: 1), !chunk.isEmpty else {
+                // EOF (nil or empty read)
                 return data.isEmpty ? nil : String(decoding: data, as: UTF8.self)
             }
             if chunk.first == UInt8(ascii: "\n") {
