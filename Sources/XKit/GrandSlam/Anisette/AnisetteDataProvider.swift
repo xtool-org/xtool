@@ -22,6 +22,8 @@ public protocol AnisetteDataProvider: Sendable {
     func resetProvisioning() async
     func provisioningData() -> ProvisioningData?
 
+    func deviceInfo() async throws -> DeviceInfo
+
     func fetchAnisetteData() async throws -> AnisetteData
 }
 
@@ -52,6 +54,11 @@ private struct AnisetteDataProviderDependencyKey: DependencyKey {
 private struct UnimplementedAnisetteDataProvider: AnisetteDataProvider {
     func fetchAnisetteData() async throws -> AnisetteData {
         let closure: () async throws -> AnisetteData = unimplemented()
+        return try await closure()
+    }
+
+    func deviceInfo() async throws -> DeviceInfo {
+        let closure: () async throws -> DeviceInfo = unimplemented()
         return try await closure()
     }
 }

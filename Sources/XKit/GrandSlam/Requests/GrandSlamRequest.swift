@@ -30,6 +30,6 @@ protocol GrandSlamRequest: Sendable {
 
     static var endpoint: GrandSlamEndpoint { get }
 
-    func configure(request: inout HTTPRequest, deviceInfo: DeviceInfo, anisetteData: AnisetteData)
-    func method(deviceInfo: DeviceInfo, anisetteData: AnisetteData) -> GrandSlamMethod
+    func configure(request: inout HTTPRequest, anisetteData: AnisetteData)
+    func method(anisetteData: AnisetteData) -> GrandSlamMethod
 }

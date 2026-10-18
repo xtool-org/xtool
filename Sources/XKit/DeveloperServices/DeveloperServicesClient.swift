@@ -54,7 +54,6 @@ public struct DeveloperServicesClient: Sendable {
         }
     }
 
-    @Dependency(\.deviceInfoProvider) var deviceInfoProvider
     @Dependency(\.anisetteDataProvider) var anisetteDataProvider
     @Dependency(\.httpClient) var httpClient
 
@@ -76,8 +75,6 @@ public struct DeveloperServicesClient: Sendable {
             throw Error.malformedRequest
         }
 
-        let deviceInfo = try deviceInfoProvider.fetch()
-
         var httpRequest = HTTPRequest(method: .post, url: url)
         let acceptedLanguages = Locale.preferredLanguages.joined(separator: ", ")
 
@@ -88,8 +85,6 @@ public struct DeveloperServicesClient: Sendable {
         request.methodOverride.map { httpRequest.headerFields[.init("X-HTTP-Method-Override")!] = $0 }
 
         httpRequest.headerFields[.init(DeviceInfo.xcodeVersionKey)!] = DeviceInfo.xcodeVersion
-        httpRequest.headerFields[.init(DeviceInfo.clientInfoKey)!] = deviceInfo.clientInfo.clientString
-        httpRequest.headerFields[.init(DeviceInfo.deviceIDKey)!] = deviceInfo.deviceID
 
         httpRequest.headerFields[.init("X-Apple-I-Identity-Id")!] = loginToken.adsid
         httpRequest.headerFields[.init("X-Apple-App-Info")!] = AppTokenKey.xcode.rawValue
@@ -102,8 +97,6 @@ public struct DeveloperServicesClient: Sendable {
         let body = try request.apiVersion.body(withParameters: request.parameters)
 
         let (_, data) = try await httpClient.makeRequest(httpRequest, body: body)
-
-//        String(data: data, encoding: .utf8).map { print("\(url): \($0)") }
 
         let decoded: R.Response = try request.apiVersion.decode(response: data)
 

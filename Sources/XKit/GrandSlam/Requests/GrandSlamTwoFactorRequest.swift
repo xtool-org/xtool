@@ -17,9 +17,10 @@ extension GrandSlamTwoFactorRequest {
 
     var extraHeaders: [String: String] { [:] }
 
-    func configure(request: inout HTTPRequest, deviceInfo: DeviceInfo, anisetteData: AnisetteData) {
+    func configure(request: inout HTTPRequest, anisetteData: AnisetteData) {
         request.headerFields[.accept] = "application/x-buddyml"
         request.headerFields[.contentType] = "application/x-plist"
+        request.headerFields[.userAgent] = ""
         request.headerFields[.init("X-Apple-App-Info")!] = "com.apple.gs.xcode.auth"
         request.headerFields[.init(DeviceInfo.xcodeVersionKey)!] = DeviceInfo.xcodeVersion
         request.headerFields[.init("X-Apple-Identity-Token")!] = loginData.identityToken
@@ -27,7 +28,7 @@ extension GrandSlamTwoFactorRequest {
         extraHeaders.forEach { request.headerFields[.init($0)!] = $1 }
     }
 
-    func method(deviceInfo: DeviceInfo, anisetteData: AnisetteData) -> GrandSlamMethod {
+    func method(anisetteData: AnisetteData) -> GrandSlamMethod {
         .get
     }
 
