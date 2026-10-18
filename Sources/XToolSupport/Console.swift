@@ -1,45 +1,17 @@
 import Foundation
 import XKit
 import XUtils
-import NIOPosix
-import NIOCore
 
 enum Console {
-    private static func withStdio<T>(
-        _ body: (
-            _ stdin: NIOAsyncChannelInboundStream<ByteBuffer>,
-            _ stdout: NIOAsyncChannelOutboundWriter<ByteBuffer>
-        ) async throws -> T
-    ) async throws -> T {
-        try await NIOPipeBootstrap(group: .singletonMultiThreadedEventLoopGroup)
-            .takingOwnershipOfDescriptors(
-                input: FileDescriptor.standardInput.duplicate().rawValue,
-                output: FileDescriptor.standardOutput.duplicate().rawValue
-            )
-            .flatMapThrowing { try NIOAsyncChannel(wrappingChannelSynchronously: $0) }
-            .get()
-            .executeThenClose { try await body($0, $1) }
-    }
-
     static func prompt(_ message: String) async throws -> String {
-        try await withStdio { stdin, stdout in
-            try await stdout.write(ByteBuffer(bytes: message.utf8))
-
-            fflush(stdoutSafe)
-
-            var data = Data()
-            for try await chunk in stdin {
-                let view = chunk.readableBytesView
-                if let endIndex = view.firstIndex(of: UInt8(ascii: "\n")) {
-                    data += view[..<endIndex]
-                    break
-                } else {
-                    data += view
-                }
-            }
-            let str = String(decoding: data, as: UTF8.self)
-            return str.hasSuffix("\r") ? String(str.dropLast()) : str
+        print(message, terminator: "")
+        fflush(stdoutSafe)
+        guard let line = readLine() else {
+            // EOF (e.g. stdin redirected from /dev/null): surface a clean
+            // error instead of trapping on NIO's epoll registration.
+            throw Error("Unexpected end of input.")
         }
+        return line.hasSuffix("\r") ? String(line.dropLast()) : line
     }
 
     static func promptRequired(_ message: String, existing: String?) async throws -> String {
