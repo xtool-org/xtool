@@ -42,14 +42,11 @@ public struct ProductBuilder: Sendable {
         // SwiftPM regenerates accessors during planning. A compiler overlay adapts only generated
         // target sources, without editing dependencies or racing that regeneration. Every build
         // passes the same overlay path, so flags never change and no-op rebuilds stay no-ops.
-        // The overlay covers the accessors of the previous build; a later pass recompiles any
-        // accessor that it did not adapt yet, such as on a clean build.
+        // The overlay covers the accessors of the previous build. When accessors are missing, as on
+        // a clean build, a plan-only run generates them without compiling, so each module compiles
+        // once; a later pass recompiles any accessor that the overlay still did not adapt.
         let built = builds.map(\.product)
-        var overlay: SwiftPMResourceAccessor.Overlay?
-        if let first = builds.first, !SwiftPMResourceAccessor.bundleNames(for: built).isEmpty {
-            let directory = try await binaryDirectory(first.settings, first.arguments)
-            overlay = try SwiftPMResourceAccessor.overlay(for: built, in: directory, output: wrapper, requireAll: false)
-        }
+        let overlay = try await initialOverlay(for: builds, wrapper: wrapper)
         let overlayArguments = overlay.map { ["-Xswiftc", "-vfsoverlay", "-Xswiftc", $0.url.path] } ?? []
 
         var directory: URL?
@@ -68,20 +65,24 @@ public struct ProductBuilder: Sendable {
             }
             executables[build.product.product] = executable
         }
-        if let directory, overlay != nil,
-           let final = try SwiftPMResourceAccessor.overlay(for: built, in: directory, output: wrapper),
-           !final.changedSources.isEmpty {
-            // Touching the generated sources makes the backend recompile exactly those modules
-            // (and their dependents) with the now-current adaptation; the flags stay unchanged.
-            for source in final.changedSources {
-                try FileManager.default.setAttributes([.modificationDate: Date()], ofItemAtPath: source.path)
-            }
-            for build in builds {
-                try await runner.build(build.settings, build.arguments + overlayArguments)
-            }
-            let settled = try SwiftPMResourceAccessor.overlay(for: built, in: directory, output: wrapper)
-            guard settled?.changedSources.isEmpty != false else {
-                throw StringError("Generated SwiftPM resource accessors changed during the build")
+        if let directory, let overlay,
+           let final = try SwiftPMResourceAccessor.overlay(for: built, in: directory, output: wrapper) {
+            // An accessor the build's overlay did not cover compiled unadapted, even if its adapted
+            // copy is unchanged from an earlier build.
+            let stale = Set(final.changedSources + final.sources.filter { !overlay.sources.contains($0) })
+            if !stale.isEmpty {
+                // Touching the generated sources makes the backend recompile exactly those modules
+                // (and their dependents) with the now-current adaptation; the flags stay unchanged.
+                for source in stale {
+                    try FileManager.default.setAttributes([.modificationDate: Date()], ofItemAtPath: source.path)
+                }
+                for build in builds {
+                    try await runner.build(build.settings, build.arguments + overlayArguments)
+                }
+                let settled = try SwiftPMResourceAccessor.overlay(for: built, in: directory, output: wrapper)
+                guard settled?.changedSources.isEmpty != false else {
+                    throw StringError("Generated SwiftPM resource accessors changed during the build")
+                }
             }
         }
         let output = directory ?? root
@@ -90,6 +91,17 @@ public struct ProductBuilder: Sendable {
     }
 
     private typealias Invocation = (product: Plan.Product, name: String, settings: BuildSettings, arguments: [String])
+
+    private func initialOverlay(for builds: [Invocation], wrapper: URL) async throws -> SwiftPMResourceAccessor.Overlay? {
+        let built = builds.map(\.product)
+        guard let first = builds.first, !SwiftPMResourceAccessor.bundleNames(for: built).isEmpty else { return nil }
+        let directory = try await binaryDirectory(first.settings, first.arguments)
+        let overlay = try SwiftPMResourceAccessor.overlay(for: built, in: directory, output: wrapper, requireAll: false)
+        guard let overlay, !overlay.complete else { return overlay }
+        let arguments = ["-Xswiftc", "-vfsoverlay", "-Xswiftc", overlay.url.path]
+        for build in builds { try await runner.plan(build.settings, build.arguments + arguments) }
+        return try SwiftPMResourceAccessor.overlay(for: built, in: directory, output: wrapper, requireAll: false)
+    }
 
     private func invocations(
         settings: BuildSettings, root: URL, wrapper: URL, prebuilt: [String: URL], sdkArguments: [String]
@@ -371,6 +383,8 @@ struct ProductBuildRunner: Sendable {
     var build: @Sendable (BuildSettings, [String]) async throws -> Void
     var binaryPath: @Sendable (BuildSettings, [String]) async throws -> String
     var sdkLinkerArguments: @Sendable (BuildSettings) async throws -> [String] = { try await $0.macOSLinkerArguments() }
+    /// Plans a build without compiling; SwiftPM writes generated sources such as resource accessors while planning.
+    var plan: @Sendable (BuildSettings, [String]) async throws -> Void = { _, _ in }
 }
 
 extension ProductBuildRunner: DependencyKey {
@@ -384,6 +398,11 @@ extension ProductBuildRunner: DependencyKey {
             let result = try await Subprocess.run(invocation, output: .string(limit: .max), error: .currentStandardError)
                 .checkSuccess()
             return result.standardOutput
+        },
+        plan: { settings, arguments in
+            let invocation = try await settings.swiftPMInvocation(forTool: "build",
+                                                                  arguments: arguments + ["--print-manifest-job-graph"])
+            try await Subprocess.run(invocation, output: .discarded, error: .currentStandardError).checkSuccess()
         }
     )
 }

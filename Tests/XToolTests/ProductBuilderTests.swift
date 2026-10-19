@@ -163,38 +163,55 @@ struct ProductBuilderTests {
             }()
         }
         """
-        func build() async throws -> [[String]] {
+        @Sendable func generate() throws {
+            // SwiftPM generates the accessor while planning, before compiling.
+            try FileManager.default.createDirectory(at: accessor.deletingLastPathComponent(),
+                                                    withIntermediateDirectories: true)
+            try Data(generated.utf8).writeIfChanged(to: accessor)
+        }
+        func build(planGenerates: Bool = true) async throws -> (plans: [[String]], builds: [[String]]) {
             let recorder = Recorder(output: output)
+            let plans = Recorder(output: output)
             _ = try await withDependencies {
                 $0.productBuildRunner = ProductBuildRunner(
                     build: { settings, arguments in
-                        // SwiftPM generates the accessor while planning, before compiling.
-                        try FileManager.default.createDirectory(at: accessor.deletingLastPathComponent(),
-                                                                withIntermediateDirectories: true)
-                        try Data(generated.utf8).writeIfChanged(to: accessor)
+                        try generate()
                         try await recorder.build(settings, arguments: arguments)
                     },
                     binaryPath: { await recorder.binaryPath($0, arguments: $1) },
-                    sdkLinkerArguments: { _ in [] })
+                    sdkLinkerArguments: { _ in [] },
+                    plan: { settings, arguments in
+                        if planGenerates { try generate() }
+                        try await plans.build(settings, arguments: arguments)
+                    })
             } operation: {
                 try await ProductBuilder(buildSettings: settings, plan: plan).build()
             }
-            return await recorder.builds.map(\.1)
+            return (await plans.builds.map(\.1), await recorder.builds.map(\.1))
         }
 
-        // A clean build adapts the accessors only after SwiftPM generated them, so it compiles
-        // them a second time; the flags of both passes are identical, so other modules do not.
+        // A clean build plans first, so the overlay adapts the accessors before anything compiles:
+        // one pass per product, with the flags it plans with.
         let clean = try await build()
-        #expect(clean.count == 4)
-        #expect(clean[0] == clean[2] && clean[1] == clean[3])
-        #expect(clean.allSatisfy { $0.contains("-vfsoverlay") })
+        #expect(clean.plans == clean.builds)
+        #expect(clean.builds.count == 2)
+        #expect(clean.builds.allSatisfy { $0.contains("-vfsoverlay") })
         let cleanDate = try FileManager.default.attributesOfItem(atPath: accessor.path)[.modificationDate] as? Date
 
-        // A no-op rebuild runs one pass per product with exactly the previous flags.
+        // A no-op rebuild skips planning and runs one pass per product with exactly the previous flags.
         let rebuilt = try await build()
-        #expect(rebuilt == Array(clean.prefix(2)))
+        #expect(rebuilt.plans.isEmpty)
+        #expect(rebuilt.builds == clean.builds)
         let rebuiltDate = try FileManager.default.attributesOfItem(atPath: accessor.path)[.modificationDate] as? Date
         #expect(cleanDate == rebuiltDate)
+
+        // If planning does not produce an accessor, the build adapts it afterwards and compiles it
+        // again with identical flags, so other modules do not recompile. This holds even though
+        // the adapted copy from the earlier build is unchanged: the build itself did not use it.
+        try FileManager.default.removeItem(at: output)
+        let fallback = try await build(planGenerates: false)
+        #expect(fallback.builds.count == 4)
+        #expect(fallback.builds[0] == fallback.builds[2] && fallback.builds[1] == fallback.builds[3])
     }
 
     @Test func unsupportedCombinationsReject() async throws {

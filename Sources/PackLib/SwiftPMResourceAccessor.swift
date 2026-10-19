@@ -9,6 +9,10 @@ enum SwiftPMResourceAccessor {
         /// Generated accessors whose adapted copy changed while writing this overlay.
         /// Modules compiled from them before used a stale or missing adaptation.
         var changedSources: [URL]
+        /// Generated accessors this overlay adapts.
+        var sources: [URL]
+        /// Whether every resource bundle's generated accessor was found and adapted.
+        var complete: Bool
     }
 
     static func bundleNames(for products: [Plan.Product]) -> Set<String> {
@@ -70,7 +74,7 @@ enum SwiftPMResourceAccessor {
             "version": 0, "use-external-names": false, "roots": roots,
         ], options: [.sortedKeys])
         try data.writeIfChanged(to: overlay)
-        return Overlay(url: overlay, changedSources: changed)
+        return Overlay(url: overlay, changedSources: changed, sources: files.map(\.0), complete: matched == names)
     }
 
     static func adapted(_ source: String, bundleName: String) throws -> String {
