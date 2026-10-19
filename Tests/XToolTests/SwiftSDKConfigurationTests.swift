@@ -36,6 +36,14 @@ struct SwiftSDKConfigurationTests {
         return metadata
     }
 
+    @Test func dependencyInspectionKeepsTheRootPackagesSDKCache() async throws {
+        // The planner inspects each dependency through a copy rebased onto its directory.
+        let settings = try await BuildSettings(configuration: .release, triple: "arm64-apple-macosx15.0",
+                                               packagePath: "/work/App")
+        let dependency = settings.withPackagePath("/work/App/.build/checkouts/Dependency")
+        #expect(dependency.swiftSDKCacheDirectory.path == "/work/App/.build/xtool-sdk")
+    }
+
     @Test func destinationSelectsOneTargetAndPreservesSDKPathsWithoutChangingInstallation() throws {
         let directory = try root()
         defer { try? FileManager.default.removeItem(at: directory) }

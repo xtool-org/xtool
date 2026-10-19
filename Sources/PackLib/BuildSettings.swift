@@ -17,6 +17,10 @@ public struct BuildSettings: Sendable {
     public var sdkOptions: [String]
     public var sdkEnvironment: [Environment.Key: String?]
 
+    /// Where Linux writes the generated Swift SDK destination. It belongs to the root package:
+    /// copies from `withPackagePath` inspect dependencies and must not write into their directories.
+    let swiftSDKCacheDirectory: URL
+
     private var configOptions: [String] {
         return [
             "--configuration", configuration.rawValue,
@@ -37,6 +41,8 @@ public struct BuildSettings: Sendable {
         options: [String] = []
     ) async throws {
         self.packagePath = packagePath
+        self.swiftSDKCacheDirectory = URL(fileURLWithPath: packagePath, isDirectory: true)
+            .appendingPathComponent(".build/xtool-sdk")
         self.configuration = configuration
         self.customOptions = options
         self.triple = triple
@@ -275,8 +281,8 @@ public struct BuildSettings: Sendable {
                     .orThrow(StringError("No Darwin SDK configured. Please run `xtool setup`."))
                     .bundle.deletingLastPathComponent()
             }
-            let cache = URL(fileURLWithPath: packagePath, isDirectory: true).appendingPathComponent(".build/xtool-sdk")
-            let destination = try SwiftSDKConfiguration.destination(in: directory, for: target, cacheDirectory: cache)
+            let destination = try SwiftSDKConfiguration.destination(in: directory, for: target,
+                                                                    cacheDirectory: swiftSDKCacheDirectory)
             let compilerTriple = sdkOptions.firstIndex(of: "--triple").map { sdkOptions[$0 + 1] }
                 ?? Self.compilerTriple(for: target)
             options = configOptions + ["--destination", destination.url.path, "--triple", compilerTriple] + customOptions
