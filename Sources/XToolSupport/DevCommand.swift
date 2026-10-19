@@ -1,6 +1,7 @@
 import Foundation
 import ArgumentParser
 import PackLib
+import Subprocess
 import XKit
 import Dependencies
 import XUtils
@@ -53,6 +54,21 @@ struct PackOperation {
         }
 
         await LSPConfig.tryEnsure(using: schema)
+
+        for command in schema.prepare ?? [] {
+            print("Preparing: \(command)")
+            try await Subprocess.run(
+                Configuration(
+                    executable: .path("/bin/sh"),
+                    arguments: ["-c", command],
+                    environment: .inherit,
+                    platformOptions: .withGracefulShutDown,
+                ),
+                output: .currentStandardOutput,
+                error: .currentStandardError,
+            )
+            .checkSuccess()
+        }
 
         let buildSettings = try await BuildSettings(
             configuration: buildOptions.configuration,

@@ -13,6 +13,7 @@ public struct Packer: Sendable {
 
     private func build() async throws {
         let xtoolDir = URL(fileURLWithPath: "xtool")
+        let compilerRT = Self.compilerRTLibrary(for: buildSettings.triple)
         let packageDir = xtoolDir.appendingPathComponent(".xtool-tmp")
         try? FileManager.default.removeItem(at: packageDir)
         try FileManager.default.createDirectory(at: packageDir, withIntermediateDirectories: true)
@@ -38,7 +39,7 @@ public struct Packer: Sendable {
                             dependencies: [
                                 .product(name: "\($0.product)", package: "RootPackage"),
                             ],
-                            linkerSettings: \($0.linkerSettings)
+                            linkerSettings: \($0.linkerSettings(compilerRT: compilerRT))
                         )
                         """
                     }
@@ -211,6 +212,38 @@ public struct Packer: Sendable {
         }
     }
 
+    /// The compiler-rt builtins archive for `triple`, named as Apple's clang resource directory
+    /// names it: `libclang_rt.ios.a`, `libclang_rt.iossim.a`, `libclang_rt.osx.a`.
+    static func compilerRTLibraryName(for triple: String) -> String? {
+        switch cfBundleSupportedPlatforms(for: triple).first {
+        case "iPhoneOS": "libclang_rt.ios.a"
+        case "iPhoneSimulator": "libclang_rt.iossim.a"
+        case "MacOSX": "libclang_rt.osx.a"
+        default: nil
+        }
+    }
+
+    /// Apple's clang driver links the platform's compiler-rt builtins into every binary; the
+    /// Linux clang that drives the link here does not, so an app whose dependencies use
+    /// `__builtin_available` (for example a Kotlin/Native framework) fails with
+    /// `undefined symbol: ___isPlatformVersionAtLeast`. The installed Darwin SDK carries
+    /// Xcode's toolchain, so link its archive explicitly on non-Apple hosts.
+    static func compilerRTLibrary(for triple: String) -> String? {
+        #if os(macOS)
+        return nil
+        #else
+        guard let name = compilerRTLibraryName(for: triple),
+              let sdk = try? DarwinSDK.current() else { return nil }
+        let clang = sdk.bundle.appendingPathComponent(
+            "Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang", isDirectory: true
+        )
+        let versions = (try? FileManager.default.contentsOfDirectory(atPath: clang.path)) ?? []
+        return versions.sorted().lazy
+            .map { version in clang.appendingPathComponent("\(version)/lib/darwin/\(name)").path }
+            .first { FileManager.default.fileExists(atPath: $0) }
+        #endif
+    }
+
     static func cfBundleSupportedPlatforms(for triple: String) -> [String] {
         let components = triple.split(separator: "-").map(String.init)
         guard let appleIndex = components.firstIndex(of: "apple"),
@@ -233,16 +266,18 @@ public struct Packer: Sendable {
 }
 
 extension Plan.Product {
-    fileprivate var linkerSettings: String {
+    fileprivate func linkerSettings(compilerRT: String?) -> String {
+        let compilerRTFlags = compilerRT.map { "\"-Xlinker\", \"\($0)\"," } ?? ""
         switch self.type {
-        case .application: """
+        case .application: return """
         [
             .unsafeFlags([
                 "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
+                \(compilerRTFlags)
             ]),
         ]
         """
-        case .appExtension: """
+        case .appExtension: return """
         [
             // Link to Foundation framework which implements the _NSExtensionMain entrypoint
             .linkedFramework("Foundation"),
@@ -253,6 +288,7 @@ extension Plan.Product {
                 "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks",
                 // ...as well as our own
                 "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
+                \(compilerRTFlags)
             ]),
         ]
         """

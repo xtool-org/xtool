@@ -60,6 +60,20 @@ For example, you might create an `Info.plist` file that looks something like
 - The default `Info.plist` has a `UISupportedInterfaceOrientations` value of portrait. This will replace it with landscape-only.
 - We don't include a `CFBundleDisplayName` by default, so this will add the key and specify a display name of "My App".
 
+## Run a step before packing
+
+When your package depends on files another tool produces, such as a binary target built by a
+different compiler, list the commands that produce them under `prepare` in `xtool.yml`.
+xtool runs them in order, in the package directory, with `/bin/sh -c`, before it plans and
+builds the app; a failing command stops the build.
+
+```yaml
+version: 1
+bundleID: com.example.Hello
+prepare:
+  - make generated-sources
+```
+
 ## Copy resources (SwiftPM)
 
 If you need to include non-code resource files, like images, the easiest way to do so is to use [SwiftPM Resources](https://developer.apple.com/documentation/xcode/bundling-resources-with-a-swift-package). These "just work" with xtool.
