@@ -28,10 +28,10 @@ The parser accepts arm64 and x86_64 macOS triples. Linux macOS Debug builds are 
 requires unavailable `codesign` support. Use Release. SwiftBuild is rejected
 for macOS; its existing iOS support does not establish macOS support.
 
-The output is `xtool/<product>.app`, accompanied by `<product>.signing.json`
-and, when supplied, `<product>.signing-inputs/`. The CLI preserves copies of
+The output is `xtool/<product>.app`, accompanied by `<product>.artifact.json`,
+`<product>.signing.json` and, when supplied, `<product>.signing-inputs/`. The CLI preserves copies of
 caller entitlement dictionaries outside the app and rebases their paths in
-the manifest. Transfer all three together. The manifest has `version: 1`,
+the manifest. Transfer all of them together; `xtool dev verify` and `xtool dev sign` read each one. The manifest has `version: 1`,
 `status: deferred`, a resolved target, and product bundle/executable paths with
 their entitlement associations. It records signing intent, not release approval.
 
