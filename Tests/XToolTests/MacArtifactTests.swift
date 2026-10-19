@@ -6,25 +6,29 @@ import Testing
 @testable import XToolSupport
 
 struct MacArtifactTests {
-    static func fixture(at bundle: URL) throws {
+    static func fixture(at bundle: URL, minimumSystemVersion: String? = "15.0") throws {
         let directory = bundle.appendingPathComponent("Contents/MacOS")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        let info: [String: Any] = ["CFBundleExecutable": "App", "CFBundlePackageType": "APPL",
-                                   "CFBundleIdentifier": "test.App", "LSMinimumSystemVersion": "15.0"]
+        var info: [String: Any] = ["CFBundleExecutable": "App", "CFBundlePackageType": "APPL",
+                                   "CFBundleIdentifier": "test.App"]
+        info["LSMinimumSystemVersion"] = minimumSystemVersion
         try PropertyListSerialization.data(fromPropertyList: info, format: .xml, options: 0)
             .write(to: bundle.appendingPathComponent("Contents/Info.plist"))
         try binary().write(to: directory.appendingPathComponent("App"))
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: directory.appendingPathComponent("App").path)
     }
 
-    static func binary(dependency: String? = nil, type: UInt32 = 2, rpath: String? = nil) -> Data {
+    static func binary(
+        dependency: String? = nil, type: UInt32 = 2, rpath: String? = nil,
+        cpu: UInt32 = 0x0100000c, minimumOS: UInt32 = 0x000f0000
+    ) -> Data {
         func words(_ values: [UInt32]) -> Data {
             values.reduce(into: Data()) { result, value in
                 var little = value.littleEndian
                 withUnsafeBytes(of: &little) { result.append(contentsOf: $0) }
             }
         }
-        var commands = words([0x32, 24, 1, 0x000f0000, 0x001a0000, 0])
+        var commands = words([0x32, 24, 1, minimumOS, 0x001a0000, 0])
         var count: UInt32 = 1
         for (command, path) in [(UInt32(0xc), dependency), (UInt32(0x8000001c), rpath)] {
             guard let path else { continue }
@@ -36,7 +40,7 @@ struct MacArtifactTests {
             commands += string
             count += 1
         }
-        return words([0xfeedfacf, 0x0100000c, 0, type, count, UInt32(commands.count), 0, 0]) + commands
+        return words([0xfeedfacf, cpu, 0, type, count, UInt32(commands.count), 0, 0]) + commands
     }
 
     private func root() throws -> URL {
@@ -149,6 +153,33 @@ struct MacArtifactTests {
             }
         }
         try before.verify(directory: app)
+    }
+
+    @Test func existingAppTargetComesFromTheAppNotFromBuildPolicy() throws {
+        let directory = try root()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let app = directory.appendingPathComponent("App.app")
+        let executable = app.appendingPathComponent("Contents/MacOS/App")
+
+        // An app older than xtool's macOS 13.0 build floor still validates.
+        try Self.fixture(at: app, minimumSystemVersion: "11.0")
+        try Self.binary(minimumOS: 0x000b0000).write(to: executable)
+        let old = try MacBundleAudit.runTarget(bundle: app, hostArchitecture: "arm64")
+        #expect(old.architecture == "arm64" && old.deploymentTarget == "11.0")
+        try MacBundleAudit.validate(bundle: app, target: old)
+
+        // Without LSMinimumSystemVersion, the executable's recorded minimum applies.
+        try Self.fixture(at: app, minimumSystemVersion: nil)
+        try Self.binary(minimumOS: 0x000b0000).write(to: executable)
+        #expect(try MacBundleAudit.runTarget(bundle: app, hostArchitecture: "arm64").deploymentTarget == "11.0.0")
+
+        // An Intel-only app runs under Rosetta on Apple silicon; an arm64-only app has no Intel slice.
+        try Self.binary(cpu: 0x01000007, minimumOS: 0x000b0000).write(to: executable)
+        let intel = try MacBundleAudit.runTarget(bundle: app, hostArchitecture: "arm64")
+        #expect(intel.architecture == "x86_64")
+        try MacBundleAudit.validate(bundle: app, target: intel)
+        try Self.binary().write(to: executable)
+        #expect(throws: (any Error).self) { try MacBundleAudit.runTarget(bundle: app, hostArchitecture: "x86_64") }
     }
 
     @Test func frameworkHelpersPrecedeTheirContainingFrameworkInSigningOrder() throws {

@@ -19,6 +19,27 @@ public enum MacBundleAudit {
         return executable
     }
 
+    /// The target an existing app runs as on this host: the main executable's slice for the host
+    /// architecture, or its x86_64 slice under Rosetta on arm64, at the app's declared minimum.
+    /// Without `LSMinimumSystemVersion`, the minimum is the one recorded in that slice.
+    public static func runTarget(bundle: URL, hostArchitecture: String) throws -> ResolvedTarget {
+        let main = try executable(in: bundle)
+        let slices = try MachOBinary.inspect([UInt8](Data(contentsOf: main)))
+        let candidates = hostArchitecture == "arm64" ? ["arm64", "x86_64"] : [hostArchitecture]
+        var match: (architecture: String, slice: MachOBinary.Slice)?
+        for architecture in candidates where match == nil {
+            let cpu = try MachOBinary.cpuType(for: architecture)
+            match = slices.first { $0.cpu == cpu }.map { (architecture, $0) }
+        }
+        guard let (architecture, slice) = match else {
+            throw StringError("Application executable has no slice that runs on \(hostArchitecture)")
+        }
+        let info = try metadata(at: bundle.appendingPathComponent("Contents/Info.plist"))
+        let minimum = (info["LSMinimumSystemVersion"] as? String)
+            ?? "\(slice.minimumOS >> 16).\((slice.minimumOS >> 8) & 0xff).\(slice.minimumOS & 0xff)"
+        return try ResolvedTarget.existing(triple: "\(architecture)-apple-macosx\(minimum)")
+    }
+
     @discardableResult
     public static func validate(bundle: URL, target: ResolvedTarget) throws -> [String] {
         guard target.platform == .macOS else { throw StringError("Expected a macOS artifact target") }

@@ -53,16 +53,12 @@ enum MacRunOperation {
         let executable = try MacBundleAudit.executable(in: bundle)
         // Runtime validation is independent of the pre-signing byte inventory: an externally
         // signed app is expected to differ from that inventory, and is never rewritten here.
-        let info = try PropertyListSerialization.propertyList(
-            from: Data(contentsOf: bundle.appendingPathComponent("Contents/Info.plist")), format: nil
-        ) as? [String: Any]
         #if arch(arm64)
-        let architecture = "arm64"
+        let host = "arm64"
         #else
-        let architecture = "x86_64"
+        let host = "x86_64"
         #endif
-        let target = try ResolvedTarget.resolve(cliTarget: "\(architecture)-apple-macosx"
-            + ((info?["LSMinimumSystemVersion"] as? String) ?? "15.0"))
+        let target = try MacBundleAudit.runTarget(bundle: bundle, hostArchitecture: host)
         try MacBundleAudit.validate(bundle: bundle, target: target)
         print("Launching \(bundle.lastPathComponent)...")
         @Dependency(\.macRunClient) var client

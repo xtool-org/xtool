@@ -526,7 +526,7 @@ struct MachOBinary {
         }
     }
 
-    private static func cpuType(for architecture: String) throws -> UInt32 {
+    static func cpuType(for architecture: String) throws -> UInt32 {
         switch architecture {
         case "arm64": return 0x0100000c
         case "x86_64": return 0x01000007

@@ -104,6 +104,17 @@ public struct ResolvedTarget: Codable, Sendable, Equatable {
         )
     }
 
+    /// Describes an existing app from its own metadata. Only the triple's syntax is validated:
+    /// xtool's deployment minimums apply to what it builds, not to apps it inspects.
+    public static func existing(triple: String) throws -> Self {
+        let parsed = try TargetTriple(triple)
+        guard let deployment = parsed.deploymentTarget else {
+            throw StringError("Expected a versioned target triple: \(triple)")
+        }
+        return Self(triple: triple, platform: parsed.platform, architecture: parsed.architecture,
+                    deploymentTarget: deployment)
+    }
+
     private static func version(_ value: String, isBelow minimum: String) -> Bool {
         let lhs = value.split(separator: ".").map { Int($0) ?? Int.max }
         let rhs = minimum.split(separator: ".").map { Int($0) ?? Int.max }
