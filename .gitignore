@@ -13,3 +13,5 @@ DerivedData/
 
 /openapi
 /.tmp
+/.watchos
+/tools/watchos/__pycache__/

@@ -218,7 +218,7 @@ struct SDKBuilder {
             encoding: .utf8
         )
 
-        let sdkDefinition = SDKDefinition(
+        var sdkDefinition = SDKDefinition(
             schemaVersion: "4.0",
             targetTriples: [
                 "arm64-apple-ios": triple(platform: "iPhoneOS", sdk: iPhoneOSSDK),
@@ -228,6 +228,17 @@ struct SDKBuilder {
                 "x86_64-apple-macosx": triple(platform: "MacOSX", sdk: macOSSDK),
             ]
         )
+
+        // Xcode installations may omit optional platforms. Keep iOS-only SDKs working.
+        for (platform, triples) in [
+            ("WatchOS", ["arm64_32-apple-watchos", "arm64-apple-watchos"]),
+            ("WatchSimulator", ["arm64-apple-watchos-simulator", "x86_64-apple-watchos-simulator"]),
+        ] where dev.appendingPathComponent("Platforms/\(platform).platform").dirExists {
+            let name = try sdk(platform: platform, prefix: platform)
+            for target in triples {
+                sdkDefinition.targetTriples[target] = triple(platform: platform, sdk: name)
+            }
+        }
 
         let encoder = JSONEncoder()
         try encoder
@@ -557,9 +568,10 @@ struct SDKBuilder {
 
         print("[Finalizing SDKs]")
 
-        for platform in ["iPhoneOS", "MacOSX", "iPhoneSimulator"] {
+        for platform in SDKEntry.platforms {
             let lib = "../../../../../Library"
             let platformDir = dev.appending(path: "Platforms/\(platform).platform")
+            guard platformDir.dirExists else { continue }
 
             try patchPlatformManifest(path: platformDir.appending(path: "Info.plist"))
 
@@ -611,14 +623,14 @@ struct SDKBuilder {
             let hostDir = platformDir.appendingPathComponent("Developer/usr/lib/swift/host")
             let pluginsDir = hostDir.appendingPathComponent("plugins")
 
-            if platform == "iPhoneSimulator" {
-                // The iPhoneSimulator platform doesn't contain plugins; Xcode seems to be hardcoded
-                // to look at the ones from iPhoneOS.platform. We can symlink the iPhoneOS ones too.
+            if platform == "iPhoneSimulator" || platform == "WatchSimulator" {
+                // Simulator platforms use the matching device platform's macro plugins.
                 try? FileManager.default.createDirectory(at: hostDir, withIntermediateDirectories: true)
                 try? FileManager.default.removeItem(at: pluginsDir)
+                let devicePlatform = platform == "WatchSimulator" ? "WatchOS" : "iPhoneOS"
                 try FileManager.default.createSymbolicLink(
                     atPath: pluginsDir.path,
-                    withDestinationPath: "../../../../../../iPhoneOS.platform/Developer/usr/lib/swift/host/plugins"
+                    withDestinationPath: "../../../../../../\(devicePlatform).platform/Developer/usr/lib/swift/host/plugins"
                 )
             } else {
                 try? FileManager.default.removeItem(at: pluginsDir)
@@ -800,6 +812,7 @@ struct SDKDefinition: Encodable {
 }
 
 struct SDKEntry {
+    static let platforms = ["iPhoneOS", "MacOSX", "iPhoneSimulator", "WatchOS", "WatchSimulator"]
     var names: Set<Substring>
     var values: [SDKEntry] = []
 
@@ -838,7 +851,7 @@ struct SDKEntry {
             E("swift_static"),
             E("clang"),
         ]),
-        E("Platforms", ["iPhoneOS", "MacOSX", "iPhoneSimulator"].map {
+        E("Platforms", platforms.map {
             E("\($0).platform", [
                 E("Info.plist"),
                 E("Developer", [

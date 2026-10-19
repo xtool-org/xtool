@@ -20,10 +20,6 @@ public struct Planner: Sendable {
         return decoder
     }()
 
-    // anything older than this requires bundling the stdlib which
-    // is doable but probably not worth the effort
-    private static let minSupportedIOSVersion = "13.0"
-
     private func buildGraph() async throws -> PackageGraph {
         let dependencyRoot = try await dumpDependencies()
 
@@ -111,7 +107,7 @@ public struct Planner: Sendable {
             extensionProducts = []
         }
 
-        return Plan(app: app, extensions: extensionProducts)
+        return Plan(app: app, extensions: extensionProducts, platform: buildSettings.platform)
     }
 
     // swiftlint:disable cyclomatic_complexity function_parameter_count
@@ -164,8 +160,13 @@ public struct Planner: Sendable {
         }
 
         let bundleID = idSpecifier.formBundleID(product: library.name)
-        let deploymentTarget = graph.root.platforms?.first { $0.name == "ios" }?.version
-            ?? Self.minSupportedIOSVersion
+        let platform = buildSettings.platform
+        let deploymentTarget = graph.root.platforms?.first { $0.name == platform.rawValue }?.version
+            ?? platform.minimumVersion
+        if platform == .watchOS,
+           deploymentTarget.compare(platform.minimumVersion, options: .numeric) == .orderedAscending {
+            throw StringError("xtool watchOS builds require watchOS \(platform.minimumVersion) or later.")
+        }
 
         var infoPlist: [String: Sendable] = [
             "CFBundleInfoDictionaryVersion": "6.0",
@@ -182,15 +183,7 @@ public struct Planner: Sendable {
 
         switch type {
         case .application:
-            infoPlist["UIDeviceFamily"] = [1, 2]
-            infoPlist["UISupportedInterfaceOrientations"] = ["UIInterfaceOrientationPortrait"]
-            infoPlist["UISupportedInterfaceOrientations~ipad"] = [
-                "UIInterfaceOrientationPortrait",
-                "UIInterfaceOrientationPortraitUpsideDown",
-                "UIInterfaceOrientationLandscapeLeft",
-                "UIInterfaceOrientationLandscapeRight",
-            ]
-            infoPlist["UILaunchScreen"] = [:] as [String: Sendable]
+            infoPlist.merge(platform.appInfoPlist(), uniquingKeysWith: { $1 })
         case .appExtension:
             // Should set default parameters?
             infoPlist["NSExtension"] = [:] as [String: Sendable]
@@ -298,6 +291,7 @@ public struct Planner: Sendable {
 public struct Plan: Sendable {
     public var app: Product
     public var extensions: [Product]
+    public var platform: AppPlatform = .iOS
 
     public var allProducts: [Product] {
         [app] + extensions

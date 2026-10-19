@@ -14,6 +14,9 @@ public struct PackSchemaBase: Codable, Sendable {
 
     public var product: String?
 
+    /// Defaults to iOS for existing projects.
+    public var platform: AppPlatform?
+
     public var infoPath: String?
     public var entitlementsPath: String?
 
@@ -87,6 +90,16 @@ public struct PackSchema: Sendable {
         let data = try await Data(reading: url)
         let base = try YAMLDecoder().decode(PackSchemaBase.self, from: data)
         try self.init(validating: base)
+    }
+
+    public static func load(from directory: URL = URL(fileURLWithPath: ".")) async throws -> Self {
+        let url = directory.appendingPathComponent("xtool.yml")
+        guard FileManager.default.fileExists(atPath: url.path) else { return .default }
+        return try await Self(url: url)
+    }
+
+    public var defaultTriple: String {
+        (base.platform ?? .iOS).defaultTriple
     }
 
     public subscript<Subject>(dynamicMember keyPath: KeyPath<PackSchemaBase, Subject>) -> Subject {

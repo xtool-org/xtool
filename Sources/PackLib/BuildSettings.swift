@@ -14,6 +14,10 @@ public struct BuildSettings: Sendable {
     public let buildSystem: BuildSystem
     public let customOptions: [String]
 
+    public var platform: AppPlatform { AppPlatform(triple: triple) }
+
+    public var sdkName: String { platform.sdkName(simulator: triple.contains("simulator")) }
+
     public var sdkOptions: [String]
     public var sdkEnvironment: [Environment.Key: String?]
 
@@ -70,6 +74,19 @@ public struct BuildSettings: Sendable {
             ]) { $1 }
             #endif
         }
+
+        #if !os(macOS)
+        if platform == .watchOS {
+            guard self.buildSystem == .swiftBuild else {
+                throw StringError("Building watchOS apps on Linux requires Swift 6.4 or later and SwiftBuild.")
+            }
+            let darwinSDK = try DarwinSDK.current()
+            let platformDirectory = darwinSDK?.bundle.appendingPathComponent("Developer/Platforms/\(sdkName).platform")
+            guard platformDirectory?.dirExists == true else {
+                throw StringError("The Darwin SDK is missing \(sdkName). Reinstall it from Xcode with watchOS support.")
+            }
+        }
+        #endif
     }
 
     #if os(macOS)
