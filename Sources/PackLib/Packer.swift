@@ -17,6 +17,8 @@ public struct Packer: Sendable {
         try? FileManager.default.removeItem(at: packageDir)
         try FileManager.default.createDirectory(at: packageDir, withIntermediateDirectories: true)
 
+        let entitlementsFlags = try await simulatorEntitlementsFlags(in: packageDir)
+
         let packageSwift = packageDir.appendingPathComponent("Package.swift")
         let contents = """
         // swift-tools-version: 6.0
@@ -38,7 +40,7 @@ public struct Packer: Sendable {
                             dependencies: [
                                 .product(name: "\($0.product)", package: "RootPackage"),
                             ],
-                            linkerSettings: \($0.linkerSettings)
+                            linkerSettings: \($0.linkerSettings(extraFlags: entitlementsFlags[$0.targetName] ?? []))
                         )
                         """
                     }
@@ -78,6 +80,32 @@ public struct Packer: Sendable {
         .checkSuccess()
     }
 
+    /// Like Xcode, simulator builds get their entitlements linked into the `__TEXT,__entitlements`
+    /// and `__TEXT,__ents_der` sections rather than the code signature: an ad-hoc signature with
+    /// restricted entitlements (e.g. `keychain-access-groups`) fails to launch on the simulator.
+    ///
+    /// - Returns: the extra linker flags for each target, keyed by target name.
+    func simulatorEntitlementsFlags(in packageDir: URL) async throws -> [String: [String]] {
+        guard buildSettings.isSimulator else { return [:] }
+        var flags: [String: [String]] = [:]
+        for product in plan.allProducts {
+            guard let entitlementsPath = product.entitlementsPath else { continue }
+            let plist = try await Data(reading: URL(fileURLWithPath: entitlementsPath))
+            let entitlements = try PropertyListSerialization.propertyList(from: plist, format: nil)
+
+            let xml = packageDir.appendingPathComponent("\(product.targetName)-Simulated.xcent")
+            try PropertyListSerialization.data(fromPropertyList: entitlements, format: .xml, options: 0).write(to: xml)
+            let der = xml.appendingPathExtension("der")
+            try EntitlementsDER.encode(plist: plist).write(to: der)
+
+            flags[product.targetName] = [
+                "-Xlinker", "-sectcreate", "-Xlinker", "__TEXT", "-Xlinker", "__entitlements", "-Xlinker", xml.path,
+                "-Xlinker", "-sectcreate", "-Xlinker", "__TEXT", "-Xlinker", "__ents_der", "-Xlinker", der.path,
+            ]
+        }
+        return flags
+    }
+
     public func pack() async throws -> URL {
         try await build()
 
@@ -90,7 +118,7 @@ public struct Packer: Sendable {
         case .swiftPM:
             binPath = "\(buildSettings.triple)/\(buildSettings.configuration.rawValue)"
         case .swiftBuild:
-            let platformName = buildSettings.triple.contains("simulator") ? "iphonesimulator" : "iphoneos"
+            let platformName = buildSettings.isSimulator ? "iphonesimulator" : "iphoneos"
             binPath = "out/Products/\(buildSettings.configuration.swiftBuildValue)-\(platformName)"
         }
         let binDir = URL(
@@ -233,13 +261,14 @@ public struct Packer: Sendable {
 }
 
 extension Plan.Product {
-    fileprivate var linkerSettings: String {
-        switch self.type {
+    fileprivate func linkerSettings(extraFlags: [String]) -> String {
+        let extra = extraFlags.isEmpty ? "" : "\n    .unsafeFlags(\(String(reflecting: extraFlags))),"
+        return switch self.type {
         case .application: """
         [
             .unsafeFlags([
                 "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
-            ]),
+            ]),\(extra)
         ]
         """
         case .appExtension: """
@@ -253,7 +282,7 @@ extension Plan.Product {
                 "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks",
                 // ...as well as our own
                 "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
-            ]),
+            ]),\(extra)
         ]
         """
         }
