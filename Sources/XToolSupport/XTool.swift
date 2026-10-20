@@ -7,6 +7,7 @@ import Dependencies
 
 public enum XTool {
     public static func run(arguments: [String]? = nil) async throws {
+        Signposter.setup()
         TemporaryDirectory.prepare()
         await XToolCommand.cancellableMain(arguments)
     }
@@ -17,6 +18,9 @@ private struct XToolCommand: AsyncParsableCommand {
         commandName: "xtool",
         abstract: "Cross-platform Xcode replacement",
         version: "xtool \(XTool.version)",
+        subcommands: [
+            EmulateToolCommand.self,
+        ],
         groupedSubcommands: [
             CommandGroup(
                 name: "Configuration",

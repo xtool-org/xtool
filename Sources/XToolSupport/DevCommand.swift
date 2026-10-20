@@ -5,6 +5,7 @@ import PackLib
 import XKit
 import Dependencies
 import XUtils
+import Subprocess
 
 struct PackOperation {
     struct BuildOptions: ParsableArguments {
@@ -13,10 +14,20 @@ struct PackOperation {
             help: "Build with configuration"
         ) var configuration: BuildConfiguration = .debug
 
+        @Flag(
+            name: .shortAndLong,
+            help: "Verbose output"
+        ) var verbose = false
+
         init() {}
 
-        init(configuration: BuildConfiguration) {
+        // this is load bearing: synthesized init doesn't work with ArgumentParser
+        init(
+            configuration: BuildConfiguration,
+            verbose: Bool = false,
+        ) {
             self.configuration = configuration
+            self.verbose = verbose
         }
     }
 
@@ -27,7 +38,7 @@ struct PackOperation {
     var xcode = false
 
     @discardableResult
-    func run() async throws -> URL {
+    func run() async throws -> ProjectBuildResult {
         // TODO: support running inside a child directory
 
         let contents = try FileManager.default.contentsOfDirectory(atPath: ".")
@@ -39,7 +50,7 @@ struct PackOperation {
 
         try await EnsureSDKOperation(quiet: true).run()
 
-        d.out.print("Planning...")
+        Signposter.track("Planning")
 
         let schema: PackSchema
         let configPath = URL(fileURLWithPath: "xtool.yml")
@@ -61,46 +72,17 @@ struct PackOperation {
             options: []
         )
 
-        let planner = Planner(
-            buildSettings: buildSettings,
-            schema: schema
-        )
-        let plan = try await planner.createPlan()
-
+        let describer = try SwiftPMBuildDescriber(buildSettings: buildSettings, schema: schema)
         if xcode {
-            return try await XcodePacker(plan: plan).createProject()
+            return try await describer.writeXcodeProject()
         }
 
-        let packer = Packer(
-            buildSettings: buildSettings,
-            plan: plan
-        )
-        let bundle = try await packer.pack()
-
-        let productsWithEntitlements = plan
-            .allProducts
-            .compactMap { p in p.entitlementsPath.map { (p, $0) } }
-        if !productsWithEntitlements.isEmpty {
-            let mapping = try await withThrowingTaskGroup(of: (URL, Data).self) { group in
-                for (product, path) in productsWithEntitlements {
-                    group.addTask {
-                        let entitlements = try await Data(reading: URL(fileURLWithPath: path))
-                        return (product.directory(inApp: bundle), entitlements)
-                    }
-                }
-                return try await group.reduce(into: [:]) { $0[$1.0] = $1.1 }
-            }
-            d.out.print("Applying entitlements...")
-            try await d.signer.sign(
-                app: bundle,
-                identity: .adhoc,
-                entitlementMapping: mapping,
-                deep: true,
-                progress: { _ in }
-            )
-        }
-
-        return bundle
+        let coordinator = try await BuildCoordinator(description: describer.describe())
+        defer { await coordinator.close() }
+        return try await ProjectBuildOperation(
+            buildCoordinator: coordinator,
+            verbose: buildOptions.verbose,
+        ).run()
     }
 }
 
@@ -112,16 +94,16 @@ struct DevXcodeCommand: AsyncParsableCommand {
 
     func run() async throws {
         let result = try await PackOperation(xcode: true).run()
-        d.out.print("Wrote to \(result.path)")
+        d.out.print("Wrote to \(result.url.path)")
     }
 }
 
 struct DevBuildCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "build",
-        abstract: "Build app with SwiftPM",
+        abstract: "Build iOS app",
         discussion: """
-        This command builds the SwiftPM-based iOS app in the current directory
+        This command builds the Swift package iOS app in the current directory
         """
     )
 
@@ -158,7 +140,7 @@ struct DevBuildCommand: AsyncParsableCommand {
         let url = try await PackOperation(
             triple: triple,
             buildOptions: packOptions
-        ).run()
+        ).run().url
 
         if let signingAuthToken {
             let installDelegate = XToolInstallerDelegate()
@@ -167,7 +149,10 @@ struct DevBuildCommand: AsyncParsableCommand {
                 delegate: installDelegate
             )
             do {
-                defer { d.out.print() }
+                defer {
+                    await installDelegate.finish()
+                    d.out.print()
+                }
                 try await installer.signInPlace(app: url)
             } catch let error as CancellationError {
                 throw error
@@ -206,20 +191,25 @@ struct DevBuildCommand: AsyncParsableCommand {
 struct DevRunCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "run",
-        abstract: "Build and run app with SwiftPM",
+        abstract: "Build and run iOS app",
         discussion: """
-        This command deploys the SwiftPM-based iOS app in the current directory
+        This command deploys the Swift package iOS app in the current directory
         """
     )
 
     @OptionGroup var packOptions: PackOperation.BuildOptions
 
-    #if os(macOS)
     @Flag(
         name: .shortAndLong,
-        help: "Target the iOS Simulator"
+        help: "Target the iOS Simulator (macOS only)",
     ) var simulator = false
 
+    @Flag(
+        inversion: .prefixedEnableDisable,
+        help: "Attach console when running on the simulator (default: true)",
+    ) var console: Bool?
+
+    #if os(macOS)
     var triple: String? {
         if simulator {
             #if arch(arm64)
@@ -243,7 +233,11 @@ struct DevRunCommand: AsyncParsableCommand {
 
         #if os(macOS)
         if simulator {
-            try await SimInstallOperation(path: output).run()
+            try await SimInstallOperation(
+                path: output.url,
+                bundleID: output.bundleID,
+                console: console != false,
+            ).run()
             return
         }
         #endif
@@ -259,11 +253,14 @@ struct DevRunCommand: AsyncParsableCommand {
             delegate: installDelegate
         )
 
-        defer { d.out.print() }
+        defer {
+            await installDelegate.finish()
+            d.out.print()
+        }
 
         do {
             try await installer.install(
-                app: output,
+                app: output.url,
                 udid: client.udid,
                 lookupMode: .only(client.connectionType),
                 configureDevice: false,
@@ -275,12 +272,24 @@ struct DevRunCommand: AsyncParsableCommand {
             throw ExitCode.failure
         }
     }
+
+    func validate() throws {
+        #if !os(macOS)
+        guard !simulator else {
+            throw ValidationError("`--simulator` is only supported on macOS")
+        }
+        #endif
+
+        if console == true && !simulator {
+            throw ValidationError("`--enable-console` is only supported when targeting the simulator")
+        }
+    }
 }
 
 struct DevCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "dev",
-        abstract: "Build and run an xtool SwiftPM project",
+        abstract: "Build and run a Swift package",
         subcommands: [
             DevXcodeCommand.self,
             DevBuildCommand.self,
@@ -298,18 +307,44 @@ import Subprocess
 
 struct SimInstallOperation {
     var path: URL
+    var bundleID: String
+    var console: Bool
 
     // TODO: allow customizing this
     var simulator = "booted"
 
     func run() async throws {
-        try await Subprocess.run(
+        let simctlRaw = try await Subprocess.run(
             .path("/usr/bin/xcrun"),
-            arguments: ["simctl", "install", simulator, path.path],
+            arguments: ["-f", "simctl"],
+            output: .string(limit: .max)
+        ).checkSuccess().standardOutput.trimmingCharacters(in: .whitespacesAndNewlines)
+        let simctl = FilePath(simctlRaw)
+
+        try await Subprocess.run(
+            .path(simctl),
+            arguments: ["install", simulator, path.path],
             output: .discarded
         )
         .checkSuccess()
+
         d.out.print("Installed to simulator")
+
+        var launchFlags: [String] = [
+            "--terminate-running-process",
+        ]
+        if console {
+            launchFlags.append("--console-pty")
+        }
+
+        try await Subprocess.run(
+            .path(simctl),
+            arguments: Arguments(["launch"] + launchFlags + [simulator, bundleID]),
+            platformOptions: .withGracefulShutDown,
+            output: .xtoolOutput(),
+            error: .xtoolError(),
+        )
+        .checkSuccess()
     }
 }
 #endif

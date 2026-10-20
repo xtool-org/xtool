@@ -1,5 +1,5 @@
 {
-  "originHash" : "2ccd077fc130f0f1b1279d87aa61d1fc243964d7ad49489a12021577c54df9de",
+  "originHash" : "5008a43e53ee72f8c3441b7879d0528a1595547ef65419251a5b65a72a347a0a",
   "pins" : [
     {
       "identity" : "aexml",
@@ -119,6 +119,15 @@
       }
     },
     {
+      "identity" : "swift-build",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/xtool-org/swift-build",
+      "state" : {
+        "branch" : "release/6.4.x",
+        "revision" : "48b9868b66c3aeab33e0237844f35815c235f5b8"
+      }
+    },
+    {
       "identity" : "swift-certificates",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-certificates",
@@ -218,6 +227,15 @@
       }
     },
     {
+      "identity" : "swift-driver",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/xtool-org/swift-driver.git",
+      "state" : {
+        "branch" : "release/6.4.x",
+        "revision" : "8e7a60e14b81b451f2bb8d844e927cdff62d73a5"
+      }
+    },
+    {
       "identity" : "swift-http-structured-headers",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-http-structured-headers.git",
@@ -242,6 +260,15 @@
       "state" : {
         "revision" : "b23bb4493c439d3e05152bc167014235ba3d47fc",
         "version" : "2.1.2"
+      }
+    },
+    {
+      "identity" : "swift-llbuild",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/xtool-org/swift-llbuild.git",
+      "state" : {
+        "branch" : "release/6.4.x",
+        "revision" : "cb8b25e399e8f2fa82c5894736def23bea5dceb3"
       }
     },
     {
@@ -395,6 +422,33 @@
       "state" : {
         "revision" : "869129b7bf4ecc57b97d0193ad29690ca2134750",
         "version" : "1.8.1"
+      }
+    },
+    {
+      "identity" : "swift-toolchain-sqlite",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-toolchain-sqlite",
+      "state" : {
+        "revision" : "d9b11cb79071d5ab992ff47dfd2e8d6e19418d97",
+        "version" : "1.0.13"
+      }
+    },
+    {
+      "identity" : "swift-tools-protocols",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-tools-protocols.git",
+      "state" : {
+        "branch" : "release/6.4.x",
+        "revision" : "4345e69c5572ec3d1f737fba90bca024b32da5cf"
+      }
+    },
+    {
+      "identity" : "swift-tools-support-core",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-tools-support-core.git",
+      "state" : {
+        "branch" : "release/6.4.x",
+        "revision" : "75a4f8586889fff3813f88ac3a0179ad568247e0"
       }
     },
     {

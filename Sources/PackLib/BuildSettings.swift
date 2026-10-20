@@ -11,28 +11,25 @@ public struct BuildSettings: Sendable {
     public var packagePath: String
     public let configuration: BuildConfiguration
     public let triple: String
-    public let buildSystem: BuildSystem
     public let customOptions: [String]
 
-    public var sdkOptions: [String]
-    public var sdkEnvironment: [Environment.Key: String?]
-
-    private var configOptions: [String] {
+    public var sdkEnvironment: [Environment.Key: String?] {
         return [
-            "--configuration", configuration.rawValue,
-            "--build-system", buildSystem.pmName,
-            "--package-path", packagePath,
+            // xcrun passes an SDKROOT that messes with our sdk configuration
+            "SDKROOT": nil,
         ]
     }
 
-    private var resolvedBaseOptions: [String] {
-        configOptions + sdkOptions + customOptions
+    private var configOptions: [String] {
+        return [
+            "--build-system", "swiftbuild",
+            "--package-path", packagePath,
+        ]
     }
 
     public init(
         configuration: BuildConfiguration,
         triple: String,
-        buildSystem: BuildSystem? = nil,
         packagePath: String = ".",
         options: [String] = []
     ) async throws {
@@ -40,36 +37,6 @@ public struct BuildSettings: Sendable {
         self.configuration = configuration
         self.customOptions = options
         self.triple = triple
-        self.buildSystem = if let buildSystem { buildSystem } else { try await .default() }
-
-        self.sdkEnvironment = [
-            // xcrun passes an SDKROOT that messes with our sdk configuration
-            "SDKROOT": nil,
-        ]
-
-        switch self.buildSystem {
-        case .swiftPM:
-            // on macOS we don't explicitly install a Swift SDK but
-            // SwiftPM vends "implicit" Darwin SDKs as of Swift 6.1,
-            // i.e. we can pass `--swift-sdk arm64-apple-ios` and it
-            // just works. See:
-            // https://github.com/swiftlang/swift-package-manager/pull/6828
-            self.sdkOptions = ["--swift-sdk", triple]
-        case .swiftBuild:
-            self.sdkOptions = ["--triple", triple]
-            #if !os(macOS)
-            let darwinSDK = try DarwinSDK.current()
-                .orThrow(StringError("No Darwin SDK configured. Please run `xtool setup`."))
-            self.sdkOptions += [
-                "--toolset", "\(darwinSDK.bundle.path)/toolset-swb.json",
-            ]
-            self.sdkEnvironment.merge([
-                "XCODE_EXTRA_PLATFORM_FOLDERS": "\(darwinSDK.bundle.path)/Developer/Platforms",
-                // SWB looks for dsymutil in the PATH. Other stuff (lld, libtool) is handled by toolset-swb.json.
-                "PATH": "\(darwinSDK.bundle.path)/toolset/bin:\(ProcessInfo.processInfo.environment["PATH"] ?? "")",
-            ]) { $1 }
-            #endif
-        }
     }
 
     #if os(macOS)
@@ -107,6 +74,44 @@ public struct BuildSettings: Sendable {
     }
     #endif
 
+    private static let _runtimeResourcePath = Task<String, Error> {
+        struct SwiftTargetInfo: Decodable {
+            struct Paths: Decodable {
+                var runtimeResourcePath: String
+            }
+            var paths: Paths
+        }
+        let process = try await Subprocess.run(
+            .path(try await swiftcURL()),
+            arguments: ["-print-target-info"],
+            output: .data(limit: .max)
+        ).checkSuccess()
+        let targetInfo = try JSONDecoder().decode(
+            SwiftTargetInfo.self,
+            from: process.standardOutput
+        )
+        return targetInfo.paths.runtimeResourcePath
+    }
+
+    public static func runtimeResourcePath() async throws -> String {
+        try await _runtimeResourcePath.value
+    }
+
+    public static func toolchainPath() async throws -> String {
+        // we can't simply return the parent of `swiftc` because the `swiftc` in PATH
+        // might be a trampoline (e.g. xcrun or swiftly)
+        let toolchainResourcePath = try await runtimeResourcePath()
+        let trimmed: Substring
+        if toolchainResourcePath.hasSuffix("/usr/lib/swift") {
+            trimmed = toolchainResourcePath.dropLast("/usr/lib/swift".count)
+        } else if toolchainResourcePath.hasSuffix("/usr/local/lib/swift") {
+            trimmed = toolchainResourcePath.dropLast("/usr/local/lib/swift".count)
+        } else {
+            throw StringError("Unexpected toolchain resource path: \(toolchainResourcePath)")
+        }
+        return trimmed.isEmpty ? "/" : String(trimmed)
+    }
+
     public func withPackagePath(_ path: String) -> Self {
         var copy = self
         copy.packagePath = path
@@ -138,30 +143,10 @@ public struct BuildSettings: Sendable {
 
         return Configuration(
             executable: executable,
-            arguments: .init(baseArguments + resolvedBaseOptions + arguments),
+            arguments: .init(baseArguments + configOptions + customOptions + arguments),
             environment: .inherit.updating(sdkEnvironment),
             platformOptions: .withGracefulShutDown,
         )
-    }
-
-    // loosely based on
-    // https://github.com/swiftlang/sourcekit-lsp/blob/c55899a/Sources/BuildServerIntegration/ExternalBuildServerAdapter.swift#L92
-    private var baseBuildServerArguments: [String] {
-        return [
-            "experimental-build-server",
-            "--disable-automatic-resolution",
-            "--scratch-path", ".build/index-build",
-            // this requires Swift 6.4 but we need 6.4 on Linux anyway, for the platform toolset fixes
-            "--experimental-skip-acquiring-lock",
-        ]
-    }
-
-    public var buildServerArguments: [String] {
-        ["package"] + baseBuildServerArguments + resolvedBaseOptions
-    }
-
-    public func buildServerInvocation() async throws -> Subprocess.Configuration {
-        try await swiftPMInvocation(forTool: "package", arguments: baseBuildServerArguments)
     }
 }
 
@@ -173,26 +158,6 @@ public enum BuildConfiguration: String, CaseIterable, Sendable {
         switch self {
         case .debug: "Debug"
         case .release: "Release"
-        }
-    }
-}
-
-public enum BuildSystem: Sendable {
-    case swiftPM
-    case swiftBuild
-
-    public static func `default`() async throws -> Self {
-        if try await SwiftVersion.current.supportsSwiftBuild {
-            return .swiftBuild
-        } else {
-            return .swiftPM
-        }
-    }
-
-    var pmName: String {
-        switch self {
-        case .swiftPM: "native"
-        case .swiftBuild: "swiftbuild"
         }
     }
 }

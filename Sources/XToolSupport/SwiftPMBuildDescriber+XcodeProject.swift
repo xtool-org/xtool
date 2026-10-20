@@ -1,17 +1,26 @@
+import XCLIUtils
 import Foundation
+import Dependencies
 import XcodeProjects
+import XPIF
+import PackLib
+import XUtils
 
-public struct XcodePacker {
-    public var plan: Plan
-
-    public init(plan: Plan) {
-        self.plan = plan
+extension SwiftPMBuildDescriber {
+    func writeXcodeProject() async throws -> ProjectBuildResult {
+        try writeXcodeProject(basePIF: await d.swiftPMPIFDumper.dump(buildSettings: buildSettings))
     }
 
     // swiftlint:disable:next function_body_length
-    public func createProject(
-        at root: URL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
-    ) async throws -> URL {
+    func writeXcodeProject(basePIF pif: XPIF.Container) throws -> ProjectBuildResult {
+        let root = URL(filePath: pif.workspace.path, directoryHint: .isDirectory)
+        let mainProject = try pif.workspace.projects.first {
+            $0.projectDir == pif.workspace.path && $0.id != "AGGREGATE"
+        }.orThrow(Console.Error("Could not find main target"))
+        let products = try bundleProducts(in: mainProject)
+        let app = products[0]
+        let extensions = Array(products.dropFirst())
+
         let xtoolDir = root.appendingPathComponent("xtool", isDirectory: true)
         let projectDir = xtoolDir.appendingPathComponent(".xtool-tmp", isDirectory: true)
         try? FileManager.default.removeItem(at: projectDir)
@@ -20,7 +29,6 @@ public struct XcodePacker {
         let fromProjectToRoot = "../.."
 
         let emptyText = Data("// leave this file empty".utf8)
-        let products = plan.allProducts
         let targetIDs = products.map {
             XCSchema.ObjectID("xtool:\($0.product)")
         }
@@ -36,29 +44,26 @@ public struct XcodePacker {
             try FileManager.default.createDirectory(at: productDir, withIntermediateDirectories: true)
             try emptyText.write(to: productDir.appendingPathComponent("empty.c"))
 
-            var plist = product.infoPlist
-            let families = (plist.removeValue(forKey: "UIDeviceFamily") as? [Int]) ?? [1, 2]
-            plist["CFBundleExecutable"] = product.targetName
-            plist["CFBundleName"] = product.targetName
-            plist["CFBundleDisplayName"] = product.product
-            if let iconPath = product.iconPath {
-                plist["CFBundleIconFile"] = URL(fileURLWithPath: iconPath).deletingPathExtension().lastPathComponent
-            }
+            let (plist, plistSettings) = try product.infoPlistConfiguration(at: root)
             let encodedPlist = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
             try encodedPlist.write(to: productDir.appendingPathComponent("Info.plist"))
 
-            var buildSettings: [String: XCSchema.BuildSetting] = [
-                "PRODUCT_BUNDLE_IDENTIFIER": .string(product.bundleID),
-                "PRODUCT_NAME": .string(product.targetName),
-                "TARGETED_DEVICE_FAMILY": .string(families.map(String.init).joined(separator: ",")),
-                "IPHONEOS_DEPLOYMENT_TARGET": .string(product.deploymentTarget),
-                "INFOPLIST_FILE": .string("\(product.product)/Info.plist"),
-                "LD_RUNPATH_SEARCH_PATHS": .array(["$(inherited)", "@executable_path/Frameworks"]),
-            ]
-            if product.type == .appExtension {
+            var buildSettings: [String: XCSchema.BuildSetting] = plistSettings.values.mapValues { value in
+                switch value {
+                case .string(let value): .string(value)
+                case .array(let value): .array(value)
+                }
+            }
+            buildSettings["INFOPLIST_FILE"] = .string("\(product.product)/Info.plist")
+            buildSettings["LD_RUNPATH_SEARCH_PATHS[sdk=iphone*]"] = .array(["$(inherited)", "@executable_path/Frameworks"])
+            buildSettings["LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]"] = .array(["$(inherited)", "@executable_path/../Frameworks"])
+            if product.isExtension {
                 buildSettings["APPLICATION_EXTENSION_API_ONLY"] = .string("YES")
-                buildSettings["LD_RUNPATH_SEARCH_PATHS"] = .array([
+                buildSettings["LD_RUNPATH_SEARCH_PATHS[sdk=iphone*]"] = .array([
                     "$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks",
+                ])
+                buildSettings["LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]"] = .array([
+                    "$(inherited)", "@executable_path/../Frameworks", "@executable_path/../../../../Frameworks",
                 ])
             }
             if let entitlementsPath = product.entitlementsPath {
@@ -105,11 +110,11 @@ public struct XcodePacker {
                 children: [.fileReference(source), .fileReference(info)] + resources,
             )))
 
-            let productFilename = "\(product.targetName).\(product.type == .application ? "app" : "appex")"
+            let productFilename = "\(product.product).\(product.isExtension ? "appex" : "app")"
             let productFile = XCSchema.FileReference(
                 objectID: nil,
                 path: try .init(base: .buildProducts, path: productFilename),
-                explicitFileType: .init(fileTypeID: product.type == .application ? "wrapper.application" : "wrapper.app-extension"),
+                explicitFileType: .init(fileTypeID: product.isExtension ? "wrapper.app-extension" : "wrapper.application"),
                 expectedSignature: nil,
                 textEncoding: nil,
                 lineEnding: nil,
@@ -117,7 +122,7 @@ public struct XcodePacker {
                 buildFiles: index == 0 ? [] : [.init(
                     objectID: nil,
                     buildPhase: .named(
-                        target: .init(targetName: plan.app.targetName),
+                        target: .init(targetName: app.targetName),
                         kind: .copy,
                         name: "Embed App Extensions",
                     ),
@@ -150,7 +155,7 @@ public struct XcodePacker {
                     scope: .always,
                 )))
             }
-            if index == 0 && !plan.extensions.isEmpty {
+            if index == 0 && !extensions.isEmpty {
                 phases.append(.copy(.init(
                     objectID: nil,
                     name: "Embed App Extensions",
@@ -160,7 +165,7 @@ public struct XcodePacker {
                 )))
             }
             let dependencies: [XCSchema.TargetDependency] = index == 0
-                ? plan.extensions.map {
+                ? extensions.map {
                     .localTarget(XCSchema.LocalTargetReference(targetName: $0.targetName), [])
                 }
                 : []
@@ -175,9 +180,9 @@ public struct XcodePacker {
                 buildSettings: buildSettings,
                 product: .namePath(.init(components: [.child("Products"), .child(productFilename)])),
                 productTypeID: XCSchema.ProductTypeID(
-                    abbreviatedRepresentation: product.type == .application
-                    ? "application"
-                    : "app-extension"
+                    abbreviatedRepresentation: product.isExtension
+                    ? "app-extension"
+                    : "application"
                 ),
                 testHostTarget: nil,
                 legacyProvisioningStyle: nil,
@@ -205,7 +210,7 @@ public struct XcodePacker {
             configurations: ["Debug", "Release"].map {
                 .init(name: .init(name: $0), file: nil, objectID: nil)
             },
-            buildSettings: ["SDKROOT": .string("iphoneos")],
+            buildSettings: projectBuildSettings(from: mainProject),
             defaultConfigurationName: .init(name: "Debug"),
             targets: targets,
             localizationInfo: .init(development: .init(languageID: "en"), supported: []),
@@ -220,24 +225,40 @@ public struct XcodePacker {
             importedProducts: [],
         )
 
-        let projectURL = projectDir.appending(path: "\(plan.app.product).xcodeproj")
+        let projectURL = projectDir.appending(path: "\(app.product).xcodeproj")
         let project = XcodeProject(project: schema, url: projectURL)
         try project.write()
 
-        let workspaceURL = xtoolDir.appending(path: "\(plan.app.product).xcworkspace")
+        let workspaceURL = xtoolDir.appending(path: "\(app.product).xcworkspace")
         let workspace = XcodeWorkspace(children: [
             .file(XcodeWorkspace.Location(base: .container, path: "..")),
             .file(XcodeWorkspace.Location(base: .group, path: ".xtool-tmp/\(projectURL.lastPathComponent)"))
         ], url: workspaceURL)
         try workspace.write()
-        return workspaceURL
+        return ProjectBuildResult(url: workspaceURL, bundleID: app.bundleID)
     }
 
-    private func resourceReferences(for product: Plan.Product, at root: URL) throws -> [XCSchema.Reference] {
-        var paths = product.resources.compactMap { resource -> String? in
-            guard case .root(let source) = resource else { return nil }
-            return source
+    private func projectBuildSettings(from project: XPIF.Project) -> [String: XCSchema.BuildSetting] {
+        var settings: [String: XCSchema.BuildSetting] = [
+            "SDKROOT": .string("auto"),
+            "SDK_VARIANT": .string("auto"),
+            "SUPPORTED_PLATFORMS": .array(Self.supportedPlatforms),
+        ]
+        // Preserve each configuration's platform minimums without copying SwiftPM's
+        // package-specific compiler and linker settings onto the app and extensions.
+        for configuration in project.buildConfigs {
+            for (key, value) in configuration.settings.values {
+                let name = key.prefix { $0 != "[" }
+                guard name.hasSuffix("_DEPLOYMENT_TARGET"),
+                      case .string(let value) = value else { continue }
+                settings["\(key)[config=\(configuration.name)]"] = .string(value)
+            }
         }
+        return settings
+    }
+
+    private func resourceReferences(for product: ProjectProduct, at root: URL) throws -> [XCSchema.Reference] {
+        var paths = product.resources
         if let iconPath = product.iconPath {
             paths.append(iconPath)
         }

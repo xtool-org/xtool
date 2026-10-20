@@ -42,7 +42,7 @@ public struct PackSchema: Sendable {
         case orgID(String)
         case bundleID(String)
 
-        func formBundleID(product: String) -> String {
+        public func formBundleID(product: String) -> String {
             switch self {
             case .orgID(let orgID): "\(orgID).\(product)"
             case .bundleID(let bundleID): bundleID

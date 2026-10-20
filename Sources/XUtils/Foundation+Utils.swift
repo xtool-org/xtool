@@ -52,6 +52,33 @@ extension FileManager {
 
         try self.copyItem(at: srcURL, to: dstURL)
     }
+
+    /// Copies source to destination _nearly_ atomically.
+    /// 
+    /// We first perform an intermediate copy into `stagingDir`, then swap
+    /// it with `destination`.
+    /// 
+    /// The operation has a strong-exception guarantee except if the final
+    /// swap fails, in which case the destination may be left absent (but this
+    /// is less likely than the copy failing).
+    public func atomicallyCopyItem(
+        at source: URL,
+        to destination: URL,
+        via stagingDir: URL,
+    ) throws {
+        let newStaged = stagingDir.appending(path: "new-\(destination.lastPathComponent)")
+        let oldStaged = stagingDir.appending(path: "old-\(destination.lastPathComponent)")
+        try? removeItem(at: stagingDir)
+        try createDirectory(at: stagingDir, withIntermediateDirectories: true)
+        defer { try? removeItem(at: stagingDir) }
+        try copyItem(at: source, to: newStaged)
+        do {
+            try moveItem(at: destination, to: oldStaged)
+        } catch CocoaError.fileNoSuchFile {
+            // destination doesn't exist yet, that's fine
+        }
+        try moveItem(at: newStaged, to: destination)
+    }
 }
 
 package func stderrPrint(_ message: String, terminator: String = "\n") {
