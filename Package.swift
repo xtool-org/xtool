@@ -9,11 +9,13 @@ let xtoolVersion: String? = {
         let gitCommit = info.currentCommit
         let gitTag = info.currentTag
         let gitRef = gitTag ?? "commit \(gitCommit)"
-        return "\(gitRef)\(info.hasUncommittedChanges ? " (dirty)" : "")"
+        return gitRef
     } else {
         return nil
     }
 }()
+
+let hasUncommittedChanges = Context.gitInformation?.hasUncommittedChanges ?? false
 
 let cSettings: [CSetting] = [
     .define("_GNU_SOURCE", .when(platforms: [.linux])),
@@ -90,7 +92,9 @@ let package = Package(
             dependencies: [
                 .product(name: "OpenSSL", package: "xtool-core")
             ],
-            cSettings: cSettings + (
+            cSettings: cSettings + [
+                .define("XTOOL_HAS_UNCOMMITTED_CHANGES", to: hasUncommittedChanges ? "1" : "0"),
+            ] + (
                 xtoolVersion
                     .map { [.define("XTOOL_VERSION", to: "\"\($0)\"")] }
                     ?? []
