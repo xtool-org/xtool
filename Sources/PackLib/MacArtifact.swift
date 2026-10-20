@@ -32,9 +32,7 @@ public struct MacArtifact: Codable, Sendable {
         }
         let artifact = Self(bundleName: bundle.lastPathComponent, target: manifest.target,
                             inventory: inventory, signingInputs: inputs, signingOrder: order)
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        try encoder.encode(artifact).write(to: manifestURL(for: bundle), options: .atomic)
+        try JSONEncoder.sortedPretty().encode(artifact).write(to: manifestURL(for: bundle), options: .atomic)
     }
 
     public static func verify(bundle: URL) throws {

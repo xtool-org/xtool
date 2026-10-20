@@ -32,6 +32,15 @@ extension Data {
     }
 }
 
+extension JSONEncoder {
+    /// Stable, reviewable output for the manifests, receipts and plans xtool writes.
+    package static func sortedPretty() -> JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return encoder
+    }
+}
+
 extension FileManager {
     /// Like `copyItem(at:to:)` but allows opting out of preserving the owner
     package func copyItem(

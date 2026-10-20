@@ -451,9 +451,7 @@ enum DeferredSigningHandoff {
             files.append((filename, data))
             manifest.products[index].entitlementsPath = "\(inputs.lastPathComponent)/\(filename)"
         }
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        let data = try encoder.encode(manifest)
+        let data = try JSONEncoder.sortedPretty().encode(manifest)
         // Content-addressed inputs keep the previous manifest usable until atomic replacement.
         // Retain older generations: an interrupted build must not invalidate existing handoffs.
         if !files.isEmpty {

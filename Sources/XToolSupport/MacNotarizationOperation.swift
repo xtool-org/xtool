@@ -200,9 +200,7 @@ enum MacNotarizationOperation {
         state.distributionSHA256 = try ArtifactInventory.hash(zip)
         state.status = "stapled"
         // Publish recoverable evidence together with the app; a crash before the event append is resumable.
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        try encoder.encode(state).write(to: work.appendingPathComponent("receipt.json"), options: .atomic)
+        try JSONEncoder.sortedPretty().encode(state).write(to: work.appendingPathComponent("receipt.json"), options: .atomic)
         try FileManager.default.moveItem(at: work, to: destination)
         try append(&state, directory: directory)
     }
@@ -319,9 +317,7 @@ enum MacNotarizationOperation {
         state.sequence += 1
         let url = directory.appendingPathComponent(String(format: "receipt-%06d.json", state.sequence))
         guard !FileManager.default.fileExists(atPath: url.path) else { throw StringError("Receipt event already exists") }
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
-        try encoder.encode(state).write(to: url, options: .atomic)
+        try JSONEncoder.sortedPretty().encode(state).write(to: url, options: .atomic)
     }
 
     static func load(_ directory: URL) throws -> MacNotarizationReceipt {

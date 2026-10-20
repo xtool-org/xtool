@@ -8,9 +8,7 @@ enum MacSigningOperation {
         let plan = try MacSigningPlan.make(bundle: bundle, mode: mode, identity: identity)
         try validateOutput(output, source: bundle)
         if dryRun {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-            print(String(decoding: try encoder.encode(plan), as: UTF8.self))
+            print(String(decoding: try JSONEncoder.sortedPretty().encode(plan), as: UTF8.self))
             return
         }
         @Dependency(\.macHostClient) var client

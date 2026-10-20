@@ -47,9 +47,7 @@ public struct MacSigningReceipt: Codable, Sendable {
     }
 
     public func write(beside bundle: URL) throws {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        try encoder.encode(self).write(to: Self.receiptURL(for: bundle), options: .atomic)
+        try JSONEncoder.sortedPretty().encode(self).write(to: Self.receiptURL(for: bundle), options: .atomic)
     }
 
     @discardableResult
