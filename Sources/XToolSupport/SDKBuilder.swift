@@ -236,11 +236,26 @@ struct SDKBuilder {
         url: URL,
         destination directory: URL,
         displayName: String,
+        envOverride: String? = nil,
     ) async throws {
         try FileManager.default.createDirectory(
             at: directory,
             withIntermediateDirectories: false
         )
+
+        if let envOverride, let path = ProcessInfo.processInfo.environment[envOverride] {
+            let archive = URL(fileURLWithPath: path)
+            print("[Extracting \(displayName)] \(archive.path)")
+            try await Subprocess.run(
+                .name("tar"),
+                arguments: ["xzf", archive.path],
+                workingDirectory: FilePath(directory),
+                output: .discarded,
+                error: .discarded,
+            )
+            .checkSuccess()
+            return
+        }
 
         @Dependency(\.httpClient) var httpClient
         let (response, body) = try await httpClient.send(HTTPRequest(url: url))
@@ -280,6 +295,7 @@ struct SDKBuilder {
         .checkSuccess()
     }
 
+    // swiftlint:disable:next function_body_length
     private func installToolset(in output: URL) async throws {
         let toolsetDir = output.appendingPathComponent("toolset")
         let url = URL(string: """
@@ -290,6 +306,7 @@ struct SDKBuilder {
             url: url,
             destination: toolsetDir,
             displayName: "toolset",
+            envOverride: "XTL_TOOLSET_TARBALL",
         )
 
         // swift-build assumes we have an Apple-flavored librarian for Apple platforms
@@ -406,6 +423,7 @@ struct SDKBuilder {
             url: url,
             destination: macrosDir,
             displayName: "OpenAppleMacros",
+            envOverride: "XTL_OAM_TARBALL",
         )
 
         struct MacrosInfo: Decodable {
