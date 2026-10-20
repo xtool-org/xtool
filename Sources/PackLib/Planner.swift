@@ -20,18 +20,30 @@ public struct Planner: Sendable {
         return decoder
     }()
 
+    /// Packages inspected at once, each by two SwiftPM processes. Unbounded, a large graph
+    /// would start hundreds of processes; beyond the core count they only compete.
+    static let inspectionLimit = max(2, ProcessInfo.processInfo.activeProcessorCount)
+
     private func buildGraph() async throws -> PackageGraph {
         let dependencyRoot = try Self.decoder.decode(
             PackageDependency.self, from: try await inspection.dependencies(buildSettings)
         )
+        var nodes: [PackageDependency] = []
+        var visited: Set<String> = []
+        var dependencies = [dependencyRoot]
+        while let node = dependencies.popLast() {
+            guard visited.insert(node.identity).inserted else { continue }
+            dependencies.append(contentsOf: node.dependencies)
+            nodes.append(node)
+        }
         let packages = try await withThrowingTaskGroup(
             of: (String, InspectedPackage).self, returning: [String: InspectedPackage].self
         ) { group in
-            var visited: Set<String> = []
-            var dependencies = [dependencyRoot]
-            while let node = dependencies.popLast() {
-                guard visited.insert(node.identity).inserted else { continue }
-                dependencies.append(contentsOf: node.dependencies)
+            var packages: [String: InspectedPackage] = [:]
+            for (index, node) in nodes.enumerated() {
+                if index >= Self.inspectionLimit, let (identity, package) = try await group.next() {
+                    packages[identity] = package
+                }
                 group.addTask {
                     let settings = buildSettings.withPackagePath(node.path)
                     async let description = inspection.describe(settings)
@@ -42,7 +54,6 @@ public struct Planner: Sendable {
                     ))
                 }
             }
-            var packages: [String: InspectedPackage] = [:]
             for try await (identity, package) in group { packages[identity] = package }
             return packages
         }

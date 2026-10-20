@@ -79,6 +79,34 @@ struct PlannerTests {
         }
     }
 
+    @Test func inspectionConcurrencyIsBounded() async throws {
+        actor Gauge {
+            var current = 0, peak = 0
+            func enter() { current += 1; peak = max(peak, current) }
+            func leave() { current -= 1 }
+        }
+        let gauge = Gauge()
+        let names = (0..<(Planner.inspectionLimit * 3)).map { "dep\($0)" }
+        let root = try package()
+        let dependencyTree = try json([
+            "identity": "root", "path": "/root",
+            "dependencies": names.map { ["identity": $0, "path": "/\($0)", "dependencies": []] as [String: Any] },
+        ])
+        let client = PackageInspectionClient(
+            dependencies: { _ in dependencyTree },
+            describe: { _ in
+                await gauge.enter()
+                try await Task.sleep(for: .milliseconds(5))
+                await gauge.leave()
+                return root.description
+            },
+            manifest: { _ in root.manifest }
+        )
+        _ = try await plan(["root": root], clientOverride: client)
+        #expect(await gauge.peak <= Planner.inspectionLimit)
+        #expect(await gauge.peak > 1)
+    }
+
     @Test func sameNamedTargetsInDifferentPackagesBothContributeResources() async throws {
         let root = try package(targets: [target("App", dependencies: [
             dependency("First", package: "one"), dependency("Second", package: "two"),
