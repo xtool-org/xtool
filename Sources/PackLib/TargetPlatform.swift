@@ -25,6 +25,15 @@ public enum TargetPlatform: String, Codable, Sendable, CaseIterable {
         case .macOS: "MacOSX"
         }
     }
+
+    /// Without a version this is the SDK identity; with one, the compiler triple.
+    public func triple(architecture: String, version: String = "") -> String {
+        switch self {
+        case .iOS: "\(architecture)-apple-ios\(version)"
+        case .iOSSimulator: "\(architecture)-apple-ios\(version)-simulator"
+        case .macOS: "\(architecture)-apple-macosx\(version)"
+        }
+    }
 }
 
 /// Parse only supported Apple targets; never infer the target from the host.
@@ -53,6 +62,14 @@ public struct TargetTriple: Sendable, Equatable {
         }
         if !version.isEmpty { try Self.validateVersion(version) }
         deploymentTarget = version.isEmpty ? nil : version
+    }
+
+    var sdkIdentity: String {
+        platform.triple(architecture: architecture)
+    }
+
+    var compilerTriple: String {
+        platform.triple(architecture: architecture, version: deploymentTarget ?? platform.minimumDeploymentTarget)
     }
 
     static func validateVersion(_ value: String) throws {
@@ -128,10 +145,6 @@ public struct ResolvedTarget: Codable, Sendable, Equatable {
 
     /// Canonical versioned target for compiler invocations. The SDK identity is selected separately.
     public var compilerTriple: String {
-        switch platform {
-        case .iOS: "\(architecture)-apple-ios\(deploymentTarget)"
-        case .iOSSimulator: "\(architecture)-apple-ios\(deploymentTarget)-simulator"
-        case .macOS: "\(architecture)-apple-macosx\(deploymentTarget)"
-        }
+        platform.triple(architecture: architecture, version: deploymentTarget)
     }
 }

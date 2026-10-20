@@ -37,7 +37,7 @@ public enum MacBundleAudit {
         let info = try metadata(at: bundle.appendingPathComponent("Contents/Info.plist"))
         let minimum = (info["LSMinimumSystemVersion"] as? String)
             ?? "\(slice.minimumOS >> 16).\((slice.minimumOS >> 8) & 0xff).\(slice.minimumOS & 0xff)"
-        return try ResolvedTarget.existing(triple: "\(architecture)-apple-macosx\(minimum)")
+        return try ResolvedTarget.existing(triple: TargetPlatform.macOS.triple(architecture: architecture, version: minimum))
     }
 
     @discardableResult

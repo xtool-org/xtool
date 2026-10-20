@@ -16,6 +16,8 @@ public struct BuildSettings: Sendable {
 
     public var sdkOptions: [String]
     public var sdkEnvironment: [Environment.Key: String?]
+    /// The versioned triple SwiftPM compiles for; `withTarget` pins the plan's deployment target.
+    private var compilerTriple: String
 
     /// Where Linux writes the generated Swift SDK destination. It belongs to the root package:
     /// copies from `withPackagePath` inspect dependencies and must not write into their directories.
@@ -47,6 +49,7 @@ public struct BuildSettings: Sendable {
         self.customOptions = options
         self.triple = triple
         let target = try TargetTriple(triple)
+        self.compilerTriple = target.compilerTriple
         // SwiftBuild has not been validated for macOS cross-compilation. Keep the
         // established iOS default, and use the proven SwiftPM backend for macOS.
         self.buildSystem = if let buildSystem {
@@ -69,9 +72,9 @@ public struct BuildSettings: Sendable {
             // i.e. we can pass `--swift-sdk arm64-apple-ios` and it
             // just works. See:
             // https://github.com/swiftlang/swift-package-manager/pull/6828
-            self.sdkOptions = ["--swift-sdk", Self.sdkIdentity(for: target)]
+            self.sdkOptions = ["--swift-sdk", target.sdkIdentity]
             if target.deploymentTarget != nil {
-                self.sdkOptions += ["--triple", Self.compilerTriple(for: target)]
+                self.sdkOptions += ["--triple", compilerTriple]
             }
         case .swiftBuild:
             guard target.platform != .macOS else {
@@ -143,8 +146,8 @@ public struct BuildSettings: Sendable {
         var copy = self
         switch buildSystem {
         case .swiftPM:
-            copy.sdkOptions = ["--swift-sdk", Self.sdkIdentity(for: try TargetTriple(triple)),
-                               "--triple", target.compilerTriple]
+            copy.compilerTriple = target.compilerTriple
+            copy.sdkOptions = ["--swift-sdk", try TargetTriple(triple).sdkIdentity, "--triple", target.compilerTriple]
         case .swiftBuild:
             // Keep the initializer's triple and toolset. SwiftBuild applies a versioned triple's
             // deployment target to every package, so dependencies would compile for the app's
@@ -152,23 +155,6 @@ public struct BuildSettings: Sendable {
             break
         }
         return copy
-    }
-
-    private static func sdkIdentity(for target: TargetTriple) -> String {
-        switch target.platform {
-        case .iOS: "\(target.architecture)-apple-ios"
-        case .iOSSimulator: "\(target.architecture)-apple-ios-simulator"
-        case .macOS: "\(target.architecture)-apple-macosx"
-        }
-    }
-
-    private static func compilerTriple(for target: TargetTriple) -> String {
-        let version = target.deploymentTarget ?? target.platform.minimumDeploymentTarget
-        return switch target.platform {
-        case .iOS: "\(target.architecture)-apple-ios\(version)"
-        case .iOSSimulator: "\(target.architecture)-apple-ios\(version)-simulator"
-        case .macOS: "\(target.architecture)-apple-macosx\(version)"
-        }
     }
 
     /// LLD otherwise records the deployment version as the SDK version on Linux.
@@ -194,8 +180,7 @@ public struct BuildSettings: Sendable {
             throw StringError("Missing SDK version in \(sdkRoot.path)/SDKSettings.json")
         }
         try TargetTriple.validateVersion(version)
-        let tripleIndex = sdkOptions.firstIndex(of: "--triple")
-        let target = try TargetTriple(tripleIndex.map { sdkOptions[$0 + 1] } ?? triple)
+        let target = try TargetTriple(compilerTriple)
         return ["-Xlinker", "-platform_version", "-Xlinker", "macos", "-Xlinker",
                 target.deploymentTarget ?? target.platform.minimumDeploymentTarget, "-Xlinker", version]
     }
@@ -283,8 +268,6 @@ public struct BuildSettings: Sendable {
             }
             let destination = try SwiftSDKConfiguration.destination(in: directory, for: target,
                                                                     cacheDirectory: swiftSDKCacheDirectory)
-            let compilerTriple = sdkOptions.firstIndex(of: "--triple").map { sdkOptions[$0 + 1] }
-                ?? Self.compilerTriple(for: target)
             options = configOptions + ["--destination", destination.url.path, "--triple", compilerTriple] + customOptions
             environment["PATH"] = (destination.toolSearchPaths + [ProcessInfo.processInfo.environment["PATH"] ?? ""])
                 .joined(separator: ":")

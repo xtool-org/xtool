@@ -83,12 +83,7 @@ enum LSPConfig {
             path = legacyLSP.0
             let sdkIndex = sdkOptions.firstIndex(of: "--swift-sdk")
             // Legacy SourceKit uses SwiftPM even when builds default to SwiftBuild.
-            let sdkPlatform = switch target.platform {
-            case .iOS: "ios"
-            case .iOSSimulator: "ios-simulator"
-            case .macOS: "macosx"
-            }
-            let sdk = sdkIndex.map { sdkOptions[$0 + 1] } ?? "\(target.architecture)-apple-\(sdkPlatform)"
+            let sdk = sdkIndex.map { sdkOptions[$0 + 1] } ?? target.platform.triple(architecture: target.architecture)
             object = ["swiftPM": ["swiftSDK": sdk, "triple": target.compilerTriple]]
         }
         let data = try JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys])

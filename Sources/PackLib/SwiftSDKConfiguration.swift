@@ -10,7 +10,7 @@ enum SwiftSDKConfiguration {
     /// SwiftPM's bundle selector requires an exact target triple. A single-target
     /// destination lets it apply the requested deployment version after decoding.
     static func destination(in directory: URL, for target: TargetTriple, cacheDirectory: URL) throws -> Destination {
-        let identity = "\(target.architecture)-apple-macosx"
+        let identity = target.sdkIdentity
         let bundles = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
             .filter { $0.pathExtension == "artifactbundle" }
         var matches: [[String: Any]] = []
