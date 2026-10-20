@@ -1,44 +1,7 @@
 import Dependencies
 import Foundation
 import PackLib
-import Subprocess
 import XUtils
-
-struct MacSigningCommandResult: Sendable {
-    var output: Data
-    var error: Data
-}
-
-struct MacSigningClient: DependencyKey, Sendable {
-    var isMacOS: @Sendable () -> Bool
-    var run: @Sendable (String, [String]) async throws -> MacSigningCommandResult
-
-    static let liveValue = Self(isMacOS: {
-        #if os(macOS)
-        true
-        #else
-        false
-        #endif
-    }, run: { executable, arguments in
-        let result = try await Subprocess.run(
-            .path(.init(executable)), arguments: .init(arguments),
-            platformOptions: .withGracefulShutDown, output: .data(limit: .max), error: .data(limit: .max)
-        )
-        do { try result.checkSuccess() } catch {
-            throw StringError("Mac signing tool failed: \(String(decoding: result.standardError, as: UTF8.self))")
-        }
-        return MacSigningCommandResult(output: result.standardOutput, error: result.standardError)
-    })
-
-    static let testValue = Self(isMacOS: { false }, run: { _, _ in throw StringError("Unexpected signing tool invocation") })
-}
-
-extension DependencyValues {
-    var macSigningClient: MacSigningClient {
-        get { self[MacSigningClient.self] }
-        set { self[MacSigningClient.self] = newValue }
-    }
-}
 
 enum MacSigningOperation {
     static func run(bundle: URL, output: URL, mode: MacSigningMode, identity: String?, dryRun: Bool) async throws {
@@ -50,7 +13,7 @@ enum MacSigningOperation {
             print(String(decoding: try encoder.encode(plan), as: UTF8.self))
             return
         }
-        @Dependency(\.macSigningClient) var client
+        @Dependency(\.macHostClient) var client
         guard client.isMacOS() else { throw StringError("Mac signing requires a macOS host") }
         let manager = FileManager.default
         let stage = output.deletingLastPathComponent().appendingPathComponent(".xtool-sign-\(UUID().uuidString)")
@@ -76,7 +39,7 @@ enum MacSigningOperation {
                 arguments += ["--entitlements", file.path, "--generate-entitlement-der"]
             }
             arguments.append(codeURL(target.path, bundle: stagedBundle).path)
-            _ = try await client.run("/usr/bin/codesign", arguments)
+            _ = try await client.capture("/usr/bin/codesign", arguments)
         }
         try manager.removeItem(at: inputs)
         var receipt = try MacSigningReceipt(plan: plan, bundle: stagedBundle)
@@ -93,7 +56,7 @@ enum MacSigningOperation {
     @discardableResult
     static func verify(bundle: URL, receipt: MacSigningReceipt,
                        verifyInventory: Bool = true) async throws -> [MacSigningReceipt.Signature] {
-        @Dependency(\.macSigningClient) var client
+        @Dependency(\.macHostClient) var client
         guard client.isMacOS() else { throw StringError("Native signature verification requires macOS") }
         if verifyInventory { try receipt.inventory.verify(directory: bundle) }
         let order = try MacBundleAudit.validate(bundle: bundle, target: receipt.target)
@@ -105,21 +68,21 @@ enum MacSigningOperation {
         var signatures: [MacSigningReceipt.Signature] = []
         for (index, target) in receipt.targets.enumerated() {
             let code = codeURL(target.path, bundle: bundle)
-            _ = try await client.run("/usr/bin/codesign", ["--verify", "--strict", "--verbose=2", code.path])
-            let display = try await client.run("/usr/bin/codesign", ["--display", "--verbose=4", code.path])
+            _ = try await client.capture("/usr/bin/codesign", ["--verify", "--strict", "--verbose=2", code.path])
+            let display = try await client.capture("/usr/bin/codesign", ["--display", "--verbose=4", code.path])
             let metadata = String(decoding: display.error + display.output, as: UTF8.self)
             try validateMetadata(metadata, mode: receipt.mode)
             var fingerprint: String?
             if let identity = receipt.identity {
                 let prefix = scratch.appendingPathComponent("\(index)-certificate").path
-                _ = try await client.run("/usr/bin/codesign", ["--display", "--extract-certificates", prefix, code.path])
+                _ = try await client.capture("/usr/bin/codesign", ["--display", "--extract-certificates", prefix, code.path])
                 let leaf = try Data(contentsOf: URL(fileURLWithPath: prefix + "0"))
                 fingerprint = MacSigningPlan.certificateFingerprint(leaf)
                 guard fingerprint == identity.uppercased() else {
                     throw StringError("Signed certificate differs from requested fingerprint: \(target.path)")
                 }
             }
-            let effective = try await client.run("/usr/bin/codesign", ["--display", "--entitlements", "-", "--xml", code.path])
+            let effective = try await client.capture("/usr/bin/codesign", ["--display", "--entitlements", "-", "--xml", code.path])
             try validateEffectiveEntitlements(effective.output, expected: target.entitlements, path: target.path)
             let lines = metadata.components(separatedBy: .newlines)
             func value(_ prefix: String) -> String? {

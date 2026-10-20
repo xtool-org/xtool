@@ -62,15 +62,16 @@ struct MacNotarizationTests {
         return (root, app, root.appendingPathComponent("release"))
     }
 
-    func client(_ commands: Commands) -> MacNotarizationClient {
-        MacNotarizationClient(isMacOS: { true }, run: { try await commands.run($0, $1) }, verifySignature: { _, _ in })
+    func stub(_ dependencies: inout DependencyValues, _ commands: Commands) {
+        dependencies.macHostClient = MacHostClient(isMacOS: { true }, stream: { try await commands.run($0, $1) })
+        dependencies.macNotarizationClient = MacNotarizationClient(verifySignature: { _, _ in })
     }
 
     @Test func completeFlowPreservesUploadAndVerifiesDistribution() async throws {
         let (root, app, release) = try fixture()
         defer { try? FileManager.default.removeItem(at: root) }
         let commands = Commands(release: release)
-        try await withDependencies { $0.macNotarizationClient = client(commands) } operation: { () async throws in
+        try await withDependencies { stub(&$0, commands) } operation: { () async throws in
             try await MacNotarizationOperation.submit(bundle: app, directory: release, profile: "chosen-profile")
             let original = try ArtifactInventory.hash(release.appendingPathComponent("upload.zip"))
             #expect(try await MacNotarizationOperation.update(directory: release, profile: "chosen-profile") == "Accepted")
@@ -93,7 +94,7 @@ struct MacNotarizationTests {
         defer { try? FileManager.default.removeItem(at: root) }
         let commands = Commands(release: release)
         await commands.interrupt()
-        try await withDependencies { $0.macNotarizationClient = client(commands) } operation: { () async throws in
+        try await withDependencies { stub(&$0, commands) } operation: { () async throws in
             await #expect(throws: (any Error).self) {
                 try await MacNotarizationOperation.submit(bundle: app, directory: release, profile: "profile")
             }
@@ -116,7 +117,7 @@ struct MacNotarizationTests {
         let (root, app, release) = try fixture()
         defer { try? FileManager.default.removeItem(at: root) }
         let commands = Commands(release: release)
-        try await withDependencies { $0.macNotarizationClient = client(commands) } operation: { () async throws in
+        try await withDependencies { stub(&$0, commands) } operation: { () async throws in
             try await MacNotarizationOperation.submit(bundle: app, directory: release, profile: "profile")
             await commands.mismatch()
             await #expect(throws: (any Error).self) {
@@ -131,7 +132,7 @@ struct MacNotarizationTests {
         let (root, app, release) = try fixture()
         defer { try? FileManager.default.removeItem(at: root) }
         let commands = Commands(release: release)
-        try await withDependencies { $0.macNotarizationClient = client(commands) } operation: { () async throws in
+        try await withDependencies { stub(&$0, commands) } operation: { () async throws in
             try await MacNotarizationOperation.submit(bundle: app, directory: release, profile: "profile")
             let count = await commands.calls.count
             try Data("changed".utf8).write(to: release.appendingPathComponent("upload.zip"))
@@ -146,7 +147,7 @@ struct MacNotarizationTests {
         let (root, app, release) = try fixture()
         defer { try? FileManager.default.removeItem(at: root) }
         let commands = Commands(release: release)
-        try await withDependencies { $0.macNotarizationClient = client(commands) } operation: { () async throws in
+        try await withDependencies { stub(&$0, commands) } operation: { () async throws in
             try await MacNotarizationOperation.submit(bundle: app, directory: release, profile: "profile")
             await commands.setStatus("Invalid")
             #expect(try await MacNotarizationOperation.update(directory: release, profile: "profile") == "Invalid")
@@ -161,7 +162,7 @@ struct MacNotarizationTests {
         let alias = root.appendingPathComponent("alias")
         try FileManager.default.createSymbolicLink(at: alias, withDestinationURL: app)
         let commands = Commands(release: release)
-        try await withDependencies { $0.macNotarizationClient = client(commands) } operation: {
+        try await withDependencies { stub(&$0, commands) } operation: {
             for directory in [app, app.appendingPathComponent("release"), alias.appendingPathComponent("release")] {
                 await #expect(throws: (any Error).self) {
                     try await MacNotarizationOperation.submit(bundle: app, directory: directory, profile: "profile")
@@ -188,7 +189,7 @@ struct MacNotarizationTests {
         let (root, app, release) = try fixture()
         defer { try? FileManager.default.removeItem(at: root) }
         let commands = Commands(release: release)
-        try await withDependencies { $0.macNotarizationClient = client(commands) } operation: { () async throws in
+        try await withDependencies { stub(&$0, commands) } operation: { () async throws in
             try await MacNotarizationOperation.submit(bundle: app, directory: release, profile: "profile")
             _ = try await MacNotarizationOperation.update(directory: release, profile: "profile")
             try await MacNotarizationOperation.staple(directory: release)

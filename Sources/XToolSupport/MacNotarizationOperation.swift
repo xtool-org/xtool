@@ -1,7 +1,6 @@
 import Dependencies
 import Foundation
 import PackLib
-import Subprocess
 import XUtils
 
 #if canImport(Darwin)
@@ -10,33 +9,14 @@ import Darwin
 import Glibc
 #endif
 
+/// Tests replace native signature verification, which needs genuinely signed apps.
 struct MacNotarizationClient: DependencyKey, Sendable {
-    var isMacOS: @Sendable () -> Bool
-    var run: @Sendable (String, [String]) async throws -> Data
     var verifySignature: @Sendable (URL, MacSigningReceipt) async throws -> Void
 
     static let liveValue = Self(
-        isMacOS: {
-            #if os(macOS)
-            true
-            #else
-            false
-            #endif
-        },
-        run: { executable, arguments in
-            let result = try await Subprocess.run(
-                .path(.init(executable)), arguments: .init(arguments),
-                output: .string(limit: .max), error: .currentStandardError
-            ).checkSuccess()
-            return Data(result.standardOutput.utf8)
-        },
         verifySignature: { _ = try await MacSigningOperation.verify(bundle: $0, receipt: $1, verifyInventory: false) }
     )
-    static let testValue = Self(
-        isMacOS: { false },
-        run: { _, _ in throw StringError("Unexpected notarization command") },
-        verifySignature: { _, _ in throw StringError("Unexpected signing verification") }
-    )
+    static let testValue = Self(verifySignature: { _, _ in throw StringError("Unexpected signing verification") })
 }
 
 extension DependencyValues {
@@ -62,8 +42,8 @@ struct MacNotarizationReceipt: Codable, Sendable {
 
 enum MacNotarizationOperation {
     static func requireHost() throws {
-        @Dependency(\.macNotarizationClient) var client
-        guard client.isMacOS() else { throw StringError("Notarization requires a Mac") }
+        @Dependency(\.macHostClient) var host
+        guard host.isMacOS() else { throw StringError("Notarization requires a Mac") }
     }
 
     static func authentication(_ profile: String?) throws -> [String] {
@@ -85,6 +65,7 @@ enum MacNotarizationOperation {
         let receipt = try MacSigningReceipt.verify(bundle: bundle)
         guard receipt.mode == .developerID else { throw StringError("Notarization requires Developer ID signing") }
         @Dependency(\.macNotarizationClient) var client
+        @Dependency(\.macHostClient) var host
         try await client.verifySignature(bundle, receipt)
         // Creation is exclusive. An existing output, including an interrupted attempt, is never resubmitted.
         guard mkdir(directory.path, 0o700) == 0 else {
@@ -101,14 +82,14 @@ enum MacNotarizationOperation {
         let copied = try MacSigningReceipt.verify(bundle: app)
         try await client.verifySignature(app, copied)
         let upload = directory.appendingPathComponent("upload.zip")
-        _ = try await client.run("/usr/bin/ditto", ["-c", "-k", "--keepParent", "--sequesterRsrc", app.path, upload.path])
+        _ = try await host.stream("/usr/bin/ditto", ["-c", "-k", "--keepParent", "--sequesterRsrc", app.path, upload.path])
         var state = MacNotarizationReceipt(
             bundleName: app.lastPathComponent,
             signingReceiptSHA256: try ArtifactInventory.hash(MacSigningReceipt.receiptURL(for: app)),
             uploadSHA256: try ArtifactInventory.hash(upload), status: "submission-started"
         )
         try append(&state, directory: directory)
-        let response = try await client.run("/usr/bin/xcrun", ["notarytool", "submit", upload.path,
+        let response = try await host.stream("/usr/bin/xcrun", ["notarytool", "submit", upload.path,
                                                               "--no-wait", "--output-format", "json"] + auth)
         let value = try JSONDecoder().decode(Submission.self, from: response)
         guard UUID(uuidString: value.id) != nil else { throw StringError("Invalid notarization submission UUID") }
@@ -141,10 +122,10 @@ enum MacNotarizationOperation {
             throw StringError("Submission outcome is unknown; use --submission-id with a completed matching Apple log. "
                 + "Do not resubmit.")
         }
-        @Dependency(\.macNotarizationClient) var client
+        @Dependency(\.macHostClient) var host
         var arguments = ["notarytool", wait ? "wait" : "info", id, "--output-format", "json"] + auth
         if wait { arguments += ["--timeout", "\(timeout)s"] }
-        let response = try await client.run("/usr/bin/xcrun", arguments)
+        let response = try await host.stream("/usr/bin/xcrun", arguments)
         let value = try JSONDecoder().decode(Submission.self, from: response)
         guard value.id.lowercased() == id.lowercased(), let status = value.status,
               ["Accepted", "Invalid", "In Progress", "Rejected"].contains(status) else {
@@ -207,13 +188,14 @@ enum MacNotarizationOperation {
         let app = work.appendingPathComponent(state.bundleName)
         try FileManager.default.copyItem(at: source, to: app)
         @Dependency(\.macNotarizationClient) var client
+        @Dependency(\.macHostClient) var host
         let signing = try MacSigningReceipt.verify(bundle: source)
         try await client.verifySignature(app, signing)
-        _ = try await client.run("/usr/bin/xcrun", ["stapler", "staple", app.path])
-        _ = try await client.run("/usr/bin/xcrun", ["stapler", "validate", app.path])
+        _ = try await host.stream("/usr/bin/xcrun", ["stapler", "staple", app.path])
+        _ = try await host.stream("/usr/bin/xcrun", ["stapler", "validate", app.path])
         try await client.verifySignature(app, signing)
         let zip = work.appendingPathComponent("distribution.zip")
-        _ = try await client.run("/usr/bin/ditto", ["-c", "-k", "--keepParent", "--sequesterRsrc", app.path, zip.path])
+        _ = try await host.stream("/usr/bin/ditto", ["-c", "-k", "--keepParent", "--sequesterRsrc", app.path, zip.path])
         state.distributionInventory = try ArtifactInventory(directory: app)
         state.distributionSHA256 = try ArtifactInventory.hash(zip)
         state.status = "stapled"
@@ -248,8 +230,9 @@ enum MacNotarizationOperation {
         }
         let signing = try MacSigningReceipt.verify(bundle: signedApp(state, directory: directory))
         @Dependency(\.macNotarizationClient) var client
+        @Dependency(\.macHostClient) var host
         try await client.verifySignature(app, signing)
-        _ = try await client.run("/usr/bin/xcrun", ["stapler", "validate", app.path])
+        _ = try await host.stream("/usr/bin/xcrun", ["stapler", "validate", app.path])
     }
 
     /// The stored log must still match its recorded hash, bind this archive, and be accepted.
@@ -275,8 +258,8 @@ enum MacNotarizationOperation {
 
     private static func fetchLog(_ state: MacNotarizationReceipt, id: String, directory: URL,
                                  authentication: [String]) async throws -> NotaryLog {
-        @Dependency(\.macNotarizationClient) var client
-        let data = try await client.run("/usr/bin/xcrun", ["notarytool", "log", id] + authentication)
+        @Dependency(\.macHostClient) var host
+        let data = try await host.stream("/usr/bin/xcrun", ["notarytool", "log", id] + authentication)
         let log = try JSONDecoder().decode(NotaryLog.self, from: data)
         try validateLog(log, state: state, id: id)
         let destination = logURL(directory)

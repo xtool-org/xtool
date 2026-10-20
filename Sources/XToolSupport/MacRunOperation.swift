@@ -2,47 +2,11 @@ import ArgumentParser
 import Dependencies
 import Foundation
 import PackLib
-import Subprocess
 import XUtils
-
-struct MacRunClient: DependencyKey, Sendable {
-    var isMacOS: @Sendable () -> Bool
-    var launch: @Sendable (URL, [String]) async throws -> Int32
-
-    static let liveValue = Self(
-        isMacOS: {
-            #if os(macOS)
-            true
-            #else
-            false
-            #endif
-        },
-        launch: { executable, arguments in
-            let result = try await Subprocess.run(
-                .path(.init(executable.path)), arguments: .init(arguments),
-                platformOptions: .withGracefulShutDown,
-                output: .currentStandardOutput, error: .currentStandardError
-            )
-            switch result.terminationStatus {
-            case .exited(let code): return code
-            case .signaled(let signal): return 128 + signal
-            }
-        }
-    )
-
-    static let testValue = Self(isMacOS: { false }, launch: { _, _ in throw StringError("Unexpected Mac launch") })
-}
-
-extension DependencyValues {
-    var macRunClient: MacRunClient {
-        get { self[MacRunClient.self] }
-        set { self[MacRunClient.self] = newValue }
-    }
-}
 
 enum MacRunOperation {
     static func requireHost() throws {
-        @Dependency(\.macRunClient) var client
+        @Dependency(\.macHostClient) var client
         guard client.isMacOS() else {
             throw Console.Error("macOS apps must run on a Mac; transfer the app and its handoff files to a Mac first")
         }
@@ -61,7 +25,7 @@ enum MacRunOperation {
         let target = try MacBundleAudit.runTarget(bundle: bundle, hostArchitecture: host)
         try MacBundleAudit.validate(bundle: bundle, target: target)
         print("Launching \(bundle.lastPathComponent)...")
-        @Dependency(\.macRunClient) var client
+        @Dependency(\.macHostClient) var client
         let status = try await client.launch(executable, arguments)
         if status != 0 { throw ExitCode(status) }
     }

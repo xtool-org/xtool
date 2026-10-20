@@ -143,7 +143,7 @@ struct MacArtifactTests {
         let before = try ArtifactInventory(directory: app)
         await #expect(throws: ExitCode(7)) {
             try await withDependencies {
-                $0.macRunClient = MacRunClient(isMacOS: { true }, launch: { executable, arguments in
+                $0.macHostClient = MacHostClient(isMacOS: { true }, launch: { executable, arguments in
                     #expect(executable.lastPathComponent == "App")
                     #expect(arguments == ["--probe", "value with spaces"])
                     return 7
@@ -230,7 +230,7 @@ struct MacArtifactTests {
         let before = try ArtifactInventory(directory: app)
         await #expect(throws: ExitCode(7)) {
             try await withDependencies {
-                $0.macRunClient = .liveValue
+                $0.macHostClient = .liveValue
             } operation: {
                 try await DevRunCommand.parse(["--app", app.path, "--", "first", "two words"]).run()
             }

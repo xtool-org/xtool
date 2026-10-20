@@ -68,7 +68,7 @@ struct MacSigningTests {
         let captured = LockIsolated<Data?>(nil)
         let calls = LockIsolated<[[String]]>([])
         try await withDependencies {
-            $0.macSigningClient = MacSigningClient(isMacOS: { true }, run: { _, arguments in
+            $0.macHostClient = MacHostClient(isMacOS: { true }, capture: { _, arguments in
                 calls.withValue { $0.append(arguments) }
                 if arguments.contains("--sign") {
                     let input = try #require(arguments.firstIndex(of: "--entitlements"))
@@ -79,9 +79,9 @@ struct MacSigningTests {
                     try Data("signature".utf8).write(to: target.appendingPathComponent("Contents/mock-signature"))
                 }
                 if arguments.contains("--entitlements"), !arguments.contains("--sign") {
-                    return MacSigningCommandResult(output: captured.value ?? Data(), error: Data())
+                    return MacToolOutput(output: captured.value ?? Data(), error: Data())
                 }
-                return MacSigningCommandResult(output: Data(), error: Data("Signature=adhoc\n".utf8))
+                return MacToolOutput(output: Data(), error: Data("Signature=adhoc\n".utf8))
             })
         } operation: {
             try await MacSigningOperation.run(bundle: app, output: output, mode: .adHoc, identity: nil, dryRun: false)
@@ -106,7 +106,7 @@ struct MacSigningTests {
         let output = directory.appendingPathComponent("signed")
         await #expect(throws: (any Error).self) {
             try await withDependencies {
-                $0.macSigningClient = MacSigningClient(isMacOS: { true }, run: { _, _ in
+                $0.macHostClient = MacHostClient(isMacOS: { true }, capture: { _, _ in
                     throw CocoaError(.fileWriteUnknown)
                 })
             } operation: {
@@ -126,8 +126,8 @@ struct MacSigningTests {
         let output = directory.appendingPathComponent("signed")
         await #expect(throws: (any Error).self) {
             try await withDependencies {
-                $0.macSigningClient = MacSigningClient(isMacOS: { true }, run: { _, _ in
-                    MacSigningCommandResult(output: Data(), error: Data("Signature=adhoc\n".utf8))
+                $0.macHostClient = MacHostClient(isMacOS: { true }, capture: { _, _ in
+                    MacToolOutput(output: Data(), error: Data("Signature=adhoc\n".utf8))
                 })
             } operation: {
                 try await MacSigningOperation.run(bundle: app, output: output, mode: .adHoc, identity: nil, dryRun: false)
@@ -184,15 +184,15 @@ struct MacSigningTests {
             + (failure == "runtime" ? "" : "CodeDirectory v=20500 flags=0x10000(runtime)\n")
             + (failure == "timestamp" ? "" : "Timestamp=Oct 13, 2026 at 12:00:00\n")
         let calls = LockIsolated<[[String]]>([])
-        let client = MacSigningClient(isMacOS: { true }, run: { _, arguments in
+        let client = MacHostClient(isMacOS: { true }, capture: { _, arguments in
             calls.withValue { $0.append(arguments) }
             if let index = arguments.firstIndex(of: "--extract-certificates") {
                 try certificate.write(to: URL(fileURLWithPath: arguments[index + 1] + "0"))
             }
-            return MacSigningCommandResult(output: Data(), error: Data(metadata.utf8))
+            return MacToolOutput(output: Data(), error: Data(metadata.utf8))
         })
         if failure == "success" {
-            try await withDependencies { $0.macSigningClient = client } operation: {
+            try await withDependencies { $0.macHostClient = client } operation: {
                 try await MacSigningOperation.run(bundle: app, output: output, mode: .developerID,
                                                   identity: identity, dryRun: false)
             }
@@ -205,7 +205,7 @@ struct MacSigningTests {
             #expect(signing.contains("runtime"))
         } else {
             await #expect(throws: (any Error).self) {
-                try await withDependencies { $0.macSigningClient = client } operation: {
+                try await withDependencies { $0.macHostClient = client } operation: {
                     try await MacSigningOperation.run(bundle: app, output: output, mode: .developerID,
                                                       identity: identity, dryRun: false)
                 }
@@ -235,8 +235,7 @@ struct MacSigningTests {
         let before = try ArtifactInventory(directory: app)
         let output = directory.appendingPathComponent("signed")
         try await withDependencies {
-            $0.macSigningClient = .liveValue
-            $0.macRunClient = .liveValue
+            $0.macHostClient = .liveValue
         } operation: {
             let arguments = [app.path, "--output", output.path, "--mode", "ad-hoc"]
             try await MacSignCommand.parse(arguments + ["--dry-run"]).run()

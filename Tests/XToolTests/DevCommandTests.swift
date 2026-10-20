@@ -119,7 +119,7 @@ struct DevCommandTests {
                 $0.keyValueStorage = ForbiddenAuthStorage()
                 // A non-Mac host, explicitly: resolving the implicit test value crashes with the
                 // swift.org Swift 6.4.0 macOS toolchain (not Xcode 27); pointfreeco/swift-dependencies#474.
-                $0.macRunClient = .testValue
+                $0.macHostClient = .testValue
             } operation: {
                 try await DevRunCommand.parse([]).run()
             }
