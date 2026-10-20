@@ -27,11 +27,16 @@ struct ProductBuilderTests {
 
         func build(_ settings: BuildSettings, arguments: [String]) throws {
             builds.append((settings, arguments))
-            let index = try #require(arguments.firstIndex(of: "--product"))
+            // Without --product, SwiftPM builds every target of the package: the wrapper's products.
+            let sources = URL(fileURLWithPath: settings.packagePath).appendingPathComponent("Sources").path
+            let names = try arguments.firstIndex(of: "--product").map { [arguments[$0 + 1]] }
+                ?? FileManager.default.contentsOfDirectory(atPath: sources)
             try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
-            let executable = output.appendingPathComponent(arguments[index + 1])
-            try Data("fixture".utf8).write(to: executable)
-            try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executable.path)
+            for name in names {
+                let executable = output.appendingPathComponent(name)
+                try Data("fixture".utf8).write(to: executable)
+                try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executable.path)
+            }
         }
 
         func binaryPath(_ settings: BuildSettings, arguments: [String]) -> String {
@@ -139,7 +144,8 @@ struct ProductBuilderTests {
         #expect(artifacts.executables["App"]?.lastPathComponent == "App-App")
         #expect(artifacts.executables["Preview"]?.lastPathComponent == "Preview-Extension")
         #expect(await recorder.builds.allSatisfy { !$0.1.contains("-Xlinker") })
-        // Both products share the wrapper package, so its output directory is queried once.
+        // Both products share the wrapper package: one invocation builds them, one query finds their directory.
+        #expect(await recorder.builds.count == 1)
         #expect(await recorder.queries.count == 1)
     }
 
@@ -193,14 +199,14 @@ struct ProductBuilderTests {
         }
 
         // A clean build plans first, so the overlay adapts the accessors before anything compiles:
-        // one pass per product, with the flags it plans with.
+        // one pass for both wrapped products, with the flags it plans with.
         let clean = try await build()
         #expect(clean.plans == clean.builds)
-        #expect(clean.builds.count == 2)
+        #expect(clean.builds.count == 1)
         #expect(clean.builds.allSatisfy { $0.contains("-vfsoverlay") })
         let cleanDate = try FileManager.default.attributesOfItem(atPath: accessor.path)[.modificationDate] as? Date
 
-        // A no-op rebuild skips planning and runs one pass per product with exactly the previous flags.
+        // A no-op rebuild skips planning and runs one pass with exactly the previous flags.
         let rebuilt = try await build()
         #expect(rebuilt.plans.isEmpty)
         #expect(rebuilt.builds == clean.builds)
@@ -212,8 +218,8 @@ struct ProductBuilderTests {
         // the adapted copy from the earlier build is unchanged: the build itself did not use it.
         try FileManager.default.removeItem(at: output)
         let fallback = try await build(planGenerates: false)
-        #expect(fallback.builds.count == 4)
-        #expect(fallback.builds[0] == fallback.builds[2] && fallback.builds[1] == fallback.builds[3])
+        #expect(fallback.builds.count == 2)
+        #expect(fallback.builds[0] == fallback.builds[1])
     }
 
     @Test func unsupportedCombinationsReject() async throws {

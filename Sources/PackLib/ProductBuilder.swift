@@ -45,7 +45,7 @@ public struct ProductBuilder: Sendable {
         // The overlay covers the accessors of the previous build. When accessors are missing, as on
         // a clean build, a plan-only run generates them without compiling, so each module compiles
         // once; a later pass recompiles any accessor that the overlay still did not adapt.
-        let built = builds.map(\.product)
+        let built = builds.flatMap { $0.outputs.map(\.product) }
         let directory = try await outputDirectory(for: builds) ?? root
         let overlay = try await initialOverlay(for: builds, in: directory, wrapper: wrapper)
         let overlayArguments = overlay.map { ["-Xswiftc", "-vfsoverlay", "-Xswiftc", $0.url.path] } ?? []
@@ -53,11 +53,13 @@ public struct ProductBuilder: Sendable {
         var executables = prebuilt
         for build in builds {
             try await runner.build(build.settings, build.arguments + overlayArguments)
-            let executable = directory.appendingPathComponent(build.name)
-            guard FileManager.default.isExecutableFile(atPath: executable.path) else {
-                throw StringError("Build backend did not produce executable '\(build.name)' at \(executable.path)")
+            for (product, name) in build.outputs {
+                let executable = directory.appendingPathComponent(name)
+                guard FileManager.default.isExecutableFile(atPath: executable.path) else {
+                    throw StringError("Build backend did not produce executable '\(name)' at \(executable.path)")
+                }
+                executables[product.product] = executable
             }
-            executables[build.product.product] = executable
         }
         if let overlay, let final = try SwiftPMResourceAccessor.overlay(for: built, in: directory, output: wrapper) {
             // An accessor the build's overlay did not cover compiled unadapted, even if its adapted
@@ -82,12 +84,12 @@ public struct ProductBuilder: Sendable {
         return BuildArtifacts(directory: directory, executables: executables, staticBinaryTargets: staticTargets)
     }
 
-    private typealias Invocation = (product: Plan.Product, name: String, settings: BuildSettings, arguments: [String])
+    private typealias Invocation = (outputs: [(product: Plan.Product, name: String)], settings: BuildSettings, arguments: [String])
 
     private func initialOverlay(
         for builds: [Invocation], in directory: URL, wrapper: URL
     ) async throws -> SwiftPMResourceAccessor.Overlay? {
-        let built = builds.map(\.product)
+        let built = builds.flatMap { $0.outputs.map(\.product) }
         guard !SwiftPMResourceAccessor.bundleNames(for: built).isEmpty else { return nil }
         let overlay = try SwiftPMResourceAccessor.overlay(for: built, in: directory, output: wrapper, requireAll: false)
         guard let overlay, !overlay.complete else { return overlay }
@@ -107,28 +109,26 @@ public struct ProductBuilder: Sendable {
             $0 == "--scratch-path" || $0.hasPrefix("--scratch-path=")
         } ? [] : ["--scratch-path", root.appendingPathComponent(".build").path]) + ["--disable-build-manifest-caching"]
         var builds: [Invocation] = []
+        var wrapped: [(product: Plan.Product, name: String)] = []
         for product in plan.allProducts {
             if prebuilt[product.product] != nil { continue }
-            let package: URL
-            let name: String
-            let options: [String]
             switch product.resolvedSource {
             case .library:
-                package = wrapper
-                name = product.targetName
-                // Planning already resolved root dependencies; avoid dropping
-                // its development-only dependencies from Package.resolved.
-                options = ["--disable-automatic-resolution"]
-            case .executable(let sourceName):
-                package = root
-                name = sourceName
-                options = try toolsetOptions(name: product.targetName,
-                                             linkerOptions: Self.linkerOptions(product.linkerArguments + sdkArguments),
-                                             in: wrapper)
+                wrapped.append((product, product.targetName))
+            case .executable(let name):
+                let options = try toolsetOptions(name: product.targetName,
+                                                 linkerOptions: Self.linkerOptions(product.linkerArguments + sdkArguments),
+                                                 in: wrapper)
+                builds.append(([(product, name)], settings.withPackagePath(root.path), scratchOptions + ["--product", name] + options))
             case .prebuilt:
                 continue
             }
-            builds.append((product, name, settings.withPackagePath(package.path), scratchOptions + ["--product", name] + options))
+        }
+        if !wrapped.isEmpty {
+            // The wrapper holds exactly the wrapped products, so one invocation builds them all; each
+            // further invocation would plan the whole package graph again. Planning already resolved
+            // root dependencies; avoid dropping its development-only dependencies from Package.resolved.
+            builds.append((wrapped, settings.withPackagePath(wrapper.path), scratchOptions + ["--disable-automatic-resolution"]))
         }
         return builds
     }
