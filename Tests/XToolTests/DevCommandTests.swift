@@ -43,7 +43,7 @@ struct DevCommandTests {
         client.currentDirectory = { root }
         client.loadSchema = { _ in schema }
         client.ensureSDK = { Issue.record("Unexpected SDK setup"); throw StringError("Unexpected SDK setup") }
-        client.legacyPack = { _, _, _ in Issue.record("Unexpected legacy packing"); throw StringError("Unexpected legacy packing") }
+        client.legacyPack = { _, _, _, _ in Issue.record("Unexpected legacy packing"); throw StringError("Unexpected legacy packing") }
         client.deferredPack = { _, _ in Issue.record("Unexpected deferred packing"); throw StringError("Unexpected deferred packing") }
         return client
     }
@@ -353,7 +353,7 @@ struct DevCommandTests {
         let configured = try schema(target: "arm64-apple-ios16.0")
         let recorder = Recorder()
         var effects = client(schema: configured, root: directory)
-        effects.legacyPack = { triple, configuration, xcode in
+        effects.legacyPack = { _, triple, configuration, xcode in
             #expect(triple == (override ?? "arm64-apple-ios16.0"))
             #expect(configuration == .debug)
             #expect(!xcode)
@@ -378,7 +378,7 @@ struct DevCommandTests {
         try FileManager.default.createDirectory(at: app, withIntermediateDirectories: true)
         try Data("app executable".utf8).write(to: app.appendingPathComponent("App"))
         var effects = client(schema: .default, root: directory)
-        effects.legacyPack = { triple, _, xcode in
+        effects.legacyPack = { _, triple, _, xcode in
             #expect(triple == "arm64-apple-ios")
             #expect(!xcode)
             return app
@@ -411,7 +411,7 @@ struct DevCommandTests {
         defer { try? FileManager.default.removeItem(at: directory) }
         let recorder = Recorder()
         var effects = client(schema: .default, root: directory)
-        effects.legacyPack = { triple, configuration, xcode in
+        effects.legacyPack = { _, triple, configuration, xcode in
             #expect(triple == "arm64-apple-ios")
             #expect(configuration == .debug)
             await recorder.record(xcode ? "xcode" : "run")

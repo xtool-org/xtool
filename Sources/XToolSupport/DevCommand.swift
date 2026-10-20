@@ -19,9 +19,8 @@ struct PackOperation {
         }
     }
 
-    static let defaultTriple = "arm64-apple-ios"
-
-    var triple: String?
+    var schema: PackSchema
+    var triple: String
     var buildOptions = BuildOptions(configuration: .debug)
     var xcode = false
 
@@ -29,32 +28,15 @@ struct PackOperation {
     func run() async throws -> URL {
         // TODO: support running inside a child directory
 
-        let contents = try FileManager.default.contentsOfDirectory(atPath: ".")
-        guard contents.contains("Package.swift")
-            || contents.contains(where: { $0.hasPrefix("Package@") && $0.hasSuffix(".swift") })
-            else {
-            throw Console.Error("Could not find Package.swift in this directory.")
-        }
+        try Self.requirePackageManifest(in: URL(fileURLWithPath: "."))
 
         try await EnsureSDKOperation(quiet: true).run()
 
         print("Planning...")
 
-        let schema: PackSchema
-        let configPath = URL(fileURLWithPath: "xtool.yml")
-        if FileManager.default.fileExists(atPath: configPath.path) {
-            schema = try await PackSchema(url: configPath)
-        } else {
-            schema = .default
-            print("""
-            warning: Could not locate configuration file '\(configPath.path)'. Using default \
-            configuration with 'com.example' organization ID.
-            """)
-        }
-
         let buildSettings = try await BuildSettings(
             configuration: buildOptions.configuration,
-            triple: triple ?? Self.defaultTriple,
+            triple: triple,
             options: []
         )
 
@@ -101,6 +83,15 @@ struct PackOperation {
 
         return bundle
     }
+
+    static func requirePackageManifest(in directory: URL) throws {
+        let contents = try FileManager.default.contentsOfDirectory(atPath: directory.path)
+        guard contents.contains("Package.swift")
+            || contents.contains(where: { $0.hasPrefix("Package@") && $0.hasSuffix(".swift") })
+            else {
+            throw Console.Error("Could not find Package.swift in this directory.")
+        }
+    }
 }
 
 struct DevXcodeCommand: AsyncParsableCommand {
@@ -113,7 +104,7 @@ struct DevXcodeCommand: AsyncParsableCommand {
         let request = try await DevBuildRequest.load()
         try request.validate(route: .xcode)
         @Dependency(\.devCommandClient) var client
-        let result = try await client.legacyPack(request.triple, .debug, true)
+        let result = try await client.legacyPack(request.schema, request.triple, .debug, true)
         print("Wrote to \(result.path)")
     }
 }
@@ -149,7 +140,7 @@ struct DevBuildCommand: AsyncParsableCommand {
     @Option(
         help: ArgumentHelp(
             "Custom target triple to build for",
-            discussion: "Overrides xtool.yml target; otherwise defaults to '\(PackOperation.defaultTriple)'"
+            discussion: "Overrides xtool.yml target; otherwise defaults to '\(ResolvedTarget.defaultTriple)'"
         )
     ) var triple: String?
 
@@ -179,7 +170,7 @@ struct DevBuildCommand: AsyncParsableCommand {
         }
 
         @Dependency(\.devCommandClient) var client
-        let url = try await client.legacyPack(request.triple, packOptions.configuration, false)
+        let url = try await client.legacyPack(request.schema, request.triple, packOptions.configuration, false)
 
         if let signingAuthToken {
             let installDelegate = XToolInstallerDelegate()
@@ -290,7 +281,7 @@ struct DevRunCommand: AsyncParsableCommand {
         }
         guard appArguments.isEmpty else { throw Console.Error("App arguments currently require a macOS target") }
         @Dependency(\.devCommandClient) var client
-        let output = try await client.legacyPack(simulatorTriple ?? request.triple, packOptions.configuration, false)
+        let output = try await client.legacyPack(request.schema, simulatorTriple ?? request.triple, packOptions.configuration, false)
 
         #if os(macOS)
         if simulator {
@@ -416,11 +407,7 @@ struct DeferredMacBuildOperation {
             throw Console.Error("macOS Debug builds on Linux need unavailable codesign support; use --configuration release")
         }
         #endif
-        let contents = try FileManager.default.contentsOfDirectory(atPath: request.directory.path)
-        guard contents.contains("Package.swift")
-            || contents.contains(where: { $0.hasPrefix("Package@") && $0.hasSuffix(".swift") }) else {
-            throw Console.Error("Could not find Package.swift in this directory.")
-        }
+        try PackOperation.requirePackageManifest(in: request.directory)
         @Dependency(\.devCommandClient) var client
         if options?.swiftSDKsPath == nil { try await client.ensureSDK() }
         print("Planning...")
@@ -482,7 +469,7 @@ struct DevCommandClient: Sendable {
     var currentDirectory: @Sendable () -> URL
     var loadSchema: @Sendable (URL) async throws -> PackSchema
     var ensureSDK: @Sendable () async throws -> Void
-    var legacyPack: @Sendable (String, BuildConfiguration, Bool) async throws -> URL
+    var legacyPack: @Sendable (PackSchema, String, BuildConfiguration, Bool) async throws -> URL
     var deferredPack: @Sendable (BuildSettings, Plan) async throws -> URL
 }
 
@@ -503,8 +490,10 @@ extension DevCommandClient: DependencyKey {
             return .default
         },
         ensureSDK: { try await EnsureSDKOperation(quiet: true).run() },
-        legacyPack: { triple, configuration, xcode in
-            try await PackOperation(triple: triple, buildOptions: .init(configuration: configuration), xcode: xcode).run()
+        legacyPack: { schema, triple, configuration, xcode in
+            try await PackOperation(
+                schema: schema, triple: triple, buildOptions: .init(configuration: configuration), xcode: xcode
+            ).run()
         },
         deferredPack: { settings, plan in
             try await Packer(buildSettings: settings, plan: plan).pack()
@@ -515,7 +504,7 @@ extension DevCommandClient: DependencyKey {
         currentDirectory: { URL(fileURLWithPath: "/unexpected-command-directory") },
         loadSchema: { _ in throw StringError("Unexpected schema load") },
         ensureSDK: { throw StringError("Unexpected SDK setup") },
-        legacyPack: { _, _, _ in throw StringError("Unexpected iOS packing") },
+        legacyPack: { _, _, _, _ in throw StringError("Unexpected iOS packing") },
         deferredPack: { _, _ in throw StringError("Unexpected deferred packing") }
     )
 }
