@@ -157,7 +157,9 @@ public struct BuildSettings: Sendable {
         return copy
     }
 
-    /// LLD otherwise records the deployment version as the SDK version on Linux.
+    /// Records the plan's deployment target as each product's minimum OS on every host; packages
+    /// still compile for their own minimums. Also passes the real SDK version, which LLD on Linux
+    /// would otherwise replace with the deployment version.
     /// Keep this target-only: SwiftPM CLI linker flags also affect host macros.
     func macOSLinkerArguments() async throws -> [String] {
         let target = try TargetTriple(compilerTriple)
