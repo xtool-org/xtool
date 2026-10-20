@@ -280,9 +280,10 @@ struct ProductBuilderTests {
             name: "BuilderFixture",
             platforms: [.macOS(.v10_15)],
             products: [.executable(name: "DirectExecutable", targets: ["Direct"]),
+                       .executable(name: "ServiceExecutable", targets: ["ServiceMain"]),
                        .library(name: "HelperLibrary", targets: ["Helper", "Gate"])],
             targets: [.executableTarget(name: "Direct", resources: [.copy("message.txt")]),
-                      .target(name: "Helper"), .target(name: "Gate")]
+                      .executableTarget(name: "ServiceMain"), .target(name: "Helper"), .target(name: "Gate")]
         )
         """
         try Data(manifest.utf8).write(to: root.appendingPathComponent("Package.swift"))
@@ -291,6 +292,9 @@ struct ProductBuilderTests {
         try FileManager.default.createDirectory(at: direct, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: helper.appendingPathComponent("include"), withIntermediateDirectories: true)
         try Data("import AppKit\nprint(NSApplication.self)".utf8).write(to: direct.appendingPathComponent("main.swift"))
+        let service = root.appendingPathComponent("Sources/ServiceMain")
+        try FileManager.default.createDirectory(at: service, withIntermediateDirectories: true)
+        try Data("print(1)".utf8).write(to: service.appendingPathComponent("main.swift"))
         // Modules compile for their package's own minimum (macOS 10.15), not the plan's 15.0:
         // like swift-perception's Bindable, this backport's extension is unavailable from macOS 14.
         let gate = root.appendingPathComponent("Sources/Gate")
@@ -304,13 +308,14 @@ struct ProductBuilderTests {
         try Data("#include <vector>\nint main() { std::vector<int> values(3, 1); return values.at(1); }".utf8)
             .write(to: helper.appendingPathComponent("Entry.cpp"))
         let target = try ResolvedTarget.resolve(cliTarget: "arm64-apple-macos15.0")
+        // Direct and wrapped products alternate, so each build follows another package's build in the shared scratch.
         let plan = try Plan(target: target,
                             app: product("App", source: .executable(product: "DirectExecutable"), target: target),
                             extensions: [product("Preview", source: .library(product: "HelperLibrary"),
                                                  kind: .appExtension, target: target)],
                             nestedProducts: [product("Helper", source: .library(product: "HelperLibrary"),
                                                      kind: .helperExecutable, target: target),
-                                             product("Service", source: .library(product: "HelperLibrary"),
+                                             product("Service", source: .executable(product: "ServiceExecutable"),
                                                      kind: .xpcService, target: target)])
         let settings = try await BuildSettings(configuration: configuration, triple: target.triple, buildSystem: .swiftPM,
                                                packagePath: root.path)

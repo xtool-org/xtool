@@ -108,9 +108,11 @@ public struct ProductBuilder: Sendable {
     ) throws -> [Invocation] {
         // Share one scratch tree so resources and dependency libraries remain
         // beside all products, including mixed direct and wrapped products.
-        let scratchOptions = settings.customOptions.contains {
+        // SwiftPM's cached build manifest in that tree tracks neither the package path nor the toolset:
+        // reusing it would link a product with another invocation's options, or miss the product.
+        let scratchOptions = (settings.customOptions.contains {
             $0 == "--scratch-path" || $0.hasPrefix("--scratch-path=")
-        } ? [] : ["--scratch-path", root.appendingPathComponent(".build").path]
+        } ? [] : ["--scratch-path", root.appendingPathComponent(".build").path]) + ["--disable-build-manifest-caching"]
         var builds: [Invocation] = []
         for product in plan.allProducts {
             if prebuilt[product.product] != nil { continue }
