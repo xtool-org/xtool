@@ -14,7 +14,7 @@ public struct Planner: Sendable {
         self.schema = schema
     }
 
-    private static let decoder: JSONDecoder = {
+    fileprivate static let decoder: JSONDecoder = {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         return decoder
@@ -28,6 +28,8 @@ public struct Planner: Sendable {
         let dependencyRoot = try Self.decoder.decode(
             PackageDependency.self, from: try await inspection.dependencies(buildSettings)
         )
+        let cacheDirectory = URL(fileURLWithPath: buildSettings.packagePath, isDirectory: true)
+            .appendingPathComponent(".build/xtool-inspection", isDirectory: true)
         var nodes: [PackageDependency] = []
         var visited: Set<String> = []
         var dependencies = [dependencyRoot]
@@ -36,6 +38,7 @@ public struct Planner: Sendable {
             dependencies.append(contentsOf: node.dependencies)
             nodes.append(node)
         }
+        let toolchain = nodes.contains(where: \.isPinned) ? try await inspection.toolchain() : ""
         let packages = try await withThrowingTaskGroup(
             of: (String, InspectedPackage).self, returning: [String: InspectedPackage].self
         ) { group in
@@ -45,13 +48,8 @@ public struct Planner: Sendable {
                     packages[identity] = package
                 }
                 group.addTask {
-                    let settings = buildSettings.withPackagePath(node.path)
-                    async let description = inspection.describe(settings)
-                    async let manifest = inspection.manifest(settings)
-                    return try await (node.identity, InspectedPackage(
-                        description: Self.decoder.decode(PackageDump.self, from: jsonContents(description)),
-                        manifest: Self.decoder.decode(PackageManifest.self, from: jsonContents(manifest))
-                    ))
+                    let cache = node.cacheKey(toolchain: toolchain).map { cacheDirectory.appendingPathComponent("\($0).json") }
+                    return try await (node.identity, inspect(node, cache: cache))
                 }
             }
             for try await (identity, package) in group { packages[identity] = package }
@@ -61,6 +59,26 @@ public struct Planner: Sendable {
             throw StringError("Could not inspect root package '\(dependencyRoot.identity)'")
         }
         return PackageGraph(rootIdentity: dependencyRoot.identity, packages: packages)
+    }
+
+    /// A checkout pinned to a released version always inspects the same, so its results are reused across
+    /// builds. Local and branch dependencies change without a new version and are inspected every time.
+    private func inspect(_ node: PackageDependency, cache: URL?) async throws -> InspectedPackage {
+        if let cache, let data = try? Data(contentsOf: cache),
+           let package = try? JSONDecoder().decode(RawInspection.self, from: data).decoded() {
+            return package
+        }
+        let settings = buildSettings.withPackagePath(node.path)
+        async let description = inspection.describe(settings)
+        async let manifest = inspection.manifest(settings)
+        let raw = try await RawInspection(description: jsonContents(description), manifest: jsonContents(manifest))
+        let package = try raw.decoded()
+        if let cache {
+            // A failed write only costs the next build this inspection.
+            try? FileManager.default.createDirectory(at: cache.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try? JSONEncoder().encode(raw).write(to: cache, options: .atomic)
+        }
+        return package
     }
 
     public func createPlan() async throws -> Plan {
@@ -282,7 +300,32 @@ private func jsonContents(_ data: Data) -> Data {
 private struct PackageDependency: Decodable {
     let identity: String
     let path: String
+    let url: String?
+    let version: String?
+    let traits: [String]?
     let dependencies: [PackageDependency]
+
+    /// Local and branch or revision dependencies report `unspecified`.
+    var isPinned: Bool {
+        url != nil && version?.wholeMatch(of: #/\d+\.\d+\.\d+([-+][0-9A-Za-z.+-]*)?/#) != nil
+    }
+
+    func cacheKey(toolchain: String) -> String? {
+        guard isPinned, let url, let version else { return nil }
+        let key = [toolchain, identity, url, version, path] + (traits ?? []).sorted()
+        return ArtifactInventory.hash(data: Data(key.joined(separator: "\n").utf8))
+    }
+}
+
+/// SwiftPM's output for one package, kept verbatim so a cached copy decodes like a fresh one.
+private struct RawInspection: Codable {
+    let description: Data
+    let manifest: Data
+
+    func decoded() throws -> InspectedPackage {
+        InspectedPackage(description: try Planner.decoder.decode(PackageDump.self, from: description),
+                         manifest: try Planner.decoder.decode(PackageManifest.self, from: manifest))
+    }
 }
 
 private struct PackageDump: Decodable, Sendable {
@@ -444,6 +487,8 @@ struct PackageInspectionClient: Sendable {
     var dependencies: @Sendable (BuildSettings) async throws -> Data
     var describe: @Sendable (BuildSettings) async throws -> Data
     var manifest: @Sendable (BuildSettings) async throws -> Data
+    /// Part of the inspection cache key: SwiftPM releases may describe the same checkout differently.
+    var toolchain: @Sendable () async throws -> String = { try await SwiftVersion.current.description }
 
     private static func run(_ settings: BuildSettings, arguments: [String]) async throws -> Data {
         let invocation = try await settings.swiftPMInvocation(forTool: "package", arguments: arguments)

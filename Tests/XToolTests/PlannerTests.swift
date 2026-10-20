@@ -107,6 +107,49 @@ struct PlannerTests {
         #expect(await gauge.peak > 1)
     }
 
+    @Test func pinnedDependencyInspectionIsReused() async throws {
+        actor Calls {
+            var paths: [String] = []
+            func record(_ path: String) { paths.append(path) }
+            func take() -> [String] { defer { paths = [] }; return paths.sorted() }
+        }
+        let calls = Calls()
+        let root = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let packages = try [root.path: package(), "/pinned": package("Pinned"), "/local": package("Local")]
+        func plan(version: String) async throws {
+            let tree = try json([
+                "identity": "root", "url": root.path, "version": "unspecified", "path": root.path, "dependencies": [
+                    ["identity": "pinned", "url": "https://example.com/pinned", "version": version, "traits": ["default"],
+                     "path": "/pinned", "dependencies": []] as [String: Any],
+                    ["identity": "local", "url": "/local", "version": "unspecified", "path": "/local", "dependencies": []],
+                ],
+            ])
+            let client = PackageInspectionClient(
+                dependencies: { _ in tree },
+                describe: { settings in
+                    await calls.record(settings.packagePath)
+                    return try #require(packages[settings.packagePath]).description
+                },
+                manifest: { settings in try #require(packages[settings.packagePath]).manifest },
+                toolchain: { "6.2.0" }
+            )
+            let settings = try await BuildSettings(configuration: .release, triple: "arm64-apple-ios", buildSystem: .swiftPM,
+                                                   packagePath: root.path)
+            _ = try await withDependencies {
+                $0.packageInspection = client
+            } operation: {
+                try await Planner(buildSettings: settings, schema: .default).createPlan()
+            }
+        }
+        try await plan(version: "1.0.0")
+        #expect(await calls.take() == ["/local", "/pinned", root.path].sorted())
+        try await plan(version: "1.0.0")
+        #expect(await calls.take() == ["/local", root.path].sorted())
+        try await plan(version: "1.1.0")
+        #expect(await calls.take() == ["/local", "/pinned", root.path].sorted())
+    }
+
     @Test func sameNamedTargetsInDifferentPackagesBothContributeResources() async throws {
         let root = try package(targets: [target("App", dependencies: [
             dependency("First", package: "one"), dependency("Second", package: "two"),
