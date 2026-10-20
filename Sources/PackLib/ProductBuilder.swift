@@ -496,11 +496,7 @@ struct MachOBinary {
             let matching = slices.filter { $0.cpu == cpu }
             guard !matching.isEmpty else { throw StringError("Wrong architecture; expected \(target.architecture)") }
             let archive = matching.allSatisfy(\.archiveMember)
-            let platform: UInt32 = switch target.platform {
-            case .macOS: 1
-            case .iOS: 2
-            case .iOSSimulator: 7
-            }
+            let platform = platformType(for: target.platform)
             for slice in matching {
                 guard slice.platform == platform else {
                     throw StringError("Wrong or missing Mach-O platform; expected \(target.platform.rawValue)")
@@ -517,6 +513,14 @@ struct MachOBinary {
             return archive
         } catch {
             throw StringError("Incompatible binary '\(url.path)': \(error)")
+        }
+    }
+
+    static func platformType(for platform: TargetPlatform) -> UInt32 {
+        switch platform {
+        case .macOS: 1
+        case .iOS: 2
+        case .iOSSimulator: 7
         }
     }
 

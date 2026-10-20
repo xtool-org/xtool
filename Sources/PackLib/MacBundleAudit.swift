@@ -48,6 +48,8 @@ public enum MacBundleAudit {
         let inventory = try ArtifactInventory(directory: root, hashContents: false)
         var code: [String: MachOBinary.Slice] = [:]
         var signing: Set<String> = []
+        let cpu = try MachOBinary.cpuType(for: target.architecture)
+        let platform = MachOBinary.platformType(for: .macOS)
         for (path, entry) in inventory.files where entry.kind == "file" {
             let url = root.appendingPathComponent(path)
             let handle = try FileHandle(forReadingFrom: url)
@@ -56,9 +58,8 @@ public enum MacBundleAudit {
             guard [Data([0xcf, 0xfa, 0xed, 0xfe]), Data([0xca, 0xfe, 0xba, 0xbe]),
                    Data([0xbe, 0xba, 0xfe, 0xca])].contains(prefix) else { continue }
             let slices = try MachOBinary.inspect([UInt8](Data(contentsOf: url)))
-            let cpu: UInt32 = target.architecture == "arm64" ? 0x0100000c : 0x01000007
             guard let slice = slices.first(where: { $0.cpu == cpu }), [2, 6, 8].contains(slice.fileType),
-                  slice.platform == 1, slice.minimumOS <= MachOBinary.packedVersion(target.deploymentTarget) else {
+                  slice.platform == platform, slice.minimumOS <= MachOBinary.packedVersion(target.deploymentTarget) else {
                 throw StringError("Incompatible nested code: \(path)")
             }
             code[path] = slice
