@@ -224,10 +224,7 @@ public struct BundleAssembler: Sendable {
         }
         if try entry.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink == true {
             let link = try FileManager.default.destinationOfSymbolicLink(atPath: entry.path)
-            let resolved = entry.resolvingSymlinksInPath().standardizedFileURL.path
-            let rootPath = root.standardizedFileURL.path
-            guard !link.hasPrefix("/"), resolved.hasPrefix(rootPath + "/"),
-                  FileManager.default.fileExists(atPath: resolved) else {
+            guard ArtifactInventory.isContainedSymlink(entry, destination: link, root: root) else {
                 throw StringError("Broken or escaping symbolic link in bundle input: \(entry.path) -> \(link)")
             }
         }

@@ -107,6 +107,23 @@ struct BundleAssemblerTests {
         return framework
     }
 
+    @Test func internalSymlinksAreAcceptedUnderASymlinkedPackagePath() throws {
+        let root = try root()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let real = root.appendingPathComponent("real", isDirectory: true)
+        try FileManager.default.createDirectory(at: real, withIntermediateDirectories: true)
+        let linked = root.appendingPathComponent("linked", isDirectory: true)
+        try FileManager.default.createSymbolicLink(at: linked, withDestinationURL: real)
+        let app = try product(resources: [.binaryTarget(name: "Dynamic")])
+        let plan = try Plan(target: app.target, app: app)
+        let artifacts = try artifacts(plan, in: linked)
+        _ = try framework("Dynamic", in: artifacts.directory)
+        let output = root.appendingPathComponent("App.app")
+        try BundleAssembler(plan: plan, sourceDirectory: linked).assemble(artifacts: artifacts, at: output)
+        let binary = output.appendingPathComponent("Contents/Frameworks/Dynamic.framework/Dynamic")
+        #expect(FileManager.default.fileExists(atPath: binary.path))
+    }
+
     @Test func frameworksStayIntactAndArchivesAreExcluded() throws {
         let root = try root()
         defer { try? FileManager.default.removeItem(at: root) }

@@ -14,6 +14,14 @@ public struct ArtifactInventory: Codable, Sendable, Equatable {
         public var link: String?
     }
 
+    /// A link is safe when it is relative and resolves to an existing item inside `root`.
+    /// Both sides resolve symlinks, so a symlinked parent of `root` cannot fail the comparison.
+    static func isContainedSymlink(_ url: URL, destination link: String, root: URL) -> Bool {
+        let root = root.resolvingSymlinksInPath().standardizedFileURL.path
+        let resolved = url.resolvingSymlinksInPath().standardizedFileURL.path
+        return !link.hasPrefix("/") && resolved.hasPrefix(root + "/") && FileManager.default.fileExists(atPath: resolved)
+    }
+
     public init(directory: URL, hashContents: Bool = true) throws {
         let manager = FileManager.default
         let root = directory.resolvingSymlinksInPath().standardizedFileURL
@@ -25,9 +33,7 @@ public struct ArtifactInventory: Codable, Sendable, Equatable {
             let values = try url.resourceValues(forKeys: [.isRegularFileKey, .isDirectoryKey, .isSymbolicLinkKey])
             if values.isSymbolicLink == true {
                 let link = try manager.destinationOfSymbolicLink(atPath: url.path)
-                let resolved = url.resolvingSymlinksInPath().standardizedFileURL
-                guard !link.hasPrefix("/"), resolved.path.hasPrefix(root.path + "/"),
-                      manager.fileExists(atPath: resolved.path) else {
+                guard Self.isContainedSymlink(url, destination: link, root: root) else {
                     throw StringError("Broken or escaping artifact symlink: \(path)")
                 }
                 entries[path] = Entry(kind: "symlink", executable: false, link: link)
