@@ -2,6 +2,34 @@ import Testing
 import Foundation
 @testable import PackLib
 
+@Test(arguments: [ApplePlatform.macOS, .macCatalyst], [false, true])
+func nativeDesktopPackageResourcesRequireSwiftBuild(platform: ApplePlatform, extensionOnly: Bool) throws {
+    var app = Plan.Product(
+        type: .application, product: "Example", deploymentTarget: "17.0", bundleID: "com.example.app",
+        infoPlist: [:], resources: [.root(source: "custom.txt")], iconPath: nil, entitlementsPath: nil
+    )
+    var ext = app
+    ext.type = .appExtension
+    ext.product = "Extension"
+    let resource = Plan.Resource.bundle(package: "Example", target: "Content")
+    if extensionOnly {
+        ext.resources.append(resource)
+    } else {
+        app.resources.append(resource)
+    }
+    let plan = Plan(app: app, extensions: [ext])
+    #expect(throws: StringError.self) {
+        try plan.validateResourceBundleSupport(platform: platform, buildSystem: .swiftPM)
+    }
+    try plan.validateResourceBundleSupport(platform: platform, buildSystem: .swiftBuild)
+    try plan.validateResourceBundleSupport(platform: .iOS, buildSystem: .swiftPM)
+    try plan.validateResourceBundleSupport(platform: .tvOS, buildSystem: .swiftPM)
+
+    app.resources = [.root(source: "custom.txt")]
+    ext.resources = []
+    try Plan(app: app, extensions: [ext]).validateResourceBundleSupport(platform: platform, buildSystem: .swiftPM)
+}
+
 @Test func cfBundleSupportedPlatformsFollowsBuildTriple() {
     #expect(Packer.cfBundleSupportedPlatforms(for: "arm64-apple-ios") == ["iPhoneOS"])
     #expect(Packer.cfBundleSupportedPlatforms(for: "arm64-apple-ios-simulator") == ["iPhoneSimulator"])
