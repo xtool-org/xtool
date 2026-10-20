@@ -24,7 +24,7 @@ public enum MacBundleAudit {
     /// Without `LSMinimumSystemVersion`, the minimum is the one recorded in that slice.
     public static func runTarget(bundle: URL, hostArchitecture: String) throws -> ResolvedTarget {
         let main = try executable(in: bundle)
-        let slices = try MachOBinary.inspect([UInt8](Data(contentsOf: main)))
+        let slices = try MachOBinary.inspect(contentsOf: main)
         let candidates = hostArchitecture == "arm64" ? ["arm64", "x86_64"] : [hostArchitecture]
         var match: (architecture: String, slice: MachOBinary.Slice)?
         for architecture in candidates where match == nil {
@@ -57,7 +57,7 @@ public enum MacBundleAudit {
             try handle.close()
             guard [Data([0xcf, 0xfa, 0xed, 0xfe]), Data([0xca, 0xfe, 0xba, 0xbe]),
                    Data([0xbe, 0xba, 0xfe, 0xca])].contains(prefix) else { continue }
-            let slices = try MachOBinary.inspect([UInt8](Data(contentsOf: url)))
+            let slices = try MachOBinary.inspect(contentsOf: url)
             guard let slice = slices.first(where: { $0.cpu == cpu }), [2, 6, 8].contains(slice.fileType),
                   slice.platform == platform, slice.minimumOS <= MachOBinary.packedVersion(target.deploymentTarget) else {
                 throw StringError("Incompatible nested code: \(path)")

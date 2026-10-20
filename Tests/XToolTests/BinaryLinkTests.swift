@@ -144,8 +144,8 @@ struct BinaryLinkTests {
         let header: [UInt32] = [0xcafebabe, 2, 0x01000007, 0, 48, 56, 0, 0x0100000c, 0, 104, 56, 0]
         for word in header { data += Data((0..<4).map { UInt8(truncatingIfNeeded: word >> ((3 - $0) * 8)) }) }
         data += slices[0] + slices[1]
-        #expect(try MachOBinary.inspect(Array(data)).count == 2)
-        #expect(throws: (any Error).self) { try MachOBinary.inspect(Array(data.dropLast())) }
+        #expect(try MachOBinary.inspect(data).count == 2)
+        #expect(throws: (any Error).self) { try MachOBinary.inspect(data.dropLast()) }
     }
 
     @Test func universalStaticArchiveIsStatic() throws {

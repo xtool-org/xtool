@@ -339,7 +339,7 @@ struct ProductBuilderTests {
         let expectedSDK = try #require(try await settings.withTarget(target).macOSLinkerArguments().last)
         for product in plan.allProducts {
             let executable = try #require(artifacts.executables[product.product])
-            let slice = try #require(MachOBinary.inspect(Array(Data(contentsOf: executable))).first)
+            let slice = try #require(MachOBinary.inspect(contentsOf: executable).first)
             #expect(slice.platform == 1)
             #expect(slice.minimumOS == MachOBinary.packedVersion("15.0"))
             #expect(slice.sdk == MachOBinary.packedVersion(expectedSDK))

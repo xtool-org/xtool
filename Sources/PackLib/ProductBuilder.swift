@@ -468,7 +468,7 @@ struct MachOBinary {
         }
         var dependencies: [Dependency] = []
 
-        mutating func read(command: UInt32, load: [UInt8]) throws {
+        mutating func read(command: UInt32, load: UnsafeRawBufferPointer) throws {
             switch command {
             case 0x32: // LC_BUILD_VERSION
                 guard platform == nil else { throw StringError("Duplicate Mach-O platform metadata") }
@@ -496,7 +496,7 @@ struct MachOBinary {
             throw StringError("Missing binary artifact: \(url.path)")
         }
         do {
-            let slices = try inspect([UInt8](try Data(contentsOf: url)))
+            let slices = try inspect(contentsOf: url)
             let cpu = try cpuType(for: target.architecture)
             let matching = slices.filter { $0.cpu == cpu }
             guard !matching.isEmpty else { throw StringError("Wrong architecture; expected \(target.architecture)") }
@@ -558,8 +558,19 @@ struct MachOBinary {
         return (min(parts[0], 65535) << 16) | (min(parts[1], 255) << 8) | min(parts[2], 255)
     }
 
-    static func inspect(_ bytes: [UInt8]) throws -> [Slice] {
-        if bytes.starts(with: Array("!<arch>\n".utf8)) { return try archiveSlices(bytes) }
+    /// Maps the file instead of reading it: static archives can be hundreds of megabytes,
+    /// and parsing touches only headers and load commands.
+    static func inspect(contentsOf url: URL) throws -> [Slice] {
+        try inspect(Data(contentsOf: url, options: .alwaysMapped))
+    }
+
+    static func inspect(_ data: Data) throws -> [Slice] {
+        try data.withUnsafeBytes { try inspect($0) }
+    }
+
+    /// Nested slices and archive members are parsed in place, without copying.
+    private static func inspect(_ bytes: UnsafeRawBufferPointer) throws -> [Slice] {
+        if bytes.starts(with: "!<arch>\n".utf8) { return try archiveSlices(bytes) }
         let magic = try word(bytes, 0)
         if magic == 0xbebafeca || magic == 0xcafebabe {
             let bigEndian = magic == 0xbebafeca
@@ -572,7 +583,7 @@ struct MachOBinary {
                 guard offset >= 8 + count * 20, offset <= bytes.count, size <= bytes.count - offset else {
                     throw StringError("Invalid universal binary slice")
                 }
-                let slices = try inspect(Array(bytes[offset..<(offset + size)]))
+                let slices = try inspect(UnsafeRawBufferPointer(rebasing: bytes[offset..<(offset + size)]))
                 let cpu = try word(bytes, entry, bigEndian: bigEndian)
                 guard slices.allSatisfy({ $0.cpu == cpu }) else { throw StringError("Universal binary CPU mismatch") }
                 return slices
@@ -582,7 +593,7 @@ struct MachOBinary {
         return [try thinSlice(bytes)]
     }
 
-    private static func archiveSlices(_ bytes: [UInt8]) throws -> [Slice] {
+    private static func archiveSlices(_ bytes: UnsafeRawBufferPointer) throws -> [Slice] {
         var offset = 8
         var slices: [Slice] = []
         while offset < bytes.count {
@@ -598,7 +609,8 @@ struct MachOBinary {
             let actualName = nameSize > 0
                 ? String(decoding: bytes[(offset + 60)..<(offset + 60 + nameSize)], as: UTF8.self) : name
             if !actualName.hasPrefix("__.SYMDEF") && actualName != "/" && actualName != "//" {
-                slices += try inspect(Array(bytes[(offset + 60 + nameSize)..<(offset + 60 + size)])).map {
+                let member = UnsafeRawBufferPointer(rebasing: bytes[(offset + 60 + nameSize)..<(offset + 60 + size)])
+                slices += try inspect(member).map {
                     var member = $0
                     member.archiveMember = true
                     return member
@@ -610,7 +622,7 @@ struct MachOBinary {
         return slices
     }
 
-    private static func thinSlice(_ bytes: [UInt8]) throws -> Slice {
+    private static func thinSlice(_ bytes: UnsafeRawBufferPointer) throws -> Slice {
         var slice = Slice(cpu: try word(bytes, 4), fileType: try word(bytes, 12))
         let count = Int(try word(bytes, 16))
         let size = Int(try word(bytes, 20))
@@ -622,7 +634,7 @@ struct MachOBinary {
             let command = try word(bytes, offset)
             let length = Int(try word(bytes, offset + 4))
             guard length >= 8, length <= 32 + size - offset else { throw StringError("Invalid Mach-O load command") }
-            let load = Array(bytes[offset..<(offset + length)])
+            let load = UnsafeRawBufferPointer(rebasing: bytes[offset..<(offset + length)])
             try slice.read(command: command, load: load)
             offset += length
         }
@@ -630,7 +642,7 @@ struct MachOBinary {
         return slice
     }
 
-    private static func loadString(_ load: [UInt8]) throws -> String {
+    private static func loadString(_ load: UnsafeRawBufferPointer) throws -> String {
         let offset = Int(try word(load, 8))
         guard offset >= 12, offset < load.count, let end = load[offset...].firstIndex(of: 0) else {
             throw StringError("Invalid Mach-O load-command string")
@@ -638,7 +650,7 @@ struct MachOBinary {
         return String(decoding: load[offset..<end], as: UTF8.self)
     }
 
-    private static func word(_ bytes: [UInt8], _ offset: Int, bigEndian: Bool = false) throws -> UInt32 {
+    private static func word(_ bytes: UnsafeRawBufferPointer, _ offset: Int, bigEndian: Bool = false) throws -> UInt32 {
         guard offset >= 0, offset <= bytes.count, bytes.count - offset >= 4 else { throw StringError("Truncated Mach-O data") }
         return (0..<4).reduce(UInt32(0)) { value, index in
             value | (UInt32(bytes[offset + index]) << ((bigEndian ? 3 - index : index) * 8))
