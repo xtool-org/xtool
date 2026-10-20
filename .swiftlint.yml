@@ -73,3 +73,4 @@ included:
   - macOS/XToolMac
 excluded:
   - Sources/DeveloperAPI/Generated
+  - Sources/XPIF

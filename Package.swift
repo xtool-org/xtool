@@ -36,6 +36,7 @@ let package = Package(
         .macOS(.v14),
     ],
     products: [
+        .library(name: "XPIF", targets: ["XPIF"]),
         .library(
             name: "XKit",
             targets: ["XKit"]
@@ -87,6 +88,15 @@ let package = Package(
         .package(url: "https://github.com/tuist/XcodeProj.git", from: "9.17.5"),
     ],
     targets: [
+        .target(
+            name: "XPIF",
+            dependencies: [
+                .product(name: "Crypto", package: "swift-crypto"),
+                .product(name: "OrderedCollections", package: "swift-collections"),
+            ],
+            exclude: ["LICENSE.txt", "README.md"],
+            swiftSettings: swiftSettings,
+        ),
         .target(
             name: "CXKit",
             dependencies: [
@@ -165,6 +175,7 @@ let package = Package(
         .testTarget(
             name: "XToolTests",
             dependencies: [
+                "XPIF",
                 "XKit",
                 "XToolSupport",
                 "XCLIUtils",
@@ -173,6 +184,7 @@ let package = Package(
                 .product(name: "X509", package: "swift-certificates"),
                 .product(name: "CustomDump", package: "swift-custom-dump"),
             ],
+            exclude: ["Fixtures"],
             swiftSettings: swiftSettings,
         ),
         .target(

@@ -1,0 +1,48 @@
+[
+  {
+    "type": "workspace",
+    "signature": "workspace-signature",
+    "contents": {
+      "guid": "workspace",
+      "name": "Fixture Workspace",
+      "path": "/tmp/Fixture",
+      "projects": ["project-signature"]
+    }
+  },
+  {
+    "type": "project",
+    "signature": "project-signature",
+    "contents": {
+      "guid": "project",
+      "projectName": "Fixture Project",
+      "projectIsPackage": "true",
+      "path": "/tmp/Fixture/Project.xcodeproj",
+      "projectDirectory": "/tmp/Fixture",
+      "buildConfigurations": [],
+      "defaultConfigurationName": "Release",
+      "groupTree": {
+        "type": "group",
+        "guid": "project::MAINGROUP",
+        "sourceTree": "<group>",
+        "path": "",
+        "name": "",
+        "children": []
+      },
+      "targets": ["target-signature"]
+    }
+  },
+  {
+    "type": "target",
+    "signature": "target-signature",
+    "contents": {
+      "type": "aggregate",
+      "guid": "aggregate-target",
+      "name": "Fixture Aggregate",
+      "dependencies": [],
+      "buildRules": [],
+      "buildPhases": [],
+      "buildConfigurations": [],
+      "customTasks": []
+    }
+  }
+]
