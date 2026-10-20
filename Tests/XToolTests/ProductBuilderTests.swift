@@ -139,6 +139,8 @@ struct ProductBuilderTests {
         #expect(artifacts.executables["App"]?.lastPathComponent == "App-App")
         #expect(artifacts.executables["Preview"]?.lastPathComponent == "Preview-Extension")
         #expect(await recorder.builds.allSatisfy { !$0.1.contains("-Xlinker") })
+        // Both products share the wrapper package, so its output directory is queried once.
+        #expect(await recorder.queries.count == 1)
     }
 
     @Test func macOSResourceAccessorsBuildOnceWithStableFlags() async throws {

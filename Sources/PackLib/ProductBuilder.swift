@@ -46,27 +46,20 @@ public struct ProductBuilder: Sendable {
         // a clean build, a plan-only run generates them without compiling, so each module compiles
         // once; a later pass recompiles any accessor that the overlay still did not adapt.
         let built = builds.map(\.product)
-        let overlay = try await initialOverlay(for: builds, wrapper: wrapper)
+        let directory = try await outputDirectory(for: builds) ?? root
+        let overlay = try await initialOverlay(for: builds, in: directory, wrapper: wrapper)
         let overlayArguments = overlay.map { ["-Xswiftc", "-vfsoverlay", "-Xswiftc", $0.url.path] } ?? []
 
-        var directory: URL?
         var executables = prebuilt
         for build in builds {
-            let arguments = build.arguments + overlayArguments
-            try await runner.build(build.settings, arguments)
-            let binDir = try await binaryDirectory(build.settings, arguments)
-            if let directory, directory != binDir {
-                throw StringError("Build backend produced products in different resource directories")
-            }
-            directory = binDir
-            let executable = binDir.appendingPathComponent(build.name)
+            try await runner.build(build.settings, build.arguments + overlayArguments)
+            let executable = directory.appendingPathComponent(build.name)
             guard FileManager.default.isExecutableFile(atPath: executable.path) else {
                 throw StringError("Build backend did not produce executable '\(build.name)' at \(executable.path)")
             }
             executables[build.product.product] = executable
         }
-        if let directory, let overlay,
-           let final = try SwiftPMResourceAccessor.overlay(for: built, in: directory, output: wrapper) {
+        if let overlay, let final = try SwiftPMResourceAccessor.overlay(for: built, in: directory, output: wrapper) {
             // An accessor the build's overlay did not cover compiled unadapted, even if its adapted
             // copy is unchanged from an earlier build.
             let stale = Set(final.changedSources + final.sources.filter { !overlay.sources.contains($0) })
@@ -85,17 +78,17 @@ public struct ProductBuilder: Sendable {
                 }
             }
         }
-        let output = directory ?? root
-        let staticTargets = try validateBinaryTargets(in: output)
-        return BuildArtifacts(directory: output, executables: executables, staticBinaryTargets: staticTargets)
+        let staticTargets = try validateBinaryTargets(in: directory)
+        return BuildArtifacts(directory: directory, executables: executables, staticBinaryTargets: staticTargets)
     }
 
     private typealias Invocation = (product: Plan.Product, name: String, settings: BuildSettings, arguments: [String])
 
-    private func initialOverlay(for builds: [Invocation], wrapper: URL) async throws -> SwiftPMResourceAccessor.Overlay? {
+    private func initialOverlay(
+        for builds: [Invocation], in directory: URL, wrapper: URL
+    ) async throws -> SwiftPMResourceAccessor.Overlay? {
         let built = builds.map(\.product)
-        guard let first = builds.first, !SwiftPMResourceAccessor.bundleNames(for: built).isEmpty else { return nil }
-        let directory = try await binaryDirectory(first.settings, first.arguments)
+        guard !SwiftPMResourceAccessor.bundleNames(for: built).isEmpty else { return nil }
         let overlay = try SwiftPMResourceAccessor.overlay(for: built, in: directory, output: wrapper, requireAll: false)
         guard let overlay, !overlay.complete else { return overlay }
         let arguments = ["-Xswiftc", "-vfsoverlay", "-Xswiftc", overlay.url.path]
@@ -140,12 +133,22 @@ public struct ProductBuilder: Sendable {
         return builds
     }
 
-    private func binaryDirectory(_ settings: BuildSettings, _ arguments: [String]) async throws -> URL {
-        let path = try await runner.binaryPath(settings, arguments).trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !path.isEmpty, !path.contains("\n"), path.hasPrefix("/") else {
-            throw StringError("Build backend returned an invalid binary output path: '\(path)'")
+    /// The output directory depends on the package and scratch path, not the product: ask once per package.
+    private func outputDirectory(for builds: [Invocation]) async throws -> URL? {
+        var directory: URL?
+        var packages: Set<String> = []
+        for build in builds where packages.insert(build.settings.packagePath).inserted {
+            let path = try await runner.binaryPath(build.settings, build.arguments).trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !path.isEmpty, !path.contains("\n"), path.hasPrefix("/") else {
+                throw StringError("Build backend returned an invalid binary output path: '\(path)'")
+            }
+            let url = URL(fileURLWithPath: path, isDirectory: true).standardizedFileURL
+            if let directory, directory != url {
+                throw StringError("Build backend produced products in different resource directories")
+            }
+            directory = url
         }
-        return URL(fileURLWithPath: path, isDirectory: true).standardizedFileURL
+        return directory
     }
 
     private func validatedPrebuiltProducts() throws -> [String: URL] {
