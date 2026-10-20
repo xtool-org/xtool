@@ -98,7 +98,8 @@ xtool dev sign xtool/MyApp.app --output release-signed --mode developer-id --ide
 `development` selects an Apple Development certificate; `developer-id` requires a
 Developer ID Application certificate, hardened runtime and a secure timestamp. The signer
 checks the actual certificate fingerprint and category. It does not select identities,
-create certificates or provision capabilities. Provisioning-dependent entitlements are rejected.
+create certificates or provision capabilities. Provisioning-dependent entitlements are rejected
+when `dev build --defer-signing` records the handoff, and again by the signer.
 
 Signing works on a private copy, applies each product's own entitlements in nested-code order,
 and verifies signatures and effective entitlements before publishing. Input files remain unchanged;

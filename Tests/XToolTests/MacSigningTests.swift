@@ -33,9 +33,19 @@ struct MacSigningTests {
         }
         #expect(throws: (any Error).self) { try MacSigningPlan.validateIdentity(mode: .adHoc, identity: "-") }
         try MacSigningPlan.validateIdentity(mode: .development, identity: String(repeating: "a", count: 40))
+        let restricted = ["com.apple.developer.icloud-services": ["CloudDocuments"]]
+        let rejected = try root()
+        defer { try? FileManager.default.removeItem(at: rejected) }
+        #expect(throws: (any Error).self) { try handoff(rejected, entitlements: restricted) }
+        // The signer still rejects restricted entitlements in a handoff edited after the build.
         let directory = try root()
         defer { try? FileManager.default.removeItem(at: directory) }
-        let app = try handoff(directory, entitlements: ["com.apple.developer.icloud-services": ["CloudDocuments"]])
+        let app = try handoff(directory, entitlements: ["com.apple.security.app-sandbox": true])
+        let manifestURL = MacArtifact.signingManifestURL(for: app)
+        let manifest = try JSONDecoder().decode(DeferredSigningManifest.self, from: Data(contentsOf: manifestURL))
+        let input = directory.appendingPathComponent(try #require(manifest.products.first?.entitlementsPath))
+        try PropertyListSerialization.data(fromPropertyList: restricted, format: .xml, options: 0).write(to: input)
+        try MacArtifact.write(bundle: app, signingManifest: manifestURL)
         #expect(throws: (any Error).self) { try MacSigningPlan.make(bundle: app, mode: .adHoc, identity: nil) }
     }
 

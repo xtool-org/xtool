@@ -441,8 +441,11 @@ enum DeferredSigningHandoff {
             guard let path = manifest.products[index].entitlementsPath else { continue }
             let source = URL(fileURLWithPath: path, relativeTo: sourceDirectory)
             let data = try Data(contentsOf: source)
-            guard try PropertyListSerialization.propertyList(from: data, options: [], format: nil) is [String: Any] else {
-                throw Console.Error("Entitlements must be a property-list dictionary: \(path)")
+            // Fail here, on the build machine, rather than later at signing.
+            do {
+                try MacSigningPlan.validateEntitlements(data)
+            } catch {
+                throw Console.Error("\(path): \(error)")
             }
             let filename = "\(index)-\(ArtifactInventory.hash(data: data)).entitlements.plist"
             files.append((filename, data))

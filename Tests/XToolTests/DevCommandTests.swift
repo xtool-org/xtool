@@ -333,10 +333,16 @@ struct DevCommandTests {
         #expect(try Data(contentsOf: directory.appendingPathComponent(currentPath)) == second)
     }
 
-    @Test func malformedEntitlementsRejectWithoutWritingHandoff() throws {
+    @Test(arguments: ["malformed", "array", "com.apple.developer.homekit", "keychain-access-groups"])
+    func unsupportedEntitlementsRejectWithoutWritingHandoff(entitlement: String) throws {
         let directory = try root()
         defer { try? FileManager.default.removeItem(at: directory) }
-        try Data("not a plist".utf8).write(to: directory.appendingPathComponent("bad.plist"))
+        let data = switch entitlement {
+        case "malformed": Data("not a plist".utf8)
+        case "array": try PropertyListSerialization.data(fromPropertyList: ["array"], format: .xml, options: 0)
+        default: try PropertyListSerialization.data(fromPropertyList: [entitlement: true], format: .xml, options: 0)
+        }
+        try data.write(to: directory.appendingPathComponent("bad.plist"))
         let target = try ResolvedTarget.resolve(cliTarget: "arm64-apple-macosx15.0")
         let plan = try Plan(target: target, app: product("App", kind: .application, target: target, entitlements: "bad.plist"))
         #expect(throws: (any Error).self) {

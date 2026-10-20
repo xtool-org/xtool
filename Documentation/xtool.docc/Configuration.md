@@ -125,4 +125,5 @@ Caller plist values override generated defaults, including identifiers. Ensure
 `CFBundleExecutable`, bundle kind and minimum OS agree with the actual product;
 xtool does not translate an Xcode project's build settings or extension policy.
 Deferred signing preserves entitlement dictionaries and their product associations
-without approving or applying them.
+without applying them. It rejects provisioning-dependent entitlements, which the signer
+cannot apply.
