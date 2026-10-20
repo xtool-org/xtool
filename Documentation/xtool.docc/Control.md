@@ -59,6 +59,12 @@ and `PlugIns` directories as needed. Their `Info.plist` is in `Contents`. These 
 apply entitlements and sign them with a macOS-capable signing tool. `--ipa` and automatic development
 signing are unavailable for these bundles. Automatic development signing remains limited to iOS.
 
+macOS and Mac Catalyst apps with Swift package resource bundles require SwiftBuild, selected
+automatically with Swift 6.4 or newer. Native SwiftPM builds of these apps fail with a diagnostic
+because their generated `Bundle.module` accessor cannot find resources in `Contents/Resources`.
+This restriction includes package resources used only by an app extension. Desktop apps without
+package resource bundles, including those with only `xtool.yml` resources, can use native SwiftPM.
+
 These target and bundle rules do not add an Xcode project importer, an asset-catalog compiler, or an
 App Store distribution workflow. Target-specific frameworks, compiled resources, signing, and store
 acceptance still require validation with the actual Apple SDK and destination platform.

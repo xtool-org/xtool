@@ -96,6 +96,7 @@ public struct Packer: Sendable {
     }
 
     public func pack() async throws -> URL {
+        try plan.validateResourceBundleSupport(platform: buildSettings.platform, buildSystem: buildSettings.buildSystem)
         try await build()
 
         let output = try TemporaryDirectory(name: "\(plan.app.product).app")
@@ -255,6 +256,24 @@ public struct Packer: Sendable {
 
     static func cfBundleSupportedPlatforms(for triple: String) -> [String] {
         [ApplePlatform(triple: triple)?.supportedPlatform(triple: triple) ?? "iPhoneOS"]
+    }
+}
+
+extension Plan {
+    func validateResourceBundleSupport(platform: ApplePlatform, buildSystem: BuildSystem) throws {
+        guard platform.usesContentsDirectory, buildSystem == .swiftPM else { return }
+        let hasPackageResources = allProducts.contains { product in
+            product.resources.contains { resource in
+                if case .bundle = resource { return true }
+                return false
+            }
+        }
+        if hasPackageResources {
+            throw StringError("""
+            macOS and Mac Catalyst apps with Swift package resource bundles require SwiftBuild. \
+            Use Swift 6.4 or newer, which selects SwiftBuild automatically.
+            """)
+        }
     }
 }
 
