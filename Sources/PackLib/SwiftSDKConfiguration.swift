@@ -7,9 +7,8 @@ enum SwiftSDKConfiguration {
         let toolSearchPaths: [String]
     }
 
-    /// SwiftPM's bundle selector requires an exact target triple. A single-target
-    /// destination lets it apply the requested deployment version after decoding.
-    static func destination(in directory: URL, for target: TargetTriple, cacheDirectory: URL) throws -> Destination {
+    /// The `targetTriples` entry of the one macOS Swift SDK in `directory`, with paths made absolute.
+    static func properties(in directory: URL, for target: TargetTriple) throws -> [String: Any] {
         let identity = target.sdkIdentity
         let bundles = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
             .filter { $0.pathExtension == "artifactbundle" }
@@ -36,6 +35,14 @@ enum SwiftSDKConfiguration {
         guard matches.count == 1, let properties = matches.first else {
             throw StringError("Expected one Swift SDK for '\(identity)' in '\(directory.path)'; found \(matches.count)")
         }
+        return properties
+    }
+
+    /// SwiftPM's bundle selector requires an exact target triple. A single-target
+    /// destination lets it apply the requested deployment version after decoding.
+    static func destination(in directory: URL, for target: TargetTriple, cacheDirectory: URL) throws -> Destination {
+        let identity = target.sdkIdentity
+        let properties = try properties(in: directory, for: target)
         let data = try JSONSerialization.data(withJSONObject: [
             "schemaVersion": "4.0", "targetTriples": [identity: properties],
         ], options: [.sortedKeys])

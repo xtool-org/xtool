@@ -160,27 +160,14 @@ public struct BuildSettings: Sendable {
     /// LLD otherwise records the deployment version as the SDK version on Linux.
     /// Keep this target-only: SwiftPM CLI linker flags also affect host macros.
     func macOSLinkerArguments() async throws -> [String] {
-        let sdkRoot: URL
-        if let custom = swiftSDKsPath {
-            sdkRoot = try Self.macOSSDKRoot(in: URL(fileURLWithPath: custom), architecture: try TargetTriple(triple).architecture)
-        } else {
-            #if os(macOS)
-            sdkRoot = URL(fileURLWithPath: try await Self.xcrun(["--sdk", "macosx", "--show-sdk-path"]))
-            #else
-            guard let sdk = try DarwinSDK.current() else {
-                throw StringError("No Darwin SDK configured. Please run `xtool setup`.")
-            }
-            sdkRoot = try Self.macOSSDKRoot(in: sdk.bundle.deletingLastPathComponent(),
-                                            architecture: try TargetTriple(triple).architecture)
-            #endif
-        }
-        let data = try Data(contentsOf: sdkRoot.appendingPathComponent("SDKSettings.json"))
+        let target = try TargetTriple(compilerTriple)
+        let settingsURL = try await macOSSDKRoot(for: target).appendingPathComponent("SDKSettings.json")
+        let data = try Data(contentsOf: settingsURL)
         guard let settings = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               let version = settings["Version"] as? String else {
-            throw StringError("Missing SDK version in \(sdkRoot.path)/SDKSettings.json")
+            throw StringError("Missing SDK version in \(settingsURL.path)")
         }
         try TargetTriple.validateVersion(version)
-        let target = try TargetTriple(compilerTriple)
         return ["-Xlinker", "-platform_version", "-Xlinker", "macos", "-Xlinker",
                 target.deploymentTarget ?? target.platform.minimumDeploymentTarget, "-Xlinker", version]
     }
@@ -193,23 +180,22 @@ public struct BuildSettings: Sendable {
         return nil
     }
 
-    private static func macOSSDKRoot(in directory: URL, architecture: String) throws -> URL {
-        let bundles = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
-            .filter { $0.pathExtension == "artifactbundle" }
-        var roots: [URL] = []
-        for bundle in bundles {
-            let metadata = bundle.appendingPathComponent("swift-sdk.json")
-            guard FileManager.default.fileExists(atPath: metadata.path) else { continue }
-            let data = try Data(contentsOf: metadata)
-            guard let settings = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let triples = settings["targetTriples"] as? [String: [String: Any]],
-                  let path = triples["\(architecture)-apple-macosx"]?["sdkRootPath"] as? String else { continue }
-            roots.append(URL(fileURLWithPath: path, relativeTo: bundle).standardizedFileURL)
+    private func macOSSDKRoot(for target: TargetTriple) async throws -> URL {
+        #if os(macOS)
+        if swiftSDKsPath == nil {
+            return URL(fileURLWithPath: try await Self.xcrun(["--sdk", "macosx", "--show-sdk-path"]))
         }
-        guard roots.count == 1, let root = roots.first else {
-            throw StringError("Expected exactly one macOS Swift SDK in \(directory.path); found \(roots.count)")
-        }
-        return root
+        #endif
+        let properties = try SwiftSDKConfiguration.properties(in: swiftSDKsDirectory(), for: target)
+        return URL(fileURLWithPath: try (properties["sdkRootPath"] as? String)
+            .orThrow(StringError("Missing sdkRootPath for '\(target.sdkIdentity)'")))
+    }
+
+    private func swiftSDKsDirectory() throws -> URL {
+        if let path = swiftSDKsPath { return URL(fileURLWithPath: path, isDirectory: true) }
+        return try DarwinSDK.current()
+            .orThrow(StringError("No Darwin SDK configured. Please run `xtool setup`."))
+            .bundle.deletingLastPathComponent()
     }
 
     /// Reject combinations whose failure is already known, before a builder
@@ -258,15 +244,7 @@ public struct BuildSettings: Sendable {
         #if !os(macOS)
         let target = try TargetTriple(triple)
         if buildSystem == .swiftPM && target.platform == .macOS {
-            let directory: URL
-            if let path = swiftSDKsPath {
-                directory = URL(fileURLWithPath: path, isDirectory: true)
-            } else {
-                directory = try DarwinSDK.current()
-                    .orThrow(StringError("No Darwin SDK configured. Please run `xtool setup`."))
-                    .bundle.deletingLastPathComponent()
-            }
-            let destination = try SwiftSDKConfiguration.destination(in: directory, for: target,
+            let destination = try SwiftSDKConfiguration.destination(in: swiftSDKsDirectory(), for: target,
                                                                     cacheDirectory: swiftSDKCacheDirectory)
             options = configOptions + ["--destination", destination.url.path, "--triple", compilerTriple] + customOptions
             environment["PATH"] = (destination.toolSearchPaths + [ProcessInfo.processInfo.environment["PATH"] ?? ""])
