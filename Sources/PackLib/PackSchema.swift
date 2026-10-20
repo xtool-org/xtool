@@ -141,10 +141,7 @@ public struct PackSchema: Sendable {
     }
 
     private static func validateName(_ name: String) throws {
-        try ResourceDestination.validateRelativePath(name)
-        guard !name.contains("/") else {
-            throw StringError("xtool.yml: product name must be a single path component")
-        }
+        try ResourceDestination.validateComponent(name, "xtool.yml: product name")
     }
 
     /// Validate against the effective CLI/schema target, after precedence is applied.

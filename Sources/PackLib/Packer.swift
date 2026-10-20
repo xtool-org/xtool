@@ -20,8 +20,7 @@ public struct Packer: Sendable {
 
     /// Assembly consumes completed build artifacts and never compiles or signs.
     public func assemble(artifacts: BuildArtifacts) async throws -> URL {
-        try ResourceDestination.validateRelativePath(plan.app.product)
-        guard !plan.app.product.contains("/") else { throw StringError("Application name must not contain path separators") }
+        try ResourceDestination.validateComponent(plan.app.product, "Application name")
         let output = try TemporaryDirectory(name: "\(plan.app.product).app")
         let root = URL(fileURLWithPath: buildSettings.packagePath, isDirectory: true).standardizedFileURL
         let assembler = BundleAssembler(plan: plan, sourceDirectory: root)

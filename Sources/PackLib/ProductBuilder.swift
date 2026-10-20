@@ -227,8 +227,8 @@ public struct ProductBuilder: Sendable {
                           && $0.SupportedPlatformVariant == variant
                           && $0.SupportedArchitectures.contains(target.architecture)
                   }),
-                  library.LibraryPath.hasSuffix(".a"), !library.LibraryPath.contains("/"),
-                  (try? ResourceDestination.validateRelativePath(library.LibraryPath)) != nil else { continue }
+                  library.LibraryPath.hasSuffix(".a"),
+                  (try? ResourceDestination.validateComponent(library.LibraryPath, "Library path")) != nil else { continue }
             return directory.appendingPathComponent(library.LibraryPath)
         }
         return directory.appendingPathComponent("lib\(name).a")
@@ -272,10 +272,7 @@ public struct ProductBuilder: Sendable {
         }
         for product in plan.allProducts {
             try product.resolvedSource.validate()
-            try ResourceDestination.validateRelativePath(product.product)
-            guard !product.product.contains("/") else {
-                throw StringError("Product names must not contain path separators")
-            }
+            try ResourceDestination.validateComponent(product.product, "Product name")
             switch product.resolvedSource {
             case .prebuilt:
                 if product.platform == .macOS && product.type != .helperExecutable
@@ -286,10 +283,7 @@ public struct ProductBuilder: Sendable {
             case .executable where buildSettings.buildSystem != .swiftPM:
                 throw StringError("Direct executable products currently require the SwiftPM backend")
             case .library(let name), .executable(let name):
-                try ResourceDestination.validateRelativePath(name)
-                guard !name.contains("/") else {
-                    throw StringError("SwiftPM product names must not contain path separators")
-                }
+                try ResourceDestination.validateComponent(name, "SwiftPM product name")
             }
         }
     }

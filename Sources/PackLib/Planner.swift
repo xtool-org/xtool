@@ -210,8 +210,7 @@ public struct Planner: Sendable {
     }
 
     private func validateProductName(_ name: String) throws {
-        try ResourceDestination.validateRelativePath(name)
-        guard !name.contains("/") else { throw StringError("Product name must be a single path component") }
+        try ResourceDestination.validateComponent(name, "Product name")
     }
 
     private struct TargetIdentity: Hashable {

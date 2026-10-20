@@ -97,8 +97,7 @@ public enum MacBundleAudit {
             if let plist = candidates.first(where: { FileManager.default.fileExists(atPath: $0.path) }) {
                 let info = try metadata(at: plist)
                 if let name = info["CFBundleExecutable"] as? String {
-                    try ResourceDestination.validateRelativePath(name)
-                    guard !name.contains("/") else { throw StringError("Invalid framework executable name") }
+                    try ResourceDestination.validateComponent(name, "Framework executable name")
                     let expected = version.appendingPathComponent(name).resolvingSymlinksInPath()
                     // A helper's directory is not a framework principal location.
                     let principalDirectory = parts.count == index + 2 ||

@@ -75,7 +75,7 @@ public struct BundleAssembler: Sendable {
             }
             if let icon = product.iconPath {
                 let source = sourceURL(icon)
-                let path = joined(layout.resourcesPath, source.lastPathComponent)
+                let path = layout.joined(layout.resourcesPath, source.lastPathComponent)
                 assembly.operations.append(.init(path: path, payload: .copy(source)))
             }
         }
@@ -91,14 +91,14 @@ public struct BundleAssembler: Sendable {
             try validateName(package)
             try validateName(target)
             let name = "\(package)_\(target).bundle"
-            let path = joined(layout.resourcesPath, name)
+            let path = layout.joined(layout.resourcesPath, name)
             appendDependency(.init(path: path, payload: .copy(artifacts.directory.appendingPathComponent(name)),
                                    allowsRawAssets: true),
                              product: product, to: &assembly)
             if product.platform == .macOS && product.type == .helperExecutable {
                 // Bare helpers retain SwiftPM's executable-directory lookup. Real bundles use
                 // the resourceURL accessor compiled by ProductBuilder; root aliases cannot be signed.
-                appendDependency(.init(path: joined(layout.contentsPath, name),
+                appendDependency(.init(path: layout.joined(layout.contentsPath, name),
                                        payload: .symlink("../Resources/\(name)")),
                                  product: product, to: &assembly)
             }
@@ -125,7 +125,7 @@ public struct BundleAssembler: Sendable {
                 throw StringError("Framework '\(name)' has no readable binary at \(binary.path)")
             }
             if try !isArchive(binary) {
-                appendDependency(.init(path: joined(layout.frameworksPath, source.lastPathComponent), payload: .copy(source)),
+                appendDependency(.init(path: layout.joined(layout.frameworksPath, source.lastPathComponent), payload: .copy(source)),
                                  product: product, to: &assembly)
             }
         case .library(let name):
@@ -133,7 +133,7 @@ public struct BundleAssembler: Sendable {
             let source = artifacts.directory.appendingPathComponent("lib\(name).dylib")
             try validateInput(source)
             if try !isArchive(source) {
-                appendDependency(.init(path: joined(layout.frameworksPath, source.lastPathComponent), payload: .copy(source)),
+                appendDependency(.init(path: layout.joined(layout.frameworksPath, source.lastPathComponent), payload: .copy(source)),
                                  product: product, to: &assembly)
             }
         case .root(let path):
@@ -246,13 +246,8 @@ public struct BundleAssembler: Sendable {
     }
 
     private func validateName(_ name: String) throws {
-        try ResourceDestination.validateRelativePath(name)
-        guard !name.contains("/") else { throw StringError("Bundle input names must not contain path separators: '\(name)'") }
+        try ResourceDestination.validateComponent(name, "Bundle input name")
     }
 
     private func canonicalPath(_ path: String) -> String { path.precomposedStringWithCanonicalMapping.lowercased() }
-
-    private func joined(_ base: String, _ path: String) -> String {
-        [base, path].filter { !$0.isEmpty }.joined(separator: "/")
-    }
 }

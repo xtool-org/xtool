@@ -54,7 +54,7 @@ public struct BundleLayout: Sendable, Equatable {
         return joined(base, destination.path)
     }
 
-    private func joined(_ base: String, _ path: String) -> String {
+    func joined(_ base: String, _ path: String) -> String {
         [base, path].filter { !$0.isEmpty }.joined(separator: "/")
     }
 }
@@ -85,6 +85,12 @@ public struct ResourceDestination: Codable, Sendable, Hashable {
               components.allSatisfy({ !$0.isEmpty && $0 != "." && $0 != ".." }) else {
             throw StringError("Bundle destination must be a safe relative path: '\(path)'")
         }
+    }
+
+    /// One safe path component, such as a product or file name.
+    static func validateComponent(_ name: String, _ description: String) throws {
+        try validateRelativePath(name)
+        guard !name.contains("/") else { throw StringError("\(description) must be a single path component: '\(name)'") }
     }
 }
 
