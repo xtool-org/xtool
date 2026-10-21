@@ -73,8 +73,6 @@ extension DataProtectionEntitlement: EntitlementWithCapability {
 
 extension AppGroupEntitlement: EntitlementWithCapability {
     var capability: DeveloperServicesCapability {
-        // Free teams can use App Groups too; DeveloperServicesAddAppOperation
-        // assigns them at most one.
         DeveloperServicesCapability(.appGroups, isFree: true)
     }
 }

@@ -13,6 +13,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
 
     public enum Error: LocalizedError {
         case invalidApp(URL)
+        case tooManyAppGroups(bundleID: String, count: Int)
 
         public var errorDescription: String? {
             switch self {
@@ -22,6 +23,16 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
                         NSLocalizedString(
                             "add_app_operation.error.invalid_app", value: "Invalid app: %s", comment: ""
                         ), $0
+                    )
+                }
+            case .tooManyAppGroups(let bundleID, let count):
+                return bundleID.withCString {
+                    String.localizedStringWithFormat(
+                        NSLocalizedString(
+                            "add_app_operation.error.too_many_app_groups",
+                            value: "%s requests %d app groups, but free teams can only use one app group per app",
+                            comment: ""
+                        ), $0, count
                     )
                 }
             }
@@ -180,6 +191,10 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
                 // re-assign rather than using updateEntitlements since the latter will
                 // retain unrecognized entitlements
                 let filtered = try entitlements.entitlements().filter { $0.anyCapability?.isFree != false }
+                if let groups = filtered.lazy.compactMap({ $0 as? AppGroupEntitlement }).first?.rawValue,
+                    groups.count > 1 {
+                    throw Error.tooManyAppGroups(bundleID: bundleID, count: groups.count)
+                }
                 entitlements = try Entitlements(entitlements: filtered)
             }
         } else {
@@ -206,8 +221,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
         if var entitlementsArray = try? entitlements.entitlements(),
             let groupsIdx = entitlementsArray.firstIndex(where: { $0 is AppGroupEntitlement }),
             let groupsEntitlement = entitlementsArray[groupsIdx] as? AppGroupEntitlement {
-            // Free teams get at most one app group per app.
-            let groups = isFreeTeam ? Array(groupsEntitlement.rawValue.prefix(1)) : groupsEntitlement.rawValue
+            let groups = groupsEntitlement.rawValue
 
             if let operation = DeveloperServicesAssignAppGroupsOperation(
                 context: self.context,
