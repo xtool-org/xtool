@@ -22,7 +22,9 @@ public struct BuildSettings: Sendable {
     private static func sdkTriple(for triple: String) -> String {
         var components = triple.split(separator: "-").map(String.init)
         guard components.count >= 3 else { return triple }
-        components[2] = String(components[2].prefix { !$0.isNumber })
+        let os = String(components[2].prefix { !$0.isNumber })
+        // Swift SDKs register macOS targets under the canonical "macosx" name.
+        components[2] = os == "macos" ? "macosx" : os
         return components.joined(separator: "-")
     }
 
