@@ -6,6 +6,9 @@ import Subprocess
 @Test func parsesLLDMajorVersion() {
     #expect(LinkerConfiguration.majorVersion("LLD 23.1.3\n") == 23)
     #expect(LinkerConfiguration.majorVersion("LLD 21.1.6 (compatible with GNU linkers)\n") == 21)
+    #expect(LinkerConfiguration.majorVersion("Ubuntu LLD 23.1.0 (compatible with GNU linkers)\n") == 23)
+    #expect(LinkerConfiguration.majorVersion("Homebrew LLD 24.0.0\n") == 24)
+    #expect(LinkerConfiguration.majorVersion("Ubuntu LLD") == nil)
     #expect(LinkerConfiguration.majorVersion("GNU ld 2.42") == nil)
     #expect(LinkerConfiguration.majorVersion("LLD .") == nil)
     #expect(LinkerConfiguration.majorVersion("") == nil)

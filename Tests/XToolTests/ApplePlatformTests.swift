@@ -3,6 +3,13 @@ import Subprocess
 import Testing
 @testable import PackLib
 
+@Test func linkerUsesAcceptedSimulatorPlatformNames() {
+    #expect(ApplePlatform.iOS.linkerPlatform(triple: "arm64-apple-ios17.0-simulator") == "ios-simulator")
+    #expect(ApplePlatform.tvOS.linkerPlatform(triple: "arm64-apple-tvos17.0-simulator") == "tvos-simulator")
+    #expect(ApplePlatform.iOS.linkerPlatform(triple: "arm64-apple-ios") == "ios")
+    #expect(ApplePlatform.tvOS.linkerPlatform(triple: "arm64-apple-tvos") == "tvos")
+}
+
 @Test func effectiveDeploymentMinimumMatchesSwiftPMAndSDK() {
     #expect(ApplePlatform.macCatalyst.effectiveDeploymentTarget(
         platforms: ["ios": "17.0"], swiftVersion: .init(6, 4), sdkMinimum: "13.1"

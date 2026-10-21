@@ -65,27 +65,39 @@ public struct Packer: Sendable {
             try Data().write(to: sources.appendingPathComponent("stub.c", isDirectory: false))
         }
 
+        var arguments = [
+            "--scratch-path", ".build",
+            // Keep SwiftPM from replacing the root package's resolved dependencies with the builder's subset.
+            "--disable-automatic-resolution",
+        ]
+        if let toolset = try writeDeploymentToolset(in: packageDir) {
+            arguments += ["--toolset", toolset.path]
+        }
         let buildConfig = try await buildSettings
             .withPackagePath(packageDir.path)
-            .swiftPMInvocation(
-                forTool: "build",
-                arguments: [
-                    "--scratch-path", ".build",
-                    // resolving can cause SwiftPM to overwrite the root package deps
-                    // with just the deps needed for the builder package (which is to
-                    // say, any "dev dependencies" of the root package may be removed.)
-                    // fortunately we've already resolved the root package by this point
-                    // in order to dump the plan, so we can skip resolution here to skirt
-                    // the issue.
-                    "--disable-automatic-resolution",
-                ],
-            )
+            .swiftPMInvocation(forTool: "build", arguments: arguments)
         try await Subprocess.run(
             buildConfig,
             output: .currentStandardOutput,
             error: .currentStandardError,
         )
         .checkSuccess()
+    }
+
+    func writeDeploymentToolset(in directory: URL) throws -> URL? {
+        guard buildSettings.buildSystem == .swiftPM, buildSettings.tripleDeploymentTarget != nil else { return nil }
+        // Keep host build tools on their native triple while targeting the app's effective deployment version.
+        let triple = buildSettings.triple(deploymentTarget: plan.app.deploymentTarget)
+        let options = ["extraCLIOptions": ["-target", triple]]
+        let toolset: [String: Any] = [
+            "schemaVersion": "1.0",
+            "swiftCompiler": options,
+            "cCompiler": options,
+            "cxxCompiler": options,
+        ]
+        let path = directory.appendingPathComponent("deployment-toolset.json")
+        try JSONSerialization.data(withJSONObject: toolset, options: .sortedKeys).write(to: path, options: .atomic)
+        return path
     }
 
     public func pack() async throws -> URL {
@@ -99,7 +111,7 @@ public struct Packer: Sendable {
         let binPath: String
         switch buildSettings.buildSystem {
         case .swiftPM:
-            binPath = "\(buildSettings.triple)/\(buildSettings.configuration.rawValue)"
+            binPath = "\(buildSettings.sdkTriple)/\(buildSettings.configuration.rawValue)"
         case .swiftBuild:
             let platformName = buildSettings.platform.buildProductsPlatform(triple: buildSettings.triple)
             let suffix = buildSettings.platform == .macOS ? "" : "-\(platformName)"

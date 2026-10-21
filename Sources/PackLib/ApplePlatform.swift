@@ -18,6 +18,14 @@ package enum ApplePlatform: String, CaseIterable, Sendable {
         }
     }
 
+    package init(validatingTriple triple: String) throws {
+        guard let platform = Self(triple: triple) else {
+            let supported = Self.allCases.map(\.rawValue).joined(separator: ", ")
+            throw StringError("Unsupported target triple '\(triple)'. Supported platforms: \(supported).")
+        }
+        self = platform
+    }
+
     package var usesContentsDirectory: Bool {
         self == .macOS || self == .macCatalyst
     }
@@ -59,8 +67,8 @@ package enum ApplePlatform: String, CaseIterable, Sendable {
     package func linkerPlatform(triple: String) -> String {
         let simulator = triple.split(separator: "-").contains("simulator")
         switch self {
-        case .iOS: return simulator ? "ios-sim" : "ios"
-        case .tvOS: return simulator ? "tvos-sim" : "tvos"
+        case .iOS: return simulator ? "ios-simulator" : "ios"
+        case .tvOS: return simulator ? "tvos-simulator" : "tvos"
         case .macOS: return "macos"
         case .macCatalyst: return "mac-catalyst"
         }

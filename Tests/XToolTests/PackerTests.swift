@@ -1,6 +1,54 @@
 import Testing
 import Foundation
+import Subprocess
 @testable import PackLib
+
+@Test func nativeDeploymentToolsetUsesEffectiveTarget() async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent("DeploymentToolsetTests-\(UUID())")
+    defer { try? FileManager.default.removeItem(at: root) }
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    let app = Plan.Product(
+        type: .application, product: "Example", deploymentTarget: "18.0", bundleID: "com.example.app",
+        infoPlist: [:], resources: [], iconPath: nil, entitlementsPath: nil
+    )
+    let plan = Plan(app: app, extensions: [])
+    let settings = try await BuildSettings(
+        configuration: .debug, triple: "arm64-apple-tvos17.0-simulator", buildSystem: .swiftPM
+    )
+    let toolsetPath = try Packer(buildSettings: settings, plan: plan).writeDeploymentToolset(in: root)
+    let path = try #require(toolsetPath)
+    let decoded = try JSONSerialization.jsonObject(with: Data(contentsOf: path))
+    let toolset = try #require(decoded as? [String: Any])
+    func options(for compiler: String) throws -> [String] {
+        let definition = try #require(toolset[compiler] as? [String: Any])
+        return try #require(definition["extraCLIOptions"] as? [String])
+    }
+
+    let swift = try await Subprocess.run(
+        .path(BuildSettings.swiftcURL()),
+        arguments: .init(["-target", "arm64-apple-tvos17.0-simulator"] + options(for: "swiftCompiler") + ["-print-target-info"]),
+        output: .data(limit: .max)
+    ).checkSuccess()
+    let targetInfo = try JSONSerialization.jsonObject(with: swift.standardOutput)
+    let info = try #require(targetInfo as? [String: Any])
+    let target = try #require(info["target"] as? [String: Any])
+    #expect(target["triple"] as? String == "arm64-apple-tvos18.0-simulator")
+
+    for (compiler, language) in [("cCompiler", "c"), ("cxxCompiler", "c++")] {
+        let result = try await Subprocess.run(
+            .name("clang"),
+            arguments: .init(
+                ["-target", "arm64-apple-tvos17.0-simulator"] + options(for: compiler) + ["-dM", "-E", "-x", language, "/dev/null"]
+            ),
+            output: .string(limit: .max)
+        ).checkSuccess()
+        #expect(result.standardOutput.contains("#define __ENVIRONMENT_TV_OS_VERSION_MIN_REQUIRED__ 180000"))
+    }
+
+    let unversioned = try await BuildSettings(configuration: .debug, triple: "arm64-apple-tvos-simulator", buildSystem: .swiftPM)
+    let unversionedToolset = try Packer(buildSettings: unversioned, plan: plan).writeDeploymentToolset(in: root)
+    #expect(unversionedToolset == nil)
+}
 
 @Test(arguments: [ApplePlatform.macOS, .macCatalyst], [false, true])
 func nativeDesktopPackageResourcesRequireSwiftBuild(platform: ApplePlatform, extensionOnly: Bool) throws {

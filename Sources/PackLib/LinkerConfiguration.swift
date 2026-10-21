@@ -66,7 +66,7 @@ package enum LinkerConfiguration {
 
     static func majorVersion(_ output: String) -> Int? {
         let words = output.split(whereSeparator: \.isWhitespace)
-        guard words.count >= 2, words[0] == "LLD" else { return nil }
-        return words[1].split(separator: ".").first.flatMap { Int($0) }
+        guard let index = words.firstIndex(of: "LLD"), index + 1 < words.endIndex else { return nil }
+        return words[index + 1].split(separator: ".").first.flatMap { Int($0) }
     }
 }
