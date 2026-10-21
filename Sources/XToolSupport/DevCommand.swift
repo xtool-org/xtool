@@ -153,7 +153,7 @@ struct DevBuildCommand: AsyncParsableCommand {
             print(ApplePlatform.allCases.map(\.rawValue).joined(separator: "\n"))
             return
         }
-        let platform = ApplePlatform(triple: triple ?? PackOperation.defaultTriple) ?? .iOS
+        let platform = try ApplePlatform(validatingTriple: triple ?? PackOperation.defaultTriple)
         if ipa && platform.usesContentsDirectory {
             throw Console.Error("macOS and Mac Catalyst apps cannot be packaged as an IPA. Use the .app output.")
         }

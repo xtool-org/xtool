@@ -13,12 +13,13 @@ public struct BuildSettings: Sendable {
     public let triple: String
     public let buildSystem: BuildSystem
     public let customOptions: [String]
-
-    package var platform: ApplePlatform {
-        ApplePlatform(triple: triple) ?? .iOS
-    }
+    package let platform: ApplePlatform
 
     package var sdkTriple: String {
+        Self.sdkTriple(for: triple)
+    }
+
+    private static func sdkTriple(for triple: String) -> String {
         var components = triple.split(separator: "-").map(String.init)
         guard components.count >= 3 else { return triple }
         components[2] = String(components[2].prefix { !$0.isNumber })
@@ -30,6 +31,12 @@ public struct BuildSettings: Sendable {
         guard components.count >= 3 else { return nil }
         let version = components[2].drop { !$0.isNumber }
         return version.isEmpty ? nil : String(version)
+    }
+
+    package func triple(deploymentTarget: String) -> String {
+        var components = sdkTriple.split(separator: "-").map(String.init)
+        components[2] += deploymentTarget
+        return components.joined(separator: "-")
     }
 
     public var sdkOptions: [String]
@@ -58,6 +65,7 @@ public struct BuildSettings: Sendable {
         self.configuration = configuration
         self.customOptions = options
         self.triple = triple
+        self.platform = try ApplePlatform(validatingTriple: triple)
         self.buildSystem = if let buildSystem { buildSystem } else { try await .default() }
 
         self.sdkEnvironment = [
@@ -72,7 +80,7 @@ public struct BuildSettings: Sendable {
             // i.e. we can pass `--swift-sdk arm64-apple-ios` and it
             // just works. See:
             // https://github.com/swiftlang/swift-package-manager/pull/6828
-            self.sdkOptions = ["--swift-sdk", triple]
+            self.sdkOptions = ["--swift-sdk", Self.sdkTriple(for: triple)]
         case .swiftBuild:
             self.sdkOptions = [
                 "--triple", triple,
