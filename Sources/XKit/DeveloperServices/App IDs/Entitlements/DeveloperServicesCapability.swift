@@ -79,6 +79,22 @@ extension AppGroupEntitlement: EntitlementWithCapability {
     }
 }
 
+extension AppleSignInEntitlement: EntitlementWithCapability {
+    var capability: DeveloperServicesCapability {
+        // A primary App ID: the app is its own Sign in with Apple group.
+        DeveloperServicesCapability(
+            .appleIdAuth,
+            isFree: false,
+            settings: [
+                .init(
+                    key: .init(.appleIdAuthAppConsent),
+                    options: [.init(key: .init(.primaryAppConsent))]
+                )
+            ]
+        )
+    }
+}
+
 extension AssociatedDomainsEntitlement: EntitlementWithCapability {
     var capability: DeveloperServicesCapability {
         DeveloperServicesCapability(.associatedDomains, isFree: false)
