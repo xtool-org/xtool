@@ -33,6 +33,18 @@ struct SwiftPMBuildDescriberTests {
             ],
         ))
         let describer = describer(schema: schema, root: root)
+        let description = try describer.describe(basePIF: pif(root: root, products: ["App", "Widget"]))
+        let umbrellaTarget = try #require(description.workspace.projects.flatMap(\.targets).first {
+            $0.id == "xtool:UMBRELLA"
+        })
+        guard case .aggregate(let aggregate) = umbrellaTarget else {
+            Issue.record("Expected an aggregate indexing target")
+            return
+        }
+        expectNoDifference(aggregate.common.dependencies.map(\.targetId), [
+            "PACKAGE-PRODUCT:App", "PACKAGE-PRODUCT:Widget", "xtool:main-app", "xtool:extension:Widget",
+        ])
+        expectNoDifference(aggregate.common.buildConfigs.map(\.name), ["Debug", "Release"])
         let result = try describer.writeXcodeProject(basePIF: pif(root: root, products: ["App", "Widget"]))
         #expect(result.bundleID == "org.example.custom")
         #expect(result.url == root.appending(path: "xtool/App.xcworkspace"))
@@ -142,6 +154,8 @@ struct SwiftPMBuildDescriberTests {
         expectNoDifference(Array(targets.prefix(2)), pif.workspace.projects[0].targets)
         let app = try #require(targets.first { $0.id == "xtool:main-app" })
         expectNoDifference(app.common.dependencies.map(\.targetId), [product.id])
+        let umbrellaTarget = try #require(targets.first { $0.id == "xtool:UMBRELLA" })
+        expectNoDifference(umbrellaTarget.common.dependencies.map(\.targetId), [product.id, app.id])
         let result = try describer.writeXcodeProject(basePIF: pif)
         expectNoDifference(result.bundleID, "com.example.App")
         let project = try XcodeProject(url: root.appending(path: "xtool/.xtool-tmp/App.xcodeproj"))

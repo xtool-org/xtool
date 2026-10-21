@@ -67,6 +67,7 @@ struct SwiftPMBuildDescriber {
             try project.addTarget { _ in target }
         }
         container.workspace.projects[mainProjectIndex] = project
+        try container.workspace.addUmbrellaTarget(toProjectAt: mainProjectIndex)
         return container
     }
 
