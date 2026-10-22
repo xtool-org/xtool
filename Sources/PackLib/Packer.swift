@@ -239,21 +239,31 @@ extension Plan.Product {
         case .application: [
             "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
         ]
-        case .appExtension: [
+        case .appExtension:
             // Set the entry point to Foundation`_NSExtensionMain
-            "-Xlinker", "-e", "-Xlinker", "_NSExtensionMain",
+            ["-Xlinker", "-e", "-Xlinker", "_NSExtensionMain"]
             // Keep `main`: nothing references it when the entry point is
             // _NSExtensionMain, so the dead-strip would drop the whole extension.
-            // This makes a `main` symbol mandatory: the builder's executable target
-            // only has an empty stub.c, so it must come from the extension's own
-            // library (`@main` or top-level code). See Appex.md.
-            "-Xlinker", "-u", "-Xlinker", "_main",
+            // Skipped when the extension declares a principal class or a main
+            // storyboard: the runtime instantiates it and `main` may not exist.
+            // Otherwise (WidgetKit-style `@main`) it must come from the extension's
+            // own library, as the builder's stub.c is empty. See Appex.md.
+            + (needsMainSymbol ? ["-Xlinker", "-u", "-Xlinker", "_main"] : [])
             // Include frameworks that the host app may use
-            "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks",
+            + ["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks"]
             // ...as well as our own
-            "-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks",
-        ]
+            + ["-Xlinker", "-rpath", "-Xlinker", "@executable_path/Frameworks"]
         }
+    }
+
+    /// Whether the extension relies on its own `main` symbol. An extension that names a
+    /// principal class or a main storyboard is instantiated through the ObjC runtime.
+    var needsMainSymbol: Bool {
+        guard let nsExtension = infoPlist["NSExtension"] as? [String: any Sendable] else {
+            return true
+        }
+        return nsExtension["NSExtensionPrincipalClass"] == nil
+            && nsExtension["NSExtensionMainStoryboard"] == nil
     }
 
     var linkerSettings: String {
