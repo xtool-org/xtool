@@ -44,13 +44,7 @@ private struct UnimplementedRawADIProvider: RawADIProvider {
 
 private enum RawADIProviderDependencyKey: DependencyKey {
     static let testValue: RawADIProvider = UnimplementedRawADIProvider()
-    static let liveValue: RawADIProvider = {
-        #if canImport(XADI)
-        return XADIProvider()
-        #else
-        return OmnisetteADIProvider()
-        #endif
-    }()
+    static let liveValue: RawADIProvider = OmnisetteADIProvider()
 }
 
 extension DependencyValues {
@@ -242,7 +236,7 @@ public struct ADIDataProvider: AnisetteDataProvider {
     }
 
     private static var providerID: String? {
-        "2"
+        "mac-omnisette"
     }
 
     public var providerID: String? { Self.providerID }
