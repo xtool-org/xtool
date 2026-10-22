@@ -6,10 +6,9 @@ struct OmnisetteADIProvider: RawADIProvider {
 
     // should implement v3 of https://github.com/SideStore/omnisette-server
     // list: https://servers.sidestore.io/servers.json
-    // e.g. https://ani.sidestore.io
     private let url: URL
     init(
-        url: URL = URL(string: "https://ani.sidestore.io")! // URL(string: "http://localhost:6969")!
+        url: URL = URL(string: "https://mac-ani.jkcoxson.com")!
     ) {
         self.url = url
     }
