@@ -48,7 +48,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/xtool-org/xtool-core", .upToNextMinor(from: "1.5.0")),
+        .package(url: "https://github.com/xtool-org/xtool-core", .upToNextMinor(from: "1.5.1")),
         .package(url: "https://github.com/xtool-org/SwiftyMobileDevice", .upToNextMinor(from: "1.7.0")),
         .package(url: "https://github.com/xtool-org/zsign", .upToNextMinor(from: "1.9.0")),
 
@@ -61,9 +61,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-openapi-urlsession", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-nio", from: "2.77.0"),
-        // v1.7.0 has a crash on old OSes: https://github.com/apple/swift-collections/issues/733.
-        // pin 1.6.0 until 1.7.1 is released.
-        .package(url: "https://github.com/apple/swift-collections", exact: "1.6.0"),
+        .package(url: "https://github.com/apple/swift-collections", from: "1.7.1"),
         .package(url: "https://github.com/apple/xcode-project-format.git", .upToNextMinor(from: "0.1.0")),
 
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.0.0"),
@@ -80,7 +78,7 @@ let package = Package(
         .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.14.0"),
 
         .package(url: "https://github.com/attaswift/BigInt", from: "6.0.0"),
-        .package(url: "https://github.com/jpsim/Yams", from: "5.1.3"),
+        .package(url: "https://github.com/jpsim/Yams", from: "6.0.0"),
         .package(url: "https://github.com/saagarjha/unxip", from: "3.2.0"),
 
         // NB: this should only be imported from XcodeProjects
