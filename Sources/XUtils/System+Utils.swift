@@ -49,7 +49,7 @@ extension FileDescriptor {
         }
     }
 
-    enum LockMode {
+    public enum LockMode {
         case shared
         case exclusive
 
@@ -61,7 +61,7 @@ extension FileDescriptor {
         }
     }
 
-    func tryLock(mode: LockMode) throws -> Bool {
+    public func tryLock(mode: LockMode) throws -> Bool {
         if flock(rawValue, mode.raw | LOCK_NB) == 0 {
             return true
         }
