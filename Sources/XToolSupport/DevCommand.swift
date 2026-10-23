@@ -79,14 +79,15 @@ struct PackOperation {
         let productsWithEntitlements = plan
             .allProducts
             .compactMap { p in p.entitlementsPath.map { (p, $0) } }
-        if !productsWithEntitlements.isEmpty {
+        // Zupersign handles mobile bundles. macOS bundles are left unsigned for a platform-specific signer.
+        if !productsWithEntitlements.isEmpty && !buildSettings.platform.usesContentsDirectory {
             let mapping = try await withThrowingTaskGroup(of: (URL, Entitlements).self) { group in
                 for (product, path) in productsWithEntitlements {
                     group.addTask {
                         let data = try await Data(reading: URL(fileURLWithPath: path))
                         let decoder = PropertyListDecoder()
                         let entitlements = try decoder.decode(Entitlements.self, from: data)
-                        return (product.directory(inApp: bundle), entitlements)
+                        return (product.directory(inApp: bundle, platform: buildSettings.platform), entitlements)
                     }
                 }
                 return try await group.reduce(into: [:]) { $0[$1.0] = $1.1 }
@@ -140,11 +141,25 @@ struct DevBuildCommand: AsyncParsableCommand {
     @Option(
         help: ArgumentHelp(
             "Custom target triple to build for",
-            discussion: "Defaults to '\(PackOperation.defaultTriple)'"
+            discussion: "Defaults to '\(PackOperation.defaultTriple)'. Supports iOS, tvOS, macOS, and Mac Catalyst."
         )
     ) var triple: String?
 
+    @Flag(help: "Print supported platforms without building or requiring an SDK")
+    var printSupportedPlatforms = false
+
     func run() async throws {
+        if printSupportedPlatforms {
+            print(ApplePlatform.allCases.map(\.rawValue).joined(separator: "\n"))
+            return
+        }
+        let platform = try ApplePlatform(validatingTriple: triple ?? PackOperation.defaultTriple)
+        if ipa && platform.usesContentsDirectory {
+            throw Console.Error("macOS and Mac Catalyst apps cannot be packaged as an IPA. Use the .app output.")
+        }
+        if sign && platform != .iOS {
+            throw Console.Error("Automatic development signing currently supports iOS only. Sign this platform's .app separately.")
+        }
         let signingAuthToken: AuthToken?
         if sign {
             guard let token = try AuthToken.savedIfPresent() else {
