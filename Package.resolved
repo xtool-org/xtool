@@ -1,5 +1,5 @@
 {
-  "originHash" : "df62267a8ffd060087e903a9d112d24562a959d43a0819a6511367da533c5594",
+  "originHash" : "28481e53b8c07f1ced8f6c3d9332a9a9154905a944bf7f93ae43c190306a24a3",
   "pins" : [
     {
       "identity" : "aexml",
@@ -335,6 +335,15 @@
       }
     },
     {
+      "identity" : "swift-rcodesign",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/xtool-org/swift-rcodesign",
+      "state" : {
+        "revision" : "08650ab9d3bf95a0c585581b8bd63eb7b8315264",
+        "version" : "0.2.0"
+      }
+    },
+    {
       "identity" : "swift-service-context",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-service-context.git",
@@ -440,15 +449,6 @@
       "state" : {
         "revision" : "a27b21e0c81c5bf42049b897a62aaf387e80f279",
         "version" : "6.2.2"
-      }
-    },
-    {
-      "identity" : "zsign",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/xtool-org/zsign",
-      "state" : {
-        "revision" : "f6158be9e62a5ce2a53d72b1a6d880880da956c8",
-        "version" : "1.9.0"
       }
     }
   ],
