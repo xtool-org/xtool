@@ -13,20 +13,18 @@ struct DevBSPCommand: AsyncParsableCommand {
     @Option
     var triple: String?
 
+    @Option
+    var packagePath: String = "."
+
     func run() async throws {
         guard try await SwiftVersion.current.supportsSwiftBuild else {
             throw Console.Error("`xtool dev build-server` requires Swift 6.4 or later")
         }
         let settings = try await BuildSettings(
             configuration: .debug,
-            triple: triple ?? PackOperation.defaultTriple
+            triple: triple ?? PackOperation.defaultTriple,
+            packagePath: packagePath
         )
-        try await Subprocess.run(
-            settings.buildServerInvocation(),
-            input: .currentStandardInput,
-            output: .currentStandardOutput,
-            error: .currentStandardError,
-        )
-        .checkSuccess()
+        try await BSPSourcePathProxy().run(settings.buildServerInvocation())
     }
 }
