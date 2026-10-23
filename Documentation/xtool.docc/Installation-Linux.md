@@ -68,7 +68,7 @@ sudo apt-get install usbmuxd
 
 ### Xcode.xip
 
-Download **Xcode 27** from <https://developer.apple.com/download/all/?q=Xcode>. Note the path where `Xcode.xip` is saved.
+Download **Xcode 27.1** from <https://developer.apple.com/download/all/?q=Xcode>. Note the path where `Xcode.xip` is saved.
 
 > Note:
 >
@@ -131,7 +131,7 @@ Choice (0-1): 0
 Path to Xcode.xip:
 ```
 
-Enter the path (for example `~/Downloads/Xcode_27.0.xip`) and hit enter. xtool will extract the Xcode XIP to generate and install an iOS Swift SDK for you.
+Enter the path (for example `~/Downloads/Xcode_27.1.xip`) and hit enter. xtool will extract the Xcode XIP to generate and install an iOS Swift SDK for you.
 
 Confirm that it worked:
 
