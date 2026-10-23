@@ -48,6 +48,15 @@ public actor BuildCoordinator {
             // mode, the Xcode targets will use [arm64, x86_64] but the package targets will
             // only declare [arm64], causing the build to fail
             overrides["ONLY_ACTIVE_ARCH"] = "YES"
+            // force ad-hoc signing during the build process. we'll provision & re-sign
+            // with the proper identity later.
+            #if os(macOS)
+            overrides["CODE_SIGN_IDENTITY"] = "-"
+            #else
+            // on Linux, host targets (eg macros) should not receive Darwin codesigning flags
+            overrides["CODE_SIGN_IDENTITY[__destination_platform=YES]"] = "-"
+            #endif
+            overrides["AD_HOC_CODE_SIGNING_ALLOWED"] = "YES"
             // Only override deployment targets when the triple explicitly includes a version.
             // Otherwise each package retains the deployment targets from its manifest.
             if let setting = targetInfo.deploymentTargetSettingName, let version = targetInfo.deploymentTarget {

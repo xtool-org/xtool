@@ -125,7 +125,42 @@ private final class PlanningOperationDelegate: SWBPlanningOperationDelegate, Sen
         targetGUID: String,
         provisioningSourceData: SWBProvisioningTaskInputsSourceData
     ) async -> SWBProvisioningTaskInputs {
-        SWBProvisioningTaskInputs()
+        // swiftlint:disable:next line_length
+        // based on https://github.com/swiftlang/swift-build/blob/02d98b1/Sources/SwiftBuild/ConsoleCommands/SWBServiceConsoleBuildCommand.swift#L491
+        guard !provisioningSourceData.signingCertificateIdentifier.isEmpty else {
+            return SWBProvisioningTaskInputs()
+        }
+        let entitlementsDestination = provisioningSourceData.entitlementsDestination
+        let signedEntitlements = entitlementsDestination == "Signature"
+            ? provisioningSourceData.productTypeEntitlements
+                .merging(
+                    provisioningSourceData.projectEntitlements ?? [:],
+                    uniquingKeysWith: { _, new in new }
+                )
+            : [:]
+        let simulatedEntitlements = entitlementsDestination == "__entitlements"
+            ? provisioningSourceData.productTypeEntitlements
+                .merging(
+                    ["application-identifier": .plString(provisioningSourceData.bundleIdentifier)],
+                    uniquingKeysWith: { _, new in new }
+                )
+                .merging(
+                    provisioningSourceData.projectEntitlements ?? [:],
+                    uniquingKeysWith: { _, new in new }
+                )
+            : [:]
+        return SWBProvisioningTaskInputs(
+            identityHash: "-",
+            identityName: "-",
+            signedEntitlements: signedEntitlements
+                .merging(
+                    provisioningSourceData.sdkRoot.contains("simulator")
+                        ? ["com.apple.security.get-task-allow": .plBool(true)]
+                        : [:],
+                    uniquingKeysWith: { _, new in new }
+                ),
+            simulatedEntitlements: simulatedEntitlements,
+        )
     }
 
     func executeExternalTool(

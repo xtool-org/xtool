@@ -16,6 +16,7 @@ extension EmulatedTools: DependencyKey {
             ObjcopyTool(mode: .bitcodeStrip),
             ChmodTool(),
             CodesignTool(),
+            DerqTool(),
         ]
         #endif
         return tools
@@ -106,19 +107,6 @@ private struct ChmodTool: EmulatedTool {
             error: .data(limit: .max),
         )
         .emulatedToolResult
-    }
-}
-
-private struct CodesignTool: EmulatedTool {
-    var name: String { "codesign" }
-
-    func execute(
-        commandLine: [String],
-        workingDirectory: String?,
-        environment: [String: String]
-    ) async throws -> EmulatedToolResult {
-        // TODO: implement
-        .result(status: .exit(0), stdout: Data(), stderr: Data())
     }
 }
 
