@@ -244,11 +244,33 @@ struct SDKBuilder {
         )
 
         if let envOverride, let path = ProcessInfo.processInfo.environment[envOverride] {
-            let archive = URL(fileURLWithPath: path)
-            print("[Extracting \(displayName)] \(archive.path)")
+            let source = URL(fileURLWithPath: path)
+            if source.dirExists {
+                print("[Copying \(displayName)] \(source.path)")
+                try await Subprocess.run(
+                    .name("cp"),
+                    arguments: ["-RL", "\(source.path)/.", "."],
+                    workingDirectory: FilePath(directory),
+                    output: .discarded,
+                    error: .discarded,
+                )
+                .checkSuccess()
+                // later steps write into the copy
+                try await Subprocess.run(
+                    .name("chmod"),
+                    arguments: ["-R", "u+w", "."],
+                    workingDirectory: FilePath(directory),
+                    output: .discarded,
+                    error: .discarded,
+                )
+                .checkSuccess()
+                return
+            }
+
+            print("[Extracting \(displayName)] \(source.path)")
             try await Subprocess.run(
                 .name("tar"),
-                arguments: ["xzf", archive.path],
+                arguments: ["xzf", source.path],
                 workingDirectory: FilePath(directory),
                 output: .discarded,
                 error: .discarded,
