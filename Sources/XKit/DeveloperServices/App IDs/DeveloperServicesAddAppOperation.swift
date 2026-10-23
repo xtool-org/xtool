@@ -8,8 +8,11 @@
 
 import Foundation
 import DeveloperAPI
+import Dependencies
 
 public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
+
+    @Dependency(\.signer) private var signer
 
     public enum Error: LocalizedError {
         case invalidApp(URL)
@@ -172,7 +175,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
         var entitlements: Entitlements
         // if the executable doesn't already have entitlements, that's
         // okay. We don't have to throw an error.
-        if let entitlementsData = try? await context.signer.analyze(executable: executableURL),
+        if let entitlementsData = try? await signer.analyze(executable: executableURL),
             let decodedEntitlements = try? PropertyListDecoder().decode(Entitlements.self, from: entitlementsData) {
             entitlements = decodedEntitlements
 
