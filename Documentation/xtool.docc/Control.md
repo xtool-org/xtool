@@ -15,6 +15,23 @@ bundleID: com.example.Hello
 EOF
 ```
 
+## Select the target platform
+
+Version 1 configurations keep the `arm64-apple-ios` default. Version 2 adds explicit target and deployment settings:
+
+```yaml
+version: 2
+bundleID: com.example.Hello
+target: arm64-apple-macosx
+deploymentTarget: "15.0"
+```
+
+`xtool dev build --triple` and `xtool dev build-server --triple` override `target` in `xtool.yml`. When neither is set, both use `arm64-apple-ios`. macOS targets support `arm64` and `x86_64`; `macos` is accepted as an alias for `macosx`. Build macOS apps with `xtool dev build --defer-signing` and sign the resulting app later on a Mac. On Linux, use `--configuration release`; macOS Debug builds require signing support available on macOS.
+
+The selected triple's OS version takes precedence over `deploymentTarget`, then the package's matching platform minimum, then xtool's platform minimum (iOS 13.0 or macOS 13.0). A package minimum below xtool's platform minimum is raised to it. An explicit version cannot lower the schema, package, or platform minimum. For example, `arm64-apple-macosx16.0` selects macOS 16.0 while the SDK identity remains `arm64-apple-macosx`.
+
+Editor support uses the same target resolution and package minimum as builds. Swift 6.4 and later use `.bsp/xtool.json`, whose build-server command pins the effective compiler triple (for example `arm64-apple-macosx15.0`), so starting the build server does not inspect the package. Earlier toolchains use `.sourcekit-lsp/config.json` with separate Swift SDK and compiler triple settings. Restart the editor after changing these files. xtool refreshes or migrates only configurations matching its complete generated content; customized files are preserved. Set `skipLSP: true` to disable automatic editor configuration.
+
 ## Change your bundle ID
 
 You can update your app's bundle ID by editing the `bundleID` field in `xtool.yml`.

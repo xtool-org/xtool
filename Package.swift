@@ -170,7 +170,7 @@ let package = Package(
         .target(
             name: "XToolSupport",
             dependencies: [
-                "SwiftyMobileDevice",
+                .product(name: "SwiftyMobileDevice", package: "SwiftyMobileDevice"),
                 "XKit",
                 "PackLib",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
@@ -192,6 +192,8 @@ let package = Package(
             name: "PackLib",
             dependencies: [
                 "XUtils",
+                .product(name: "Crypto", package: "swift-crypto"),
+                .product(name: "Dependencies", package: "swift-dependencies"),
                 "XcodeProjects",
                 .product(name: "Superutils", package: "xtool-core"),
                 .product(name: "Yams", package: "Yams"),
@@ -202,7 +204,7 @@ let package = Package(
         .executableTarget(
             name: "xtool",
             dependencies: [
-                "SwiftyMobileDevice",
+                .product(name: "SwiftyMobileDevice", package: "SwiftyMobileDevice"),
                 "XKit",
                 "XToolSupport",
             ],

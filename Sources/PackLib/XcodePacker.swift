@@ -1,5 +1,6 @@
 import Foundation
 import XcodeProjects
+import XUtils
 
 public struct XcodePacker {
     public var plan: Plan
@@ -12,6 +13,7 @@ public struct XcodePacker {
     public func createProject(
         at root: URL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
     ) async throws -> URL {
+        try validatePlan()
         let xtoolDir = root.appendingPathComponent("xtool", isDirectory: true)
         let projectDir = xtoolDir.appendingPathComponent(".xtool-tmp", isDirectory: true)
         try? FileManager.default.removeItem(at: projectDir)
@@ -231,6 +233,25 @@ public struct XcodePacker {
         let workspaceURL = xtoolDir.appending(path: "\(plan.app.product).xcworkspace")
         try workspace.write(to: workspaceURL)
         return workspaceURL
+    }
+
+    private func validatePlan() throws {
+        guard plan.target.platform != .macOS else {
+            throw StringError("Xcode project generation for macOS is not supported")
+        }
+        for product in plan.allProducts {
+            switch product.type {
+            case .application, .appExtension: break
+            case .xpcService, .helperExecutable:
+                throw StringError("Xcode project generation does not support XPC services or helpers")
+            }
+            guard case .library = product.resolvedSource else {
+                throw StringError("Xcode project generation requires library product sources")
+            }
+            if product.resources.contains(where: { if case .copy = $0 { return true }; return false }) {
+                throw StringError("Xcode project generation does not support explicit resource destinations")
+            }
+        }
     }
 
     private func resourceReferences(for product: Plan.Product, at root: URL) throws -> [XCSchema.Reference] {

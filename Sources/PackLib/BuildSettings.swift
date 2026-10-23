@@ -16,6 +16,12 @@ public struct BuildSettings: Sendable {
 
     public var sdkOptions: [String]
     public var sdkEnvironment: [Environment.Key: String?]
+    /// The versioned triple SwiftPM compiles for; `withTarget` pins the plan's deployment target.
+    private var compilerTriple: String
+
+    /// Where Linux writes the generated Swift SDK destination. It belongs to the root package:
+    /// copies from `withPackagePath` inspect dependencies and must not write into their directories.
+    let swiftSDKCacheDirectory: URL
 
     private var configOptions: [String] {
         return [
@@ -37,10 +43,22 @@ public struct BuildSettings: Sendable {
         options: [String] = []
     ) async throws {
         self.packagePath = packagePath
+        self.swiftSDKCacheDirectory = URL(fileURLWithPath: packagePath, isDirectory: true)
+            .appendingPathComponent(".build/xtool-sdk")
         self.configuration = configuration
         self.customOptions = options
         self.triple = triple
-        self.buildSystem = if let buildSystem { buildSystem } else { try await .default() }
+        let target = try TargetTriple(triple)
+        self.compilerTriple = target.compilerTriple
+        // SwiftBuild has not been validated for macOS cross-compilation. Keep the
+        // established iOS default, and use the proven SwiftPM backend for macOS.
+        self.buildSystem = if let buildSystem {
+            buildSystem
+        } else if target.platform == .macOS {
+            .swiftPM
+        } else {
+            try await .default()
+        }
 
         self.sdkEnvironment = [
             // xcrun passes an SDKROOT that messes with our sdk configuration
@@ -54,8 +72,14 @@ public struct BuildSettings: Sendable {
             // i.e. we can pass `--swift-sdk arm64-apple-ios` and it
             // just works. See:
             // https://github.com/swiftlang/swift-package-manager/pull/6828
-            self.sdkOptions = ["--swift-sdk", triple]
+            self.sdkOptions = ["--swift-sdk", target.sdkIdentity]
+            if target.deploymentTarget != nil {
+                self.sdkOptions += ["--triple", compilerTriple]
+            }
         case .swiftBuild:
+            guard target.platform != .macOS else {
+                throw StringError("macOS builds currently require the SwiftPM backend; SwiftBuild is not validated")
+            }
             self.sdkOptions = ["--triple", triple]
             #if !os(macOS)
             let darwinSDK = try DarwinSDK.current()
@@ -113,6 +137,87 @@ public struct BuildSettings: Sendable {
         return copy
     }
 
+    /// An SDK's unversioned identity selects its tools and libraries; the
+    /// compiler triple separately carries the plan's effective minimum OS.
+    public func withTarget(_ target: ResolvedTarget) throws -> Self {
+        guard target.triple == triple else {
+            throw StringError("Build settings target differs from the resolved plan")
+        }
+        var copy = self
+        switch buildSystem {
+        case .swiftPM:
+            copy.compilerTriple = target.compilerTriple
+            copy.sdkOptions = ["--swift-sdk", try TargetTriple(triple).sdkIdentity, "--triple", target.compilerTriple]
+        case .swiftBuild:
+            // Keep the initializer's triple and toolset. SwiftBuild applies a versioned triple's
+            // deployment target to every package, so dependencies would compile for the app's
+            // minimum instead of their own; the wrapper package's `platforms` carries the plan's.
+            break
+        }
+        return copy
+    }
+
+    /// Records the plan's deployment target as each product's minimum OS on every host; packages
+    /// still compile for their own minimums. Also passes the real SDK version, which LLD on Linux
+    /// would otherwise replace with the deployment version.
+    /// Keep this target-only: SwiftPM CLI linker flags also affect host macros.
+    func macOSLinkerArguments() async throws -> [String] {
+        let target = try TargetTriple(compilerTriple)
+        let settingsURL = try await macOSSDKRoot(for: target).appendingPathComponent("SDKSettings.json")
+        let data = try Data(contentsOf: settingsURL)
+        guard let settings = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let version = settings["Version"] as? String else {
+            throw StringError("Missing SDK version in \(settingsURL.path)")
+        }
+        try TargetTriple.validateVersion(version)
+        return ["-Xlinker", "-platform_version", "-Xlinker", "macos", "-Xlinker",
+                target.deploymentTarget ?? target.platform.minimumDeploymentTarget, "-Xlinker", version]
+    }
+
+    private var swiftSDKsPath: String? {
+        for (index, option) in customOptions.enumerated() {
+            if option.hasPrefix("--swift-sdks-path=") { return String(option.dropFirst("--swift-sdks-path=".count)) }
+            if option == "--swift-sdks-path", index + 1 < customOptions.count { return customOptions[index + 1] }
+        }
+        return nil
+    }
+
+    private func macOSSDKRoot(for target: TargetTriple) async throws -> URL {
+        #if os(macOS)
+        if swiftSDKsPath == nil {
+            return URL(fileURLWithPath: try await Self.xcrun(["--sdk", "macosx", "--show-sdk-path"]))
+        }
+        #endif
+        let properties = try SwiftSDKConfiguration.properties(in: swiftSDKsDirectory(), for: target)
+        return URL(fileURLWithPath: try (properties["sdkRootPath"] as? String)
+            .orThrow(StringError("Missing sdkRootPath for '\(target.sdkIdentity)'")))
+    }
+
+    private func swiftSDKsDirectory() throws -> URL {
+        if let path = swiftSDKsPath { return URL(fileURLWithPath: path, isDirectory: true) }
+        return try DarwinSDK.current()
+            .orThrow(StringError("No Darwin SDK configured. Please run `xtool setup`."))
+            .bundle.deletingLastPathComponent()
+    }
+
+    /// Reject combinations whose failure is already known, before a builder
+    /// creates its wrapper or starts resolving/compiling a package.
+    func validateProductBuild(for target: ResolvedTarget, hostIsMacOS: Bool) throws {
+        // `init` already rejects SwiftBuild for macOS, and `withTarget` a different triple.
+        guard target.platform != .macOS || hostIsMacOS || configuration == .release else {
+            throw StringError("macOS Debug builds on Linux need unavailable codesign support; use --configuration release")
+        }
+        // Build options may tune compilation, but cannot silently replace the
+        // already-resolved target, product, backend, or package.
+        let reserved = ["--triple", "--swift-sdk", "--sdk", "--arch", "--destination", "--configuration", "-c",
+                        "--build-system", "--package-path", "--product", "--target", "--show-bin-path", "--build-tests"]
+        for option in customOptions {
+            if reserved.contains(where: { option == $0 || option.hasPrefix("\($0)=") }) {
+                throw StringError("Build option '\(option)' conflicts with the resolved product build settings")
+            }
+        }
+    }
+
     public func swiftPMInvocation(
         forTool tool: String,
         arguments: [String],
@@ -136,10 +241,22 @@ public struct BuildSettings: Sendable {
             baseArguments = [tool]
         }
 
+        var options = resolvedBaseOptions
+        var environment = sdkEnvironment
+        #if !os(macOS)
+        let target = try TargetTriple(triple)
+        if buildSystem == .swiftPM && target.platform == .macOS {
+            let destination = try SwiftSDKConfiguration.destination(in: swiftSDKsDirectory(), for: target,
+                                                                    cacheDirectory: swiftSDKCacheDirectory)
+            options = configOptions + ["--destination", destination.url.path, "--triple", compilerTriple] + customOptions
+            environment["PATH"] = (destination.toolSearchPaths + [ProcessInfo.processInfo.environment["PATH"] ?? ""])
+                .joined(separator: ":")
+        }
+        #endif
         return Configuration(
             executable: executable,
-            arguments: .init(baseArguments + resolvedBaseOptions + arguments),
-            environment: .inherit.updating(sdkEnvironment),
+            arguments: .init(baseArguments + options + arguments),
+            environment: .inherit.updating(environment),
             platformOptions: .withGracefulShutDown,
         )
     }

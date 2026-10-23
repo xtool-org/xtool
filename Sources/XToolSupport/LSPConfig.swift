@@ -28,11 +28,12 @@ enum LSPConfig {
 
     nonisolated(nonsending) static func tryEnsure(
         using schema: PackSchema,
+        cliTriple: String? = nil,
         quiet: Bool = false,
         currentDirectory directory: URL = URL(filePath: FileManager.default.currentDirectoryPath)
     ) async {
         do {
-            try await ensure(using: schema, quiet: quiet, currentDirectory: directory)
+            try await ensure(using: schema, cliTriple: cliTriple, quiet: quiet, currentDirectory: directory)
         } catch {
             print("warning: failed to validate LSP configuration: \(error)")
         }
@@ -40,6 +41,7 @@ enum LSPConfig {
 
     nonisolated(nonsending) static func ensure(
         using schema: PackSchema,
+        cliTriple: String? = nil,
         quiet: Bool = false,
         currentDirectory directory: URL = URL(filePath: FileManager.default.currentDirectoryPath)
     ) async throws {
@@ -47,44 +49,119 @@ enum LSPConfig {
             return
         }
 
-        if try await SwiftVersion.current.supportsSwiftBuild {
-            try await ensure(primary: bsp, secondary: legacyLSP, quiet: quiet, currentDirectory: directory)
-        } else {
-            try await ensure(primary: legacyLSP, secondary: bsp, quiet: quiet, currentDirectory: directory)
+        let request = try DevBuildRequest(schema: schema, cliTriple: cliTriple, directory: directory)
+        let (settings, target) = try await EditorTarget.buildSettings(request: request)
+        try ensure(target: target, sdkOptions: settings.sdkOptions,
+                   supportsBSP: try await SwiftVersion.current.supportsSwiftBuild,
+                   quiet: quiet, currentDirectory: directory)
+    }
+
+    /// Builds already planned the package; reuse that plan instead of inspecting the package again.
+    nonisolated(nonsending) static func tryEnsure(
+        plan: Plan,
+        settings: BuildSettings,
+        schema: PackSchema,
+        currentDirectory directory: URL = URL(filePath: FileManager.default.currentDirectoryPath)
+    ) async {
+        guard schema.skipLSP != true else { return }
+        do {
+            try ensure(target: plan.target, sdkOptions: settings.withTarget(plan.target).sdkOptions,
+                       supportsBSP: try await SwiftVersion.current.supportsSwiftBuild, currentDirectory: directory)
+        } catch {
+            print("warning: failed to validate LSP configuration: \(error)")
         }
     }
 
-    // creates the primary LSP-support file if it doesn't exist, and cleans up old files
-    private nonisolated(nonsending) static func ensure(
-        primary: (String, String),
-        secondary: (String, String),
-        quiet: Bool,
-        currentDirectory directory: URL
-    ) async throws {
+    static func configuration(target: ResolvedTarget, sdkOptions: [String], bsp: Bool) throws -> (String, String) {
+        let object: [String: Any]
+        let path: String
+        if bsp {
+            path = Self.bsp.0
+            // Pin the planned deployment version so starting the server needs no package inspection.
+            object = bspObject(triple: target.compilerTriple)
+        } else {
+            path = legacyLSP.0
+            let sdkIndex = sdkOptions.firstIndex(of: "--swift-sdk")
+            // Legacy SourceKit uses SwiftPM even when builds default to SwiftBuild.
+            let sdk = sdkIndex.map { sdkOptions[$0 + 1] } ?? target.platform.triple(architecture: target.architecture)
+            object = ["swiftPM": ["swiftSDK": sdk, "triple": target.compilerTriple]]
+        }
+        let data = try JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys])
+        return (path, String(decoding: data, as: UTF8.self))
+    }
+
+    private static func bspObject(triple: String) -> [String: Any] {
+        [
+            "name": "xtool", "version": "1.0", "bspVersion": "2.2.0",
+            "languages": ["c", "cpp", "objective-c", "objective-cpp", "swift"],
+            "argv": ["/usr/bin/env", "xtool", "dev", "build-server", "--triple", triple],
+        ]
+    }
+
+    static func ensure(
+        target: ResolvedTarget, sdkOptions: [String], supportsBSP: Bool, quiet: Bool = false, currentDirectory directory: URL
+    ) throws {
+        let primary = try configuration(target: target, sdkOptions: sdkOptions, bsp: supportsBSP)
+        let secondary = try configuration(target: target, sdkOptions: sdkOptions, bsp: !supportsBSP)
         let primaryURL = directory.appendingPathComponent(primary.0)
         if FileManager.default.fileExists(atPath: primaryURL.path) {
-            return
+            let data = try Data(contentsOf: primaryURL)
+            guard isGenerated(data, bsp: supportsBSP) else { return }
         }
-
-        try? FileManager.default.createDirectory(
-            at: primaryURL.deletingLastPathComponent(),
-            withIntermediateDirectories: true
-        )
-        try Data((primary.1 + "\n").utf8).write(to: primaryURL)
+        try FileManager.default.createDirectory(at: primaryURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data((primary.1 + "\n").utf8).write(to: primaryURL, options: .atomic)
 
         let secondaryURL = directory.appendingPathComponent(secondary.0)
-        if let secondaryData = try? await Data(reading: secondaryURL),
-        let secondaryString = String(data: secondaryData, encoding: .utf8),
-        secondaryString.trimmingCharacters(in: .whitespacesAndNewlines) == secondary.1 {
-            try? FileManager.default.removeItem(at: secondaryURL)
+        if FileManager.default.fileExists(atPath: secondaryURL.path),
+           isGenerated(try Data(contentsOf: secondaryURL), bsp: !supportsBSP) {
+            try FileManager.default.removeItem(at: secondaryURL)
         }
-
         if !quiet {
             print("""
-            [LSP] Created \(primary.0) for enhanced IDE support. You may
+            [LSP] Configured \(primary.0) for enhanced IDE support. You may
                   need to restart your editor for the change to take effect.
                   You can disable this with `skipLSP: true` in xtool.yml.
             """)
         }
+    }
+
+    /// Recognize complete generated shapes; any extra key or changed value is user-owned.
+    private static func isGenerated(_ data: Data, bsp: Bool) -> Bool {
+        guard let object = try? JSONSerialization.jsonObject(with: data) as? NSDictionary else { return false }
+        let original = bsp ? Self.bsp.1 : legacyLSP.1
+        if let old = try? JSONSerialization.jsonObject(with: Data(original.utf8)) as? NSDictionary, object == old {
+            return true
+        }
+        if bsp {
+            // Earlier generated configurations pinned the unversioned triple; recognize any valid one.
+            let argv = object["argv"] as? [String]
+            guard argv?.count == 6, let triple = argv?.last, (try? TargetTriple(triple)) != nil else { return false }
+            return object == bspObject(triple: triple) as NSDictionary
+        }
+        let triple = (object["swiftPM"] as? [String: String])?["triple"]
+        guard let triple, let target = try? ResolvedTarget.resolve(cliTarget: triple),
+              let expected = try? configuration(target: target, sdkOptions: [], bsp: bsp),
+              let generated = try? JSONSerialization.jsonObject(with: Data(expected.1.utf8)) as? NSDictionary else {
+            return false
+        }
+        return object == generated
+    }
+}
+
+/// Use the same package deployment minima and target contract as app builds.
+enum EditorTarget {
+    nonisolated(nonsending) static func buildSettings(request: DevBuildRequest) async throws -> (BuildSettings, ResolvedTarget) {
+        let settings = try await BuildSettings(configuration: .debug, triple: request.triple, packagePath: request.directory.path)
+        let plan = try await Planner(buildSettings: settings, schema: request.schema).createPlan()
+        return (try settings.withTarget(plan.target), plan.target)
+    }
+
+    /// The build server starts with the compiler triple pinned in the generated configuration.
+    /// Resolve it without the planner, so a broken manifest or a locked or unresolved `.build`
+    /// cannot keep the editor's build server from starting.
+    nonisolated(nonsending) static func serverSettings(request: DevBuildRequest) async throws -> BuildSettings {
+        let target = try ResolvedTarget.resolve(cliTarget: request.triple, schema: request.schema)
+        let settings = try await BuildSettings(configuration: .debug, triple: request.triple, packagePath: request.directory.path)
+        return try settings.withTarget(target)
     }
 }

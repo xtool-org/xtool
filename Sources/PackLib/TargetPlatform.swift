@@ -1,0 +1,150 @@
+import Foundation
+import XUtils
+
+/// Target identity is independent of the host and of the build backend.
+public enum TargetPlatform: String, Codable, Sendable, CaseIterable {
+    case iOS = "ios"
+    case iOSSimulator = "ios-simulator"
+    case macOS = "macos"
+
+    public var minimumDeploymentTarget: String {
+        switch self {
+        case .iOS, .iOSSimulator: "13.0"
+        case .macOS: "13.0"
+        }
+    }
+
+    public var packagePlatformName: String {
+        self == .macOS ? "macos" : "ios"
+    }
+
+    public var supportedPlatform: String {
+        switch self {
+        case .iOS: "iPhoneOS"
+        case .iOSSimulator: "iPhoneSimulator"
+        case .macOS: "MacOSX"
+        }
+    }
+
+    /// Without a version this is the SDK identity; with one, the compiler triple.
+    public func triple(architecture: String, version: String = "") -> String {
+        switch self {
+        case .iOS: "\(architecture)-apple-ios\(version)"
+        case .iOSSimulator: "\(architecture)-apple-ios\(version)-simulator"
+        case .macOS: "\(architecture)-apple-macosx\(version)"
+        }
+    }
+}
+
+/// Parse only supported Apple targets; never infer the target from the host.
+public struct TargetTriple: Sendable, Equatable {
+    public let architecture: String
+    public let platform: TargetPlatform
+    public let deploymentTarget: String?
+
+    public init(_ triple: String) throws {
+        let parts = triple.split(separator: "-", omittingEmptySubsequences: false).map(String.init)
+        guard (3...4).contains(parts.count), parts[1] == "apple" else {
+            throw StringError("Unsupported target triple: \(triple)")
+        }
+        let os = String(parts[2].prefix { !$0.isNumber })
+        let version = String(parts[2].dropFirst(os.count))
+        switch (os, parts.count == 4 ? parts[3] : "") {
+        case ("ios", ""): platform = .iOS
+        case ("ios", "simulator"): platform = .iOSSimulator
+        case ("macos", ""), ("macosx", ""): platform = .macOS
+        default: throw StringError("Unsupported target triple: \(triple)")
+        }
+        architecture = parts[0]
+        let supported = platform == .iOS ? ["arm64"] : ["arm64", "x86_64"]
+        guard supported.contains(architecture) else {
+            throw StringError("Unsupported architecture '\(architecture)' for \(platform.rawValue)")
+        }
+        if !version.isEmpty { try Self.validateVersion(version) }
+        deploymentTarget = version.isEmpty ? nil : version
+    }
+
+    var sdkIdentity: String {
+        platform.triple(architecture: architecture)
+    }
+
+    var compilerTriple: String {
+        platform.triple(architecture: architecture, version: deploymentTarget ?? platform.minimumDeploymentTarget)
+    }
+
+    static func validateVersion(_ value: String) throws {
+        let parts = value.split(separator: ".", omittingEmptySubsequences: false)
+        guard (1...3).contains(parts.count), parts.allSatisfy({ !$0.isEmpty && $0.allSatisfy({ $0.isASCII && $0.isNumber }) }) else {
+            throw StringError("Invalid deployment target: \(value)")
+        }
+    }
+}
+
+/// Resolve once, then share this value with planning, compilation, assembly, and signing.
+public struct ResolvedTarget: Codable, Sendable, Equatable {
+    public static let defaultTriple = "arm64-apple-ios"
+
+    public let triple: String
+    public let platform: TargetPlatform
+    public let architecture: String
+    public let deploymentTarget: String
+
+    /// Triple precedence: CLI > schema > iOS default.
+    /// Deployment precedence: selected triple's version > schema > package > platform minimum.
+    /// A package minimum below xtool's platform minimum is raised to it; an explicit triple or
+    /// schema version cannot lower the schema, package or platform minimum.
+    public static func resolve(
+        cliTarget: String? = nil,
+        schema: PackSchema = .default,
+        packageDeploymentTargets: [String: String] = [:]
+    ) throws -> Self {
+        let triple = cliTarget ?? schema.target ?? defaultTriple
+        let parsed = try TargetTriple(triple)
+        let platformMinimum = parsed.platform.minimumDeploymentTarget
+        let packageMinimum = packageDeploymentTargets[parsed.platform.packagePlatformName]
+        if let packageMinimum { try TargetTriple.validateVersion(packageMinimum) }
+        let packageDefault = packageMinimum.map { version($0, isBelow: platformMinimum) ? platformMinimum : $0 }
+        let deployment = parsed.deploymentTarget ?? schema.deploymentTarget ?? packageDefault ?? platformMinimum
+        try TargetTriple.validateVersion(deployment)
+        for minimum in [schema.deploymentTarget, packageMinimum, platformMinimum].compactMap({ $0 }) {
+            try TargetTriple.validateVersion(minimum)
+            guard !version(deployment, isBelow: minimum) else {
+                throw StringError("Deployment target \(deployment) is below required minimum \(minimum)")
+            }
+        }
+        try schema.validate(for: parsed.platform)
+        return Self(
+            triple: triple,
+            platform: parsed.platform,
+            architecture: parsed.architecture,
+            deploymentTarget: deployment
+        )
+    }
+
+    /// Describes an existing app from its own metadata. Only the triple's syntax is validated:
+    /// xtool's deployment minimums apply to what it builds, not to apps it inspects.
+    public static func existing(triple: String) throws -> Self {
+        let parsed = try TargetTriple(triple)
+        guard let deployment = parsed.deploymentTarget else {
+            throw StringError("Expected a versioned target triple: \(triple)")
+        }
+        return Self(triple: triple, platform: parsed.platform, architecture: parsed.architecture,
+                    deploymentTarget: deployment)
+    }
+
+    private static func version(_ value: String, isBelow minimum: String) -> Bool {
+        let lhs = value.split(separator: ".").map { Int($0) ?? Int.max }
+        let rhs = minimum.split(separator: ".").map { Int($0) ?? Int.max }
+        for index in 0..<max(lhs.count, rhs.count) {
+            let left = index < lhs.count ? lhs[index] : 0
+            let right = index < rhs.count ? rhs[index] : 0
+            if left != right { return left < right }
+        }
+        return false
+    }
+
+    /// Canonical versioned target for compiler invocations. The SDK identity is selected separately.
+    public var compilerTriple: String {
+        platform.triple(architecture: architecture, version: deploymentTarget)
+    }
+}

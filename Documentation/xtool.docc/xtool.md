@@ -14,6 +14,8 @@ xtool is a cross-platform (Linux/WSL/macOS) tool that replicates Xcode functiona
 
 ✅ Build a SwiftPM package into an iOS app
 
+✅ Build and assemble a macOS SwiftPM app with deferred signing
+
 ✅ Sign and install iOS apps
 
 ✅ Interact with Apple Developer Services programmatically
@@ -32,3 +34,5 @@ xtool is a cross-platform (Linux/WSL/macOS) tool that replicates Xcode functiona
 
 - <doc:Control>
 - <doc:Appex>
+- <doc:MacOS>
+- <doc:Configuration>
