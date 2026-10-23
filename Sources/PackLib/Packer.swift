@@ -166,17 +166,18 @@ public struct Packer: Sendable {
                     try await packFile(srcName: "\(package)_\(target).bundle")
                 case .binaryTarget(let name):
                     let src = URL(fileURLWithPath: "\(name).framework/\(name)", relativeTo: binDir)
-                    let magic = Data("!<arch>\n".utf8)
-                    let thinMagic = Data("!<thin>\n".utf8)
-                    guard let bytes = try? FileHandle(forReadingFrom: src).read(upToCount: magic.count) else {
+                    guard let handle = try? FileHandle(forReadingFrom: src) else {
                         // if we can't find the binary, it might be a static framework that SwiftPM
                         // did not copy into the .build directory. we don't need to pack it anyway.
                         break
                     }
-                    // if the magic matches one of these it's a static archive; don't embed it.
-                    // https://github.com/apple/llvm-project/blob/e716ff14c46490d2da6b240806c04e2beef01f40/llvm/include/llvm/Object/Archive.h#L33
-                    // swiftlint:disable:previous line_length
-                    if bytes != magic && bytes != thinMagic {
+                    defer { try? handle.close() }
+                    let isStatic = try Packer.isStaticArchive { offset, count in
+                        try handle.seek(toOffset: offset)
+                        return try handle.read(upToCount: count) ?? Data()
+                    }
+                    // static archives are linked into the binary; don't embed them.
+                    if !isStatic {
                         try await packFile(srcName: "\(name).framework", dstName: "Frameworks/\(name).framework", sign: true)
                     }
                 case .library(let name):
@@ -218,6 +219,47 @@ public struct Packer: Sendable {
         }
     }
 
+    /// Whether a framework binary is a static archive rather than a dynamic library.
+    ///
+    /// Handles plain archives as well as archives wrapped in a fat (universal) Mach-O header,
+    /// which some xcframeworks ship (e.g. GoogleAdsOnDeviceConversion). A fat binary counts as
+    /// static only if every slice is an archive.
+    ///
+    /// - Parameter read: Reads up to `count` bytes at `offset` of the binary.
+    static func isStaticArchive(read: (_ offset: UInt64, _ count: Int) throws -> Data) throws -> Bool {
+        let header = try read(0, 8)
+        if isArchiveMagic(header) { return true }
+        guard header.count == 8 else { return false }
+
+        // https://github.com/apple-oss-distributions/cctools/blob/cctools-1010.6/include/mach-o/fat.h
+        let entrySize: Int
+        switch header.bigEndianUInt32(at: 0) {
+        case 0xCAFEBABE: entrySize = 20 // struct fat_arch
+        case 0xCAFEBABF: entrySize = 32 // struct fat_arch_64
+        default: return false
+        }
+        // bound the count so a malformed header can't make us read an arbitrary amount
+        let archCount = Int(header.bigEndianUInt32(at: 4))
+        guard (1...64).contains(archCount) else { return false }
+
+        let table = try read(8, archCount * entrySize)
+        guard table.count == archCount * entrySize else { return false }
+        for index in 0..<archCount {
+            // cputype and cpusubtype (4 bytes each) precede the slice offset
+            let offsetPosition = index * entrySize + 8
+            let offset = entrySize == 32
+                ? table.bigEndianUInt64(at: offsetPosition)
+                : UInt64(table.bigEndianUInt32(at: offsetPosition))
+            guard isArchiveMagic(try read(offset, 8)) else { return false }
+        }
+        return true
+    }
+
+    // https://github.com/apple/llvm-project/blob/e716ff14c46490d2da6b240806c04e2beef01f40/llvm/include/llvm/Object/Archive.h#L33
+    private static func isArchiveMagic(_ bytes: Data) -> Bool {
+        bytes == Data("!<arch>\n".utf8) || bytes == Data("!<thin>\n".utf8)
+    }
+
     static func cfBundleSupportedPlatforms(for triple: String) -> [String] {
         let components = triple.split(separator: "-").map(String.init)
         guard let appleIndex = components.firstIndex(of: "apple"),
@@ -236,6 +278,16 @@ public struct Packer: Sendable {
         default:
             return ["iPhoneOS"]
         }
+    }
+}
+
+extension Data {
+    fileprivate func bigEndianUInt32(at offset: Int) -> UInt32 {
+        self[(startIndex + offset)..<(startIndex + offset + 4)].reduce(0) { $0 << 8 | UInt32($1) }
+    }
+
+    fileprivate func bigEndianUInt64(at offset: Int) -> UInt64 {
+        self[(startIndex + offset)..<(startIndex + offset + 8)].reduce(0) { $0 << 8 | UInt64($1) }
     }
 }
 
