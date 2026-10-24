@@ -135,6 +135,16 @@ SWIFTLINT_BIN = .tmp/swiftlint/swiftlint-$(SWIFTLINT_VERSION)
 SWIFTLINT_ARCH = $(subst aarch64,arm64,$(subst x86_64,amd64,$(shell uname -m)))
 SWIFTLINT_URL = https://github.com/realm/SwiftLint/releases/download/$(SWIFTLINT_VERSION)/$(if $(IS_MAC),portable_swiftlint,swiftlint_linux_$(SWIFTLINT_ARCH)).zip
 
+# Swiftly's shim does not expose the active toolchain library path to SourceKitten.
+ifeq ($(shell uname -s),Linux)
+ifeq ($(strip $(LINUX_SOURCEKIT_LIB_PATH)),)
+SWIFTLINT_SOURCEKIT_LIB := $(shell toolchain=$$(swiftly use --print-location 2>/dev/null); test -n "$$toolchain" && test -f "$$toolchain/usr/lib/libsourcekitdInProc.so" && printf '%s/usr/lib' "$$toolchain")
+ifneq ($(SWIFTLINT_SOURCEKIT_LIB),)
+export LINUX_SOURCEKIT_LIB_PATH := $(SWIFTLINT_SOURCEKIT_LIB)
+endif
+endif
+endif
+
 .PHONY: lint
 lint: $(SWIFTLINT_BIN)
 	$(SWIFTLINT_BIN) $(SWIFTLINT_FLAGS)
