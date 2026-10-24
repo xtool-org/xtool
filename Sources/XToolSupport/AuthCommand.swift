@@ -4,6 +4,24 @@ import ArgumentParser
 import Crypto
 import Dependencies
 
+private extension GrandSlamMacProfile {
+    var menuDescription: String {
+        switch self {
+        case .provider:
+            "Provider default (identity supplied by the Anisette server)"
+        case .modern:
+            "Modern Mac (macOS 27; for Advanced Data Protection accounts, experimental)"
+        }
+    }
+}
+
+private func parseMacProfile(_ name: String) throws -> GrandSlamMacProfile {
+    guard let profile = GrandSlamMacProfile(rawValue: name) else {
+        throw Console.Error("Invalid Mac profile '\(name)'; expected 'provider' or 'modern'.")
+    }
+    return profile
+}
+
 enum AuthMode: String, CaseIterable, CustomStringConvertible, ExpressibleByArgument {
     case key
     case password
@@ -21,6 +39,7 @@ struct AuthOperation {
     var password: String?
     var logoutFromExisting: Bool
 
+    var macProfile: GrandSlamMacProfile?
     var mode: AuthMode?
     var quiet = false
 
@@ -42,6 +61,10 @@ struct AuthOperation {
                 multiPrompt: "Select login mode",
                 formatter: \.description
             )
+        }
+
+        if mode == .key && macProfile != nil {
+            throw Console.Error("--mac-profile can only be used with password login.")
         }
 
         let token = switch mode {
@@ -75,6 +98,43 @@ struct AuthOperation {
         return AuthToken.appStoreConnect(.init(id: id, issuerID: issuerID, pem: pem))
     }
 
+    private func selectMacProfile() async throws {
+        @Dependency(\.keyValueStorage) var storage
+
+        let environmentProfile = ProcessInfo.processInfo.environment[GrandSlamMacProfile.environmentVariable]
+        let selected: GrandSlamMacProfile
+        if let environmentProfile, !environmentProfile.isEmpty {
+            if macProfile != nil {
+                throw Console.Error("Use either --mac-profile or XTL_GSA_MAC_PROFILE, not both.")
+            }
+            selected = try parseMacProfile(environmentProfile)
+        } else if let macProfile {
+            selected = macProfile
+        } else if username != nil && password != nil {
+            // Preserve non-interactive password logins without requiring a new flag.
+            if let saved = try storage.string(forKey: GrandSlamMacProfile.storageKey) {
+                selected = try parseMacProfile(saved)
+            } else {
+                selected = .provider
+            }
+        } else {
+            if let saved = try storage.string(forKey: GrandSlamMacProfile.storageKey) {
+                print("Saved Apple device profile: \(saved)")
+            }
+            selected = try await Console.choose(
+                from: GrandSlamMacProfile.allCases,
+                onNoElement: { .provider },
+                multiPrompt: "Select Apple device profile",
+                formatter: \.menuDescription
+            )
+        }
+
+        // Reused by later commands such as `xtool dev run`, so signing and
+        // provisioning use the same identity as password authentication.
+        try storage.setString(selected.rawValue, forKey: GrandSlamMacProfile.storageKey)
+        print("Apple device profile: \(selected.rawValue) (saved)")
+    }
+
     private func logInWithPassword() async throws -> AuthToken {
         print("""
         Heads up:
@@ -83,6 +143,8 @@ struct AuthOperation {
           (Anisette Data) but your credentials are only ever sent to Apple.
           Still, consider using a secondary Apple ID since this is a private API.
         """)
+
+        try await selectMacProfile()
 
         let username = try await Console.promptRequired("Apple ID: ", existing: username)
 
@@ -141,14 +203,47 @@ struct AuthLoginCommand: AsyncParsableCommand {
     @Option(name: [.short, .long], help: "Apple ID") var username: String?
     @Option(name: [.short, .long]) var password: String?
     @Option(name: [.short, .long]) var mode: AuthMode?
+    @Option(name: .long, help: "Apple device profile for password login: provider or modern")
+    var macProfile: String?
 
     func run() async throws {
+        let selectedProfile = try macProfile.map { try parseMacProfile($0) }
         try await AuthOperation(
             username: username,
             password: password,
             logoutFromExisting: true,
+            macProfile: selectedProfile,
             mode: mode
         ).run()
+    }
+}
+
+struct AuthProfileCommand: AsyncParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "profile",
+        abstract: "Show or change the Apple device profile without logging in again"
+    )
+
+    @Argument(help: "Profile to save: provider or modern (omit to display the current profile)")
+    var profile: String?
+
+    func run() async throws {
+        @Dependency(\.keyValueStorage) var storage
+
+        if let profile {
+            let selected = try parseMacProfile(profile)
+            try storage.setString(selected.rawValue, forKey: GrandSlamMacProfile.storageKey)
+            print("Saved Apple device profile: \(selected.rawValue)")
+        }
+
+        if let environment = ProcessInfo.processInfo.environment[GrandSlamMacProfile.environmentVariable],
+           !environment.isEmpty {
+            let selected = try parseMacProfile(environment)
+            print("Effective Apple device profile: \(selected.rawValue) (environment override)")
+        } else {
+            let saved = try storage.string(forKey: GrandSlamMacProfile.storageKey)
+            print("Effective Apple device profile: \(saved ?? GrandSlamMacProfile.provider.rawValue)")
+        }
     }
 }
 
@@ -209,6 +304,7 @@ struct AuthCommand: AsyncParsableCommand {
         abstract: "Manage Apple Developer Services authentication",
         subcommands: [
             AuthLoginCommand.self,
+            AuthProfileCommand.self,
             AuthLogoutCommand.self,
             AuthStatusCommand.self,
         ],

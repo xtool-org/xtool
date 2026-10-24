@@ -121,6 +121,8 @@ Choice (0-1):
 
 Once you select a login mode, you'll be asked to provide the corresponding credentials (API key or email+password+2FA). Needless to say, *your credentials are only sent to Apple* and nobody else (feel free to build xtool from source and check!)
 
+If you use Password login, you can also select the Mac identity xtool uses to authenticate with Apple. See <doc:Auth> for more information.
+
 ### 3. Configure xtool: SDK
 
 After you're logged in, you'll be asked to provide the path to the `Xcode.xip` file you downloaded earlier.

@@ -8,8 +8,20 @@
 
 import Foundation
 
+public enum TwoFactorAuthMethod: CaseIterable, Sendable {
+    case automatic
+    case trustedDevice
+    case manualCode
+    case sms
+}
+
 public protocol TwoFactorAuthDelegate: AnyObject, Sendable {
+    func selectMethod() async -> TwoFactorAuthMethod
     func fetchCode() async -> String?
+}
+
+public extension TwoFactorAuthDelegate {
+    func selectMethod() async -> TwoFactorAuthMethod { .automatic }
 }
 
 struct GrandSlamTwoFactorAuthenticateOperation {
@@ -71,13 +83,24 @@ struct GrandSlamTwoFactorAuthenticateOperation {
     }
 
     func perform() async throws {
-        switch mode {
-        case .secondaryAuth:
-            try await self.performSMSAuth()
-        case .trustedDeviceSecondaryAuth:
-            try await self.performTrustedDeviceAuth()
-        case nil: // means 2FA was automatically requested
+        switch await delegate.selectMethod() {
+        case .automatic:
+            switch mode {
+            case .secondaryAuth:
+                try await performSMSAuth()
+            case .trustedDeviceSecondaryAuth:
+                try await performTrustedDeviceAuth()
+            case nil: // means 2FA was automatically requested
+                try await validateCode()
+            }
+        case .trustedDevice:
+            print("Using trusted-device verification. Enter a code from your Apple device.")
+            try await performTrustedDeviceAuth()
+        case .manualCode:
+            print("Using a manually generated Apple verification code.")
             try await validateCode()
+        case .sms:
+            try await performSMSAuth()
         }
     }
 

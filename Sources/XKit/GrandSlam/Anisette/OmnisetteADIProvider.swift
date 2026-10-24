@@ -1,8 +1,19 @@
 import Foundation
 import Dependencies
 
+/// Apple-facing client identity used by the remote Anisette provider.
+/// The selection is independent of the saved ADI provisioning state.
+public enum GrandSlamMacProfile: String, CaseIterable, Sendable {
+    case provider
+    case modern
+
+    public static let storageKey = "XTLGSAMacProfile"
+    public static let environmentVariable = "XTL_GSA_MAC_PROFILE"
+}
+
 struct OmnisetteADIProvider: RawADIProvider {
     @Dependency(\.httpClient) private var client
+    @Dependency(\.keyValueStorage) private var storage
 
     // should implement v3 of https://github.com/SideStore/omnisette-server
     // list: https://servers.sidestore.io/servers.json
@@ -27,6 +38,43 @@ struct OmnisetteADIProvider: RawADIProvider {
         return encoder
     }()
 
+    // A modern macOS 27 / MacBook Air M5 identity using Apple's akd client.
+    // The akd identity avoids HTTP 503 responses to legacy Xcode client-info.
+    // The remote Mac Anisette server still supplies the provisioning and OTP data.
+    // Keep this opt-in: spoofing a different identity may be rejected by Apple.
+    static let modernMacClientInfo = """
+        <Mac17,3> <macOS;27.0;26A5416b> <com.apple.AuthKit/1 (com.apple.akd/1.0)>
+        """
+
+    enum ClientInfoProfileError: Error, LocalizedError {
+        case invalidProfile(String)
+
+        var errorDescription: String? {
+            switch self {
+            case .invalidProfile(let name):
+                return "Unknown XTL_GSA_MAC_PROFILE '\(name)'; use 'provider' or 'modern'."
+            }
+        }
+    }
+
+    static func resolvedClientInfo(_ serverClientInfo: String, profile: String?) throws -> String {
+        switch profile {
+        case nil, "", "provider":
+            return serverClientInfo
+        case "modern":
+            return modernMacClientInfo
+        case .some(let name):
+            throw ClientInfoProfileError.invalidProfile(name)
+        }
+    }
+
+    static func selectedProfileName(environment: String?, stored: String?) -> String? {
+        if let environment, !environment.isEmpty {
+            return environment
+        }
+        return stored
+    }
+
     func clientInfo() async throws -> String {
         struct ClientInfo: Decodable {
             let clientInfo: String
@@ -34,8 +82,16 @@ struct OmnisetteADIProvider: RawADIProvider {
         let body = try await client.makeRequest(
             HTTPRequest(url: url.appendingPathComponent("v3/client_info"))
         ).body
-        let clientInfo = try Self.decoder.decode(ClientInfo.self, from: body)
-        return clientInfo.clientInfo
+        let serverClientInfo = try Self.decoder.decode(ClientInfo.self, from: body).clientInfo
+        let profile = Self.selectedProfileName(
+            environment: ProcessInfo.processInfo.environment[GrandSlamMacProfile.environmentVariable],
+            stored: try storage.string(forKey: GrandSlamMacProfile.storageKey)
+        )
+        let clientInfo = try Self.resolvedClientInfo(serverClientInfo, profile: profile)
+        if profile == GrandSlamMacProfile.modern.rawValue {
+            print("Experimental Apple device profile: Mac17,3 / macOS 27.0 (akd client).")
+        }
+        return clientInfo
     }
 
     func startProvisioning(spim: Data, userID: UUID) async throws -> (RawADIProvisioningSession, Data) {
