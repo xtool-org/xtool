@@ -119,6 +119,7 @@ public struct Packer: Sendable {
                     product: product,
                     binDir: binDir,
                     outputURL: product.directory(inApp: outputURL),
+                    sdk: sdk,
                     &group
                 )
             }
@@ -145,6 +146,7 @@ public struct Packer: Sendable {
         product: Plan.Product,
         binDir: URL,
         outputURL: URL,
+        sdk: PlatformSDK?,
         _ group: inout ThrowingTaskGroup<Void, Error>
     ) throws {
         @Sendable func packFileToRoot(srcName: String) async throws {
@@ -209,6 +211,10 @@ public struct Packer: Sendable {
                 info["UIRequiredDeviceCapabilities"] = ["arm64"]
                 info["LSRequiresIPhoneOS"] = true
                 info["CFBundleSupportedPlatforms"] = Packer.cfBundleSupportedPlatforms(for: buildSettings.triple)
+            }
+
+            if let sdk {
+                info.merge(sdk.infoPlistKeys) { $1 }
             }
 
             if let iconPath = product.iconPath {
