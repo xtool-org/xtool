@@ -696,11 +696,22 @@ struct SDKBuilder {
     }
 
     private func extractXIP(inputPath: String, outDir: String) async throws -> Int {
+        if let hint = XIPExtraction.appImageHint() {
+            print(hint)
+        }
+        try XIPExtraction.checkFreeSpace(inputPath: inputPath, outDir: outDir)
+        let prepared = try XIPExtraction.stageIfNeeded(inputPath: inputPath, outDir: outDir)
+        defer { prepared.cleanup() }
+
         // unxip doesn't like cooperative cancellation atm so shield it.
         // if the user does a ^C during unxip, we'll just wait until extraction
         // is over before bailing
-        try await Task {
-            try await _extractXIP(inputPath: inputPath, outDir: outDir)
+        return try await Task {
+            try await _extractXIP(
+                inputPath: prepared.path,
+                outDir: outDir,
+                sourceKind: HostFilesystem.kind(of: prepared.path)
+            )
         }.value
     }
 
@@ -726,7 +737,11 @@ struct SDKBuilder {
 
     // returns the number of files we actually want to keep,
     // useful for computing progress % during fs traversal
-    private func _extractXIP(inputPath: String, outDir: String) async throws -> Int {
+    private func _extractXIP(
+        inputPath: String,
+        outDir: String,
+        sourceKind: HostFilesystem.Kind
+    ) async throws -> Int {
         let fd = try FileDescriptor.open(inputPath, .readOnly)
         defer { try? fd.close() }
 
@@ -743,21 +758,10 @@ struct SDKBuilder {
         let inputStream = DataReader.data(readingFrom: fd.rawValue)
 
         let (observer, source) = inputStream.lockstepSplit()
-
-        async let readTask: Void = {
-            var read = 0
-            for try await chunk in observer {
-                read += chunk.count
-                let progress = Int(Double(read) / Double(length) * 100)
-                print("\r[Extracting XIP] \(progress)%", terminator: "")
-                fflush(stdoutSafe)
-                if read == length { break }
-            }
-        }()
-
-        let xipToChunks = XIP.transform(
-            DataReader(data: source),
-            options: nil
+        let tracker = XIPProgressTracker(
+            totalBytes: length,
+            sourceKind: sourceKind,
+            isAppImage: ProcessInfo.processInfo.environment["APPIMAGE"] != nil
         )
 
         // ideally we would filter out the files we don't want at this stage,
@@ -767,24 +771,55 @@ struct SDKBuilder {
         // our filter() points to a file outside of it. We might be able to do this
         // with a double-pass system.
 
-        let chunksToFiles = Chunks.transform(
-            xipToChunks,
-            options: nil
-        )
+        let wanted: Int = try await withThrowingTaskGroup(of: Int?.self) { group in
+            group.addTask {
+                async let readTask: Void = {
+                    var read: Int64 = 0
+                    for try await chunk in observer {
+                        read += Int64(chunk.count)
+                        await tracker.setBytesRead(read)
+                        if read == length { break }
+                    }
+                }()
 
-        let filesToDisk = Files.transform(
-            chunksToFiles,
-            options: .init(
-                compress: false,
-                dryRun: false
-            )
-        )
+                let xipToChunks = XIP.transform(
+                    DataReader(data: source),
+                    options: nil
+                )
+                let chunksToFiles = Chunks.transform(
+                    xipToChunks,
+                    options: nil
+                )
+                let filesToDisk = Files.transform(
+                    chunksToFiles,
+                    options: .init(
+                        compress: false,
+                        dryRun: false
+                    )
+                )
 
-        var wanted = 0
-        for try await file in filesToDisk {
-            wanted += Self.isWanted(file.name[...]) ? 1 : 0
+                var wanted = 0
+                for try await file in filesToDisk {
+                    wanted += Self.isWanted(file.name[...]) ? 1 : 0
+                    await tracker.noteFile()
+                }
+                _ = try await readTask
+                return wanted
+            }
+            group.addTask {
+                while !Task.isCancelled {
+                    try await Task.sleep(for: .seconds(15))
+                    try Task.checkCancellation()
+                    try await tracker.heartbeat()
+                }
+                return nil
+            }
+            guard let first = try await group.next(), let wanted = first else {
+                throw Console.Error("XIP extraction ended unexpectedly")
+            }
+            group.cancelAll()
+            return wanted
         }
-        _ = try await readTask
 
         print()
 
