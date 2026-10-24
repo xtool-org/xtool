@@ -178,11 +178,12 @@ public struct Planner: Sendable {
             "CFBundleExecutable": library.name,
             "CFBundleDisplayName": library.name,
             "CFBundlePackageType": type.fourCharCode,
+            // extensions need it too, App Store Connect rejects them without it
+            "UIDeviceFamily": [1, 2],
         ]
 
         switch type {
         case .application:
-            infoPlist["UIDeviceFamily"] = [1, 2]
             infoPlist["UISupportedInterfaceOrientations"] = ["UIInterfaceOrientationPortrait"]
             infoPlist["UISupportedInterfaceOrientations~ipad"] = [
                 "UIInterfaceOrientationPortrait",
