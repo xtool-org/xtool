@@ -38,12 +38,26 @@ struct GrandSlamClient: Sendable {
         }
         request.configure(request: &httpRequest, anisetteData: anisetteData)
 
+        // Only emit the request type and HTTP status, never headers or response bodies:
+        // those may contain credentials, verification data, or session tokens.
+        let traceEnabled = ProcessInfo.processInfo.environment["XTL_GSA_TRACE"] == "1"
+
         // GrandSlam doesn't seem to like reused (keep-alive) connections so create a
         // new one for each request. cf https://github.com/rileytestut/AltSign/pull/52
-        let resp = try await httpClient.withEphemeralClient {
-            try await $0.makeRequest(httpRequest, body: body)
+        do {
+            let resp = try await httpClient.withEphemeralClient {
+                try await $0.makeRequest(httpRequest, body: body)
+            }
+            if traceEnabled {
+                print("GrandSlam \(R.self): HTTP \(resp.response.status.code)")
+            }
+            return try R.Decoder.decode(data: resp.body)
+        } catch let error as HTTPResponseError {
+            if traceEnabled {
+                print("GrandSlam \(R.self): HTTP \(error.status.code)")
+            }
+            throw error
         }
-        return try R.Decoder.decode(data: resp.body)
     }
 
 }
