@@ -3,6 +3,26 @@ import XKit
 import ConcurrencyExtras
 
 final class XToolAuthDelegate: TwoFactorAuthDelegate {
+    func selectMethod() async -> TwoFactorAuthMethod {
+        (try? await Console.choose(
+            from: TwoFactorAuthMethod.allCases,
+            onNoElement: { .automatic },
+            multiPrompt: "Select 2-factor authentication method",
+            formatter: { method in
+                switch method {
+                case .automatic:
+                    "Automatic (Apple-selected)"
+                case .trustedDevice:
+                    "Trusted device (request a verification code on an Apple device)"
+                case .manualCode:
+                    "Manual code (generate a code on your iPhone; no SMS or push request)"
+                case .sms:
+                    "SMS (code sent to a trusted phone number)"
+                }
+            }
+        )) ?? .automatic
+    }
+
     func fetchCode() async -> String? {
         try? await Console.prompt("Code: ")
     }
