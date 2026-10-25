@@ -25,7 +25,7 @@ struct UninstallCommand: AsyncParsableCommand {
             )
         } catch {
             print("Failed: \(error)")
-            return
+            throw ExitCode.failure
         }
         print("Success!")
     }
