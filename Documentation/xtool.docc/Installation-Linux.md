@@ -146,7 +146,7 @@ If you installed the AppImage as described above, xtool can update itself:
 
 ```bash
 xtool update --check  # see if a newer release is available
-xtool update          # download, verify, and install it
+xtool update          # download, verify (when a checksum is published), and install it
 ```
 
 If you installed xtool through a package manager, update it using that instead.
