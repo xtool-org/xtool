@@ -22,6 +22,7 @@ private struct XToolCommand: AsyncParsableCommand {
                     SetupCommand.self,
                     AuthCommand.self,
                     SDKCommand.self,
+                    UpdateCommand.self,
                 ]
             ),
             CommandGroup(

@@ -174,6 +174,7 @@ let package = Package(
                 "XKit",
                 "PackLib",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "Crypto", package: "swift-crypto"),
                 .product(name: "SystemPackage", package: "swift-system"),
                 .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "libunxip", package: "unxip"),
