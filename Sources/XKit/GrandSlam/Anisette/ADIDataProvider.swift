@@ -4,7 +4,7 @@ import ConcurrencyExtras
 import Dependencies
 
 public protocol RawADIProvider: Sendable {
-    func clientInfo() async throws -> String
+    func clientInfo() async throws -> ClientInfoWithUserAgent
 
     func startProvisioning(
         spim: Data,
@@ -16,6 +16,11 @@ public protocol RawADIProvider: Sendable {
         routingInfo: inout UInt64,
         provisioningInfo: Data
     ) async throws -> (machineID: Data, otp: Data)
+}
+
+public struct ClientInfoWithUserAgent: Sendable {
+    public let clientInfo: String
+    public let akdUserAgent: String
 }
 
 private struct UnimplementedRawADIProvider: RawADIProvider {
@@ -36,8 +41,8 @@ private struct UnimplementedRawADIProvider: RawADIProvider {
         return try await closure(userID, &routingInfo, provisioningInfo)
     }
 
-    func clientInfo() async throws -> String {
-        let closure: () async throws -> String = unimplemented()
+    func clientInfo() async throws -> ClientInfoWithUserAgent {
+        let closure: () async throws -> ClientInfoWithUserAgent = unimplemented()
         return try await closure()
     }
 }
@@ -80,7 +85,7 @@ public struct ADIDataProvider: AnisetteDataProvider {
     private let localUserUID: UUID
     private let localUserID: String
 
-    private let _clientInfo = LockIsolated<String?>(nil)
+    private let _clientInfo = LockIsolated<ClientInfoWithUserAgent?>(nil)
 
     public init() {
         @Dependency(\.keyValueStorage) var storage
@@ -145,7 +150,7 @@ public struct ADIDataProvider: AnisetteDataProvider {
         return encoder
     }()
 
-    private func clientInfo() async throws -> String {
+    private func clientInfo() async throws -> ClientInfoWithUserAgent {
         if let clientInfo = _clientInfo.value { return clientInfo }
         let clientInfo = try await rawProvider.clientInfo()
         _clientInfo.setValue(clientInfo)
@@ -275,9 +280,11 @@ public struct ADIDataProvider: AnisetteDataProvider {
     }
 
     public func deviceInfo() async throws -> DeviceInfo {
-        DeviceInfo(
+        let clientInfo = try await clientInfo()
+        return DeviceInfo(
             deviceID: localUserUID.uuidString,
-            clientInfo: try await clientInfo(),
+            clientInfo: clientInfo.clientInfo,
+            akdUserAgent: clientInfo.akdUserAgent,
         )
     }
 
