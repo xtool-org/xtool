@@ -49,8 +49,7 @@ struct UpdateCommand: AsyncParsableCommand {
             HTTPRequest(url: asset.browserDownloadURL),
             onProgress: { progress in
                 guard let progress else { return }
-                print("\r\(Int(progress * 100))%", terminator: "")
-                fflush(stdout)
+                FileHandle.standardOutput.write(Data("\r\(Int(progress * 100))%".utf8))
             }
         )
         print()
