@@ -71,7 +71,7 @@ extension GrandSlamOperationRequest {
 
     func configure(request: inout HTTPRequest, anisetteData: AnisetteData) {
         request.headerFields[.accept] = "*/*"
-        request.headerFields[.userAgent] = DeviceInfo.akdUserAgent
+        request.headerFields[.userAgent] = anisetteData.deviceInfo.userAgent
     }
 
     func method(anisetteData: AnisetteData) -> GrandSlamMethod {

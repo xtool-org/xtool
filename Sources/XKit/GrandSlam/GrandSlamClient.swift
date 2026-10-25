@@ -35,6 +35,8 @@ struct GrandSlamClient: Sendable {
             try PropertyListSerialization.data(
                 fromPropertyList: body, format: .xml, options: 0
             )
+        case .json(_, let body):
+            try JSONSerialization.data(withJSONObject: body)
         }
         request.configure(request: &httpRequest, anisetteData: anisetteData)
 

@@ -29,20 +29,22 @@ struct GrandSlamValidateSMSRequest: GrandSlamTwoFactorRequest {
     }
 
     static let endpoint: GrandSlamEndpoint = .url(URL(
-        string: "https://gsa.apple.com/auth/verify/phone/securitycode?referrer=/auth/verify/phone/put"
+        string: "https://gsa.apple.com/auth/verify/phone/securitycode"
     )!)
 
     let loginData: GrandSlamLoginData
-    let phoneNumberID: String
+    let phoneNumberID: Int
     let verificationCode: String
 
+    var extraHeaders: [String: String] {
+        GrandSlamSMSAuthRequest.jsonHeaders
+    }
+
     func method(anisetteData: AnisetteData) -> GrandSlamMethod {
-        .post([
-            "securityCode.code": verificationCode,
-            "serverInfo": [
-                "mode": "sms",
-                "phoneNumber.id": phoneNumberID
-            ]
+        .json(.post, [
+            "phoneNumber": ["id": phoneNumberID],
+            "securityCode": ["code": verificationCode],
+            "mode": "sms",
         ])
     }
 }

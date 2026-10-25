@@ -11,11 +11,14 @@ import Foundation
 enum GrandSlamMethod {
     case get
     case post([String: Any])
+    /// A JSON body, as the 2FA endpoints that Apple's own sign-in calls take it.
+    case json(HTTPRequest.Method, [String: Any])
 
     var httpMethod: HTTPRequest.Method {
         switch self {
         case .get: return .get
         case .post: return .post
+        case .json(let method, _): return method
         }
     }
 }

@@ -3,8 +3,18 @@ import Crypto
 import ConcurrencyExtras
 import Dependencies
 
+public struct ADIClientInfo: Sendable {
+    public var clientInfo: String
+    public var userAgent: String
+
+    public init(clientInfo: String, userAgent: String = DeviceInfo.akdUserAgent) {
+        self.clientInfo = clientInfo
+        self.userAgent = userAgent
+    }
+}
+
 public protocol RawADIProvider: Sendable {
-    func clientInfo() async throws -> String
+    func clientInfo() async throws -> ADIClientInfo
 
     func startProvisioning(
         spim: Data,
@@ -36,8 +46,8 @@ private struct UnimplementedRawADIProvider: RawADIProvider {
         return try await closure(userID, &routingInfo, provisioningInfo)
     }
 
-    func clientInfo() async throws -> String {
-        let closure: () async throws -> String = unimplemented()
+    func clientInfo() async throws -> ADIClientInfo {
+        let closure: () async throws -> ADIClientInfo = unimplemented()
         return try await closure()
     }
 }
@@ -80,7 +90,7 @@ public struct ADIDataProvider: AnisetteDataProvider {
     private let localUserUID: UUID
     private let localUserID: String
 
-    private let _clientInfo = LockIsolated<String?>(nil)
+    private let _clientInfo = LockIsolated<ADIClientInfo?>(nil)
 
     public init() {
         @Dependency(\.keyValueStorage) var storage
@@ -145,7 +155,7 @@ public struct ADIDataProvider: AnisetteDataProvider {
         return encoder
     }()
 
-    private func clientInfo() async throws -> String {
+    private func clientInfo() async throws -> ADIClientInfo {
         if let clientInfo = _clientInfo.value { return clientInfo }
         let clientInfo = try await rawProvider.clientInfo()
         _clientInfo.setValue(clientInfo)
@@ -169,7 +179,9 @@ public struct ADIDataProvider: AnisetteDataProvider {
         ]
         request.headerFields[.init("X-MMe-Country")!] = Locale.current.region?.identifier
 
-        for (key, value) in try await deviceInfo().dictionary {
+        let deviceInfo = try await deviceInfo()
+        request.headerFields[.userAgent] = deviceInfo.userAgent
+        for (key, value) in deviceInfo.dictionary {
             request.headerFields[.init(key)!] = value
         }
 
@@ -275,9 +287,11 @@ public struct ADIDataProvider: AnisetteDataProvider {
     }
 
     public func deviceInfo() async throws -> DeviceInfo {
-        DeviceInfo(
+        let clientInfo = try await clientInfo()
+        return DeviceInfo(
             deviceID: localUserUID.uuidString,
-            clientInfo: try await clientInfo(),
+            clientInfo: clientInfo.clientInfo,
+            userAgent: clientInfo.userAgent
         )
     }
 

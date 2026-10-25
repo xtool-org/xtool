@@ -30,21 +30,55 @@ struct GrandSlamSecondaryAuthRequest: GrandSlamTwoFactorRequest {
     let loginData: GrandSlamLoginData
 }
 
+/// The account's trusted phone numbers, to send the SMS to.
+struct GrandSlamTrustedPhoneNumbersRequest: GrandSlamTwoFactorRequest {
+    struct Decoder: GrandSlamDataDecoder {
+        private struct Response: Decodable {
+            struct PhoneNumber: Decodable {
+                let id: Int
+            }
+            let trustedPhoneNumbers: [PhoneNumber]?
+        }
+
+        static func decode(data: Data) throws -> [Int] {
+            try JSONDecoder().decode(Response.self, from: data).trustedPhoneNumbers?.map(\.id) ?? []
+        }
+    }
+
+    static let endpoint: GrandSlamEndpoint = .url(URL(string: "https://gsa.apple.com/auth")!)
+
+    let loginData: GrandSlamLoginData
+
+    var extraHeaders: [String: String] {
+        GrandSlamSMSAuthRequest.jsonHeaders
+    }
+}
+
 struct GrandSlamSMSAuthRequest: GrandSlamTwoFactorRequest {
     struct Decoder: GrandSlamDataDecoder {
         static func decode(data: Data) throws {}
     }
 
-    static let endpoint: GrandSlamEndpoint = .url(URL(string: "https://gsa.apple.com/auth/verify/phone/put?mode=sms")!)
+    // the plist `POST /auth/verify/phone/put?mode=sms` gets a 403 ("Could not connect to iCloud");
+    // Apple's own sign-in asks with JSON
+    static let endpoint: GrandSlamEndpoint = .url(URL(string: "https://gsa.apple.com/auth/verify/phone")!)
+
+    static let jsonHeaders = [
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+    ]
 
     let loginData: GrandSlamLoginData
-    let phoneNumberID: String
+    let phoneNumberID: Int
+
+    var extraHeaders: [String: String] {
+        Self.jsonHeaders
+    }
 
     func method(anisetteData: AnisetteData) -> GrandSlamMethod {
-        .post([
-            "serverInfo": [
-                "phoneNumber.id": phoneNumberID
-            ],
+        .json(.put, [
+            "phoneNumber": ["id": phoneNumberID],
+            "mode": "sms",
         ])
     }
 }
