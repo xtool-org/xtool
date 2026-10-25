@@ -31,7 +31,7 @@ actor GrandSlamLookupManager {
 
         var request = HTTPRequest(url: Self.lookupURL)
         request.headerFields = [
-            .userAgent: DeviceInfo.akdUserAgent,
+            .userAgent: deviceInfo.akdUserAgent,
             .init(AnisetteData.iLocaleKey)!: Locale.current.identifier,
             .init(AnisetteData.timeZoneKey)!: TimeZone.current.identifier,
             .init("X-Apple-I-TimeZone-Offset")!: "\(TimeZone.current.secondsFromGMT())"
