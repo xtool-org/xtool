@@ -27,7 +27,15 @@ struct GrandSlamTwoFactorAuthenticateOperation {
     private func performSMSAuth() async throws {
         // TODO: parse phone number list from o=complete req?
         let phoneNumberID = "1"
-        try await client.send(GrandSlamSMSAuthRequest(loginData: loginData, phoneNumberID: phoneNumberID))
+        do {
+            try await client.send(GrandSlamSMSAuthRequest(loginData: loginData, phoneNumberID: phoneNumberID))
+        } catch let error as HTTPResponseError where error.status.code == 403 {
+            print("""
+            warning: Could not send verification code via SMS. Falling back to trusted device authentication...
+            """)
+            try await performTrustedDeviceAuth()
+            return
+        }
         try await validateCode(phoneNumberID: phoneNumberID)
     }
 
@@ -51,7 +59,14 @@ struct GrandSlamTwoFactorAuthenticateOperation {
 
     private func performTrustedDeviceAuth() async throws {
         let request = GrandSlamTrustedDeviceRequest(loginData: loginData)
-        try await client.send(request)
+        do {
+            try await client.send(request)
+        } catch let error as HTTPResponseError where error.status.code == 403 {
+            print("""
+            warning: Could not send verification code. Generate one manually.
+                     See https://github.com/xtool-org/xtool/discussions/368
+            """)
+        }
         try await validateCode()
     }
 

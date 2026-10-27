@@ -4,7 +4,7 @@ import ConcurrencyExtras
 import Dependencies
 
 public protocol RawADIProvider: Sendable {
-    func clientInfo() async throws -> String
+    func clientInfo() async throws -> ClientInfoWithUserAgent
 
     func startProvisioning(
         spim: Data,
@@ -18,13 +18,9 @@ public protocol RawADIProvider: Sendable {
     ) async throws -> (machineID: Data, otp: Data)
 }
 
-extension RawADIProvider {
-    public func clientInfo() async throws -> String {
-        // Looks like Apple detects attempts to use a macOS client string on Windows :/
-        """
-        <PC> <Windows;6.2(0,0);9200> <com.apple.AuthKitWin/1 (com.apple.iCloud/7.21)>
-        """
-    }
+public struct ClientInfoWithUserAgent: Sendable {
+    public let clientInfo: String
+    public let akdUserAgent: String
 }
 
 private struct UnimplementedRawADIProvider: RawADIProvider {
@@ -44,17 +40,16 @@ private struct UnimplementedRawADIProvider: RawADIProvider {
         let closure: (UUID, inout UInt64, Data) async throws -> (Data, Data) = unimplemented()
         return try await closure(userID, &routingInfo, provisioningInfo)
     }
+
+    func clientInfo() async throws -> ClientInfoWithUserAgent {
+        let closure: () async throws -> ClientInfoWithUserAgent = unimplemented()
+        return try await closure()
+    }
 }
 
 private enum RawADIProviderDependencyKey: DependencyKey {
     static let testValue: RawADIProvider = UnimplementedRawADIProvider()
-    static let liveValue: RawADIProvider = {
-        #if canImport(XADI)
-        return XADIProvider()
-        #else
-        return OmnisetteADIProvider()
-        #endif
-    }()
+    static let liveValue: RawADIProvider = OmnisetteADIProvider()
 }
 
 extension DependencyValues {
@@ -90,7 +85,7 @@ public struct ADIDataProvider: AnisetteDataProvider {
     private let localUserUID: UUID
     private let localUserID: String
 
-    private let _clientInfo = LockIsolated<String?>(nil)
+    private let _clientInfo = LockIsolated<ClientInfoWithUserAgent?>(nil)
 
     public init() {
         @Dependency(\.keyValueStorage) var storage
@@ -155,7 +150,7 @@ public struct ADIDataProvider: AnisetteDataProvider {
         return encoder
     }()
 
-    private func clientInfo() async throws -> String {
+    private func clientInfo() async throws -> ClientInfoWithUserAgent {
         if let clientInfo = _clientInfo.value { return clientInfo }
         let clientInfo = try await rawProvider.clientInfo()
         _clientInfo.setValue(clientInfo)
@@ -179,14 +174,11 @@ public struct ADIDataProvider: AnisetteDataProvider {
         ]
         request.headerFields[.init("X-MMe-Country")!] = Locale.current.region?.identifier
 
-        request.headerFields[.init(DeviceInfo.clientInfoKey)!] = try await clientInfo()
-        request.headerFields[.init(DeviceInfo.deviceIDKey)!] = self.localUserUID.uuidString
-//        request.headers[DeviceInfo.clientInfoKey] = self.deviceInfo.clientInfo.clientString
-//        self.deviceInfo.dictionary.forEach { request.headers[$0] = $1 }
+        for (key, value) in try await deviceInfo().dictionary {
+            request.headerFields[.init(key)!] = value
+        }
 
         let (_, response) = try await self.httpClient.makeRequest(request, body: body)
-
-//        print(String(data: response, encoding: .utf8) ?? "<no utf8 data>")
 
         return try GrandSlamOperationDecoder<Response>.decode(data: response)
     }
@@ -239,7 +231,7 @@ public struct ADIDataProvider: AnisetteDataProvider {
             machineID: mid.base64EncodedString(),
             localUserID: self.localUserID,
             oneTimePassword: otp.base64EncodedString(),
-            deviceID: self.localUserUID.uuidString
+            deviceInfo: try await deviceInfo(),
         )
     }
 
@@ -249,11 +241,7 @@ public struct ADIDataProvider: AnisetteDataProvider {
     }
 
     private static var providerID: String? {
-        #if os(macOS)
-        return "1"
-        #else
-        return nil
-        #endif
+        "mac-omnisette"
     }
 
     public var providerID: String? { Self.providerID }
@@ -288,6 +276,15 @@ public struct ADIDataProvider: AnisetteDataProvider {
         return try await fetchAnisetteData(
             routingInfo: rinfo,
             provisioningInfo: data
+        )
+    }
+
+    public func deviceInfo() async throws -> DeviceInfo {
+        let clientInfo = try await clientInfo()
+        return DeviceInfo(
+            deviceID: localUserUID.uuidString,
+            clientInfo: clientInfo.clientInfo,
+            akdUserAgent: clientInfo.akdUserAgent,
         )
     }
 

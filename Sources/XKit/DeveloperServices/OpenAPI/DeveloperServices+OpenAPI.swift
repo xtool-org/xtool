@@ -105,7 +105,6 @@ public struct XcodeAuthData: Sendable {
 }
 
 public struct DeveloperAPIXcodeAuthMiddleware: ClientMiddleware {
-    @Dependency(\.deviceInfoProvider) private var deviceInfoProvider
     @Dependency(\.anisetteDataProvider) private var anisetteDataProvider
 
     public var authData: XcodeAuthData
@@ -130,7 +129,7 @@ public struct DeveloperAPIXcodeAuthMiddleware: ClientMiddleware {
     ) async throws -> (HTTPResponse, HTTPBody?) {
         var request = request
 
-        let deviceInfo = try deviceInfoProvider.fetch()
+        let anisetteData = try await anisetteDataProvider.fetchAnisetteData()
 
         // General
         request.headerFields[.acceptLanguage] = Locale.preferredLanguages.joined(separator: ", ")
@@ -142,17 +141,12 @@ public struct DeveloperAPIXcodeAuthMiddleware: ClientMiddleware {
         request.headerFields[.userAgent] = "Xcode"
         request.headerFields[.init(DeviceInfo.xcodeVersionKey)!] = DeviceInfo.xcodeVersion
 
-        // MobileMe identity
-        request.headerFields[.init(DeviceInfo.clientInfoKey)!] = deviceInfo.clientInfo.clientString
-        request.headerFields[.init(DeviceInfo.deviceIDKey)!] = deviceInfo.deviceID
-
         // GrandSlam authentication
         request.headerFields[.init("X-Apple-App-Info")!] = AppTokenKey.xcode.rawValue
         request.headerFields[.init("X-Apple-I-Identity-Id")!] = authData.loginToken.adsid
         request.headerFields[.init("X-Apple-GS-Token")!] = authData.loginToken.token
 
         // Anisette
-        let anisetteData = try await anisetteDataProvider.fetchAnisetteData()
         for (key, value) in anisetteData.dictionary {
             request.headerFields[.init(key)!] = value
         }

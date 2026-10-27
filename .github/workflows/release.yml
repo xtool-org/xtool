@@ -57,6 +57,7 @@ jobs:
           DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
           XTOOL_VERSION: ${{ github.ref_name }}
         run: |
+          brew install -y xcodegen
           cd macOS
           bundle exec fastlane package
       - name: Upload artifacts

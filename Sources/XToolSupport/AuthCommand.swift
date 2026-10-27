@@ -76,6 +76,14 @@ struct AuthOperation {
     }
 
     private func logInWithPassword() async throws -> AuthToken {
+        print("""
+        Heads up:
+          This works by emulating a virtual Mac to interact with Apple services.
+          We use a third-party service to create a randomized device ID token
+          (Anisette Data) but your credentials are only ever sent to Apple.
+          Still, consider using a secondary Apple ID since this is a private API.
+        """)
+
         let username = try await Console.promptRequired("Apple ID: ", existing: username)
 
         let password: String
