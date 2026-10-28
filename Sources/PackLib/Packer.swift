@@ -16,6 +16,10 @@ public struct Packer: Sendable {
         let packageDir = xtoolDir.appendingPathComponent(".xtool-tmp")
         try? FileManager.default.removeItem(at: packageDir)
         try FileManager.default.createDirectory(at: packageDir, withIntermediateDirectories: true)
+        try Self.copyResolvedPackagesStore(
+            from: URL(fileURLWithPath: FileManager.default.currentDirectoryPath),
+            to: packageDir
+        )
 
         if URL(fileURLWithPath: "Packages").dirExists {
             try FileManager.default.createSymbolicLink(
@@ -83,6 +87,16 @@ public struct Packer: Sendable {
             error: .currentStandardError,
         )
         .checkSuccess()
+    }
+
+    static func copyResolvedPackagesStore(from root: URL, to packageDir: URL) throws {
+        let resolvedFile = root.appendingPathComponent("Package.resolved")
+        guard FileManager.default.fileExists(atPath: resolvedFile.path) else { return }
+
+        try FileManager.default.copyItem(
+            at: resolvedFile,
+            to: packageDir.appendingPathComponent("Package.resolved")
+        )
     }
 
     public func pack() async throws -> URL {
