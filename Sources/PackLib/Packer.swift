@@ -94,7 +94,7 @@ public struct Packer: Sendable {
         guard FileManager.default.fileExists(atPath: resolvedFile.path) else { return }
 
         try FileManager.default.copyItem(
-            at: resolvedFile,
+            at: resolvedFile.resolvingSymlinksInPath(),
             to: packageDir.appendingPathComponent("Package.resolved")
         )
     }
