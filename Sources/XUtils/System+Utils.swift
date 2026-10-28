@@ -28,6 +28,33 @@ extension FilePath {
 #endif
 
 extension FileDescriptor {
+    /// Writes every byte, waiting for capacity if the descriptor is nonblocking.
+    package func writeAllWaiting(_ bytes: UnsafeRawBufferPointer) throws {
+        var offset = 0
+        while offset < bytes.count {
+            do {
+                // Swift System retries EINTR; retain the offset when a write is partial.
+                let count = try write(UnsafeRawBufferPointer(rebasing: bytes[offset...]))
+                guard count > 0 else { throw Errno.ioError }
+                offset += count
+            } catch let error as Errno where error == .resourceTemporarilyUnavailable || error == .wouldBlock {
+                var descriptor = pollfd(fd: rawValue, events: Int16(POLLOUT), revents: 0)
+                while true {
+                    try Task.checkCancellation()
+                    // periodically wake up to check for cancellation
+                    let result = poll(&descriptor, 1, 100)
+                    if result > 0 { break }
+                    if result == -1 {
+                        let error = Errno(rawValue: errno)
+                        guard error != .interrupted else { continue }
+                        throw error
+                    }
+                }
+                // Retry write to report terminal errors (including POLLERR/POLLNVAL).
+            }
+        }
+    }
+
     enum LockMode {
         case shared
         case exclusive
