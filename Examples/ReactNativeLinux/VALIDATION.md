@@ -45,8 +45,16 @@ the app entry point).
 
 The resulting executable again contains `RCTBridge`, `RCTRootView`, `RCTUIManager`
 and `facebook::jsc::makeJSCRuntime`. The app's `ios/Main.mm` and `index.js` match
-the original device-tested source byte for byte. This packaged build has not
-been reinstalled on the phone; the device was disconnected during validation.
+the original device-tested source byte for byte.
+
+The packaged build was subsequently signed and installed with xtool 1.24.0 on
+the same iPhone. For an unambiguous fresh-install check, the owner deleted the
+app, installation-proxy browsing confirmed it was absent, xtool installed it
+again successfully, and browsing confirmed it was present afterward. The
+unsigned input executable's SHA-256 still matched the packaged build below.
+The owner confirmed that the fresh install opened and counted correctly.
+A new device log capture independently showed component startup, root-view
+attachment, and `counter=1`, `counter=2`, `counter=3`, and `counter=4`.
 
 SHA-256 values for this local build (not a promise of reproducibility across
 paths/toolchain versions):
