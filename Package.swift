@@ -113,6 +113,7 @@ let package = Package(
             name: "XUtils",
             dependencies: [
                 "CXKit",
+                .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
                 .product(name: "SystemPackage", package: "swift-system"),
                 .product(

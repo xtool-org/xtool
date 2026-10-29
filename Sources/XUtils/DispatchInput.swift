@@ -1,14 +1,13 @@
 import Foundation
-import XUtils
 import ConcurrencyExtras
 
-final class DispatchInput: Sendable {
+public final class DispatchInput: Sendable {
     private struct State {
         var hasClosed = false
         var isReading = false
     }
 
-    static let defaultChunkSize: Int = 64 * 1024
+    public static let defaultChunkSize: Int = 64 * 1024
 
     let queue = DispatchQueue(label: "xtool.dispatch-reader")
     let channel: DispatchIO
@@ -17,7 +16,7 @@ final class DispatchInput: Sendable {
     private let dataChannel = DataChannel()
     private let state = LockIsolated(State())
 
-    init(fileDesciptor: FileDescriptor, chunkSize: Int = DispatchInput.defaultChunkSize) throws {
+    public init(fileDesciptor: FileDescriptor, chunkSize: Int = DispatchInput.defaultChunkSize) throws {
         let closeSignal = Task { _ = try? await Task.never() }
         self.closeSignal = closeSignal
         self.chunkSize = chunkSize
@@ -65,7 +64,7 @@ final class DispatchInput: Sendable {
         }
     }
 
-    nonisolated(nonsending) func read(upTo limit: DataChannel.Limit = .unlimited) async throws -> Data? {
+    nonisolated(nonsending) public func read(upTo limit: DataChannel.Limit = .unlimited) async throws -> Data? {
         try await dataChannel.read(upTo: limit)
     }
 
@@ -110,7 +109,7 @@ final class DispatchInput: Sendable {
         }
     }
 
-    nonisolated(nonsending) func close() async {
+    nonisolated(nonsending) public func close() async {
         requestClose(error: nil)
         await closeSignal.value
     }

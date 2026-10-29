@@ -1,8 +1,8 @@
-@testable import XCLIUtils
+@testable import XUtils
+import XCLIUtils
 import CustomDump
 import Foundation
 import Testing
-import XUtils
 
 @Suite(.timeLimit(.minutes(1)))
 struct DispatchInputTests {
