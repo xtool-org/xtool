@@ -1,0 +1,9 @@
+node_modules/
+build/
+ios/Pods/
+ios/build/
+native-build-manifest.json
+.cache/
+evidence/
+__pycache__/
+.bundle/

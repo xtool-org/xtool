@@ -12,3 +12,11 @@ Each demo is designed to make some assertions shortly after launching, and then 
 
 - Omit `--build`/`--run` to build _and_ run
 - Omit the demo name to loop through all demos
+
+## Experimental React Native build on Linux
+
+[ReactNativeLinux](ReactNativeLinux/README.md) is a separate experiment for
+[issue #364](https://github.com/xtool-org/xtool/issues/364): a CocoaPods source
+graph compiled with Linux Clang/LLD, then signed and installed with xtool.
+It uses React Native 0.77.3, JavaScriptCore, and the legacy renderer. It is
+not a SwiftPM fixture and is not included in `test.sh`.

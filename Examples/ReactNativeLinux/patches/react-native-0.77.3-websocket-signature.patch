@@ -1,0 +1,5 @@
+--- a/React/CoreModules/RCTWebSocketModule.mm
++++ b/React/CoreModules/RCTWebSocketModule.mm
+@@ -130 +130 @@
+-- (void)setContentHandler:(id<RCTWebSocketContentHandler>)handler forSocketID:(NSString *)socketID
++- (void)setContentHandler:(id<RCTWebSocketContentHandler>)handler forSocketID:(NSNumber *)socketID

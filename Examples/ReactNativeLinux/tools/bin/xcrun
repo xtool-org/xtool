@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Scoped compatibility for RN's glog configure script, not an Xcode replacement.
+case "$*" in
+  '-find -sdk iphoneos cc') printf '%s\n' "$(dirname "$0")/ios-clang" ;;
+  '-sdk iphoneos --show-sdk-path') printf '%s\n' "$IOS_SDK" ;;
+  *) printf 'Unsupported Linux xcrun compatibility query: %s\n' "$*" >&2; exit 2 ;;
+esac

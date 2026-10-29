@@ -1,0 +1,11 @@
+--- a/include/fmt/base.h
++++ b/include/fmt/base.h
+@@ -2881,7 +2881,7 @@
+                   detail::count_statically_named_args<Args...>()) {
+       using checker =
+           detail::format_string_checker<Char, remove_cvref_t<Args>...>;
+-      detail::parse_format_string<true>(str_, checker(s));
++      detail::parse_format_string<true>(str_, checker(str_));
+     }
+ #else
+     detail::check_format_string<Args...>(s);
