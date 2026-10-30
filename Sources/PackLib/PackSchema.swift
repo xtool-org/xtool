@@ -20,6 +20,11 @@ public struct PackSchemaBase: Codable, Sendable {
     public var iconPath: String?
     public var resources: [String]?
 
+    /// Shell commands run in the package directory before planning, in order. A command that
+    /// fails stops the build. Use it to generate inputs the package depends on, such as a
+    /// binary target built by another tool.
+    public var prepare: [String]?
+
     public var extensions: [Extension]?
 
     /// Skip auto-creating the LSP support file if it's missing.

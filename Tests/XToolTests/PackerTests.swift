@@ -13,3 +13,9 @@ import Testing
 
     #expect(Packer.cfBundleSupportedPlatforms(for: "unknown-triple") == ["iPhoneOS"])
 }
+
+@Test func compilerRTLibraryNameFollowsBuildTriple() {
+    #expect(Packer.compilerRTLibraryName(for: "arm64-apple-ios") == "libclang_rt.ios.a")
+    #expect(Packer.compilerRTLibraryName(for: "arm64-apple-ios17.0-simulator") == "libclang_rt.iossim.a")
+    #expect(Packer.compilerRTLibraryName(for: "arm64-apple-macosx") == "libclang_rt.osx.a")
+}
