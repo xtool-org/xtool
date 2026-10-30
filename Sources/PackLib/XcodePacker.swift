@@ -220,16 +220,16 @@ public struct XcodePacker {
             importedProducts: [],
         )
 
-        let project = XcodeProject(project: schema)
         let projectURL = projectDir.appending(path: "\(plan.app.product).xcodeproj")
-        try project.write(to: projectURL)
+        let project = XcodeProject(project: schema, url: projectURL)
+        try project.write()
 
+        let workspaceURL = xtoolDir.appending(path: "\(plan.app.product).xcworkspace")
         let workspace = XcodeWorkspace(children: [
             .file(XcodeWorkspace.Location(base: .container, path: "..")),
             .file(XcodeWorkspace.Location(base: .group, path: ".xtool-tmp/\(projectURL.lastPathComponent)"))
-        ])
-        let workspaceURL = xtoolDir.appending(path: "\(plan.app.product).xcworkspace")
-        try workspace.write(to: workspaceURL)
+        ], url: workspaceURL)
+        try workspace.write()
         return workspaceURL
     }
 

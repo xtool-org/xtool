@@ -55,9 +55,9 @@ Apple SDK. Set `XTOOL_LD64_LLD` to an absolute path to an updated `ld64.lld` exe
 the installed toolset's linker. The SDK status command checks this prerequisite for Catalyst targets.
 
 macOS and Mac Catalyst produce a `YourApp.app/Contents` bundle with `MacOS`, `Resources`, `Frameworks`,
-and `PlugIns` directories as needed. Their `Info.plist` is in `Contents`. These apps are left unsigned;
-apply entitlements and sign them with a macOS-capable signing tool. `--ipa` and automatic development
-signing are unavailable for these bundles. Automatic development signing remains limited to iOS.
+and `PlugIns` directories as needed. Their `Info.plist` is in `Contents`. When entitlements are configured,
+xtool applies them with an ad hoc signature. Sign with an appropriate identity separately. `--ipa` and
+automatic development signing are unavailable for these bundles. Automatic development signing remains limited to iOS.
 
 macOS and Mac Catalyst apps with Swift package resource bundles require SwiftBuild, selected
 automatically with Swift 6.4 or newer. Native SwiftPM builds of these apps fail with a diagnostic

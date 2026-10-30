@@ -294,7 +294,7 @@ public actor IntegratedInstaller {
         app: URL,
         targetDevice: SigningContext.TargetDevice? = nil,
     ) async throws -> String {
-        let context = try SigningContext(
+        let context = SigningContext(
             auth: auth,
             targetDevice: targetDevice,
         )
