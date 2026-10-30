@@ -41,6 +41,90 @@ public struct DarwinSDK {
     public let version: String
     public let flavor: Flavor
 
+    /// The SDK directory (e.g. `iPhoneOS27.1.sdk`) that builds for `triple` link against, if installed.
+    ///
+    /// This is the SDK `swift-sdk.json` names for the triple, i.e. the one SwiftPM compiles against, so
+    /// the link uses the same SDK as the compilation. Bundles from before that file listed it fall back
+    /// to the newest versioned SDK on disk. When the file is there but does not lead to an SDK on disk,
+    /// the fallback may differ from what SwiftPM compiles against, so `warn` is told about it.
+    package func sdkRoot(
+        forTriple triple: String,
+        warn: (String) -> Void = { stderrPrint($0) }
+    ) -> URL? {
+        let metadata = sdkRootFromMetadata(forTriple: triple)
+        if case .found(let url) = metadata { return url }
+        let fallback = newestSDKRoot(forTriple: triple)
+        let file = bundle.appendingPathComponent("swift-sdk.json").path
+        let reason: String
+        switch metadata {
+        case .found, .absent:
+            return fallback
+        case .unreadable:
+            reason = "'\(file)' could not be read"
+        case .noEntry:
+            reason = "'\(file)' has no entry for \(triple)"
+        case .missing(let url):
+            reason = "'\(file)' names an SDK for \(triple) that is not installed at '\(url.path)'"
+        }
+        let used = fallback.map { "'\($0.path)'" } ?? "none found"
+        warn("warning: \(reason); linking against a different SDK than SwiftPM compiles against (\(used))")
+        return fallback
+    }
+
+    package enum MetadataSDKRoot: Equatable {
+        /// No `swift-sdk.json`, as in bundles from before it listed the SDK paths.
+        case absent
+        case unreadable
+        case noEntry
+        case missing(URL)
+        case found(URL)
+    }
+
+    package func sdkRootFromMetadata(forTriple triple: String) -> MetadataSDKRoot {
+        struct Definition: Decodable {
+            struct Target: Decodable {
+                let sdkRootPath: String
+            }
+            let targetTriples: [String: Target]
+        }
+        let file = bundle.appendingPathComponent("swift-sdk.json")
+        guard FileManager.default.fileExists(atPath: file.path) else { return .absent }
+        guard let data = try? Data(contentsOf: file) else { return .unreadable }
+        guard let definition = try? JSONDecoder().decode(Definition.self, from: data) else {
+            return .unreadable
+        }
+
+        // `triple` may carry an OS version (arm64-apple-ios17.0-simulator) that the keys don't
+        let wanted = Self.versionless(triple)
+        guard let target = definition.targetTriples.first(where: { Self.versionless($0.key) == wanted })?.value
+        else { return .noEntry }
+        let url = bundle.appendingPathComponent(target.sdkRootPath, isDirectory: true)
+        return url.dirExists ? .found(url) : .missing(url)
+    }
+
+    /// `arm64-apple-ios17.0-simulator` -> `arm64-apple-ios-simulator`
+    private static func versionless(_ triple: String) -> String {
+        triple.split(separator: "-", omittingEmptySubsequences: false)
+            .map { $0.prefix { !$0.isNumber } }
+            .joined(separator: "-")
+    }
+
+    private func newestSDKRoot(forTriple triple: String) -> URL? {
+        let platform: String
+        switch Packer.cfBundleSupportedPlatforms(for: triple) {
+        case ["iPhoneSimulator"]: platform = "iPhoneSimulator"
+        case ["MacOSX"]: platform = "MacOSX"
+        default: platform = "iPhoneOS"
+        }
+        let sdks = bundle.appendingPathComponent("Developer/Platforms/\(platform).platform/Developer/SDKs")
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: sdks.path)) ?? []
+        let versioned = names
+            .filter { $0.hasPrefix(platform) && $0.hasSuffix(".sdk") && $0 != "\(platform).sdk" }
+            .sorted { $0.compare($1, options: .numeric) == .orderedAscending }
+        return (versioned.last ?? names.first { $0 == "\(platform).sdk" })
+            .map { sdks.appendingPathComponent($0, isDirectory: true) }
+    }
+
     static func swiftPMDirectory(
         environment: [String: String] = ProcessInfo.processInfo.environment,
         homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
