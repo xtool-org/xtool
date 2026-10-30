@@ -78,12 +78,18 @@ public enum DistributionEntitlements {
         }
     }
 
-    private static func permits(grant: Any, request: Any) -> Bool {
+    static func permits(grant: Any, request: Any) -> Bool {
         switch (grant, request) {
         case let (grant as [String], request as [String]):
             return request.allSatisfy { item in
                 grant.contains { $0 == item || ($0.hasSuffix("*") && item.hasPrefix(String($0.dropLast()))) }
             }
+        // Apple issues some grants as a plain string where the app asks for an array, such as
+        // `com.apple.developer.associated-domains`, granted as `*` in App Store profiles
+        case let (grant as String, request as [String]):
+            return permits(grant: [grant], request: request)
+        case let (grant as [String], request as String):
+            return permits(grant: grant, request: [request])
         case let (grant as String, request as String):
             return grant == request || (grant.hasSuffix("*") && request.hasPrefix(String(grant.dropLast())))
         case let (grant as Bool, request as Bool):

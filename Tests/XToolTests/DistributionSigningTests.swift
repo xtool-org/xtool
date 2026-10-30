@@ -209,6 +209,15 @@ private func resolved(
         #expect(ents["beta-reports-active"] as? Bool == true)
     }
 
+    @Test func stringGrantPermitsAnArrayRequest() {
+        // App Store profiles grant associated domains as `<string>*</string>`, not as an array
+        #expect(DistributionEntitlements.permits(grant: "*", request: ["webcredentials:example.com"]))
+        #expect(DistributionEntitlements.permits(grant: "applinks:*", request: ["applinks:example.com"]))
+        #expect(!DistributionEntitlements.permits(grant: "applinks:*", request: ["webcredentials:example.com"]))
+        #expect(DistributionEntitlements.permits(grant: ["group.a", "group.b"], request: "group.b"))
+        #expect(!DistributionEntitlements.permits(grant: ["group.a"], request: "group.b"))
+    }
+
     @Test func rejectsEntitlementsTheProfileDoesNotAllow() throws {
         #expect(throws: DistributionSigningError.self) {
             try resolved(SigningFixtures.appstoreProfile, requested: ["com.apple.developer.healthkit": true])
