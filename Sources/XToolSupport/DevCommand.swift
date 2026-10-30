@@ -81,22 +81,21 @@ struct PackOperation {
             .allProducts
             .compactMap { p in p.entitlementsPath.map { (p, $0) } }
         if !productsWithEntitlements.isEmpty {
-            let mapping = try await withThrowingTaskGroup(of: (URL, Entitlements).self) { group in
+            let mapping = try await withThrowingTaskGroup(of: (URL, Data).self) { group in
                 for (product, path) in productsWithEntitlements {
                     group.addTask {
-                        let data = try await Data(reading: URL(fileURLWithPath: path))
-                        let decoder = PropertyListDecoder()
-                        let entitlements = try decoder.decode(Entitlements.self, from: data)
+                        let entitlements = try await Data(reading: URL(fileURLWithPath: path))
                         return (product.directory(inApp: bundle), entitlements)
                     }
                 }
                 return try await group.reduce(into: [:]) { $0[$1.0] = $1.1 }
             }
             d.out.print("Applying entitlements...")
-            try await Signer.first().sign(
+            try await d.signer.sign(
                 app: bundle,
                 identity: .adhoc,
                 entitlementMapping: mapping,
+                deep: true,
                 progress: { _ in }
             )
         }
