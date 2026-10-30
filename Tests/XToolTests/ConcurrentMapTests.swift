@@ -1,12 +1,12 @@
 import Testing
-import XUtils
+@testable import XUtils
 
 @Suite(.timeLimit(.minutes(1)))
 struct ConcurrentMapTests {
-    @Test(arguments: [[], [7], [3, 1, 3, 2], Array(0..<10)])
-    func nonThrowingTransform(input: [Int]) async {
+    @Test(arguments: [[], [7], [3, 1, 3, 2], Array(0..<10)], [nil, 1, 2, Int.max] as [Int?])
+    func nonThrowingTransform(input: [Int], maxConcurrency: Int?) async {
         // No `try` is needed when the transform cannot throw.
-        let result = await input.concurrentMap { String($0 * 2) }
+        let result = await input.concurrentMap(maxConcurrency: maxConcurrency) { String($0 * 2) }
         #expect(result == input.map { String($0 * 2) })
     }
 
@@ -26,7 +26,7 @@ struct ConcurrentMapTests {
         })
         #expect(input.underestimatedCount == 0)
 
-        let result = await input.concurrentMap { $0 * 2 }
+        let result = await input.concurrentMap(maxConcurrency: 1) { $0 * 2 }
 
         #expect(result == [0, 2, 4, 6])
     }
@@ -44,12 +44,13 @@ struct ConcurrentMapTests {
         #expect(result == input)
     }
 
-    @Test func concurrentExecutionPreservesInputOrder() async {
+    @Test(arguments: [2, 4, Int.max])
+    func concurrentExecutionPreservesInputOrder(maxConcurrency: Int) async {
         let started = AsyncStream<Int>.makeStream()
         let finished = AsyncStream<Int>.makeStream()
         let gates = (0..<4).map { _ in AsyncStream<Void>.makeStream() }
         let task = Task {
-            await (0..<4).concurrentMap { value in
+            await (0..<4).concurrentMap(maxConcurrency: maxConcurrency) { value in
                 started.continuation.yield(value)
                 for await _ in gates[value].stream {}
                 finished.continuation.yield(value)
@@ -58,23 +59,87 @@ struct ConcurrentMapTests {
         }
         defer { task.cancel() }
 
-        // Every transform must start before any is allowed to finish.
+        // Fill the concurrency window before allowing any transform to finish.
+        let initialCount = min(maxConcurrency, 4)
         var starts = started.stream.makeAsyncIterator()
         var startedValues: [Int] = []
-        for _ in 0..<4 {
+        for _ in 0..<initialCount {
             if let value = await starts.next() {
                 startedValues.append(value)
             }
         }
-        #expect(startedValues.sorted() == [0, 1, 2, 3])
+        #expect(startedValues.sorted() == Array(0..<initialCount))
 
-        // Let transforms finish in reverse order, independently of scheduler timing.
+        // Finish the newest transform first, keeping the first one suspended while work is replenished.
         var finishes = finished.stream.makeAsyncIterator()
-        for value in (0..<4).reversed() {
+        var pending = Set(startedValues)
+        var next = initialCount
+        while let value = pending.max() {
+            pending.remove(value)
             gates[value].continuation.finish()
             #expect(await finishes.next() == value)
+            if next < 4 {
+                #expect(await starts.next() == next)
+                pending.insert(next)
+                next += 1
+            }
         }
         #expect(await task.value == [0, 2, 4, 6])
+    }
+
+    @Test(arguments: [1, 2, 3, 25, 100, Int.max])
+    func limitsConcurrentTransforms(maxConcurrency: Int) async {
+        let checkpoints = AsyncStream<Int>.makeStream()
+        let gates = (0..<25).map { _ in AsyncStream<Void>.makeStream() }
+        let task = Task {
+            // Both closures below run in the producer task. Only immutable snapshots
+            // cross to the test through the checkpoint stream.
+            var submitted = 0
+            let input = AnySequence(AnyIterator<Int> {
+                guard submitted < gates.count else { return nil }
+                defer { submitted += 1 }
+                return submitted
+            })
+            return await input._concurrentMap(maxConcurrency: maxConcurrency) { value in
+                for await _ in gates[value].stream {}
+                return value * 2
+            } willWaitForNext: {
+                checkpoints.continuation.yield(submitted)
+            }
+        }
+        defer { task.cancel() }
+
+        // No transform can finish yet. The hook proves submission has reached
+        // group.next(), rather than merely being paused by the scheduler.
+        let initialCount = min(maxConcurrency, gates.count)
+        var waits = checkpoints.stream.makeAsyncIterator()
+        #expect(await waits.next() == initialCount)
+
+        // Each completed transform frees exactly one slot. Check the next submission
+        // boundary before releasing another transform, including while draining.
+        for value in gates.indices {
+            gates[value].continuation.finish()
+            #expect(await waits.next() == min(initialCount + value + 1, gates.count))
+        }
+        let result = await withTaskCancellationHandler {
+            await task.value
+        } onCancel: {
+            task.cancel()
+        }
+
+        #expect(result == (0..<25).map { $0 * 2 })
+    }
+
+    @Test @MainActor func actorIsolatedTransform() async {
+        var visited: [Int] = []
+        let result = await (0..<4).concurrentMap(maxConcurrency: 2) { @MainActor value in
+            MainActor.assertIsolated()
+            visited.append(value)
+            return value * 2
+        }
+
+        #expect(visited.sorted() == [0, 1, 2, 3])
+        #expect(result == [0, 2, 4, 6])
     }
 
     @Test func preservesTypedError() async {
@@ -96,7 +161,8 @@ struct ConcurrentMapTests {
         let siblingGate = AsyncStream<Void>.makeStream()
         let cancelled = AsyncStream<Int>.makeStream()
         let task = Task {
-            try await (0..<3).concurrentMap { value async throws(MapError) -> Int in
+            try await (0..<10).concurrentMap(maxConcurrency: 3) { value async throws(MapError) -> Int in
+                #expect(value < 3, "A failure must not schedule the remaining inputs")
                 started.continuation.yield(value)
                 if value == 1 {
                     for await _ in failureGate.stream {}
