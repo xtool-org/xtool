@@ -11,30 +11,23 @@ import DeveloperAPI
 
 public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
 
-    public enum Error: LocalizedError {
+    public enum Error: LocalizedError, CustomStringConvertible {
         case invalidApp(URL)
-        case tooManyAppGroups(bundleID: String, count: Int)
+        case tooManyAppGroups(bundleID: String, groups: [DeveloperServicesAppGroup.GroupID])
 
         public var errorDescription: String? {
+            description
+        }
+
+        public var description: String {
             switch self {
             case .invalidApp(let url):
-                return url.path.withCString {
-                    String.localizedStringWithFormat(
-                        NSLocalizedString(
-                            "add_app_operation.error.invalid_app", value: "Invalid app: %s", comment: ""
-                        ), $0
-                    )
-                }
-            case .tooManyAppGroups(let bundleID, let count):
-                return bundleID.withCString {
-                    String.localizedStringWithFormat(
-                        NSLocalizedString(
-                            "add_app_operation.error.too_many_app_groups",
-                            value: "%s requests %d app groups, but free teams can only use one app group per app",
-                            comment: ""
-                        ), $0, count
-                    )
-                }
+                "Invalid app: \(url.path)"
+            case .tooManyAppGroups(let bundleID, let groups):
+                """
+                App '\(bundleID)' requests multiple app groups: \(groups.map(\.rawValue).joined(separator: ", ")), \
+                which is not permitted when using a free team.
+                """
             }
         }
     }
@@ -193,7 +186,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
                 let filtered = try entitlements.entitlements().filter { $0.anyCapability?.isFree != false }
                 if let groups = filtered.lazy.compactMap({ $0 as? AppGroupEntitlement }).first?.rawValue,
                     groups.count > 1 {
-                    throw Error.tooManyAppGroups(bundleID: bundleID, count: groups.count)
+                    throw Error.tooManyAppGroups(bundleID: bundleID, groups: groups)
                 }
                 entitlements = try Entitlements(entitlements: filtered)
             }
