@@ -133,7 +133,7 @@ struct DevSDKStatusCommand: AsyncParsableCommand {
         abstract: "Get the status of the Darwin Swift SDK"
     )
 
-    @Option(help: "Require an installed SDK for this exact target triple")
+    @Option(help: "Require an installed SDK for this target triple")
     var triple: String?
 
     @Flag(help: "Print recorded build metadata as JSON (requires --triple)")
@@ -147,16 +147,17 @@ struct DevSDKStatusCommand: AsyncParsableCommand {
             if triple != nil && !sdk.isUpToDate() {
                 throw Console.Error("The installed Darwin SDK is out of date. Update it before building this target.")
             }
-            let root = try triple.map { try sdk.sdkRoot(for: $0) }
+            let sdkTriple = triple.map { BuildSettings.sdkTriple(for: $0) }
+            let root = try sdkTriple.map { try sdk.sdkRoot(for: $0) }
             #if !os(macOS)
             if let triple, let platform = ApplePlatform(triple: triple) {
                 try await LinkerConfiguration.validate(platform: platform, sdk: sdk)
             }
             #endif
-            if buildMetadata, let triple {
+            if buildMetadata, let sdkTriple {
                 let encoder = JSONEncoder()
                 encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-                let data = try encoder.encode(sdk.buildMetadata(for: triple))
+                let data = try encoder.encode(sdk.buildMetadata(for: sdkTriple))
                 d.out.print(String(decoding: data, as: UTF8.self))
                 return
             }

@@ -125,6 +125,18 @@ struct SDKBuilder {
         """
     }
 
+    static func sdkName(in directory: URL, platform: String, prefix: String) throws -> String? {
+        let names = try directory.contents().map(\.lastPathComponent)
+        let regex = try NSRegularExpression(pattern: #"^\#(prefix)\d+\.\d+\.sdk$"#)
+        guard let name = names.first(where: {
+            regex.firstMatch(in: $0, range: NSRange($0.startIndex..., in: $0)) != nil
+        }) else {
+            if platform.hasPrefix("AppleTV") { return nil }
+            throw Console.Error("Could not find SDK for \(platform)/\(prefix)")
+        }
+        return name
+    }
+
     func buildSDK() async throws {
         let sdkVersion = Self.currentSDKVersion
 
@@ -143,24 +155,12 @@ struct SDKBuilder {
 
         let dev = try await installDeveloper(in: output)
 
-        func sdk(platform: String, prefix: String) throws -> String {
-            let regex = try NSRegularExpression(pattern: #"^\#(prefix)\d+\.\d+\.sdk$"#)
-            let dir = dev.appendingPathComponent("Platforms/\(platform).platform/Developer/SDKs")
-            let names = try dir.contents().map(\.lastPathComponent)
-            guard let name = names.first(where: {
-                regex.firstMatch(in: $0, range: NSRange($0.startIndex..., in: $0)) != nil
-            }) else {
-                throw Console.Error("Could not find SDK for \(platform)/\(prefix)")
-            }
-            return name
-        }
-
         var sdks: [String: String] = [:]
         for platform in Self.platforms {
             let sdkDirectory = dev.appendingPathComponent("Platforms/\(platform).platform/Developer/SDKs")
             // Xcode installations may omit optional tvOS SDKs. Do not advertise unavailable triples.
             if platform.hasPrefix("AppleTV") && !sdkDirectory.dirExists { continue }
-            let name = try sdk(platform: platform, prefix: platform)
+            guard let name = try Self.sdkName(in: sdkDirectory, platform: platform, prefix: platform) else { continue }
             sdks[platform] = name
             d.out.print("- \(name)")
         }
@@ -619,7 +619,9 @@ struct SDKBuilder {
         for platform in Self.platforms {
             let lib = "../../../../../Library"
             let platformDir = dev.appending(path: "Platforms/\(platform).platform")
-            guard platformDir.appending(path: "Developer/SDKs").dirExists else { continue }
+            let sdkDirectory = platformDir.appending(path: "Developer/SDKs")
+            guard sdkDirectory.dirExists else { continue }
+            guard try Self.sdkName(in: sdkDirectory, platform: platform, prefix: platform) != nil else { continue }
 
             try patchPlatformManifest(path: platformDir.appending(path: "Info.plist"))
 

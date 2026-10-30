@@ -19,7 +19,7 @@ public struct BuildSettings: Sendable {
         Self.sdkTriple(for: triple)
     }
 
-    private static func sdkTriple(for triple: String) -> String {
+    package static func sdkTriple(for triple: String) -> String {
         var components = triple.split(separator: "-").map(String.init)
         guard components.count >= 3 else { return triple }
         let os = String(components[2].prefix { !$0.isNumber })
