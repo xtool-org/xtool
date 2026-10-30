@@ -18,7 +18,6 @@ public struct SigningContext: Sendable {
 
     public var auth: DeveloperAPIAuthData
     public var targetDevice: TargetDevice?
-    public var signer: Signer
 
     public var developerAPIClient: DeveloperAPIClient {
         DeveloperAPIClient(auth: auth)
@@ -26,12 +25,10 @@ public struct SigningContext: Sendable {
 
     public init(
         auth: DeveloperAPIAuthData,
-        targetDevice: TargetDevice? = nil,
-        signer: Signer? = nil
-    ) throws {
+        targetDevice: TargetDevice? = nil
+    ) {
         self.auth = auth
         self.targetDevice = targetDevice
-        self.signer = try signer ?? .first()
     }
 
 }

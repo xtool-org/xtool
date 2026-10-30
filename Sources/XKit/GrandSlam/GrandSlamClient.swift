@@ -24,25 +24,25 @@ struct GrandSlamClient: Sendable {
         let anisetteData = try await anisetteDataProvider.fetchAnisetteData()
         let url = try await lookupManager.fetchURL(forEndpoint: R.endpoint)
 
-        let method = request.method(anisetteData: anisetteData)
-        var httpRequest = HTTPRequest(method: method.httpMethod, url: url)
+        let content = request.content(anisetteData: anisetteData)
+        var httpRequest = HTTPRequest(method: content.httpMethod, url: url)
         httpRequest.headerFields[.contentType] = "text/x-xml-plist"
         httpRequest.headerFields[.init(DeviceInfo.clientInfoKey)!] = anisetteData.deviceInfo.clientInfo
-        let body: Data? = switch method {
+        let body: Data? = switch content {
         case .get:
             nil
-        case .post(let body):
+        case .data(let body, _, .xml):
             try PropertyListSerialization.data(
                 fromPropertyList: body, format: .xml, options: 0
             )
+        case .data(let body, _, .json):
+            try JSONSerialization.data(withJSONObject: body)
         }
         request.configure(request: &httpRequest, anisetteData: anisetteData)
 
         // GrandSlam doesn't seem to like reused (keep-alive) connections so create a
         // new one for each request. cf https://github.com/rileytestut/AltSign/pull/52
-        let resp = try await httpClient.withEphemeralClient {
-            try await $0.makeRequest(httpRequest, body: body)
-        }
+        let resp = try await httpClient.makeRequest(httpRequest, body: body, ephemeral: true)
         return try R.Decoder.decode(data: resp.body)
     }
 

@@ -71,10 +71,10 @@ extension GrandSlamOperationRequest {
 
     func configure(request: inout HTTPRequest, anisetteData: AnisetteData) {
         request.headerFields[.accept] = "*/*"
-        request.headerFields[.userAgent] = DeviceInfo.akdUserAgent
+        request.headerFields[.userAgent] = anisetteData.deviceInfo.akdUserAgent
     }
 
-    func method(anisetteData: AnisetteData) -> GrandSlamMethod {
+    func content(anisetteData: AnisetteData) -> GrandSlamRequestContent {
         var clientData: [String: Any] = [
             "bootstrap": true,
             "icscrec": true,

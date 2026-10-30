@@ -11,7 +11,7 @@ Some environment variables that help with debugging. Use these as e.g. `XTL_FOO=
 ### Disk
 
 - `XTL_DEBUG_TMP`: Set to `1` to log details when xtool creates/destroys temporary directories.
-- `XTL_TMPDIR`: Control the location where xtool stores temporary directories. We also respect `TMPDIR` and (on Linux) `XDG_CACHE_HOME`.
+- `XTL_TMPDIR`: Control the location where xtool stores temporary directories. We also respect `XDG_CACHE_HOME` on Linux.
 
 ### Networking
 

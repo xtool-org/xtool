@@ -1,3 +1,4 @@
+import XUtils
 import Foundation
 import XKit
 import ArgumentParser
@@ -13,7 +14,7 @@ struct DSAnisetteCommand: AsyncParsableCommand {
         @Dependency(\.anisetteDataProvider) var provider
         let res = try await provider.fetchAnisetteData()
         for (key, value) in res.dictionary.sorted(by: { $0.key < $1.key }) {
-            print("\(key): \(value)")
+            d.out.print("\(key): \(value)")
         }
     }
 }

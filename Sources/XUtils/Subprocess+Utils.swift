@@ -54,4 +54,21 @@ extension Environment {
         )
     }
 }
+
+extension OutputProtocol where Self == FileDescriptorOutput {
+    /// Writes subprocess output to `d.out`'s stdout
+    public static func xtoolOutput() throws -> Self {
+        try makeXToolOutput(for: .stdout)
+    }
+
+    /// Writes subprocess output to `d.out`'s stderr
+    public static func xtoolError() throws -> Self {
+        try makeXToolOutput(for: .stderr)
+    }
+
+    private static func makeXToolOutput(for stream: CommandOutput.Stream) throws -> Self {
+        let fd = try d.out.makeDescriptor(for: stream)
+        return .fileDescriptor(fd, closeAfterSpawningProcess: true)
+    }
+}
 #endif

@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import XUtils
 import SwiftyMobileDevice
 
 public final class ProfileManager {
@@ -53,16 +54,16 @@ public final class ProfileManager {
 
         for (bundleID, profiles) in toInstall {
             guard profiles.count == 1 else {
-                print("Unexpected # of profiles for \(bundleID): \(profiles.count). Skipping.")
+                d.out.print("Unexpected # of profiles for \(bundleID): \(profiles.count). Skipping.")
                 continue
             }
             let profile = profiles[0]
             let installedProfiles = installed[bundleID] ?? []
             for installedProfile in installedProfiles {
-                print("Removing \(installedProfile.1.uuid) for \(bundleID)")
+                d.out.print("Removing \(installedProfile.1.uuid) for \(bundleID)")
                 try client.removeProfile(withUUID: installedProfile.1.uuid)
             }
-            print("Installing profile with UUID \(profile.1.uuid)")
+            d.out.print("Installing profile with UUID \(profile.1.uuid)")
             try client.install(profile: profile.0.data())
         }
     }

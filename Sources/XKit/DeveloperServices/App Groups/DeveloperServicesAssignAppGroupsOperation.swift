@@ -8,6 +8,7 @@
 
 import Foundation
 import DeveloperAPI
+import XUtils
 
 public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperation {
 
@@ -33,36 +34,23 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
         self.client = DeveloperServicesClient(authData: authData)
     }
 
-    private func upsertAppGroup(
+    private func getOrCreateAppGroup(
         _ groupID: DeveloperServicesAppGroup.GroupID,
         existingGroups: [String: DeveloperServicesAppGroup]
-    ) async throws -> DeveloperServicesAppGroup.GroupID {
+    ) async throws -> DeveloperServicesAppGroup {
         let sanitized = ProvisioningIdentifiers.sanitize(groupID: groupID)
-        let group: DeveloperServicesAppGroup
         if let existingGroup = existingGroups[sanitized] {
-            group = existingGroup
-        } else {
-            let groupID = ProvisioningIdentifiers.groupID(fromSanitized: sanitized, context: context)
-            let name = ProvisioningIdentifiers.groupName(fromSanitized: sanitized)
-            let request = DeveloperServicesAddAppGroupRequest(
-                platform: .iOS,
-                teamID: xcodeAuthData.teamID,
-                name: name,
-                groupID: groupID
-            )
-            group = try await client.send(request)
+            return existingGroup
         }
-
-        _ = try await client.send(
-            DeveloperServicesAssignAppGroupRequest(
-                platform: .iOS,
-                teamID: xcodeAuthData.teamID,
-                appIDID: appID.id,
-                groupID: group.id
-            )
+        let groupID = ProvisioningIdentifiers.groupID(fromSanitized: sanitized, context: context)
+        let name = ProvisioningIdentifiers.groupName(fromSanitized: sanitized)
+        let request = DeveloperServicesAddAppGroupRequest(
+            platform: .iOS,
+            teamID: xcodeAuthData.teamID,
+            name: name,
+            groupID: groupID
         )
-
-        return group.groupID
+        return try await client.send(request)
     }
 
     public func perform() async throws -> [DeveloperServicesAppGroup.GroupID] {
@@ -71,14 +59,20 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
         ))
         let sanitized = existing.map { (ProvisioningIdentifiers.sanitize(groupID: $0.groupID), $0) }
         let dict = Dictionary(sanitized, uniquingKeysWith: { $1 })
-        return try await withThrowingTaskGroup(of: DeveloperServicesAppGroup.GroupID.self) { group in
-            for groupID in groupIDs {
-                group.addTask {
-                    try await upsertAppGroup(groupID, existingGroups: dict)
-                }
-            }
-            return try await group.reduce(into: []) { $0.append($1) }
+        let groups = try await groupIDs.concurrentMap { groupID in
+            try await getOrCreateAppGroup(groupID, existingGroups: dict)
         }
+
+        _ = try await client.send(
+            DeveloperServicesAssignAppGroupRequest(
+                platform: .iOS,
+                teamID: xcodeAuthData.teamID,
+                appIDID: appID.id,
+                groupIDs: groups.map(\.id)
+            )
+        )
+
+        return groups.map(\.groupID)
     }
 
 }

@@ -1,3 +1,4 @@
+import XUtils
 import Foundation
 import OpenAPIRuntime
 import HTTPTypes
@@ -23,7 +24,7 @@ struct LoggingMiddleware: ClientMiddleware {
               ) != nil
               else { return (response, body) }
 
-        print("\n\(operationID) response status -> \(response.status)")
+        d.out.print("\n\(operationID) response status -> \(response.status)")
 
         if let unwrapped = body {
             let data = try await Data(collecting: unwrapped, upTo: .max)
@@ -31,7 +32,7 @@ struct LoggingMiddleware: ClientMiddleware {
             body = .init(data)
 
             let text = String(decoding: data, as: UTF8.self)
-            print("\(operationID) response body -> \(text)")
+            d.out.print("\(operationID) response body -> \(text)")
         }
 
         return (response, body)
