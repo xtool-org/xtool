@@ -33,8 +33,7 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
         self.client = DeveloperServicesClient(authData: authData)
     }
 
-    /// Finds the team's group for `groupID`, creating it when there is none.
-    private func upsertAppGroup(
+    private func getOrCreateAppGroup(
         _ groupID: DeveloperServicesAppGroup.GroupID,
         existingGroups: [String: DeveloperServicesAppGroup]
     ) async throws -> DeveloperServicesAppGroup {
@@ -53,11 +52,6 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
         return try await client.send(request)
     }
 
-    /// Creates any missing groups, then assigns all of them to the App ID in one request.
-    /// `assignApplicationGroupToAppId` replaces the App ID's groups with the ones in the request,
-    /// so assigning each group separately (as this once did, concurrently) left the App ID with
-    /// only one of them, and an app with two groups got a profile that iOS refused to install.
-    /// Returns the groups' IDs in the order they were given.
     public func perform() async throws -> [DeveloperServicesAppGroup.GroupID] {
         let existing = try await client.send(DeveloperServicesListAppGroupsRequest(
             platform: .iOS, teamID: xcodeAuthData.teamID
@@ -67,7 +61,7 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
         let groups = try await withThrowingTaskGroup(of: (Int, DeveloperServicesAppGroup).self) { group in
             for (index, groupID) in groupIDs.enumerated() {
                 group.addTask {
-                    (index, try await upsertAppGroup(groupID, existingGroups: dict))
+                    (index, try await getOrCreateAppGroup(groupID, existingGroups: dict))
                 }
             }
             return try await group.reduce(into: []) { $0.append($1) }
@@ -75,16 +69,14 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
         .sorted { $0.0 < $1.0 }
         .map(\.1)
 
-        if !groups.isEmpty {
-            _ = try await client.send(
-                DeveloperServicesAssignAppGroupRequest(
-                    platform: .iOS,
-                    teamID: xcodeAuthData.teamID,
-                    appIDID: appID.id,
-                    groupIDs: groups.map(\.id)
-                )
+        _ = try await client.send(
+            DeveloperServicesAssignAppGroupRequest(
+                platform: .iOS,
+                teamID: xcodeAuthData.teamID,
+                appIDID: appID.id,
+                groupIDs: groups.map(\.id)
             )
-        }
+        )
 
         return groups.map(\.groupID)
     }

@@ -8,9 +8,7 @@
 
 import Foundation
 
-/// Assigns a set of app groups to an App ID. The request replaces the App ID's groups with
-/// `groupIDs`, so every group the app needs has to be in one request: assigning them one
-/// request at a time leaves only the last one standing.
+/// Replaces all of the app's groups with the given ones
 public final class DeveloperServicesAssignAppGroupRequest: DeveloperServicesPlatformRequest {
 
     public struct Response: Decodable, Sendable {}
