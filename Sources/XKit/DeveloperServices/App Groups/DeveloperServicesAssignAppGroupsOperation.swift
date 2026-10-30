@@ -8,6 +8,7 @@
 
 import Foundation
 import DeveloperAPI
+import XUtils
 
 public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperation {
 
@@ -58,16 +59,9 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
         ))
         let sanitized = existing.map { (ProvisioningIdentifiers.sanitize(groupID: $0.groupID), $0) }
         let dict = Dictionary(sanitized, uniquingKeysWith: { $1 })
-        let groups = try await withThrowingTaskGroup(of: (Int, DeveloperServicesAppGroup).self) { group in
-            for (index, groupID) in groupIDs.enumerated() {
-                group.addTask {
-                    (index, try await getOrCreateAppGroup(groupID, existingGroups: dict))
-                }
-            }
-            return try await group.reduce(into: []) { $0.append($1) }
+        let groups = try await groupIDs.concurrentMap { groupID in
+            try await getOrCreateAppGroup(groupID, existingGroups: dict)
         }
-        .sorted { $0.0 < $1.0 }
-        .map(\.1)
 
         _ = try await client.send(
             DeveloperServicesAssignAppGroupRequest(
