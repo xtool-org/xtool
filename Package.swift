@@ -191,6 +191,7 @@ let package = Package(
                 "XCLIUtils",
                 "PackLib",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "Crypto", package: "swift-crypto"),
                 .product(name: "SystemPackage", package: "swift-system"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
                 .product(name: "libunxip", package: "unxip"),
