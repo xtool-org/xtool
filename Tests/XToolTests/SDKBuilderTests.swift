@@ -1,4 +1,5 @@
 import Testing
+import Foundation
 @testable import XToolSupport
 
 @Test func sdkDefinitionUsesPlatformSDKs() throws {
@@ -27,6 +28,31 @@ import Testing
     #expect(definition.targetTriples["arm64-apple-tvos"] == nil)
     #expect(definition.targetTriples["arm64-apple-tvos-simulator"] == nil)
     #expect(definition.targetTriples["arm64-apple-ios-macabi"] == nil)
+}
+
+@Test(arguments: ["AppleTVOS", "AppleTVSimulator"])
+func sdkNameSkipsAppleTVDirectoriesWithoutVersionedSDKs(platform: String) throws {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent("SDKBuilderTests-\(UUID())")
+    defer { try? FileManager.default.removeItem(at: directory) }
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    #expect(try SDKBuilder.sdkName(in: directory, platform: platform, prefix: platform) == nil)
+
+    try Data().write(to: directory.appendingPathComponent("README"))
+    #expect(try SDKBuilder.sdkName(in: directory, platform: platform, prefix: platform) == nil)
+
+    let name = "\(platform)26.0.sdk"
+    try FileManager.default.createDirectory(at: directory.appendingPathComponent(name), withIntermediateDirectories: false)
+    #expect(try SDKBuilder.sdkName(in: directory, platform: platform, prefix: platform) == name)
+}
+
+@Test func sdkNameStillRequiresNonAppleTVSDKs() throws {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent("SDKBuilderTests-\(UUID())")
+    defer { try? FileManager.default.removeItem(at: directory) }
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+
+    #expect(throws: (any Error).self) {
+        try SDKBuilder.sdkName(in: directory, platform: "MacOSX", prefix: "MacOSX")
+    }
 }
 
 @Test func sdkExtractionRetainsTVSDKs() {
