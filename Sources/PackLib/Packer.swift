@@ -195,13 +195,7 @@ public struct Packer: Sendable {
             try await packFile(srcName: product.targetName, dstName: product.product)
         }
         group.addTask {
-            var info = product.infoPlist
-
-            if product.type == .application {
-                info["UIRequiredDeviceCapabilities"] = ["arm64"]
-                info["LSRequiresIPhoneOS"] = true
-                info["CFBundleSupportedPlatforms"] = Packer.cfBundleSupportedPlatforms(for: buildSettings.triple)
-            }
+            var info = Packer.platformInfoPlist(product.infoPlist, type: product.type, triple: buildSettings.triple)
 
             if let iconPath = product.iconPath {
                 let iconName = URL(fileURLWithPath: iconPath).deletingPathExtension().lastPathComponent
@@ -216,6 +210,74 @@ public struct Packer: Sendable {
             )
             try encodedPlist.write(to: infoPath)
         }
+    }
+
+    /// Adds the keys that tie a bundle to its platform, without discarding what the user declared.
+    static func platformInfoPlist(
+        _ plist: [String: any Sendable],
+        type: Plan.ProductType,
+        triple: String
+    ) -> [String: any Sendable] {
+        var info = plist
+
+        info["CFBundleSupportedPlatforms"] = cfBundleSupportedPlatforms(for: triple)
+        info["UIRequiredDeviceCapabilities"] = requiredDeviceCapabilities(merging: plist["UIRequiredDeviceCapabilities"])
+
+        switch type {
+        case .application:
+            info["LSRequiresIPhoneOS"] = true
+        case .appExtension:
+            info["UIDeviceFamily"] = universalDeviceFamily(merging: plist["UIDeviceFamily"])
+        }
+
+        return info
+    }
+
+    private static func warn(_ message: String) {
+        FileHandle.standardError.write(Data((message + "\n").utf8))
+    }
+
+    /// Apple's App Extension Programming Guide ("Ensure Your iOS App Extension Works on All Devices")
+    /// says that to pass App Review an extension must specify the iPhone/iPad (universal) targeted
+    /// device family, whatever the containing app targets. So iPhone (1) and iPad (2) are always
+    /// present, and a narrower value the user declared is widened.
+    private static func universalDeviceFamily(merging existing: (any Sendable)?) -> [Int] {
+        let declared = existing as? [Int] ?? []
+        let universal = Array(Set(declared).union([1, 2])).sorted()
+        if !declared.isEmpty, Set(declared) != Set(universal) {
+            warn(
+                "warning: UIDeviceFamily \(declared) in an app extension Info.plist is not universal; "
+                + "using \(universal), as App Review requires"
+            )
+        }
+        return universal
+    }
+
+    /// `UIRequiredDeviceCapabilities` is either an array of names or a dictionary of name to Bool.
+    /// Whichever form the user picked, `arm64` is guaranteed to be required. This overrides an
+    /// explicit user declaration: `"arm64": false` in the dictionary form is replaced by `true`
+    /// (with a warning), and a value of any other shape is replaced by `["arm64"]` (with a warning).
+    private static func requiredDeviceCapabilities(merging existing: (any Sendable)?) -> any Sendable {
+        if var dictionary = existing as? [String: any Sendable] {
+            if dictionary["arm64"] as? Bool == false {
+                warn("warning: UIRequiredDeviceCapabilities declares arm64 as false; using true, as arm64 is required")
+            }
+            dictionary["arm64"] = true
+            return dictionary
+        }
+        if var array = existing as? [String] {
+            if !array.contains("arm64") {
+                array.insert("arm64", at: 0)
+            }
+            return array
+        }
+        if existing != nil {
+            warn(
+                "warning: UIRequiredDeviceCapabilities must be an array of strings or a dictionary of "
+                + "name to Bool; ignoring \(String(describing: existing!)) and using [\"arm64\"]"
+            )
+        }
+        return ["arm64"]
     }
 
     static func cfBundleSupportedPlatforms(for triple: String) -> [String] {
