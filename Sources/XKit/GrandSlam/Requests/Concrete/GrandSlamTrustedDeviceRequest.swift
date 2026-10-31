@@ -35,16 +35,22 @@ struct GrandSlamSMSAuthRequest: GrandSlamTwoFactorRequest {
         static func decode(data: Data) throws {}
     }
 
-    static let endpoint: GrandSlamEndpoint = .url(URL(string: "https://gsa.apple.com/auth/verify/phone/put?mode=sms")!)
+    static let endpoint: GrandSlamEndpoint = .url(URL(string: "https://gsa.apple.com/auth/verify/phone")!)
 
     let loginData: GrandSlamLoginData
-    let phoneNumberID: String
+    let phoneNumberID: Int
+
+    var extraHeaders: [String: String] {
+        [
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        ]
+    }
 
     func content(anisetteData: AnisetteData) -> GrandSlamRequestContent {
-        .post([
-            "serverInfo": [
-                "phoneNumber.id": phoneNumberID
-            ],
-        ])
+        .put([
+            "phoneNumber": ["id": phoneNumberID],
+            "mode": "sms",
+        ], type: .json)
     }
 }
