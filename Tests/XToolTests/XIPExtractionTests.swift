@@ -63,6 +63,8 @@ import XUtils
     #expect(staged.path != source.path)
     #expect(FileManager.default.fileExists(atPath: staged.path))
     #expect(try String(contentsOfFile: staged.path, encoding: .utf8) == "xar!")
+    staged.cleanup()
+    #expect(!FileManager.default.fileExists(atPath: staged.path))
 }
 
 @Test func xipStageIfNeededLeavesNativeSourceInPlace() throws {
@@ -161,13 +163,108 @@ import XUtils
     #expect(ContinuousClock.now - started < .seconds(5))
 }
 
-@Test func xipRaceReturnsTheResultAndStopsTheWatchdog() async throws {
+@Test(.timeLimit(.minutes(1)))
+func xipRaceReturnsTheResultAndStopsTheWatchdog() async throws {
+    let (watchdogExit, signal) = AsyncStream<Never>.makeStream()
     let value = try await XIPExtraction.race {
         42
     } watchdog: {
+        defer { signal.finish() }
         while !Task.isCancelled {
             try await Task.sleep(for: .milliseconds(10))
         }
     }
     #expect(value == 42)
+    // Only ends when the watchdog has exited; the time limit catches a leak.
+    for await _ in watchdogExit {}
+}
+
+@Test func xipStallMessageDoesNotBlameAStagedArchive() {
+    let progress = XIPExtraction.Progress(
+        bytesRead: 72,
+        totalBytes: 100,
+        filesWritten: 18421,
+        lastChange: .seconds(10)
+    )
+    let message = XIPExtraction.stallMessage(
+        progress: progress,
+        source: .network,
+        wasStaged: true,
+        isAppImage: false
+    )
+    #expect(message.contains("already copied from the network/9p filesystem"))
+    #expect(!message.contains("/mnt/c"))
+    #expect(!message.contains("Copy it onto"))
+}
+
+@Test func xipDiskSpaceWarnsWhenFreeSpaceIsUnknown() {
+    guard case .warning(let message) = XIPExtraction.DiskSpace.evaluate(xipSize: 1, freeBytes: nil) else {
+        Issue.record("expected a warning")
+        return
+    }
+    #expect(message.contains("could not measure"))
+}
+
+@Test func xipDiskSpaceHandlesOversizedArchives() {
+    let gb: Int64 = 1024 * 1024 * 1024
+    for willStage in [false, true] {
+        guard case .error = XIPExtraction.DiskSpace.evaluate(
+            xipSize: .max,
+            freeBytes: 100 * gb,
+            willStage: willStage
+        ) else {
+            Issue.record("expected an error for an oversized archive")
+            return
+        }
+    }
+    // Passes the minimum, so only the recommendation can overflow.
+    let size = Int64.max / 4
+    guard case .warning = XIPExtraction.DiskSpace.evaluate(xipSize: size, freeBytes: size * 3) else {
+        Issue.record("expected a warning below the recommended space")
+        return
+    }
+}
+
+@Test func xipFreeSpaceChangesCountAsProgress() {
+    var progress = XIPExtraction.Progress(
+        bytesRead: 0,
+        totalBytes: 100,
+        filesWritten: 0,
+        lastChange: .zero
+    )
+    progress.noteFreeBytes(1000, at: .seconds(15))
+    progress.noteFreeBytes(1000, at: .seconds(30))
+    #expect(progress.lastChange == .zero)
+
+    progress.noteFreeBytes(900, at: .seconds(290))
+    #expect(!progress.isStalled(at: .seconds(310), timeout: .seconds(300)))
+    #expect(progress.isStalled(at: .seconds(590), timeout: .seconds(300)))
+}
+
+@Test func xipCheckFreeSpaceCountsTheStagedCopy() throws {
+    let root = FileManager.default.temporaryDirectory
+        .appendingPathComponent("XIPFreeSpaceTests-\(UUID().uuidString)", isDirectory: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    let source = root.appendingPathComponent("Xcode.xip")
+    try Data(repeating: 0, count: 100).write(to: source)
+
+    func check(sourceKind: HostFilesystem.Kind) throws {
+        try withDependencies {
+            $0.out = CommandOutput { _, _, _ in }
+        } operation: {
+            try XIPExtraction.checkFreeSpace(
+                inputPath: source.path,
+                outDir: root.path,
+                sourceKind: sourceKind,
+                destinationKind: .native,
+                measureFreeBytes: { _ in 250 }
+            )
+        }
+    }
+
+    try check(sourceKind: .native)
+    #expect(throws: (any Error).self) {
+        try check(sourceKind: .network)
+    }
 }

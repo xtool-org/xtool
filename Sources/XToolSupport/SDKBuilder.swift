@@ -697,8 +697,13 @@ struct SDKBuilder {
         if let hint = XIPExtraction.appImageHint() {
             d.out.print(hint)
         }
-        try XIPExtraction.checkFreeSpace(inputPath: inputPath, outDir: outDir)
-        let prepared = try XIPExtraction.stageIfNeeded(inputPath: inputPath, outDir: outDir)
+        let sourceKind = HostFilesystem.kind(of: inputPath)
+        try XIPExtraction.checkFreeSpace(inputPath: inputPath, outDir: outDir, sourceKind: sourceKind)
+        let prepared = try XIPExtraction.stageIfNeeded(
+            inputPath: inputPath,
+            outDir: outDir,
+            sourceKind: sourceKind
+        )
         defer { prepared.cleanup() }
 
         // unxip doesn't like cooperative cancellation atm so shield it.
@@ -708,7 +713,8 @@ struct SDKBuilder {
             try await _extractXIP(
                 inputPath: prepared.path,
                 outDir: outDir,
-                sourceKind: HostFilesystem.kind(of: prepared.path)
+                sourceKind: sourceKind,
+                wasStaged: prepared.stagedPath != nil
             )
         }.value
     }
@@ -738,7 +744,8 @@ struct SDKBuilder {
     private func _extractXIP(
         inputPath: String,
         outDir: String,
-        sourceKind: HostFilesystem.Kind
+        sourceKind: HostFilesystem.Kind,
+        wasStaged: Bool
     ) async throws -> Int {
         let fd = try FileDescriptor.open(inputPath, .readOnly)
         // A stall abandons a task that still reads this descriptor and writes
@@ -762,6 +769,7 @@ struct SDKBuilder {
         let tracker = XIPProgressTracker(
             totalBytes: length,
             sourceKind: sourceKind,
+            wasStaged: wasStaged,
             isAppImage: ProcessInfo.processInfo.environment["APPIMAGE"] != nil
         )
 
@@ -808,6 +816,17 @@ struct SDKBuilder {
                 _ = try await readTask
                 return wanted
             } watchdog: {
+                // Sampled apart from the heartbeat: statfs can block on the same
+                // mount as a stuck write, and the stall must still be reported.
+                let sampler = Task {
+                    while !Task.isCancelled {
+                        if let freeBytes = HostFilesystem.freeBytes(at: outDir) {
+                            await tracker.noteFreeBytes(freeBytes)
+                        }
+                        try await Task.sleep(for: .seconds(15))
+                    }
+                }
+                defer { sampler.cancel() }
                 while !Task.isCancelled {
                     try await Task.sleep(for: .seconds(15))
                     try await tracker.heartbeat()

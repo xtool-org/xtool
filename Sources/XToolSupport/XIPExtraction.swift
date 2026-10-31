@@ -12,6 +12,7 @@ enum XIPExtraction: Sendable {
         var totalBytes: Int64
         var filesWritten: Int
         var lastChange: Duration
+        var lastFreeBytes: Int64?
 
         var percent: Int {
             guard totalBytes > 0 else { return 0 }
@@ -30,6 +31,15 @@ enum XIPExtraction: Sendable {
         func isStalled(at elapsed: Duration, timeout: Duration) -> Bool {
             elapsed - lastChange >= timeout
         }
+
+        /// One large file can take minutes to write with no read or file event,
+        /// so a change in the destination's free space also counts as progress.
+        mutating func noteFreeBytes(_ freeBytes: Int64, at elapsed: Duration) {
+            if let lastFreeBytes, lastFreeBytes != freeBytes {
+                lastChange = elapsed
+            }
+            lastFreeBytes = freeBytes
+        }
     }
 
     enum DiskSpace: Equatable, Sendable {
@@ -38,9 +48,11 @@ enum XIPExtraction: Sendable {
         case error(String)
 
         static func evaluate(xipSize: Int64, freeBytes: Int64?, willStage: Bool = false) -> Self {
-            guard let freeBytes else { return .ok }
+            guard let freeBytes else {
+                return .warning("Warning: could not measure free disk space on the destination.")
+            }
             // A staged archive takes another xipSize on the destination volume.
-            let minimum = xipSize * (willStage ? 3 : 2)
+            let minimum = saturating(xipSize, times: willStage ? 3 : 2)
             if freeBytes < minimum {
                 let need = Self.formatBytes(minimum)
                 let have = Self.formatBytes(freeBytes)
@@ -55,7 +67,7 @@ enum XIPExtraction: Sendable {
                 can look like a hang at 72%.
                 """)
             }
-            let recommended = max(xipSize * 8, 8 * 1024 * 1024 * 1024)
+            let recommended = max(saturating(xipSize, times: 8), 8 * 1024 * 1024 * 1024)
             if freeBytes < recommended {
                 return .warning("""
                 Warning: only \(Self.formatBytes(freeBytes)) free; extracting Xcode may need \
@@ -63,6 +75,12 @@ enum XIPExtraction: Sendable {
                 """)
             }
             return .ok
+        }
+
+        /// A sparse archive can report a size that would trap on multiplication.
+        private static func saturating(_ size: Int64, times factor: Int64) -> Int64 {
+            let (product, overflowed) = size.multipliedReportingOverflow(by: factor)
+            return overflowed ? .max : product
         }
 
         static func formatBytes(_ value: Int64) -> String {
@@ -106,6 +124,7 @@ enum XIPExtraction: Sendable {
     static func stallMessage(
         progress: Progress,
         source: HostFilesystem.Kind,
+        wasStaged: Bool = false,
         isAppImage: Bool
     ) -> String {
         var lines = [
@@ -114,7 +133,12 @@ enum XIPExtraction: Sendable {
             (\(progress.percent)% read, \(progress.filesWritten) files written).
             """,
         ]
-        if source.isSlow {
+        if wasStaged {
+            lines.append("""
+            The archive was already copied from the \(source.displayName) filesystem onto the \
+            output disk, so its location is not the cause.
+            """)
+        } else if source.isSlow {
             lines.append("""
             The archive is on a \(source.displayName) filesystem. Copy it onto the Linux disk \
             (for example ~/xcode/Xcode.xip) instead of /mnt/c, then retry.
@@ -151,16 +175,41 @@ enum XIPExtraction: Sendable {
         try FileManager.default.createDirectory(at: stagedDir, withIntermediateDirectories: true)
         let stagedPath = stagedDir.appendingPathComponent("Xcode.xip").path
         d.out.print("[Copying XIP] Source is on \(source.displayName); copying onto the Linux filesystem...", flush: true)
-        try FileManager.default.copyItem(atPath: inputPath, toPath: stagedPath)
-        d.out.print("[Copying XIP] 100%")
+        try copyReportingProgress(from: inputPath, to: stagedPath)
         return PreparedInput(path: stagedPath, stagedPath: stagedPath)
+    }
+
+    private static func copyReportingProgress(from source: String, to destination: String) throws {
+        let input = try FileHandle(forReadingFrom: URL(fileURLWithPath: source))
+        defer { try? input.close() }
+        guard FileManager.default.createFile(atPath: destination, contents: nil) else {
+            throw Console.Error("Could not create '\(destination)'")
+        }
+        let output = try FileHandle(forWritingTo: URL(fileURLWithPath: destination))
+        defer { try? output.close() }
+
+        let total = try input.seekToEnd()
+        try input.seek(toOffset: 0)
+        var copied: UInt64 = 0
+        var reported: UInt64?
+        while let chunk = try input.read(upToCount: 8 * 1024 * 1024), !chunk.isEmpty {
+            try output.write(contentsOf: chunk)
+            copied += UInt64(chunk.count)
+            let percent = total > 0 ? copied * 100 / total : 100
+            if percent != reported {
+                reported = percent
+                d.out.print("\r[Copying XIP] \(percent)%", terminator: "", flush: true)
+            }
+        }
+        d.out.print()
     }
 
     static func checkFreeSpace(
         inputPath: String,
         outDir: String,
         sourceKind: HostFilesystem.Kind? = nil,
-        destinationKind: HostFilesystem.Kind? = nil
+        destinationKind: HostFilesystem.Kind? = nil,
+        measureFreeBytes: (String) -> Int64? = HostFilesystem.freeBytes(at:)
     ) throws {
         let source = sourceKind ?? HostFilesystem.kind(of: inputPath)
         let destination = destinationKind ?? HostFilesystem.kind(of: outDir)
@@ -168,7 +217,7 @@ enum XIPExtraction: Sendable {
         let xipSize = (attributes[.size] as? NSNumber)?.int64Value ?? 0
         switch DiskSpace.evaluate(
             xipSize: xipSize,
-            freeBytes: HostFilesystem.freeBytes(at: outDir),
+            freeBytes: measureFreeBytes(outDir),
             willStage: shouldStage(source: source, destination: destination)
         ) {
         case .ok:
@@ -240,9 +289,10 @@ actor XIPProgressTracker {
     private let started: ContinuousClock.Instant
     private let clock = ContinuousClock()
     private let sourceKind: HostFilesystem.Kind
+    private let wasStaged: Bool
     private let isAppImage: Bool
 
-    init(totalBytes: Int64, sourceKind: HostFilesystem.Kind, isAppImage: Bool) {
+    init(totalBytes: Int64, sourceKind: HostFilesystem.Kind, wasStaged: Bool, isAppImage: Bool) {
         self.progress = XIPExtraction.Progress(
             bytesRead: 0,
             totalBytes: totalBytes,
@@ -251,6 +301,7 @@ actor XIPProgressTracker {
         )
         self.started = ContinuousClock.now
         self.sourceKind = sourceKind
+        self.wasStaged = wasStaged
         self.isAppImage = isAppImage
     }
 
@@ -266,6 +317,10 @@ actor XIPProgressTracker {
         emit(force: false)
     }
 
+    func noteFreeBytes(_ freeBytes: Int64) {
+        progress.noteFreeBytes(freeBytes, at: clock.now - started)
+    }
+
     func heartbeat() throws {
         let elapsed = clock.now - started
         if progress.isStalled(at: elapsed, timeout: XIPExtraction.stallTimeout) {
@@ -273,6 +328,7 @@ actor XIPProgressTracker {
                 message: XIPExtraction.stallMessage(
                     progress: progress,
                     source: sourceKind,
+                    wasStaged: wasStaged,
                     isAppImage: isAppImage
                 )
             )
