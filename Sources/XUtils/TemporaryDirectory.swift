@@ -71,24 +71,7 @@ private struct TemporaryDirectoryRoot {
     }
 
     private init() {
-        let url: URL
-        let env = ProcessInfo.processInfo.environment
-        if let tmpdir = env["XTL_TMPDIR"] ?? env["TMPDIR"] {
-            url = URL(fileURLWithPath: tmpdir).appendingPathComponent("sh.xtool")
-        } else {
-            #if os(Linux)
-            // On Linux, /tmp is commonly a tmpfs mount while ~/.swiftpm lives on ext4.
-            // Foundation's FileManager.copyItem uses sendfile(2) internally, which returns
-            // EINVAL when copying between different filesystem types (e.g. tmpfs → ext4).
-            // This causes `swift sdk install` to fail on distros like Linux Mint (#181).
-            // Using a cache dir on the home filesystem avoids the cross-fs copy entirely.
-            let xdgCache = env["XDG_CACHE_HOME"].map { URL(fileURLWithPath: $0) }
-                ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".cache")
-            url = xdgCache.appendingPathComponent("xtool")
-            #else
-            url = FileManager.default.temporaryDirectory.appendingPathComponent("sh.xtool")
-            #endif
-        }
+        let url = XToolCache.directory
 
         Self.pruneOrphans(in: url)
 

@@ -1,47 +1,15 @@
 import Foundation
-import XKit
 import XUtils
-import NIOPosix
-import NIOCore
+import Dependencies
 
-enum Console {
-    private static func withStdio<T>(
-        _ body: (
-            _ stdin: NIOAsyncChannelInboundStream<ByteBuffer>,
-            _ stdout: NIOAsyncChannelOutboundWriter<ByteBuffer>
-        ) async throws -> T
-    ) async throws -> T {
-        try await NIOPipeBootstrap(group: .singletonMultiThreadedEventLoopGroup)
-            .takingOwnershipOfDescriptors(
-                input: FileDescriptor.standardInput.duplicate().rawValue,
-                output: FileDescriptor.standardOutput.duplicate().rawValue
-            )
-            .flatMapThrowing { try NIOAsyncChannel(wrappingChannelSynchronously: $0) }
-            .get()
-            .executeThenClose { try await body($0, $1) }
+package enum Console {
+    package static func prompt(_ message: String) async throws -> String {
+        d.out.print(message, terminator: "", flush: true)
+        guard let line = try await d.input.readLine() else { throw Console.Error("Input ended before a response was received.") }
+        return line
     }
 
-    static func prompt(_ message: String) async throws -> String {
-        try await withStdio { stdin, stdout in
-            try await stdout.write(ByteBuffer(bytes: message.utf8))
-
-            fflush(stdoutSafe)
-
-            var data = Data()
-            for try await chunk in stdin {
-                let view = chunk.readableBytesView
-                if let endIndex = view.firstIndex(of: UInt8(ascii: "\n")) {
-                    data += view[..<endIndex]
-                    break
-                } else {
-                    data += view
-                }
-            }
-            return String(decoding: data, as: UTF8.self)
-        }
-    }
-
-    static func promptRequired(_ message: String, existing: String?) async throws -> String {
+    package static func promptRequired(_ message: String, existing: String?) async throws -> String {
         let value: String
         if let existing {
             value = existing
@@ -54,12 +22,12 @@ enum Console {
         return value
     }
 
-    static func getPassword(_ message: String) async throws -> String {
+    package static func getPassword(_ message: String) async throws -> String {
         if !message.isEmpty {
-            print(message, terminator: "")
+            d.out.print(message, terminator: "")
         }
         let password = try await withoutEcho { try await prompt("") }
-        print()
+        d.out.print()
         return password
     }
 
@@ -90,7 +58,7 @@ enum Console {
         #endif
     }
 
-    static func chooseNumber(in range: Range<Int>) async throws -> Int {
+    package static func chooseNumber(in range: Range<Int>) async throws -> Int {
         let message = "Choice (\(range.lowerBound)-\(range.upperBound - 1)): "
         while true {
             if let choice = try await Int(prompt(message)), range.contains(choice) {
@@ -99,7 +67,7 @@ enum Console {
         }
     }
 
-    static func choose<T>(
+    package static func choose<T>(
         from elements: [T],
         onNoElement: () throws -> T,
         multiPrompt: @autoclosure () -> String,
@@ -111,9 +79,9 @@ enum Console {
         case 1:
             return elements[0]
         default:
-            print(multiPrompt())
+            d.out.print(multiPrompt())
             try elements.enumerated().forEach { index, element in
-                try print("\(index): \(formatter(element))")
+                try d.out.print("\(index): \(formatter(element))")
             }
             let choice = try await chooseNumber(in: elements.indices)
             return elements[choice]
@@ -123,7 +91,7 @@ enum Console {
     private static let yesSet: Set<String> = ["yes", "y"]
     private static let noSet: Set<String> = ["no", "n"]
 
-    static func confirm(_ message: String) async throws -> Bool {
+    package static func confirm(_ message: String) async throws -> Bool {
         while true {
             let resp = try await prompt("\(message) (yes/no): ").lowercased()
             if yesSet.contains(resp) {
@@ -134,9 +102,9 @@ enum Console {
         }
     }
 
-    struct Error: Swift.Error, CustomStringConvertible {
-        let description: String
-        init(_ description: String) {
+    package struct Error: Swift.Error, CustomStringConvertible {
+        package let description: String
+        package init(_ description: String) {
             self.description = description
         }
     }

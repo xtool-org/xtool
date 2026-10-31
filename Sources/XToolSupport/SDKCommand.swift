@@ -1,3 +1,4 @@
+import XCLIUtils
 import Foundation
 import XKit
 import ArgumentParser
@@ -51,7 +52,7 @@ struct DevSDKBuildCommand: AsyncParsableCommand {
         let output = URL(fileURLWithPath: outputDir, isDirectory: true).appending(path: "darwin.xtoolsdk")
         let builder = SDKBuilder(input: input, output: output, arch: builderArch, mode: .buildSlim)
         try await builder.buildSDK()
-        print("Built SDK at \(output.path). You can install it with `xtool sdk install`.")
+        d.out.print("Built SDK at \(output.path). You can install it with `xtool sdk install`.")
     }
 }
 
@@ -122,7 +123,7 @@ struct DevSDKRemoveCommand: AsyncParsableCommand {
             throw Console.Error("Cannot remove SDK: no Darwin SDK installed")
         }
         try sdk.remove()
-        print("Uninstalled SDK")
+        d.out.print("Uninstalled SDK")
     }
 }
 
@@ -134,12 +135,12 @@ struct DevSDKStatusCommand: AsyncParsableCommand {
 
     func run() async throws {
         if let sdk = try DarwinSDK.current() {
-            print("Darwin SDK is installed")
-            print("  Path: \(sdk.bundle.path)")
-            print("  Flavor: \(sdk.flavor)")
-            print("  Version: \(sdk.version)")
+            d.out.print("Darwin SDK is installed")
+            d.out.print("  Path: \(sdk.bundle.path)")
+            d.out.print("  Flavor: \(sdk.flavor)")
+            d.out.print("  Version: \(sdk.version)")
         } else {
-            print("Not installed")
+            d.out.print("Not installed")
         }
     }
 }
@@ -156,14 +157,14 @@ struct EnsureSDKOperation {
     func run() async throws {
         #if os(macOS)
         if !quiet {
-            print("Skipping Darwin SDK setup since we're on macOS.")
+            d.out.print("Skipping Darwin SDK setup since we're on macOS.")
         }
         #else
         let sdk = try DarwinSDK.current()
         switch sdk.map({ ($0.isUpToDate(), $0.flavor) }) {
         case (true, _)?: // swiftlint:disable:this optional_enum_case_matching
             if !quiet {
-                print("Darwin SDK is up to date.")
+                d.out.print("Darwin SDK is up to date.")
             }
         case (false, .slim)?: // swiftlint:disable:this optional_enum_case_matching
             throw Console.Error("""
@@ -174,10 +175,10 @@ struct EnsureSDKOperation {
                 xtool sdk install [--slim]
             """)
         case (false, .normal)?: // swiftlint:disable:this optional_enum_case_matching
-            print("Darwin SDK is out of date. Rebuilding...")
+            d.out.print("Darwin SDK is out of date. Rebuilding...")
             try await UpdateSDKOperation().run()
         case (false, .legacy)?: // swiftlint:disable:this optional_enum_case_matching
-            print("""
+            d.out.print("""
             Darwin SDK is incompatible: built with an older version of xtool.
 
             Requesting re-install. This is a one-time rebuild; after this,
@@ -186,7 +187,7 @@ struct EnsureSDKOperation {
             """)
             try await generateSDK()
         case nil:
-            print("Now generating the Darwin SDK.\n")
+            d.out.print("Now generating the Darwin SDK.\n")
             try await generateSDK()
         }
 
@@ -217,13 +218,13 @@ struct InstallSDKOperation {
 
     func run() async throws {
         #if os(macOS)
-        print("Skipping SDK install; the iOS SDK ships with Xcode on macOS")
+        d.out.print("Skipping SDK install; the iOS SDK ships with Xcode on macOS")
         #else
 
         let temporaryBundle = try DarwinSDK.prepareTemporaryBundle()
 
         if path.hasSuffix(".xtoolsdk") {
-            print("Installing prebuilt SDK...")
+            d.out.print("Installing prebuilt SDK...")
             try await FileManager.default.copyItem(at: URL(filePath: path), to: temporaryBundle.url, preserveOwner: false)
         } else {
             // validate input before removing existing SDK
@@ -236,7 +237,7 @@ struct InstallSDKOperation {
         }
 
         if let sdk = try DarwinSDK.current() {
-            print("Removing existing SDK...")
+            d.out.print("Removing existing SDK...")
             try sdk.remove()
         }
 
@@ -248,7 +249,7 @@ struct InstallSDKOperation {
 struct UpdateSDKOperation {
     func run() async throws {
         #if os(macOS)
-        print("Skipping SDK install; the iOS SDK ships with Xcode on macOS")
+        d.out.print("Skipping SDK install; the iOS SDK ships with Xcode on macOS")
         #else
         guard let existing = try DarwinSDK.current() else {
             throw Console.Error("Could not locate existing SDK; cannot perform update.")
@@ -280,7 +281,7 @@ struct UpdateSDKOperation {
         try existing.remove()
         try await temporaryBundle.install()
 
-        print("Updated SDK")
+        d.out.print("Updated SDK")
         #endif
     }
 }

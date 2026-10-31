@@ -61,13 +61,16 @@ public struct DeveloperServicesFetchProfileOperation: DeveloperServicesOperation
             break
         }
 
-        let serialNumber = signingInfo.certificate.serialNumber()
-        let certs = try await context.developerAPIClient.certificatesGetCollection(
-            query: .init(
-                filter_lbrack_serialNumber_rbrack_: [serialNumber]
-            )
-        )
-        .ok.body.json.data
+        // Match locally rather than with filter[serialNumber]: the API lists serials with a
+        // leading zero nibble ("0E41…") but its filter only matches them without it ("E41…").
+        let certs = try await DeveloperAPIPages {
+            try await context.developerAPIClient.certificatesGetCollection().ok.body.json
+        } next: {
+            $0.links.next
+        }
+        .map(\.data)
+        .reduce(into: [], +=)
+        .filter { $0.attributes?.serialNumber.map(signingInfo.certificate.hasSerialNumber) == true }
 
         let allDevices = try await context.developerAPIClient.devicesGetCollection()
             .ok.body.json.data
