@@ -56,6 +56,21 @@ public struct CommandOutput: DependencyKey, Sendable {
     public static var testValue: Self { Self(write: unimplemented("CommandOutput.write")) }
 }
 
+extension CommandOutput {
+    /// Create a `FileDescriptor` for writing to the given `CommandOutput` stream.
+    public func makeDescriptor(for stream: Stream) throws -> FileDescriptor {
+        let (readFD, writeFD) = try FileDescriptor.pipe()
+        let input = try DispatchInput(fileDesciptor: readFD)
+        // no need to keep a handle to the task, it'll terminate when writeFD is closed
+        Task {
+            while let next = try? await input.read() {
+                self.write(next, stream, false)
+            }
+        }
+        return writeFD
+    }
+}
+
 extension DependencyValues {
     public var out: CommandOutput {
         get { self[CommandOutput.self] }
