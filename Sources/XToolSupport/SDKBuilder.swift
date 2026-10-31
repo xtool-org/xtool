@@ -695,7 +695,7 @@ struct SDKBuilder {
 
     private func extractXIP(inputPath: String, outDir: String) async throws -> Int {
         if let hint = XIPExtraction.appImageHint() {
-            print(hint)
+            d.out.print(hint)
         }
         try XIPExtraction.checkFreeSpace(inputPath: inputPath, outDir: outDir)
         let prepared = try XIPExtraction.stageIfNeeded(inputPath: inputPath, outDir: outDir)
@@ -741,7 +741,10 @@ struct SDKBuilder {
         sourceKind: HostFilesystem.Kind
     ) async throws -> Int {
         let fd = try FileDescriptor.open(inputPath, .readOnly)
-        defer { try? fd.close() }
+        // A stall abandons a task that still reads this descriptor and writes
+        // relative to the working directory, so leave both alone in that case.
+        var abandonedExtraction = false
+        defer { if !abandonedExtraction { try? fd.close() } }
 
         let length = try fd.seek(offset: 0, from: .end)
         try fd.seek(offset: 0, from: .start)
@@ -751,7 +754,7 @@ struct SDKBuilder {
         guard FileManager.default.changeCurrentDirectoryPath(outDir) else {
             throw Console.Error("Could not change directory to '\(outDir)'")
         }
-        defer { _ = FileManager.default.changeCurrentDirectoryPath(oldDirectory) }
+        defer { if !abandonedExtraction { _ = FileManager.default.changeCurrentDirectoryPath(oldDirectory) } }
 
         let inputStream = DataReader.data(readingFrom: fd.rawValue)
 
@@ -769,8 +772,9 @@ struct SDKBuilder {
         // our filter() points to a file outside of it. We might be able to do this
         // with a double-pass system.
 
-        let wanted: Int = try await withThrowingTaskGroup(of: Int?.self) { group in
-            group.addTask {
+        let wanted: Int
+        do {
+            wanted = try await XIPExtraction.race {
                 async let readTask: Void = {
                     var read: Int64 = 0
                     for try await chunk in observer {
@@ -803,20 +807,16 @@ struct SDKBuilder {
                 }
                 _ = try await readTask
                 return wanted
-            }
-            group.addTask {
+            } watchdog: {
                 while !Task.isCancelled {
                     try await Task.sleep(for: .seconds(15))
-                    try Task.checkCancellation()
                     try await tracker.heartbeat()
                 }
-                return nil
             }
-            guard let first = try await group.next(), let wanted = first else {
-                throw Console.Error("XIP extraction ended unexpectedly")
-            }
-            group.cancelAll()
-            return wanted
+        } catch let stall as XIPExtraction.Stall {
+            abandonedExtraction = true
+            d.out.print()
+            throw Console.Error(stall.message)
         }
 
         d.out.print()

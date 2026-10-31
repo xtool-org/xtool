@@ -1,5 +1,7 @@
+import Dependencies
 import Foundation
-import XKit
+import XCLIUtils
+import XUtils
 
 enum XIPExtraction: Sendable {
     static let stallWarning: Duration = .seconds(45)
@@ -35,9 +37,10 @@ enum XIPExtraction: Sendable {
         case warning(String)
         case error(String)
 
-        static func evaluate(xipSize: Int64, freeBytes: Int64?) -> Self {
+        static func evaluate(xipSize: Int64, freeBytes: Int64?, willStage: Bool = false) -> Self {
             guard let freeBytes else { return .ok }
-            let minimum = xipSize * 2
+            // A staged archive takes another xipSize on the destination volume.
+            let minimum = xipSize * (willStage ? 3 : 2)
             if freeBytes < minimum {
                 let need = Self.formatBytes(minimum)
                 let have = Self.formatBytes(freeBytes)
@@ -147,24 +150,87 @@ enum XIPExtraction: Sendable {
         let stagedDir = URL(fileURLWithPath: outDir).appendingPathComponent(".xip-stage", isDirectory: true)
         try FileManager.default.createDirectory(at: stagedDir, withIntermediateDirectories: true)
         let stagedPath = stagedDir.appendingPathComponent("Xcode.xip").path
-        print("[Copying XIP] Source is on \(source.displayName); copying onto the Linux filesystem...")
-        fflush(stdoutSafe)
+        d.out.print("[Copying XIP] Source is on \(source.displayName); copying onto the Linux filesystem...", flush: true)
         try FileManager.default.copyItem(atPath: inputPath, toPath: stagedPath)
-        print("[Copying XIP] 100%")
+        d.out.print("[Copying XIP] 100%")
         return PreparedInput(path: stagedPath, stagedPath: stagedPath)
     }
 
-    static func checkFreeSpace(inputPath: String, outDir: String) throws {
+    static func checkFreeSpace(
+        inputPath: String,
+        outDir: String,
+        sourceKind: HostFilesystem.Kind? = nil,
+        destinationKind: HostFilesystem.Kind? = nil
+    ) throws {
+        let source = sourceKind ?? HostFilesystem.kind(of: inputPath)
+        let destination = destinationKind ?? HostFilesystem.kind(of: outDir)
         let attributes = try FileManager.default.attributesOfItem(atPath: inputPath)
         let xipSize = (attributes[.size] as? NSNumber)?.int64Value ?? 0
-        switch DiskSpace.evaluate(xipSize: xipSize, freeBytes: HostFilesystem.freeBytes(at: outDir)) {
+        switch DiskSpace.evaluate(
+            xipSize: xipSize,
+            freeBytes: HostFilesystem.freeBytes(at: outDir),
+            willStage: shouldStage(source: source, destination: destination)
+        ) {
         case .ok:
             break
         case .warning(let message):
-            print(message)
+            d.out.print(message)
         case .error(let message):
             throw Console.Error(message)
         }
+    }
+
+    struct Stall: Error {
+        var message: String
+    }
+
+    /// Returns as soon as `work` finishes or `watchdog` throws. unxip ignores
+    /// cancellation, so structured concurrency would hold a watchdog error until
+    /// a stuck `work` returned. Here `work` is an unstructured task that is simply
+    /// abandoned, and the caller is expected to fail the process.
+    static func race<T: Sendable>(
+        work: @escaping @Sendable () async throws -> T,
+        watchdog: @escaping @Sendable () async throws -> Void
+    ) async throws -> T {
+        try await withCheckedThrowingContinuation { continuation in
+            let outcome = RaceOutcome(continuation)
+            let watching = Task {
+                do {
+                    try await watchdog()
+                } catch is CancellationError {
+                    // `work` finished first.
+                } catch {
+                    outcome.finish(.failure(error))
+                }
+            }
+            Task {
+                do {
+                    let value = try await work()
+                    watching.cancel()
+                    outcome.finish(.success(value))
+                } catch {
+                    watching.cancel()
+                    outcome.finish(.failure(error))
+                }
+            }
+        }
+    }
+}
+
+private final class RaceOutcome<T: Sendable>: @unchecked Sendable {
+    private let lock = NSLock()
+    private var continuation: CheckedContinuation<T, Error>?
+
+    init(_ continuation: CheckedContinuation<T, Error>) {
+        self.continuation = continuation
+    }
+
+    func finish(_ result: Result<T, Error>) {
+        lock.lock()
+        let pending = continuation
+        continuation = nil
+        lock.unlock()
+        pending?.resume(with: result)
     }
 }
 
@@ -203,8 +269,8 @@ actor XIPProgressTracker {
     func heartbeat() throws {
         let elapsed = clock.now - started
         if progress.isStalled(at: elapsed, timeout: XIPExtraction.stallTimeout) {
-            throw Console.Error(
-                XIPExtraction.stallMessage(
+            throw XIPExtraction.Stall(
+                message: XIPExtraction.stallMessage(
                     progress: progress,
                     source: sourceKind,
                     isAppImage: isAppImage
@@ -220,7 +286,6 @@ actor XIPProgressTracker {
         let line = progress.statusLine + suffix
         guard force || line != lastPrinted else { return }
         lastPrinted = line
-        print("\r\(line)", terminator: "")
-        fflush(stdoutSafe)
+        d.out.print("\r\(line)", terminator: "", flush: true)
     }
 }

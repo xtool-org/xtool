@@ -1,5 +1,7 @@
+import Dependencies
 import Foundation
 import Testing
+import XUtils
 @testable import XToolSupport
 
 @Test func xipProgressLineIncludesFileCount() {
@@ -45,12 +47,16 @@ import Testing
     let source = root.appendingPathComponent("Xcode.xip")
     try Data("xar!".utf8).write(to: source)
 
-    let staged = try XIPExtraction.stageIfNeeded(
-        inputPath: source.path,
-        outDir: outDir.path,
-        sourceKind: .network,
-        destinationKind: .native
-    )
+    let staged = try withDependencies {
+        $0.out = CommandOutput { _, _, _ in }
+    } operation: {
+        try XIPExtraction.stageIfNeeded(
+            inputPath: source.path,
+            outDir: outDir.path,
+            sourceKind: .network,
+            destinationKind: .native
+        )
+    }
     defer { staged.cleanup() }
 
     #expect(staged.stagedPath != nil)
@@ -125,4 +131,43 @@ import Testing
     let nineP = XIPExtraction.stallMessage(progress: progress, source: .network, isAppImage: true)
     #expect(nineP.contains("network/9p"))
     #expect(nineP.contains("AppImage FUSE"))
+}
+
+@Test func xipDiskSpaceCountsTheStagedCopy() {
+    let gb: Int64 = 1024 * 1024 * 1024
+    if case .error = XIPExtraction.DiskSpace.evaluate(xipSize: 10 * gb, freeBytes: 25 * gb) {
+        Issue.record("expected no error without staging")
+    }
+    guard case .error = XIPExtraction.DiskSpace.evaluate(xipSize: 10 * gb, freeBytes: 25 * gb, willStage: true) else {
+        Issue.record("expected the staged copy to raise the minimum")
+        return
+    }
+    guard case .warning = XIPExtraction.DiskSpace.evaluate(xipSize: 10 * gb, freeBytes: 31 * gb, willStage: true) else {
+        Issue.record("expected a warning above the staged minimum")
+        return
+    }
+}
+
+@Test func xipRaceReportsAStallWithoutWaitingForStuckWork() async throws {
+    let started = ContinuousClock.now
+    await #expect(throws: XIPExtraction.Stall.self) {
+        _ = try await XIPExtraction.race {
+            // Stands in for unxip: it does not respond to cancellation.
+            await withCheckedContinuation { (_: CheckedContinuation<Int, Never>) in }
+        } watchdog: {
+            throw XIPExtraction.Stall(message: "stalled")
+        }
+    }
+    #expect(ContinuousClock.now - started < .seconds(5))
+}
+
+@Test func xipRaceReturnsTheResultAndStopsTheWatchdog() async throws {
+    let value = try await XIPExtraction.race {
+        42
+    } watchdog: {
+        while !Task.isCancelled {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+    }
+    #expect(value == 42)
 }
