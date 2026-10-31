@@ -1,0 +1,23 @@
+name: React Native Linux example
+on:
+  pull_request:
+    paths:
+      - 'Examples/ReactNativeLinux/**'
+      - '.github/workflows/react-native-linux.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'Examples/ReactNativeLinux/**'
+      - '.github/workflows/react-native-linux.yml'
+jobs:
+  adapter-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check adapter without Apple SDK or signing credentials
+        working-directory: Examples/ReactNativeLinux
+        run: |
+          python3 -m unittest discover -s tests -v
+          bash -n scripts/*.sh tools/bin/*
+          ruby -c ios/Podfile
