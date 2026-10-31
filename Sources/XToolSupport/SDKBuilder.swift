@@ -699,7 +699,7 @@ struct SDKBuilder {
         }
         let sourceKind = HostFilesystem.kind(of: inputPath)
         try XIPExtraction.checkFreeSpace(inputPath: inputPath, outDir: outDir, sourceKind: sourceKind)
-        let prepared = try XIPExtraction.stageIfNeeded(
+        let prepared = try await XIPExtraction.stageIfNeeded(
             inputPath: inputPath,
             outDir: outDir,
             sourceKind: sourceKind

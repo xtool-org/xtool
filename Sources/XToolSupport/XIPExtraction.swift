@@ -33,12 +33,15 @@ enum XIPExtraction: Sendable {
         }
 
         /// One large file can take minutes to write with no read or file event,
-        /// so a change in the destination's free space also counts as progress.
-        mutating func noteFreeBytes(_ freeBytes: Int64, at elapsed: Duration) {
-            if let lastFreeBytes, lastFreeBytes != freeBytes {
-                lastChange = elapsed
-            }
-            lastFreeBytes = freeBytes
+        /// so a drop in the destination's free space also counts as progress.
+        /// Space being freed never does: extraction only consumes it.
+        /// Returns whether this reading counted.
+        @discardableResult
+        mutating func noteFreeBytes(_ freeBytes: Int64, at elapsed: Duration) -> Bool {
+            defer { lastFreeBytes = freeBytes }
+            guard let lastFreeBytes, freeBytes < lastFreeBytes else { return false }
+            lastChange = elapsed
+            return true
         }
     }
 
@@ -163,8 +166,11 @@ enum XIPExtraction: Sendable {
         inputPath: String,
         outDir: String,
         sourceKind: HostFilesystem.Kind? = nil,
-        destinationKind: HostFilesystem.Kind? = nil
-    ) throws -> PreparedInput {
+        destinationKind: HostFilesystem.Kind? = nil,
+        timeout: Duration = stallTimeout,
+        pollInterval: Duration = .seconds(15),
+        copy: @escaping @Sendable (String, String, @Sendable () -> Void) throws -> Void = copyReportingProgress
+    ) async throws -> PreparedInput {
         let source = sourceKind ?? HostFilesystem.kind(of: inputPath)
         let destination = destinationKind ?? HostFilesystem.kind(of: outDir)
         guard shouldStage(source: source, destination: destination) else {
@@ -175,11 +181,56 @@ enum XIPExtraction: Sendable {
         try FileManager.default.createDirectory(at: stagedDir, withIntermediateDirectories: true)
         let stagedPath = stagedDir.appendingPathComponent("Xcode.xip").path
         d.out.print("[Copying XIP] Source is on \(source.displayName); copying onto the Linux filesystem...", flush: true)
-        try copyReportingProgress(from: inputPath, to: stagedPath)
+        let activity = CopyActivity()
+        do {
+            try await race {
+                try await runBlocking { try copy(inputPath, stagedPath) { activity.note() } }
+            } watchdog: {
+                while !Task.isCancelled {
+                    try await Task.sleep(for: pollInterval)
+                    if activity.idle >= timeout {
+                        throw Stall(message: copyStallMessage(source: source, timeout: timeout))
+                    }
+                }
+            }
+        } catch {
+            try? FileManager.default.removeItem(atPath: stagedPath)
+            if let stall = error as? Stall {
+                d.out.print()
+                throw Console.Error(stall.message)
+            }
+            throw error
+        }
         return PreparedInput(path: stagedPath, stagedPath: stagedPath)
     }
 
-    private static func copyReportingProgress(from source: String, to destination: String) throws {
+    static func copyStallMessage(source: HostFilesystem.Kind, timeout: Duration) -> String {
+        """
+        Copying the XIP off the \(source.displayName) filesystem made no progress for \
+        \(Int(timeout.components.seconds / 60)) minutes. Copy it onto the Linux disk (for example \
+        ~/xcode/Xcode.xip) yourself, then retry with that path.
+        """
+    }
+
+    /// A read stuck on a slow mount would pin a cooperative thread, and on a
+    /// small machine that could keep the watchdog from running.
+    private static func runBlocking(_ work: @escaping @Sendable () throws -> Void) async throws {
+        try await withEscapedDependencies { dependencies in
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                DispatchQueue.global().async {
+                    dependencies.yield {
+                        continuation.resume(with: Result { try work() })
+                    }
+                }
+            }
+        }
+    }
+
+    private static func copyReportingProgress(
+        from source: String,
+        to destination: String,
+        onProgress: @Sendable () -> Void
+    ) throws {
         let input = try FileHandle(forReadingFrom: URL(fileURLWithPath: source))
         defer { try? input.close() }
         guard FileManager.default.createFile(atPath: destination, contents: nil) else {
@@ -195,6 +246,7 @@ enum XIPExtraction: Sendable {
         while let chunk = try input.read(upToCount: 8 * 1024 * 1024), !chunk.isEmpty {
             try output.write(contentsOf: chunk)
             copied += UInt64(chunk.count)
+            onProgress()
             let percent = total > 0 ? copied * 100 / total : 100
             if percent != reported {
                 reported = percent
@@ -266,6 +318,24 @@ enum XIPExtraction: Sendable {
     }
 }
 
+private final class CopyActivity: @unchecked Sendable {
+    private let lock = NSLock()
+    private let clock = ContinuousClock()
+    private var last = ContinuousClock.now
+
+    func note() {
+        lock.lock()
+        defer { lock.unlock() }
+        last = clock.now
+    }
+
+    var idle: Duration {
+        lock.lock()
+        defer { lock.unlock() }
+        return clock.now - last
+    }
+}
+
 private final class RaceOutcome<T: Sendable>: @unchecked Sendable {
     private let lock = NSLock()
     private var continuation: CheckedContinuation<T, Error>?
@@ -318,7 +388,9 @@ actor XIPProgressTracker {
     }
 
     func noteFreeBytes(_ freeBytes: Int64) {
-        progress.noteFreeBytes(freeBytes, at: clock.now - started)
+        if progress.noteFreeBytes(freeBytes, at: clock.now - started) {
+            emit(force: true, suffix: " (still working)")
+        }
     }
 
     func heartbeat() throws {

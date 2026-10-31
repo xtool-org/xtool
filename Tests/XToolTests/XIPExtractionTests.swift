@@ -38,7 +38,7 @@ import XUtils
     #expect(!XIPExtraction.shouldStage(source: .native, destination: .fuse))
 }
 
-@Test func xipStageIfNeededCopiesNinePSource() throws {
+@Test func xipStageIfNeededCopiesNinePSource() async throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent("XIPStageTests-\(UUID().uuidString)", isDirectory: true)
     defer { try? FileManager.default.removeItem(at: root) }
@@ -47,10 +47,10 @@ import XUtils
     let source = root.appendingPathComponent("Xcode.xip")
     try Data("xar!".utf8).write(to: source)
 
-    let staged = try withDependencies {
+    let staged = try await withDependencies {
         $0.out = CommandOutput { _, _, _ in }
     } operation: {
-        try XIPExtraction.stageIfNeeded(
+        try await XIPExtraction.stageIfNeeded(
             inputPath: source.path,
             outDir: outDir.path,
             sourceKind: .network,
@@ -67,7 +67,7 @@ import XUtils
     #expect(!FileManager.default.fileExists(atPath: staged.path))
 }
 
-@Test func xipStageIfNeededLeavesNativeSourceInPlace() throws {
+@Test func xipStageIfNeededLeavesNativeSourceInPlace() async throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent("XIPStageNative-\(UUID().uuidString)", isDirectory: true)
     defer { try? FileManager.default.removeItem(at: root) }
@@ -76,7 +76,7 @@ import XUtils
     let source = root.appendingPathComponent("Xcode.xip")
     try Data("xar!".utf8).write(to: source)
 
-    let prepared = try XIPExtraction.stageIfNeeded(
+    let prepared = try await XIPExtraction.stageIfNeeded(
         inputPath: source.path,
         outDir: outDir.path,
         sourceKind: .native,
@@ -84,6 +84,101 @@ import XUtils
     )
     #expect(prepared.stagedPath == nil)
     #expect(prepared.path == source.path)
+}
+
+private func stagingFixture(_ name: String) throws -> (root: URL, source: URL, outDir: URL, staged: URL) {
+    let root = FileManager.default.temporaryDirectory
+        .appendingPathComponent("\(name)-\(UUID().uuidString)", isDirectory: true)
+    let outDir = root.appendingPathComponent("out", isDirectory: true)
+    try FileManager.default.createDirectory(at: outDir, withIntermediateDirectories: true)
+    let source = root.appendingPathComponent("Xcode.xip")
+    try Data("xar!".utf8).write(to: source)
+    let staged = outDir.appendingPathComponent(".xip-stage/Xcode.xip")
+    return (root, source, outDir, staged)
+}
+
+private struct CopyFailed: Error {}
+
+@Test func xipStagingRemovesThePartialCopyWhenCopyingFails() async throws {
+    let fixture = try stagingFixture("XIPStageFailure")
+    defer { try? FileManager.default.removeItem(at: fixture.root) }
+
+    await #expect(throws: CopyFailed.self) {
+        try await withDependencies {
+            $0.out = CommandOutput { _, _, _ in }
+        } operation: {
+            _ = try await XIPExtraction.stageIfNeeded(
+                inputPath: fixture.source.path,
+                outDir: fixture.outDir.path,
+                sourceKind: .network,
+                destinationKind: .native,
+                copy: { _, destination, _ in
+                    try Data("xa".utf8).write(to: URL(fileURLWithPath: destination))
+                    throw CopyFailed()
+                }
+            )
+        }
+    }
+    #expect(!FileManager.default.fileExists(atPath: fixture.staged.path))
+}
+
+@Test(.timeLimit(.minutes(1)))
+func xipStagingReportsAStuckCopy() async throws {
+    let fixture = try stagingFixture("XIPStageStall")
+    defer { try? FileManager.default.removeItem(at: fixture.root) }
+    // Stands in for a read blocked on a slow mount.
+    let release = DispatchSemaphore(value: 0)
+    defer { release.signal() }
+
+    do {
+        _ = try await withDependencies {
+            $0.out = CommandOutput { _, _, _ in }
+        } operation: {
+            try await XIPExtraction.stageIfNeeded(
+                inputPath: fixture.source.path,
+                outDir: fixture.outDir.path,
+                sourceKind: .network,
+                destinationKind: .native,
+                timeout: .milliseconds(50),
+                pollInterval: .milliseconds(10),
+                copy: { _, destination, _ in
+                    try Data("xa".utf8).write(to: URL(fileURLWithPath: destination))
+                    release.wait()
+                }
+            )
+        }
+        Issue.record("expected the stuck copy to be reported")
+    } catch {
+        #expect("\(error)".contains("made no progress"))
+        #expect("\(error)".contains("network/9p"))
+    }
+    #expect(!FileManager.default.fileExists(atPath: fixture.staged.path))
+}
+
+@Test(.timeLimit(.minutes(1)))
+func xipStagingKeepsGoingWhileTheCopyMoves() async throws {
+    let fixture = try stagingFixture("XIPStageMoving")
+    defer { try? FileManager.default.removeItem(at: fixture.root) }
+
+    let prepared = try await withDependencies {
+        $0.out = CommandOutput { _, _, _ in }
+    } operation: {
+        try await XIPExtraction.stageIfNeeded(
+            inputPath: fixture.source.path,
+            outDir: fixture.outDir.path,
+            sourceKind: .network,
+            destinationKind: .native,
+            timeout: .seconds(1),
+            pollInterval: .milliseconds(50),
+            copy: { _, _, onProgress in
+                for _ in 0..<15 {
+                    onProgress()
+                    Thread.sleep(forTimeInterval: 0.1)
+                }
+            }
+        )
+    }
+    #expect(prepared.stagedPath == fixture.staged.path)
 }
 
 @Test func xipDiskSpaceErrorsWhenBelowTwiceTheArchive() {
@@ -223,6 +318,43 @@ func xipRaceReturnsTheResultAndStopsTheWatchdog() async throws {
         Issue.record("expected a warning below the recommended space")
         return
     }
+}
+
+@Test func xipFreedSpaceDoesNotCountAsProgress() {
+    var progress = XIPExtraction.Progress(
+        bytesRead: 0,
+        totalBytes: 100,
+        filesWritten: 0,
+        lastChange: .zero
+    )
+    let first = progress.noteFreeBytes(1000, at: .seconds(15))
+    let freed = progress.noteFreeBytes(2000, at: .seconds(30))
+    #expect(!first)
+    #expect(!freed)
+    #expect(progress.lastChange == .zero)
+
+    let consumed = progress.noteFreeBytes(1900, at: .seconds(45))
+    #expect(consumed)
+    #expect(progress.lastChange == .seconds(45))
+}
+
+@Test func xipProgressShowsActivityWhenSpaceIsConsumed() async {
+    let output = LockIsolated(Data())
+    await withDependencies {
+        $0.out = CommandOutput { data, _, _ in output.withValue { $0.append(data) } }
+    } operation: {
+        let tracker = XIPProgressTracker(
+            totalBytes: 100,
+            sourceKind: .native,
+            wasStaged: false,
+            isAppImage: false
+        )
+        await tracker.noteFreeBytes(1000)
+        await tracker.noteFreeBytes(2000)
+        #expect(output.value.isEmpty)
+        await tracker.noteFreeBytes(1900)
+    }
+    #expect(String(decoding: output.value, as: UTF8.self).contains("(still working)"))
 }
 
 @Test func xipFreeSpaceChangesCountAsProgress() {
