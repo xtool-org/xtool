@@ -46,8 +46,21 @@ extension HTTPClientProtocol {
         _ request: HTTPRequest,
         body: Data? = nil,
         requireHTTPSuccess: Bool = true,
+        ephemeral: Bool = false,
         onProgress: @isolated(any) (Double?) -> Void = { _ in }
     ) async throws -> (response: HTTPResponse, body: Data) {
+        if ephemeral {
+            return try await self.withEphemeralClient { client in
+                try await client.makeRequest(
+                    request,
+                    body: body,
+                    requireHTTPSuccess: requireHTTPSuccess,
+                    ephemeral: false,
+                    onProgress: onProgress
+                )
+            }
+        }
+
         await onProgress(0)
         let (response, responseBody) = try await send(request, body: body.map { HTTPBody($0) })
         guard !requireHTTPSuccess || ![.clientError, .serverError].contains(response.status.kind) else {
