@@ -74,8 +74,8 @@ enum SDKGitHubDownloadError: Error, Equatable, CustomStringConvertible, Localize
         return """
         Failed to download the \(artifact.name) from GitHub.
 
-        This error is not caused by your Xcode.xip. xtool fetches the Darwin \
-        toolchain separately from:
+        This error is not caused by your Xcode.xip. xtool fetches the \(artifact.name) \
+        separately from:
           \(artifact.url)
 
         \(detail)
@@ -146,21 +146,27 @@ struct SDKGitHubDownloader: Sendable {
         case .unknown: nil
         }
         var data = Data()
+        var reportedProgress = false
         do {
             for try await chunk in body {
                 data.append(contentsOf: chunk)
-                reportProgress(artifact, written: Int64(data.count), total: total)
+                if let total, total > 0 {
+                    reportProgress(artifact, written: Int64(data.count), total: total)
+                    reportedProgress = true
+                }
             }
-        } catch let error as CancellationError {
-            throw error
         } catch {
+            // Progress is printed with no terminator, so end that line before the error.
+            if reportedProgress { d.out.print() }
+            if error is CancellationError { throw error }
             throw SDKGitHubDownloadError.network(artifact, String(describing: error))
         }
+        // Some transports hand back an empty body rather than nil for a zero-byte response.
+        guard !data.isEmpty else { throw SDKGitHubDownloadError.emptyBody(artifact) }
         return data
     }
 
-    private func reportProgress(_ artifact: SDKGitHubArtifact, written: Int64, total: Int64?) {
-        guard let total else { return }
+    private func reportProgress(_ artifact: SDKGitHubArtifact, written: Int64, total: Int64) {
         let progress = Int(Double(written) / Double(total) * 100)
         d.out.print("\r[\(artifact.progressLabel)] \(progress)%", terminator: "", flush: true)
     }

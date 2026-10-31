@@ -36,16 +36,21 @@ private final class AttemptBox: @unchecked Sendable {
     var count = 0
 }
 
+private final class OutputBox: @unchecked Sendable {
+    var data = Data()
+    var text: String { String(decoding: data, as: UTF8.self) }
+}
+
 private struct MidBodyFailure: Error, CustomStringConvertible {
     var description: String { "connection reset by peer" }
 }
 
-private func bodyThatFailsMidway(_ prefix: Data) -> HTTPBody {
+private func bodyThatFailsMidway(_ prefix: Data, length: HTTPBody.Length = .unknown) -> HTTPBody {
     let stream = AsyncThrowingStream<HTTPBody.ByteChunk, any Error> { continuation in
         continuation.yield(Array(prefix)[...])
         continuation.finish(throwing: MidBodyFailure())
     }
-    return HTTPBody(stream, length: .unknown)
+    return HTTPBody(stream, length: length)
 }
 
 @Test func sdkGitHubArtifactURLsMatchPublishedReleases() {
@@ -70,12 +75,75 @@ private func bodyThatFailsMidway(_ prefix: Data) -> HTTPBody {
     #expect(error.description.contains(artifact.url.absoluteString))
     #expect(error.description.contains("HTTP 502"))
     #expect(error.description.contains("You do not need to re-download Xcode"))
+    #expect(error.description.contains("xtool fetches the Darwin toolset separately from:"))
     #expect(error.isRetryable)
 
     let missing = SDKGitHubDownloadError.httpStatus(artifact, 404)
     #expect(!missing.isRetryable)
     #expect(!SDKGitHubDownloadError.emptyBody(artifact).isRetryable)
     #expect(SDKGitHubDownloadError.network(artifact, "connection reset").isRetryable)
+}
+
+@Test func sdkGitHubDownloadErrorNamesTheArtifactThatFailed() {
+    let artifact = SDKGitHubArtifact.openAppleMacros(arch: .x86_64)
+    let error = SDKGitHubDownloadError.httpStatus(artifact, 502)
+    #expect(error.description.contains("xtool fetches the OpenAppleMacros separately from:"))
+    #expect(!error.description.contains("toolchain"))
+}
+
+@Test(arguments: [false, true])
+func sdkGitHubDownloadTreatsZeroByteBodyAsEmpty(yieldsEmptyChunk: Bool) async throws {
+    let artifact = SDKGitHubArtifact.toolset(arch: .x86_64)
+    let client = ScriptedHTTPClient { _ in
+        (HTTPResponse(status: .ok), yieldsEmptyChunk ? HTTPBody(Data()) : HTTPBody())
+    }
+    let downloader = SDKGitHubDownloader(maxAttempts: 3, retryDelay: .zero, sleep: { _ in })
+
+    await withDependencies {
+        $0.httpClient = client
+        $0.out.write = { _, _, _ in }
+    } operation: {
+        await #expect(throws: SDKGitHubDownloadError.emptyBody(artifact)) {
+            _ = try await downloader.body(for: artifact)
+        }
+    }
+}
+
+@Test func sdkGitHubDownloadEndsProgressLineWhenBodyFails() async throws {
+    let output = OutputBox()
+    let artifact = SDKGitHubArtifact.toolset(arch: .x86_64)
+    let body = bodyThatFailsMidway(Data("half".utf8), length: .known(8))
+    let client = ScriptedHTTPClient { _ in (HTTPResponse(status: .ok), body) }
+    let downloader = SDKGitHubDownloader(maxAttempts: 1, retryDelay: .zero, sleep: { _ in })
+
+    await withDependencies {
+        $0.httpClient = client
+        $0.out.write = { data, _, _ in output.data.append(data) }
+    } operation: {
+        await #expect(throws: SDKGitHubDownloadError.self) {
+            _ = try await downloader.body(for: artifact)
+        }
+    }
+    #expect(output.text == "\r[Downloading toolset] 50%\n")
+}
+
+@Test func sdkGitHubDownloadPrintsNothingWhenNoProgressWasReported() async throws {
+    let output = OutputBox()
+    let artifact = SDKGitHubArtifact.toolset(arch: .x86_64)
+    let client = ScriptedHTTPClient { _ in
+        (HTTPResponse(status: .ok), bodyThatFailsMidway(Data("half".utf8)))
+    }
+    let downloader = SDKGitHubDownloader(maxAttempts: 1, retryDelay: .zero, sleep: { _ in })
+
+    await withDependencies {
+        $0.httpClient = client
+        $0.out.write = { data, _, _ in output.data.append(data) }
+    } operation: {
+        await #expect(throws: SDKGitHubDownloadError.self) {
+            _ = try await downloader.body(for: artifact)
+        }
+    }
+    #expect(output.data.isEmpty)
 }
 
 @Test func sdkGitHubDownloadMapsHTTPError() async throws {
