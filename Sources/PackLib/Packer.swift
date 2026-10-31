@@ -197,10 +197,11 @@ public struct Packer: Sendable {
         group.addTask {
             var info = product.infoPlist
 
+            // Xcode adds these to extensions as well, App Store Connect rejects extensions without them
+            info["UIRequiredDeviceCapabilities"] = ["arm64"]
+            info["CFBundleSupportedPlatforms"] = Packer.cfBundleSupportedPlatforms(for: buildSettings.triple)
             if product.type == .application {
-                info["UIRequiredDeviceCapabilities"] = ["arm64"]
                 info["LSRequiresIPhoneOS"] = true
-                info["CFBundleSupportedPlatforms"] = Packer.cfBundleSupportedPlatforms(for: buildSettings.triple)
             }
 
             if let iconPath = product.iconPath {
