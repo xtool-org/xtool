@@ -169,7 +169,7 @@ enum XIPExtraction: Sendable {
         destinationKind: HostFilesystem.Kind? = nil,
         timeout: Duration = stallTimeout,
         pollInterval: Duration = .seconds(15),
-        copy: @escaping @Sendable (String, String, @Sendable () -> Void) throws -> Void = copyReportingProgress
+        copy: @escaping @Sendable (String, String, CopyActivity) throws -> Void = copyReportingProgress
     ) async throws -> PreparedInput {
         let source = sourceKind ?? HostFilesystem.kind(of: inputPath)
         let destination = destinationKind ?? HostFilesystem.kind(of: outDir)
@@ -184,7 +184,7 @@ enum XIPExtraction: Sendable {
         let activity = CopyActivity()
         do {
             try await race {
-                try await runBlocking { try copy(inputPath, stagedPath) { activity.note() } }
+                try await runBlocking { try copy(inputPath, stagedPath, activity) }
             } watchdog: {
                 while !Task.isCancelled {
                     try await Task.sleep(for: pollInterval)
@@ -194,6 +194,7 @@ enum XIPExtraction: Sendable {
                 }
             }
         } catch {
+            activity.abandon()
             try? FileManager.default.removeItem(atPath: stagedPath)
             if let stall = error as? Stall {
                 d.out.print()
@@ -229,13 +230,11 @@ enum XIPExtraction: Sendable {
     private static func copyReportingProgress(
         from source: String,
         to destination: String,
-        onProgress: @Sendable () -> Void
+        activity: CopyActivity
     ) throws {
         let input = try FileHandle(forReadingFrom: URL(fileURLWithPath: source))
         defer { try? input.close() }
-        guard FileManager.default.createFile(atPath: destination, contents: nil) else {
-            throw Console.Error("Could not create '\(destination)'")
-        }
+        try activity.createDestination(atPath: destination)
         let output = try FileHandle(forWritingTo: URL(fileURLWithPath: destination))
         defer { try? output.close() }
 
@@ -246,7 +245,7 @@ enum XIPExtraction: Sendable {
         while let chunk = try input.read(upToCount: 8 * 1024 * 1024), !chunk.isEmpty {
             try output.write(contentsOf: chunk)
             copied += UInt64(chunk.count)
-            onProgress()
+            try activity.note()
             let percent = total > 0 ? copied * 100 / total : 100
             if percent != reported {
                 reported = percent
@@ -318,15 +317,38 @@ enum XIPExtraction: Sendable {
     }
 }
 
-private final class CopyActivity: @unchecked Sendable {
+/// The watchdog abandons a stuck copy instead of cancelling it, so a copy that
+/// wakes up later has to find out here that its output was cleaned up.
+final class CopyActivity: @unchecked Sendable {
+    struct Abandoned: Error {}
+
     private let lock = NSLock()
     private let clock = ContinuousClock()
     private var last = ContinuousClock.now
+    private var abandoned = false
 
-    func note() {
+    /// Holds the lock across the create so cleanup cannot run between the check
+    /// and the new file appearing.
+    func createDestination(atPath path: String) throws {
         lock.lock()
         defer { lock.unlock() }
+        guard !abandoned else { throw Abandoned() }
+        guard FileManager.default.createFile(atPath: path, contents: nil) else {
+            throw Console.Error("Could not create '\(path)'")
+        }
+    }
+
+    func note() throws {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !abandoned else { throw Abandoned() }
         last = clock.now
+    }
+
+    func abandon() {
+        lock.lock()
+        defer { lock.unlock() }
+        abandoned = true
     }
 
     var idle: Duration {

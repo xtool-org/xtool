@@ -141,8 +141,8 @@ func xipStagingReportsAStuckCopy() async throws {
                 destinationKind: .native,
                 timeout: .milliseconds(50),
                 pollInterval: .milliseconds(10),
-                copy: { _, destination, _ in
-                    try Data("xa".utf8).write(to: URL(fileURLWithPath: destination))
+                copy: { _, destination, activity in
+                    try activity.createDestination(atPath: destination)
                     release.wait()
                 }
             )
@@ -151,6 +151,44 @@ func xipStagingReportsAStuckCopy() async throws {
     } catch {
         #expect("\(error)".contains("made no progress"))
         #expect("\(error)".contains("network/9p"))
+    }
+    #expect(!FileManager.default.fileExists(atPath: fixture.staged.path))
+}
+
+@Test(.timeLimit(.minutes(1)))
+func xipStagingStopsAnAbandonedCopyFromRecreatingTheArchive() async throws {
+    let fixture = try stagingFixture("XIPStageAbandoned")
+    defer { try? FileManager.default.removeItem(at: fixture.root) }
+    let release = DispatchSemaphore(value: 0)
+    let finished = DispatchSemaphore(value: 0)
+
+    await #expect(throws: (any Error).self) {
+        try await withDependencies {
+            $0.out = CommandOutput { _, _, _ in }
+        } operation: {
+            _ = try await XIPExtraction.stageIfNeeded(
+                inputPath: fixture.source.path,
+                outDir: fixture.outDir.path,
+                sourceKind: .network,
+                destinationKind: .native,
+                timeout: .milliseconds(50),
+                pollInterval: .milliseconds(10),
+                copy: { _, destination, activity in
+                    // Stands in for opening the source, before the destination exists.
+                    release.wait()
+                    defer { finished.signal() }
+                    try activity.createDestination(atPath: destination)
+                    try activity.note()
+                }
+            )
+        }
+    }
+    release.signal()
+    await withCheckedContinuation { continuation in
+        DispatchQueue.global().async {
+            finished.wait()
+            continuation.resume()
+        }
     }
     #expect(!FileManager.default.fileExists(atPath: fixture.staged.path))
 }
@@ -170,9 +208,9 @@ func xipStagingKeepsGoingWhileTheCopyMoves() async throws {
             destinationKind: .native,
             timeout: .seconds(1),
             pollInterval: .milliseconds(50),
-            copy: { _, _, onProgress in
+            copy: { _, _, activity in
                 for _ in 0..<15 {
-                    onProgress()
+                    try activity.note()
                     Thread.sleep(forTimeInterval: 0.1)
                 }
             }
