@@ -4,6 +4,7 @@ import Dependencies
 import HTTPTypes
 import OpenAPIRuntime
 import XKit
+import XUtils
 @testable import XToolSupport
 
 private struct ScriptedHTTPClient: HTTPClientProtocol, ClientTransport {
@@ -57,7 +58,7 @@ private func bodyThatFailsMidway(_ prefix: Data) -> HTTPBody {
     let macros = SDKGitHubArtifact.openAppleMacros(arch: .aarch64, version: "1.3.0")
     #expect(macros.name == "OpenAppleMacros")
     #expect(macros.url.absoluteString == """
-    https://github.com/xtool-org/OpenAppleMacros/releases/download/v1.3.0/OpenAppleMacrosServer-aarch64
+    https://github.com/xtool-org/OpenAppleMacros/releases/download/v1.3.0/OpenAppleMacrosServer-aarch64.tar.gz
     """)
 }
 
@@ -132,6 +133,7 @@ private func bodyThatFailsMidway(_ prefix: Data) -> HTTPBody {
 
     let data = try await withDependencies {
         $0.httpClient = client
+        $0.out.write = { _, _, _ in }
     } operation: {
         try await downloader.body(for: artifact)
     }
@@ -161,6 +163,7 @@ private func bodyThatFailsMidway(_ prefix: Data) -> HTTPBody {
 
     let data = try await withDependencies {
         $0.httpClient = client
+        $0.out.write = { _, _, _ in }
     } operation: {
         try await downloader.body(for: artifact)
     }

@@ -1,3 +1,4 @@
+import XCLIUtils
 import Foundation
 import libunxip
 import Subprocess
@@ -75,18 +76,12 @@ struct SDKBuilder {
     let mode: Mode
 
     // bump this when the sdk builder logic changes
-    static let sdkEpoch = 3
+    static let sdkEpoch = 4
 
     // tag from https://github.com/xtool-org/darwin-tools-linux-llvm
     static let darwinToolsVersion = "1.1.0"
-
     // tag from https://github.com/xtool-org/OpenAppleMacros
-    static let oamVersion = "1.3.0"
-    static let oamLibraries: [String] = [
-        "FoundationModelsMacros",
-        "PreviewsMacros",
-        "SwiftUIMacros",
-    ]
+    static let oamVersion = "1.4.1"
 
     static var currentSDKVersion: String {
         """
@@ -141,13 +136,13 @@ struct SDKBuilder {
         let iPhoneSimSDK = try sdk(platform: "iPhoneSimulator", prefix: "iPhoneSimulator")
         let macOSSDK = try sdk(platform: "MacOSX", prefix: "MacOSX")
 
-        print("""
+        d.out.print("""
         - \(iPhoneOSSDK)
         - \(iPhoneSimSDK)
         - \(macOSSDK)
         """)
 
-        print("[Writing metadata]")
+        d.out.print("[Writing metadata]")
         try """
         {
             "schemaVersion": "1.0",
@@ -205,6 +200,11 @@ struct SDKBuilder {
             },
             "librarian": {
                 "path": "llvm-lib"
+            },
+            "swiftCompiler": {
+                "extraCLIOptions": [
+                    "-Xfrontend", "-enable-cross-import-overlays"
+                ]
             }
         }
         """.write(
@@ -233,28 +233,75 @@ struct SDKBuilder {
             .write(to: output.appendingPathComponent("darwin-sdk-version.txt"))
     }
 
-    // swiftlint:disable:next function_body_length
-    private func installToolset(in output: URL) async throws {
-        let toolsetDir = output.appendingPathComponent("toolset")
-
+    private func fetchTarball(
+        _ artifact: SDKGitHubArtifact,
+        destination directory: URL,
+        displayName: String,
+        envOverride: String? = nil,
+    ) async throws {
         try FileManager.default.createDirectory(
-            at: toolsetDir,
+            at: directory,
             withIntermediateDirectories: false
         )
 
-        let artifact = SDKGitHubArtifact.toolset(arch: arch)
+        if let envOverride, let path = ProcessInfo.processInfo.environment[envOverride] {
+            let source = URL(fileURLWithPath: path)
+            if source.dirExists {
+                d.out.print("[Copying \(displayName)] \(source.path)")
+                try await Subprocess.run(
+                    .name("cp"),
+                    arguments: ["-RL", "\(source.path)/.", "."],
+                    workingDirectory: FilePath(directory),
+                    output: .discarded,
+                    error: .discarded,
+                )
+                .checkSuccess()
+                // later steps write into the copy
+                try await Subprocess.run(
+                    .name("chmod"),
+                    arguments: ["-R", "u+w", "."],
+                    workingDirectory: FilePath(directory),
+                    output: .discarded,
+                    error: .discarded,
+                )
+                .checkSuccess()
+                return
+            }
+
+            d.out.print("[Extracting \(displayName)] \(source.path)")
+            try await Subprocess.run(
+                .name("tar"),
+                arguments: ["xzf", source.path],
+                workingDirectory: FilePath(directory),
+                output: .discarded,
+                error: .discarded,
+            )
+            .checkSuccess()
+            return
+        }
+
         let data = try await download(artifact)
 
-        defer { print() }
+        defer { d.out.print() }
         try await Subprocess.run(
             .name("tar"),
             arguments: ["xzf", "-"],
-            workingDirectory: FilePath(toolsetDir),
+            workingDirectory: FilePath(directory),
             input: .data(data),
             output: .discarded,
             error: .discarded,
         )
         .checkSuccess()
+    }
+
+    private func installToolset(in output: URL) async throws {
+        let toolsetDir = output.appendingPathComponent("toolset")
+        try await fetchTarball(
+            .toolset(arch: arch),
+            destination: toolsetDir,
+            displayName: "toolset",
+            envOverride: "XTL_TOOLSET_TARBALL",
+        )
 
         // swift-build assumes we have an Apple-flavored librarian for Apple platforms
         // (https://github.com/swiftlang/swift-build/blob/b2433e74e/Sources/SWBCore/SpecImplementations/Tools/LinkerTools.swift#L1735)
@@ -369,21 +416,37 @@ struct SDKBuilder {
     }
 
     private func installMacros(in output: URL) async throws {
-        let artifact = SDKGitHubArtifact.openAppleMacros(arch: arch)
-        let data = try await download(artifact)
+        let macrosDir = output.appendingPathComponent("OpenAppleMacros")
+        try await fetchTarball(
+            .openAppleMacros(arch: arch),
+            destination: macrosDir,
+            displayName: "OpenAppleMacros",
+            envOverride: "XTL_OAM_TARBALL",
+        )
 
-        let outputPath = output.appendingPathComponent("OpenAppleMacrosServer").path
-        do {
-            let handle = try FileDescriptor.open(
-                FilePath(outputPath),
-                .writeOnly,
-                options: .create,
-                permissions: [.ownerReadWriteExecute, .groupReadExecute, .otherReadExecute]
-            )
-            defer { try? handle.close() }
-            try handle.writeAll(data)
+        struct MacrosInfo: Decodable {
+            var plugins: [String]
         }
-        print()
+        let macrosInfo = try JSONDecoder().decode(
+            MacrosInfo.self,
+            from: Data(contentsOf: macrosDir.appendingPathComponent("info.json"))
+        )
+        try FileManager.default.moveItem(
+            at: macrosDir.appendingPathComponent("OpenAppleMacrosServer"),
+            to: output.appendingPathComponent("OpenAppleMacrosServer")
+        )
+        try FileManager.default.removeItem(at: macrosDir)
+
+        let pluginsDir = output.appendingPathComponent("OpenAppleMacrosPlugins")
+        try FileManager.default.createDirectory(at: pluginsDir, withIntermediateDirectories: false)
+        // create a lib*.so file for each macro 'library' that we support.
+        // the files are stubs (empty) because we just need them to convince swiftc that
+        // yes we can handle said modules. the actual logic lives in the OpenAppleMacros
+        // server.
+        for library in macrosInfo.plugins {
+            let target = pluginsDir.appendingPathComponent("lib\(library).so")
+            try Data().write(to: target)
+        }
     }
 
     private static let expectedXcodeChildren = ["Info.plist", "version.plist", "Developer"]
@@ -438,7 +501,7 @@ struct SDKBuilder {
             let sourceContentsDir = source.appendingPathComponent("Contents")
             let expectedContentsDir = expectedAppDir.appendingPathComponent("Contents")
             try FileManager.default.createDirectory(at: expectedContentsDir, withIntermediateDirectories: true)
-            print("[Copying Xcode.app] This might take a minute...")
+            d.out.print("[Copying Xcode.app] This might take a minute...")
             for child in Self.expectedXcodeChildren {
                 let expectedFile = expectedContentsDir.appendingPathComponent(child)
                 let sourceFile = sourceContentsDir.appendingPathComponent(child)
@@ -472,13 +535,11 @@ struct SDKBuilder {
                 count += 1
                 if let wanted {
                     let progress = Int(Double(count) / Double(wanted) * 100)
-                    print("\r[Installing SDKs] \(progress)%", terminator: "")
-                    fflush(stdoutSafe)
+                    d.out.print("\r[Installing SDKs] \(progress)%", terminator: "", flush: true)
                 }
                 if count % 100 == 0 {
                     if wanted == nil {
-                        print("\r[Installing SDKs] Installed \(count) files", terminator: "")
-                        fflush(stdoutSafe)
+                        d.out.print("\r[Installing SDKs] Installed \(count) files", terminator: "", flush: true)
                     }
                     await Task.yield()
                 }
@@ -502,16 +563,16 @@ struct SDKBuilder {
 
         if wanted != nil {
             // otherwise the last log might say 99%
-            print("\r[Installing SDKs] 100%", terminator: "")
+            d.out.print("\r[Installing SDKs] 100%", terminator: "")
         }
-        print()
+        d.out.print()
 
         if let cleanupStageDir {
-            print("[Cleaning up]")
+            d.out.print("[Cleaning up]")
             try FileManager.default.removeItem(at: cleanupStageDir)
         }
 
-        print("[Finalizing SDKs]")
+        d.out.print("[Finalizing SDKs]")
 
         for platform in ["iPhoneOS", "MacOSX", "iPhoneSimulator"] {
             let lib = "../../../../../Library"
@@ -567,27 +628,12 @@ struct SDKBuilder {
             let hostDir = platformDir.appendingPathComponent("Developer/usr/lib/swift/host")
             let pluginsDir = hostDir.appendingPathComponent("plugins")
 
-            if platform == "iPhoneSimulator" {
-                // The iPhoneSimulator platform doesn't contain plugins; Xcode seems to be hardcoded
-                // to look at the ones from iPhoneOS.platform. We can symlink the iPhoneOS ones too.
-                try? FileManager.default.createDirectory(at: hostDir, withIntermediateDirectories: true)
-                try? FileManager.default.removeItem(at: pluginsDir)
-                try FileManager.default.createSymbolicLink(
-                    atPath: pluginsDir.path,
-                    withDestinationPath: "../../../../../../iPhoneOS.platform/Developer/usr/lib/swift/host/plugins"
-                )
-            } else {
-                try? FileManager.default.removeItem(at: pluginsDir)
-                try FileManager.default.createDirectory(at: pluginsDir, withIntermediateDirectories: true)
-                // create a lib*.so file for each macro 'library' that we support.
-                // the files are stubs (empty) because we just need them to convince swiftc that
-                // yes we can handle said modules. the actual logic lives in the OpenAppleMacros
-                // server.
-                for library in Self.oamLibraries {
-                    let target = pluginsDir.appendingPathComponent("lib\(library).so")
-                    try Data().write(to: target)
-                }
-            }
+            try FileManager.default.createDirectory(at: hostDir, withIntermediateDirectories: true)
+            try? FileManager.default.removeItem(at: pluginsDir)
+            try FileManager.default.createSymbolicLink(
+                atPath: pluginsDir.path,
+                withDestinationPath: "../../../../../../../../OpenAppleMacrosPlugins"
+            )
         }
 
         // we copy over the host's clang resorurce dir during install, because intrinsics can differ
@@ -677,8 +723,7 @@ struct SDKBuilder {
             for try await chunk in observer {
                 read += chunk.count
                 let progress = Int(Double(read) / Double(length) * 100)
-                print("\r[Extracting XIP] \(progress)%", terminator: "")
-                fflush(stdoutSafe)
+                d.out.print("\r[Extracting XIP] \(progress)%", terminator: "", flush: true)
                 if read == length { break }
             }
         }()
@@ -714,7 +759,7 @@ struct SDKBuilder {
         }
         _ = try await readTask
 
-        print()
+        d.out.print()
 
         return wanted
     }

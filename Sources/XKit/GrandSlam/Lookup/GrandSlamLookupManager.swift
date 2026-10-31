@@ -21,34 +21,28 @@ actor GrandSlamLookupManager {
     private let decoder = PropertyListDecoder()
     private var endpoints: GrandSlamEndpoints?
 
-    @Dependency(\.deviceInfoProvider) var deviceInfoProvider
+    @Dependency(\.anisetteDataProvider) var anisetteDataProvider
     @Dependency(\.httpClient) var httpClient
 
     init() {}
 
     private func performLookup() async throws -> GrandSlamEndpoints {
-        let deviceInfo = try deviceInfoProvider.fetch()
+        let deviceInfo = try await anisetteDataProvider.deviceInfo()
 
-        /* {
-            "X-Apple-I-Locale" = "en_IN";
-            "X-Apple-I-TimeZone" = "Asia/Kolkata";
-            "X-Apple-I-TimeZone-Offset" = 19800;
-            "X-MMe-Client-Info" = "<MacBookPro11,5> <Mac OS X;10.14.6;18G103> <com.apple.AuthKit/1 (com.apple.akd/1.0)>";
-            "X-MMe-Country" = IN;
-            "X-Mme-Device-Id" = "[REDACTED]";
-        } */
         var request = HTTPRequest(url: Self.lookupURL)
         request.headerFields = [
-            .userAgent: deviceInfo.clientInfo.userAgent,
-            .init(DeviceInfo.clientInfoKey)!: deviceInfo.clientInfo.clientString,
-            .init(DeviceInfo.deviceIDKey)!: deviceInfo.deviceID,
+            .userAgent: deviceInfo.akdUserAgent,
             .init(AnisetteData.iLocaleKey)!: Locale.current.identifier,
             .init(AnisetteData.timeZoneKey)!: TimeZone.current.identifier,
             .init("X-Apple-I-TimeZone-Offset")!: "\(TimeZone.current.secondsFromGMT())"
         ]
         request.headerFields[.init("X-MMe-Country")!] = Locale.current.region?.identifier
 
-        let (_, body) = try await httpClient.makeRequest(request)
+        for (key, value) in deviceInfo.dictionary {
+            request.headerFields[.init(key)!] = value
+        }
+
+        let (_, body) = try await httpClient.makeRequest(request, ephemeral: true)
 
         return try self.decoder.decode(Response.self, from: body).urls
     }

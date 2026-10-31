@@ -7,15 +7,29 @@
 //
 
 import Foundation
+import HTTPTypes
 
-enum GrandSlamMethod {
+enum GrandSlamRequestContent {
+    enum ContentType {
+        case xml
+        case json
+    }
+
     case get
-    case post([String: Any])
+    case data([String: Any], method: HTTPRequest.Method, type: ContentType = .xml)
+
+    static func post(_ body: [String: Any], type: ContentType = .xml) -> Self {
+        .data(body, method: .post, type: type)
+    }
+
+    static func put(_ body: [String: Any], type: ContentType = .xml) -> Self {
+        .data(body, method: .put, type: type)
+    }
 
     var httpMethod: HTTPRequest.Method {
         switch self {
         case .get: return .get
-        case .post: return .post
+        case .data(_, let method, _): return method
         }
     }
 }
@@ -30,6 +44,6 @@ protocol GrandSlamRequest: Sendable {
 
     static var endpoint: GrandSlamEndpoint { get }
 
-    func configure(request: inout HTTPRequest, deviceInfo: DeviceInfo, anisetteData: AnisetteData)
-    func method(deviceInfo: DeviceInfo, anisetteData: AnisetteData) -> GrandSlamMethod
+    func configure(request: inout HTTPRequest, anisetteData: AnisetteData)
+    func content(anisetteData: AnisetteData) -> GrandSlamRequestContent
 }

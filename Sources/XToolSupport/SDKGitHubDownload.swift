@@ -2,6 +2,7 @@ import Foundation
 import Dependencies
 import HTTPTypesFoundation
 import XKit
+import XUtils
 
 struct SDKGitHubArtifact: Equatable, Sendable {
     var name: String
@@ -31,7 +32,7 @@ struct SDKGitHubArtifact: Equatable, Sendable {
             progressLabel: "Downloading OpenAppleMacros",
             url: URL(string: """
             https://github.com/xtool-org/OpenAppleMacros/releases/download/\
-            v\(version)/OpenAppleMacrosServer-\(arch.rawValue)
+            v\(version)/OpenAppleMacrosServer-\(arch.rawValue).tar.gz
             """)!
         )
     }
@@ -161,7 +162,6 @@ struct SDKGitHubDownloader: Sendable {
     private func reportProgress(_ artifact: SDKGitHubArtifact, written: Int64, total: Int64?) {
         guard let total else { return }
         let progress = Int(Double(written) / Double(total) * 100)
-        print("\r[\(artifact.progressLabel)] \(progress)%", terminator: "")
-        fflush(stdoutSafe)
+        d.out.print("\r[\(artifact.progressLabel)] \(progress)%", terminator: "", flush: true)
     }
 }

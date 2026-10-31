@@ -73,9 +73,23 @@ extension DataProtectionEntitlement: EntitlementWithCapability {
 
 extension AppGroupEntitlement: EntitlementWithCapability {
     var capability: DeveloperServicesCapability {
-        // FIXME: Enable app groups on free accounts
-        // but we need to always assign only one group
-        DeveloperServicesCapability(.appGroups, isFree: false)
+        DeveloperServicesCapability(.appGroups, isFree: true)
+    }
+}
+
+extension AppleSignInEntitlement: EntitlementWithCapability {
+    var capability: DeveloperServicesCapability {
+        // A primary App ID: the app is its own Sign in with Apple group.
+        DeveloperServicesCapability(
+            .appleIdAuth,
+            isFree: false,
+            settings: [
+                .init(
+                    key: .init(.appleIdAuthAppConsent),
+                    options: [.init(key: .init(.primaryAppConsent))]
+                )
+            ]
+        )
     }
 }
 

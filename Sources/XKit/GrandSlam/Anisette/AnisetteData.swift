@@ -49,10 +49,9 @@ public struct AnisetteData {
     static let oneTimePasswordKey = "X-Apple-I-MD"
     public let oneTimePassword: String
 
-    static let deviceIDKey = "X-Mme-Device-Id"
-    public var deviceID: String?
+    public let deviceInfo: DeviceInfo
 
-    var dictionary: [String: String] {
+    public var dictionary: [String: String] {
         // GSA doesn't like "en_US@rg=..."; it has to be just "en_US".
         let localeIdentifier = if let language = locale.language.languageCode?.identifier,
                                   let region = locale.region?.identifier {
@@ -60,7 +59,7 @@ public struct AnisetteData {
         } else {
             "en_US"
         }
-        var dictionary = [
+        return [
             Self.localeKey: localeIdentifier,
             Self.timeZoneKey: timeZone.abbreviation() ?? "UTC",
             Self.clientTimeKey: Self.dateFormatter.string(from: clientTime),
@@ -69,10 +68,7 @@ public struct AnisetteData {
             Self.localUserIDKey: localUserID,
             Self.oneTimePasswordKey: oneTimePassword,
         ]
-        if let deviceID {
-            dictionary[Self.deviceIDKey] = deviceID
-        }
-        return dictionary
+        .merging(deviceInfo.dictionary) { _, b in b }
     }
 
 }

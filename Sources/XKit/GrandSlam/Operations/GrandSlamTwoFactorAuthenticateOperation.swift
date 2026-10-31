@@ -6,6 +6,7 @@
 //  Copyright © 2019 Kabir Oberai. All rights reserved.
 //
 
+import XUtils
 import Foundation
 
 public protocol TwoFactorAuthDelegate: AnyObject, Sendable {
@@ -26,12 +27,20 @@ struct GrandSlamTwoFactorAuthenticateOperation {
 
     private func performSMSAuth() async throws {
         // TODO: parse phone number list from o=complete req?
-        let phoneNumberID = "1"
-        try await client.send(GrandSlamSMSAuthRequest(loginData: loginData, phoneNumberID: phoneNumberID))
+        let phoneNumberID = 1
+        do {
+            try await client.send(GrandSlamSMSAuthRequest(loginData: loginData, phoneNumberID: phoneNumberID))
+        } catch let error as HTTPResponseError where error.status.code == 403 {
+            d.out.print("""
+            warning: Could not send verification code via SMS. Falling back to trusted device authentication...
+            """)
+            try await performTrustedDeviceAuth()
+            return
+        }
         try await validateCode(phoneNumberID: phoneNumberID)
     }
 
-    private func validateCode(phoneNumberID: String? = nil) async throws {
+    private func validateCode(phoneNumberID: Int? = nil) async throws {
         guard let code = await self.delegate.fetchCode() else { throw Error.userCancelled }
         let request: any GrandSlamRequest = if let phoneNumberID {
             GrandSlamValidateSMSRequest(
@@ -51,7 +60,14 @@ struct GrandSlamTwoFactorAuthenticateOperation {
 
     private func performTrustedDeviceAuth() async throws {
         let request = GrandSlamTrustedDeviceRequest(loginData: loginData)
-        try await client.send(request)
+        do {
+            try await client.send(request)
+        } catch let error as HTTPResponseError where error.status.code == 403 {
+            d.out.print("""
+            warning: Could not send verification code. Generate one manually.
+                     See https://github.com/xtool-org/xtool/discussions/368
+            """)
+        }
         try await validateCode()
     }
 
