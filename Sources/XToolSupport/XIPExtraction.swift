@@ -181,6 +181,11 @@ enum XIPExtraction: Sendable {
         try FileManager.default.createDirectory(at: stagedDir, withIntermediateDirectories: true)
         let stagedPath = stagedDir.appendingPathComponent("Xcode.xip").path
         d.out.print("[Copying XIP] Source is on \(source.displayName); copying onto the Linux filesystem...", flush: true)
+        // Created here, not by the copy: an abandoned copy waking up after cleanup
+        // can then only fail to open it, never bring it back.
+        guard FileManager.default.createFile(atPath: stagedPath, contents: nil) else {
+            throw Console.Error("Could not create '\(stagedPath)'")
+        }
         let activity = CopyActivity()
         do {
             try await race {
@@ -227,14 +232,13 @@ enum XIPExtraction: Sendable {
         }
     }
 
-    private static func copyReportingProgress(
+    static func copyReportingProgress(
         from source: String,
         to destination: String,
         activity: CopyActivity
     ) throws {
         let input = try FileHandle(forReadingFrom: URL(fileURLWithPath: source))
         defer { try? input.close() }
-        try activity.createDestination(atPath: destination)
         let output = try FileHandle(forWritingTo: URL(fileURLWithPath: destination))
         defer { try? output.close() }
 
@@ -318,7 +322,7 @@ enum XIPExtraction: Sendable {
 }
 
 /// The watchdog abandons a stuck copy instead of cancelling it, so a copy that
-/// wakes up later has to find out here that its output was cleaned up.
+/// is still running has to find out here that it should stop writing.
 final class CopyActivity: @unchecked Sendable {
     struct Abandoned: Error {}
 
@@ -326,17 +330,6 @@ final class CopyActivity: @unchecked Sendable {
     private let clock = ContinuousClock()
     private var last = ContinuousClock.now
     private var abandoned = false
-
-    /// Holds the lock across the create so cleanup cannot run between the check
-    /// and the new file appearing.
-    func createDestination(atPath path: String) throws {
-        lock.lock()
-        defer { lock.unlock() }
-        guard !abandoned else { throw Abandoned() }
-        guard FileManager.default.createFile(atPath: path, contents: nil) else {
-            throw Console.Error("Could not create '\(path)'")
-        }
-    }
 
     func note() throws {
         lock.lock()

@@ -141,10 +141,7 @@ func xipStagingReportsAStuckCopy() async throws {
                 destinationKind: .native,
                 timeout: .milliseconds(50),
                 pollInterval: .milliseconds(10),
-                copy: { _, destination, activity in
-                    try activity.createDestination(atPath: destination)
-                    release.wait()
-                }
+                copy: { _, _, _ in release.wait() }
             )
         }
         Issue.record("expected the stuck copy to be reported")
@@ -173,12 +170,15 @@ func xipStagingStopsAnAbandonedCopyFromRecreatingTheArchive() async throws {
                 destinationKind: .native,
                 timeout: .milliseconds(50),
                 pollInterval: .milliseconds(10),
-                copy: { _, destination, activity in
-                    // Stands in for opening the source, before the destination exists.
+                copy: { source, destination, activity in
+                    // Stands in for a blocked open of the source.
                     release.wait()
                     defer { finished.signal() }
-                    try activity.createDestination(atPath: destination)
-                    try activity.note()
+                    try XIPExtraction.copyReportingProgress(
+                        from: source,
+                        to: destination,
+                        activity: activity
+                    )
                 }
             )
         }
