@@ -133,13 +133,44 @@ struct DevSDKStatusCommand: AsyncParsableCommand {
         abstract: "Get the status of the Darwin Swift SDK"
     )
 
+    @Option(help: "Require an installed SDK for this target triple")
+    var triple: String?
+
+    @Flag(help: "Print recorded build metadata as JSON (requires --triple)")
+    var buildMetadata = false
+
     func run() async throws {
+        if buildMetadata && triple == nil {
+            throw Console.Error("--build-metadata requires --triple")
+        }
         if let sdk = try DarwinSDK.current() {
+            if triple != nil && !sdk.isUpToDate() {
+                throw Console.Error("The installed Darwin SDK is out of date. Update it before building this target.")
+            }
+            let sdkTriple = triple.map { BuildSettings.sdkTriple(for: $0) }
+            let root = try sdkTriple.map { try sdk.sdkRoot(for: $0) }
+            #if !os(macOS)
+            if let triple, let platform = ApplePlatform(triple: triple) {
+                try await LinkerConfiguration.validate(platform: platform, sdk: sdk)
+            }
+            #endif
+            if buildMetadata, let sdkTriple {
+                let encoder = JSONEncoder()
+                encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+                let data = try encoder.encode(sdk.buildMetadata(for: sdkTriple))
+                d.out.print(String(decoding: data, as: UTF8.self))
+                return
+            }
             d.out.print("Darwin SDK is installed")
             d.out.print("  Path: \(sdk.bundle.path)")
             d.out.print("  Flavor: \(sdk.flavor)")
             d.out.print("  Version: \(sdk.version)")
+            if let triple, let root {
+                d.out.print("  Target: \(triple)")
+                d.out.print("  SDK root: \(root.path)")
+            }
         } else {
+            if triple != nil { throw Console.Error("No Darwin SDK configured. Please run `xtool setup`.") }
             d.out.print("Not installed")
         }
     }
