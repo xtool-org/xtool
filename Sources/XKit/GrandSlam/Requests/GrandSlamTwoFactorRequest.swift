@@ -28,7 +28,7 @@ extension GrandSlamTwoFactorRequest {
         extraHeaders.forEach { request.headerFields[.init($0)!] = $1 }
     }
 
-    func method(anisetteData: AnisetteData) -> GrandSlamMethod {
+    func content(anisetteData: AnisetteData) -> GrandSlamRequestContent {
         .get
     }
 

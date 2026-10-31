@@ -36,7 +36,7 @@ struct GrandSlamValidateSMSRequest: GrandSlamTwoFactorRequest {
     let phoneNumberID: String
     let verificationCode: String
 
-    func method(anisetteData: AnisetteData) -> GrandSlamMethod {
+    func content(anisetteData: AnisetteData) -> GrandSlamRequestContent {
         .post([
             "securityCode.code": verificationCode,
             "serverInfo": [
