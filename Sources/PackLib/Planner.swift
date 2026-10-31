@@ -130,6 +130,7 @@ public struct Planner: Sendable {
             matching: name
         )
         var resources: [Plan.Resource] = []
+        var modules: [String] = []
         var visited: Set<String> = []
         var targets = library.targets.map { (graph.root, $0) }
         while let (targetPackage, targetName) = targets.popLast() {
@@ -141,6 +142,9 @@ public struct Planner: Sendable {
             // linked into the iOS app. Skip them to avoid resolving their
             // host-only dependencies (e.g. SwiftSyntaxMacros).
             if target.type == "macro" { continue }
+            if target.moduleType == "SwiftTarget" {
+                modules.append(targetName)
+            }
             if target.moduleType == "BinaryTarget" {
                 resources.append(.binaryTarget(name: targetName))
             }
@@ -213,6 +217,7 @@ public struct Planner: Sendable {
             bundleID: bundleID,
             infoPlist: infoPlist,
             resources: resources,
+            modules: modules.sorted(),
             iconPath: iconPath,
             entitlementsPath: entitlementsPath
         )
@@ -317,6 +322,8 @@ public struct Plan: Sendable {
         public var bundleID: String
         public var infoPlist: [String: any Sendable]
         public var resources: [Resource]
+        /// The Swift targets linked into the product
+        public var modules: [String]
         public var iconPath: String?
         public var entitlementsPath: String?
 
