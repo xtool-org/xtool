@@ -146,6 +146,51 @@ func sdkGitHubDownloadTreatsZeroByteBodyAsEmpty(yieldsEmptyChunk: Bool) async th
     #expect(output.data.isEmpty)
 }
 
+@Test func sdkGitHubDownloadRethrowsCancellationWhileReadingBody() async throws {
+    let attempts = AttemptBox()
+    let artifact = SDKGitHubArtifact.toolset(arch: .x86_64)
+    let client = ScriptedHTTPClient { _ in
+        attempts.count += 1
+        let stream = AsyncThrowingStream<HTTPBody.ByteChunk, any Error> { continuation in
+            continuation.finish(throwing: CancellationError())
+        }
+        return (HTTPResponse(status: .ok), HTTPBody(stream, length: .unknown))
+    }
+    let downloader = SDKGitHubDownloader(maxAttempts: 3, retryDelay: .zero, sleep: { _ in })
+
+    await withDependencies {
+        $0.httpClient = client
+    } operation: {
+        await #expect(throws: CancellationError.self) {
+            _ = try await downloader.body(for: artifact)
+        }
+    }
+    #expect(attempts.count == 1)
+}
+
+@Test func sdkGitHubDownloadTreatsShortKnownLengthBodyAsTruncated() async throws {
+    let output = OutputBox()
+    let artifact = SDKGitHubArtifact.toolset(arch: .x86_64)
+    let client = ScriptedHTTPClient { _ in
+        let stream = AsyncThrowingStream<HTTPBody.ByteChunk, any Error> { continuation in
+            continuation.yield(Array(Data("half".utf8))[...])
+            continuation.finish()
+        }
+        return (HTTPResponse(status: .ok), HTTPBody(stream, length: .known(8)))
+    }
+    let downloader = SDKGitHubDownloader(maxAttempts: 1, retryDelay: .zero, sleep: { _ in })
+
+    await withDependencies {
+        $0.httpClient = client
+        $0.out.write = { data, _, _ in output.data.append(data) }
+    } operation: {
+        await #expect(throws: SDKGitHubDownloadError.network(artifact, "body ended after 4 of 8 bytes")) {
+            _ = try await downloader.body(for: artifact)
+        }
+    }
+    #expect(output.text == "\r[Downloading toolset] 50%\n")
+}
+
 @Test func sdkGitHubDownloadMapsHTTPError() async throws {
     let artifact = SDKGitHubArtifact.openAppleMacros(arch: .x86_64)
     let client = ScriptedHTTPClient { _ in

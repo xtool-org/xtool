@@ -161,6 +161,13 @@ struct SDKGitHubDownloader: Sendable {
             if error is CancellationError { throw error }
             throw SDKGitHubDownloadError.network(artifact, String(describing: error))
         }
+        // A body that ends cleanly but short of its declared length is a truncated download.
+        if let total, Int64(data.count) != total {
+            if reportedProgress { d.out.print() }
+            throw SDKGitHubDownloadError.network(
+                artifact, "body ended after \(data.count) of \(total) bytes"
+            )
+        }
         // Some transports hand back an empty body rather than nil for a zero-byte response.
         guard !data.isEmpty else { throw SDKGitHubDownloadError.emptyBody(artifact) }
         return data
