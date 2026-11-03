@@ -212,11 +212,24 @@ let package = Package(
             swiftSettings: swiftSettings,
         ),
         .target(
+            name: "CFileSystemMonitoring",
+            dependencies: []
+        ),
+        .target(
+            name: "FileSystemMonitoring",
+            dependencies: [
+                "CFileSystemMonitoring",
+                "XUtils",
+                .product(name: "Dependencies", package: "swift-dependencies"),
+            ]
+        ),
+        .target(
             name: "XToolSupport",
             dependencies: [
                 "XPIF",
                 "XcodePIFConversion",
                 "XcodeProjects",
+                "FileSystemMonitoring",
                 "SwiftyMobileDevice",
                 "XKit",
                 "XCLIUtils",
