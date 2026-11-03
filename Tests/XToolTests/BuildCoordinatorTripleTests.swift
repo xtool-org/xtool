@@ -1,7 +1,6 @@
 import CustomDump
 import Dependencies
 import Foundation
-import PackLib
 import SwiftBuild
 import Testing
 import XPIF

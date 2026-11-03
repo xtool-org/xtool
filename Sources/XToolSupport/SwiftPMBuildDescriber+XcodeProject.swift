@@ -3,7 +3,6 @@ import Foundation
 import Dependencies
 import XcodeProjects
 import XPIF
-import PackLib
 import XUtils
 
 extension SwiftPMBuildDescriber {

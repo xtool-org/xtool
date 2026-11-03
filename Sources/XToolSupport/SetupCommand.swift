@@ -1,7 +1,6 @@
 import ArgumentParser
 import Foundation
 import XKit
-import PackLib
 
 struct SetupCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(

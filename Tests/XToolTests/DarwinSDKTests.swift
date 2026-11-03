@@ -2,7 +2,7 @@ import Dependencies
 import Foundation
 import Testing
 import XUtils
-@testable import PackLib
+@testable import XToolSupport
 
 @Test func swiftPMDirectoryUsesXDGConfigHome() throws {
     let directory = try DarwinSDK.swiftPMDirectory(

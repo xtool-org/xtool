@@ -2,7 +2,9 @@ import Foundation
 import XUtils
 import Dependencies
 
-package enum Console {
+package typealias Console = XUtils::Console
+
+extension Console {
     package static func prompt(_ message: String) async throws -> String {
         d.out.print(message, terminator: "", flush: true)
         guard let line = try await d.input.readLine() else { throw Console.Error("Input ended before a response was received.") }
@@ -99,13 +101,6 @@ package enum Console {
             } else if noSet.contains(resp) {
                 return false
             }
-        }
-    }
-
-    package struct Error: Swift.Error, CustomStringConvertible {
-        package let description: String
-        package init(_ description: String) {
-            self.description = description
         }
     }
 }

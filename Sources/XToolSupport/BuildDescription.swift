@@ -1,7 +1,6 @@
 import XCLIUtils
 import XUtils
 import XPIF
-import PackLib
 import Foundation
 
 struct BuildDescription {

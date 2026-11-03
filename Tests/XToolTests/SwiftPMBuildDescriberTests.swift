@@ -2,7 +2,6 @@ import XCLIUtils
 import CustomDump
 import Dependencies
 import Foundation
-@testable import PackLib
 import Testing
 import XcodeProjects
 import XPIF
