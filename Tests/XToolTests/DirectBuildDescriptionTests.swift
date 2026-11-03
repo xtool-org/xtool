@@ -29,8 +29,8 @@ struct DirectBuildDescriptionTests {
             extensions: [.init(product: "Widget", bundleID: extensionBundleID, infoPath: "Widget.plist",
                                resources: ["Assets", shared.path])]
         ))
-        let description = try await describe(schema: schema, root: root, products: ["App", "Widget"])
-        let project = try #require(description.pif.workspace.projects.first)
+        let description = try describe(schema: schema, root: root, products: ["App", "Widget"])
+        let project = try #require(description.workspace.projects.first)
         let app = try #require(project.targets.first { $0.id == "xtool:main-app" })
         let widget = try #require(project.targets.first { $0.id == "xtool:extension:Widget" })
         if case .target(let target) = widget {
@@ -87,16 +87,16 @@ struct DirectBuildDescriptionTests {
         #expect(widgetPlist["CFBundleExecutable"] == nil)
         #expect(widgetPlist["CFBundlePackageType"] == nil)
         // Verify the build service receives the phases and references through PIF serialization.
-        let roundTrip = try XPIF.Container(data: description.pif.data())
+        let roundTrip = try XPIF.Container(data: description.data())
         expectNoDifference(roundTrip.workspace.projects.flatMap(\.targets).map(\.common.buildPhases),
-                           description.pif.workspace.projects.flatMap(\.targets).map(\.common.buildPhases))
+                           description.workspace.projects.flatMap(\.targets).map(\.common.buildPhases))
     }
 
     @Test func delegatesPlistDefaultsToSwiftBuild() async throws {
         let root = try temporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
-        let description = try await describe(schema: .default, root: root, products: ["App"])
-        let app = try #require(description.pif.workspace.projects.first?.targets.first { $0.id == "xtool:main-app" })
+        let description = try describe(schema: .default, root: root, products: ["App"])
+        let app = try #require(description.workspace.projects.first?.targets.first { $0.id == "xtool:main-app" })
         let settings = try #require(app.common.buildConfigs.first?.settings)
         #expect(settings[.INFOPLIST_FILE] == nil)
         expectNoDifference(settings[.GENERATE_INFOPLIST_FILE], "YES")
@@ -114,8 +114,7 @@ struct DirectBuildDescriptionTests {
         ])
     }
 
-    private func describe(schema: PackSchema, root: URL, products: [String]) async throws -> BuildDescription {
-        let settings = try await BuildSettings(configuration: .debug, triple: "arm64-apple-ios", packagePath: root.path)
+    private func describe(schema: PackSchema, root: URL, products: [String]) throws -> XPIF.Container {
         let project = XPIF.Project(
             id: "package", path: root.appending(path: "Package.swift").path, projectDir: root.path, name: "Package",
             targets: products.map { name in
@@ -124,7 +123,11 @@ struct DirectBuildDescriptionTests {
             }
         )
         let pif = XPIF.Container(workspace: .init(id: "workspace", name: "Package", path: root.path, projects: [project]))
-        return try SwiftPMBuildDescriber(buildSettings: settings, schema: schema).describe(basePIF: pif)
+        let swiftPM = XToolProject.SwiftPM(
+            base: .init(rootDirectory: root, schema: schema),
+            manifest: root.appending(path: "Package.swift")
+        )
+        return try SwiftPMBuildDescriber(project: swiftPM).describe(basePIF: pif)
     }
 
     private func copyPhases(_ target: XPIF.BaseTarget) -> [XPIF.CopyFilesBuildPhase] {

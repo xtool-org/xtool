@@ -61,32 +61,3 @@ extension SwiftVersion: LosslessStringConvertible, CustomStringConvertible {
         self.init(numericParts[0], numericParts[1], numericParts[2])
     }
 }
-
-extension SwiftVersion {
-    private static let cached = Task<Self, Error> {
-        let outputString: String?
-        do {
-            outputString = try await Subprocess.run(
-                .path(try await BuildSettings.swiftURL()),
-                arguments: ["--version"],
-                output: .string(limit: .max)
-            )
-            .checkSuccess()
-            .standardOutput
-        } catch {
-            throw StringError("Failed to obtain Swift version")
-        }
-
-        let output = outputString ?? ""
-        guard let version = Self(output) else {
-            throw StringError("Could not parse Swift version: '\(output)'")
-        }
-        return version
-    }
-
-    public static var current: Self {
-        get async throws {
-            try await cached.value
-        }
-    }
-}

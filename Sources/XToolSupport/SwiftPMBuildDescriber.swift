@@ -4,21 +4,23 @@ import Foundation
 import XUtils
 import Dependencies
 
-public struct SwiftPMBuildDescriber {
-    let buildSettings: BuildSettings
-    let schema: PackSchema
-    let idSpecifier: PackSchema.IDSpecifier
+struct SwiftPMBuildDescriber {
+    let project: XToolProject.SwiftPM
+
+    var schema: PackSchema { project.base.schema }
 
     static let supportedPlatforms = ["macosx", "iphoneos", "iphonesimulator"]
 
-    public init(buildSettings: BuildSettings, schema: PackSchema) throws {
-        self.buildSettings = buildSettings
-        self.schema = schema
-        self.idSpecifier = schema.idSpecifier
+    init(project: XToolProject.SwiftPM) {
+        self.project = project
     }
 
-    func describe() async throws -> BuildDescription {
-        try describe(basePIF: await d.swiftPMPIFDumper.dump(buildSettings: buildSettings))
+    func describe() async throws -> XPIF.Container {
+        try await describe(basePIF: basePIF())
+    }
+
+    func basePIF() async throws -> XPIF.Container {
+        try await d.swiftPMPIFDumper.dump(packagePath: project.manifest.deletingLastPathComponent())
     }
 
     /// Generated dynamic variants remain in the graph, but are not separate manifest products.
@@ -31,7 +33,7 @@ public struct SwiftPMBuildDescriber {
         return targets.filter { $0.id.value.hasPrefix("PACKAGE-PRODUCT:") && !variants.contains($0.id) }
     }
 
-    func describe(basePIF pif: XPIF.Container) throws -> BuildDescription {
+    func describe(basePIF pif: XPIF.Container) throws -> XPIF.Container {
         var container = pif
         #if !os(macOS)
         container.workspace.projects = container.workspace.projects.map { $0.withoutRelocatableLinkage() }
@@ -65,7 +67,7 @@ public struct SwiftPMBuildDescriber {
             try project.addTarget { _ in target }
         }
         container.workspace.projects[mainProjectIndex] = project
-        return BuildDescription(pif: container, buildSettings: buildSettings)
+        return container
     }
 
     private func bundleTarget(

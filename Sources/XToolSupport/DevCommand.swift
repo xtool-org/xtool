@@ -34,49 +34,21 @@ struct PackOperation {
 
     var triple: String?
     var buildOptions = BuildOptions(configuration: .debug)
-    var xcode = false
 
     @discardableResult
     func run() async throws -> ProjectBuildResult {
-        // TODO: support running inside a child directory
-
-        let contents = try FileManager.default.contentsOfDirectory(atPath: ".")
-        guard contents.contains("Package.swift")
-            || contents.contains(where: { $0.hasPrefix("Package@") && $0.hasSuffix(".swift") })
-            else {
-            throw Console.Error("Could not find Package.swift in this directory.")
-        }
+        let project = try await XToolProject.discover(start: URL(filePath: "."))
 
         try await EnsureSDKOperation(quiet: true).run()
 
-        Signposter.track("Planning")
+        await project.tryEnsureLSPConfig()
 
-        let schema: PackSchema
-        let configPath = URL(fileURLWithPath: "xtool.yml")
-        if FileManager.default.fileExists(atPath: configPath.path) {
-            schema = try await PackSchema(url: configPath)
-        } else {
-            schema = .default
-            d.out.print("""
-            warning: Could not locate configuration file '\(configPath.path)'. Using default \
-            configuration with 'com.example' organization ID.
-            """)
-        }
-
-        await LSPConfig.tryEnsure(using: schema)
-
-        let buildSettings = try await BuildSettings(
+        let description = try await project.describe(
             configuration: buildOptions.configuration,
-            triple: triple ?? Self.defaultTriple,
-            options: []
+            triple: triple ?? Self.defaultTriple
         )
 
-        let describer = try SwiftPMBuildDescriber(buildSettings: buildSettings, schema: schema)
-        if xcode {
-            return try await describer.writeXcodeProject()
-        }
-
-        let coordinator = try await BuildCoordinator(description: describer.describe())
+        let coordinator = try await BuildCoordinator(description: description)
         defer { await coordinator.close() }
         return try await ProjectBuildOperation(
             buildCoordinator: coordinator,
@@ -92,7 +64,13 @@ struct DevXcodeCommand: AsyncParsableCommand {
     )
 
     func run() async throws {
-        let result = try await PackOperation(xcode: true).run()
+        let project = try await XToolProject.discover(start: URL(filePath: "."))
+        guard case .swiftPM(let swiftPM) = project else {
+            throw Console.Error("generate-xcode-project requires a SwiftPM-based project")
+        }
+
+        let result = try await SwiftPMBuildDescriber(project: swiftPM).writeXcodeProject()
+
         d.out.print("Wrote to \(result.url.path)")
     }
 }

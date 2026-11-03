@@ -47,7 +47,7 @@ enum LSPConfig {
             return
         }
 
-        if try await SwiftVersion.current.supportsSwiftBuild {
+        if try await d.toolchain.swiftVersion.supportsSwiftBuild {
             try await ensure(primary: bsp, secondary: legacyLSP, quiet: quiet, currentDirectory: directory)
         } else {
             try await ensure(primary: legacyLSP, secondary: bsp, quiet: quiet, currentDirectory: directory)

@@ -49,7 +49,7 @@ actor BuildSessionManager {
         #else
         let (result, diagnostics) = await service.createSession(
             name: "xtool",
-            swiftToolchainPath: try await BuildSettings.toolchainPath(),
+            swiftToolchainPath: try await d.toolchain.toolchainRoot.string,
             resourceSearchPaths: [],
             cachePath: nil,
             inferiorProductsPath: nil,

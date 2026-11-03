@@ -32,7 +32,7 @@ struct SwiftPMBuildDescriberTests {
                       entitlementsPath: root.appending(path: "Widget.entitlements").path),
             ],
         ))
-        let describer = try await describer(schema: schema, root: root)
+        let describer = describer(schema: schema, root: root)
         let result = try describer.writeXcodeProject(basePIF: pif(root: root, products: ["App", "Widget"]))
         #expect(result.bundleID == "org.example.custom")
         #expect(result.url == root.appending(path: "xtool/App.xcworkspace"))
@@ -108,9 +108,9 @@ struct SwiftPMBuildDescriberTests {
         let result = try await withDependencies {
             $0.out = .liveValue
         } operation: {
-            let describer = try await describer(schema: .default, root: root)
+            let describer = describer(schema: .default, root: root)
             let description = try await describer.describe()
-            let app = try #require(description.pif.workspace.projects.flatMap(\.targets).first { $0.id == "xtool:main-app" })
+            let app = try #require(description.workspace.projects.flatMap(\.targets).first { $0.id == "xtool:main-app" })
             expectNoDifference(app.common.name, "Sample-App")
             return try await describer.writeXcodeProject()
         }
@@ -128,7 +128,7 @@ struct SwiftPMBuildDescriberTests {
         let root = try temporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
         let schema = try PackSchema(validating: .init(version: .v1, orgID: "com.example", product: expected))
-        let describer = try await describer(schema: schema, root: root)
+        let describer = describer(schema: schema, root: root)
         var pif = pif(root: root, products: [])
         var product = XPIF.Target(id: "PACKAGE-PRODUCT:App", productType: .packageProduct,
                                   name: "App-product", productName: "App")
@@ -138,7 +138,7 @@ struct SwiftPMBuildDescriberTests {
         // Put the variant first so explicit product selection cannot accidentally pick it.
         pif.workspace.projects[0].targets = [.target(variant), .target(product)]
         let description = try describer.describe(basePIF: pif)
-        let targets = description.pif.workspace.projects[0].targets
+        let targets = description.workspace.projects[0].targets
         expectNoDifference(Array(targets.prefix(2)), pif.workspace.projects[0].targets)
         let app = try #require(targets.first { $0.id == "xtool:main-app" })
         expectNoDifference(app.common.dependencies.map(\.targetId), [product.id])
@@ -154,14 +154,14 @@ struct SwiftPMBuildDescriberTests {
         let dylib = XPIF.Target(id: "PACKAGE-PRODUCT:Dylib", productType: .dynamicLibrary,
                                 name: "Dylib-product", productName: "Dylib")
         pif.workspace.projects[0].targets.append(contentsOf: [.target(other), .target(dylib)])
-        let automatic = try await self.describer(schema: .default, root: root)
+        let automatic = self.describer(schema: .default, root: root)
         let descriptionWithDependencies = try automatic.describe(basePIF: pif)
-        expectNoDifference(Array(descriptionWithDependencies.pif.workspace.projects[0].targets.prefix(4)),
+        expectNoDifference(Array(descriptionWithDependencies.workspace.projects[0].targets.prefix(4)),
                            pif.workspace.projects[0].targets)
         expectNoDifference(try automatic.writeXcodeProject(basePIF: pif).bundleID, "com.example.App")
         for name in ["Other", "Dylib"] {
             let schema = try PackSchema(validating: .init(version: .v1, orgID: "com.example", product: name))
-            let explicit = try await self.describer(schema: schema, root: root)
+            let explicit = self.describer(schema: schema, root: root)
             #expect(throws: Console.Error.self) { try explicit.describe(basePIF: pif) }
             #expect(throws: Console.Error.self) { try explicit.writeXcodeProject(basePIF: pif) }
         }
@@ -174,7 +174,7 @@ struct SwiftPMBuildDescriberTests {
     func rejectsMissingOrAmbiguousProducts(count: Int) async throws {
         let root = try temporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
-        let describer = try await describer(schema: .default, root: root)
+        let describer = describer(schema: .default, root: root)
         let pif = pif(root: root, products: (0..<count).map { "Product\($0)" })
         #expect(throws: Console.Error.self) { try describer.writeXcodeProject(basePIF: pif) }
         #expect(throws: Console.Error.self) { try describer.describe(basePIF: pif) }
@@ -187,7 +187,7 @@ struct SwiftPMBuildDescriberTests {
             version: .v1, orgID: "com.example", product: "App",
             extensions: [.init(product: "Missing", infoPath: "Widget.plist")]
         ))
-        let describer = try await describer(schema: schema, root: root)
+        let describer = describer(schema: schema, root: root)
         #expect(throws: Console.Error.self) {
             try describer.writeXcodeProject(basePIF: pif(root: root, products: ["App"]))
         }
@@ -202,7 +202,7 @@ struct SwiftPMBuildDescriberTests {
         let root = try temporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
         let schema = try PackSchema(validating: .init(version: .v1, orgID: "com.example", product: expected))
-        let describer = try await describer(schema: schema, root: root)
+        let describer = describer(schema: schema, root: root)
         var pif = pif(root: root, products: ["App"])
         pif.workspace.projects[0].targets.append(.target(.init(
             id: "PACKAGE-PRODUCT:Tool", productType: .executable, name: "Tool-product", productName: "Tool"
@@ -212,7 +212,7 @@ struct SwiftPMBuildDescriberTests {
             #expect(throws: Console.Error.self) { try describer.writeXcodeProject(basePIF: pif) }
         } else {
             let description = try describer.describe(basePIF: pif)
-            let app = try #require(description.pif.workspace.projects[0].targets.first { $0.id == "xtool:main-app" })
+            let app = try #require(description.workspace.projects[0].targets.first { $0.id == "xtool:main-app" })
             expectNoDifference(app.common.name, "App-App")
             expectNoDifference(try describer.writeXcodeProject(basePIF: pif).bundleID, "com.example.App")
         }
@@ -225,11 +225,11 @@ struct SwiftPMBuildDescriberTests {
         return directory
     }
 
-    private func describer(schema: PackSchema, root: URL) async throws -> SwiftPMBuildDescriber {
-        let settings = try await BuildSettings(
-            configuration: .debug, triple: "arm64-apple-ios", packagePath: root.path
-        )
-        return try SwiftPMBuildDescriber(buildSettings: settings, schema: schema)
+    private func describer(schema: PackSchema, root: URL) -> SwiftPMBuildDescriber {
+        SwiftPMBuildDescriber(project: .init(
+            base: .init(rootDirectory: root, schema: schema),
+            manifest: root.appending(path: "Package.swift")
+        ))
     }
 
     private func pif(root: URL, products: [String]) -> XPIF.Container {

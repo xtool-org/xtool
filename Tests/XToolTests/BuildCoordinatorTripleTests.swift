@@ -21,7 +21,7 @@ struct BuildCoordinatorTripleTests {
         triple: String, arch: String, platform: String, variant: String?, deploymentSetting: String, deployment: String
     ) async throws {
         let directory = try TemporaryDirectory(name: "BuildCoordinatorTripleTests")
-        let description = try await description(triple: triple, root: directory.url)
+        let description = description(triple: triple, root: directory.url)
         let coordinator = try await withDependencies {
             $0.out = .liveValue
         } operation: {
@@ -46,15 +46,14 @@ struct BuildCoordinatorTripleTests {
     @Test(.requiresXcode, arguments: ["arm64", "arm64-apple-ios-invalid-version", "arm64-apple-unrecognized"])
     func rejectsInvalidTriples(triple: String) async throws {
         let directory = try TemporaryDirectory(name: "InvalidTripleTests")
-        let description = try await description(triple: triple, root: directory.url)
+        let description = description(triple: triple, root: directory.url)
         await #expect(throws: (any Error).self) {
             let coordinator = try await BuildCoordinator(description: description)
             await coordinator.close()
         }
     }
 
-    private func description(triple: String, root: URL) async throws -> BuildDescription {
-        let settings = try await BuildSettings(configuration: .debug, triple: triple)
+    private func description(triple: String, root: URL) -> BuildDescription {
         var projectSettings = XPIF.BuildSettings()
         projectSettings[.SDKROOT] = "auto"
         projectSettings[.IPHONEOS_DEPLOYMENT_TARGET] = "16.0"
@@ -64,7 +63,7 @@ struct BuildCoordinatorTripleTests {
             buildConfigs: [.init(id: "debug", name: "Debug", settings: projectSettings)]
         )
         let pif = XPIF.Container(workspace: .init(id: "workspace", name: "Package", path: root.path, projects: [project]))
-        return BuildDescription(pif: pif, buildSettings: settings)
+        return BuildDescription(directory: root, pif: pif, configuration: .debug, triple: triple)
     }
 }
 #endif

@@ -7,7 +7,7 @@ import XUtils
 
 extension SwiftPMBuildDescriber {
     func writeXcodeProject() async throws -> ProjectBuildResult {
-        try writeXcodeProject(basePIF: await d.swiftPMPIFDumper.dump(buildSettings: buildSettings))
+        try await writeXcodeProject(basePIF: basePIF())
     }
 
     // swiftlint:disable:next function_body_length

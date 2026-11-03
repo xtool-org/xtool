@@ -92,10 +92,10 @@ public actor BuildCoordinator {
             let developerDir = sessionManager.darwinSDK.developerDirectory.path
             let swiftResourceDir = "\(developerDir)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift"
             overrides["SWIFT_RESOURCE_DIR[__destination_platform=YES]"] = swiftResourceDir
-            let runtimeResourcePath = try await BuildSettings.runtimeResourcePath()
-            let hostClangResources = URL(filePath: runtimeResourcePath).appending(path: "clang")
+            let runtimeResourcePath = try await d.toolchain.runtimeResourcePath
+            let hostClangResources = runtimeResourcePath.appending("clang")
             // Compile with the host's intrinsic headers...
-            overrides["CLANG_RESOURCE_DIR[__destination_platform=YES]"] = hostClangResources.path
+            overrides["CLANG_RESOURCE_DIR[__destination_platform=YES]"] = hostClangResources.string
             // ...but at link time, point to Apple's Darwin compiler runtimes (incl OS availability helpers)
             // from the Xcode toolchain.
             overrides["CLANG_RESOURCE_DIR_CLANG[__destination_platform=YES]"] = "\(swiftResourceDir)/clang"

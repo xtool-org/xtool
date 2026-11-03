@@ -9,27 +9,26 @@ struct SwiftPMPIFDumper: DependencyKey, Sendable {
     static var liveValue: Self { Self() }
     static var testValue: Self { liveValue }
 
-    func dump(buildSettings: BuildSettings) async throws -> XPIF.Container {
-        let dumpPIFInvocation = try await buildSettings.swiftPMInvocation(
-            forTool: "package",
-            arguments: ["dump-pif", "--experimental-build-dylibs-as-frameworks"],
-        )
-        let result = try await Subprocess.run(
-            dumpPIFInvocation,
+    func dump(packagePath: URL) async throws -> XPIF.Container {
+        let pif = try await Subprocess.run(
+            .path(d.toolchain.swiftTool),
+            arguments: [
+                "package",
+                "--package-path", packagePath.path,
+                "dump-pif",
+                "--experimental-build-dylibs-as-frameworks",
+            ],
+            environment: .inherit.updating([
+                // xcrun passes an SDKROOT that messes with our sdk configuration
+                "SDKROOT": nil,
+            ]),
+            platformOptions: .withGracefulShutDown,
             input: .none,
             output: .data(limit: .max),
-            error: .sequence,
-        ) { execution in
-            for try await contents in execution.standardError {
-                @Dependency(\.out) var output
-                output.write(
-                    contents.bytes.withUnsafeBytes { Data($0) },
-                    .stderr,
-                    false
-                )
-            }
-        }
-        let pif = try result.checkSuccess().standardOutput
+            error: .xtoolError(),
+        )
+        .checkSuccess()
+        .standardOutput
 
         Signposter.track("Dumped PIF")
 

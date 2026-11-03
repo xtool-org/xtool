@@ -5,6 +5,7 @@ import XUtils
 
 extension SwiftPMBuildDescriber {
     func bundleProducts(in project: XPIF.Project) throws -> [ProjectProduct] {
+        let idSpecifier = self.project.base.schema.idSpecifier
         let appProduct = try libraryProduct(in: project, matching: schema.product)
         let app = ProjectProduct(
             packageProduct: appProduct,
