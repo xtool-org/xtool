@@ -41,9 +41,17 @@ struct PackOperation {
 
     var triple: String?
     var buildOptions = BuildOptions(configuration: .debug)
+    var hotReloadable = false
 
     @discardableResult
     func run() async throws -> ProjectBuildResult {
+        try await run { result, _ in result }
+    }
+
+    /// Builds the project, then invokes `body` while the build coordinator is still alive.
+    func run<R>(
+        _ body: (ProjectBuildResult, BuildCoordinator) async throws -> R
+    ) async throws -> R {
         let project = try await XToolProject.discover(start: URL(filePath: "."))
 
         try await EnsureSDKOperation(quiet: true).run()
@@ -55,12 +63,16 @@ struct PackOperation {
             triple: triple ?? Self.defaultTriple,
             scheme: buildOptions.scheme
         )
-        let coordinator = try await BuildCoordinator(description: description)
+        let coordinator = try await BuildCoordinator(
+            description: description,
+            hotReloadable: hotReloadable
+        )
         defer { await coordinator.close() }
-        return try await ProjectBuildOperation(
+        let result = try await ProjectBuildOperation(
             buildCoordinator: coordinator,
             verbose: buildOptions.verbose
         ).run()
+        return try await body(result, coordinator)
     }
 }
 
@@ -184,14 +196,25 @@ struct DevRunCommand: AsyncParsableCommand {
     @OptionGroup var packOptions: PackOperation.BuildOptions
 
     @Flag(
-        name: .shortAndLong,
+        name: [.customShort("s"), .customLong("simulator")],
         help: "Target the iOS Simulator (macOS only)",
-    ) var simulator = false
+    ) var explicitSimulator = false
 
     @Flag(
         inversion: .prefixedEnableDisable,
         help: "Attach console when running on the simulator (default: true)",
     ) var console: Bool?
+
+    @Flag(
+        name: .shortAndLong,
+        help: "Hot reload Swift files as they're edited (implies --simulator)",
+    ) var watch = false
+
+    var simulator: Bool {
+        explicitSimulator || watch
+    }
+
+    @Option(help: .hidden) var xloadPath: String?
 
     #if os(macOS)
     var triple: String? {
@@ -213,18 +236,38 @@ struct DevRunCommand: AsyncParsableCommand {
     @OptionGroup var connectionOptions: ConnectionOptions
 
     func run() async throws {
-        let output = try await PackOperation(triple: triple, buildOptions: packOptions).run()
+        let operation = PackOperation(
+            triple: triple,
+            buildOptions: packOptions,
+            hotReloadable: watch,
+        )
 
         #if os(macOS)
         if simulator {
-            try await SimInstallOperation(
-                path: output.url,
-                bundleID: output.bundleID,
-                console: console != false,
-            ).run()
+            if watch {
+                // keep the coordinator alive: the hot reloader uses it to get compiler args
+                try await operation.run { output, coordinator in
+                    let hotReloader = try await HotReloader(coordinator: coordinator, xloadPath: xloadPath)
+                    try await SimInstallOperation(
+                        path: output.url,
+                        bundleID: output.bundleID,
+                        console: console != false,
+                        hotReloader: hotReloader,
+                    ).run()
+                }
+            } else {
+                let output = try await operation.run()
+                try await SimInstallOperation(
+                    path: output.url,
+                    bundleID: output.bundleID,
+                    console: console != false,
+                ).run()
+            }
             return
         }
         #endif
+
+        let output = try await operation.run()
 
         let token = try AuthToken.saved()
 
@@ -267,6 +310,14 @@ struct DevRunCommand: AsyncParsableCommand {
         if console == true && !simulator {
             throw ValidationError("`--enable-console` is only supported when targeting the simulator")
         }
+
+        if watch && packOptions.configuration != .debug {
+            throw ValidationError("`--watch` is only supported with the debug configuration")
+        }
+
+        if xloadPath != nil && !watch {
+            throw ValidationError("`--xload-path` requires `--watch`")
+        }
     }
 }
 
@@ -293,6 +344,7 @@ struct SimInstallOperation {
     var path: URL
     var bundleID: String
     var console: Bool
+    var hotReloader: HotReloader?
 
     // TODO: allow customizing this
     var simulator = "booted"
@@ -321,14 +373,25 @@ struct SimInstallOperation {
             launchFlags.append("--console-pty")
         }
 
-        try await Subprocess.run(
-            .path(simctl),
-            arguments: Arguments(["launch"] + launchFlags + [simulator, bundleID]),
-            platformOptions: .withGracefulShutDown,
-            output: .xtoolOutput(),
-            error: .xtoolError(),
-        )
-        .checkSuccess()
+        try await withThrowingDiscardingTaskGroup { group in
+            if let hotReloader {
+                group.addTask { try await hotReloader.watch() }
+            }
+
+            try await Subprocess.run(
+                .path(simctl),
+                arguments: Arguments(["launch"] + launchFlags + [simulator, bundleID]),
+                environment: .inherit.updating(hotReloader?.launchEnvironment ?? [:]),
+                platformOptions: .withGracefulShutDown,
+                output: .xtoolOutput(),
+                error: .xtoolError(),
+            )
+            .checkSuccess()
+
+            // With the console attached, `launch` returns once the app exits, so we're done.
+            // Otherwise it returns immediately, so keep watching until we're interrupted.
+            if console { group.cancelAll() }
+        }
     }
 }
 #endif

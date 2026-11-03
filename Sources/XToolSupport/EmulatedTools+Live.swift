@@ -7,7 +7,9 @@ import XUtils
 
 extension EmulatedTools: DependencyKey {
     static let liveValue = EmulatedTools({
-        var tools: [any EmulatedTool] = []
+        var tools: [any EmulatedTool] = [
+            SwiftCompilerTool(),
+        ]
         #if !os(macOS)
         tools += [
             LSRegisterTool(),

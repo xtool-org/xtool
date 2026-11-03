@@ -102,9 +102,34 @@ actor BuildSessionManager {
     func createBuildOperation(request: SWBBuildRequest) async throws -> SWBBuildOperation {
         try await session.createBuildOperation(request: request, delegate: planningDelegate)
     }
+
+    /// Plans (but doesn't run) a build. The caller is responsible for releasing the
+    /// resulting build description with `session.releaseBuildDescription(id:)`.
+    func createRetainedBuildDescriptionOperation(request: SWBBuildRequest) async throws -> SWBBuildOperation {
+        try await session.createBuildOperationForBuildDescriptionOnly(
+            request: request,
+            delegate: planningDelegate,
+            retainBuildDescription: true,
+        )
+    }
+
+    func generatePreviewInfo(
+        request: SWBBuildRequest,
+        targetID: String,
+        sourceFile: String,
+        thunkVariantSuffix: String
+    ) async throws -> [SWBPreviewInfo] {
+        try await session.generatePreviewInfo(
+            for: request,
+            targetID: targetID,
+            sourceFile: sourceFile,
+            thunkVariantSuffix: thunkVariantSuffix,
+            delegate: planningDelegate,
+        )
+    }
 }
 
-private final class PlanningOperationDelegate: SWBPlanningOperationDelegate, Sendable {
+private final class PlanningOperationDelegate: SWBPlanningOperationDelegate, SWBPreviewDelegate, Sendable {
     let dependencies = withEscapedDependencies(\.self)
 
     func provisioningTaskInputs(

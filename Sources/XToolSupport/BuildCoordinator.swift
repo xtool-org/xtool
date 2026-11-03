@@ -1,3 +1,4 @@
+import Dependencies
 import XCLIUtils
 import XPIF
 import Foundation
@@ -11,13 +12,21 @@ public actor BuildCoordinator {
     let pifContainer: XPIF.Container
     let targetSelection: BuildDescription.TargetSelection?
 
-    init(description: BuildDescription) async throws {
+    private var buildDescriptionID: SWBBuildDescriptionID?
+
+    /// - Parameter hotReloadable: Build with the flags that `HotReloader` needs
+    ///   to swap out code in the running app.
+    init(description: BuildDescription, hotReloadable: Bool = false) async throws {
         self.pifContainer = description.pif
         self.targetSelection = description.targetSelection
 
         Signposter.track("Creating BuildSessionManager")
 
-        let sessionManager = try await BuildSessionManager()
+        let sessionManager = try await withDependencies {
+            $0.isHotReloadableBuild = hotReloadable
+        } operation: {
+            try await BuildSessionManager()
+        }
         self.sessionManager = sessionManager
 
         do {
@@ -58,6 +67,20 @@ public actor BuildCoordinator {
             overrides["CODE_SIGN_IDENTITY[__destination_platform=YES]"] = "-"
             #endif
             overrides["AD_HOC_CODE_SIGNING_ALLOWED"] = "YES"
+            if hotReloadable {
+                // lets us ask for per-file compile commands via generatePreviewInfo
+                overrides["ENABLE_XOJIT_PREVIEWS"] = "YES"
+                // mutually exclusive with ENABLE_XOJIT_PREVIEWS
+                overrides["ENABLE_PREVIEWS"] = "NO"
+                // XOJIT previews would otherwise split the app into a stub executable + debug dylib
+                overrides["ENABLE_DEBUG_DYLIB"] = "NO"
+                // route calls through stubs so that reloaded symbols can be interposed
+                overrides["OTHER_LDFLAGS"] = "$(inherited) -Xlinker -interposable"
+                // https://kyleye.top/posts/debugreplaceableview-multiple-type-erasers/
+                // https://www.guardsquare.com/blog/behind-swiftui-previews
+                overrides["SWIFT_ENABLE_OPAQUE_TYPE_ERASURE"] = "YES"
+                overrides["OTHER_SWIFT_FLAGS"] = "$(inherited) -Xfrontend -enable-private-imports"
+            }
             // Only override deployment targets when the triple explicitly includes a version.
             // Otherwise each package retains the deployment targets from its manifest.
             if let setting = targetInfo.deploymentTargetSettingName, let version = targetInfo.deploymentTarget {
@@ -132,6 +155,10 @@ public actor BuildCoordinator {
     }
 
     func close() async {
+        if let buildDescriptionID {
+            self.buildDescriptionID = nil
+            await sessionManager.session.releaseBuildDescription(id: buildDescriptionID)
+        }
         await sessionManager.close()
     }
 
@@ -177,12 +204,120 @@ public actor BuildCoordinator {
         )
     }
 
-    func createBuildOperation() async throws -> SWBBuildOperation {
+    func mainBuildRequest() throws -> SWBBuildRequest {
         var request = buildRequest
         if request.configuredTargets.isEmpty {
             request.configuredTargets = [SWBConfiguredTarget(guid: try mainProductGUID())]
         }
-        return try await sessionManager.createBuildOperation(request: request)
+        return request
+    }
+
+    func createBuildOperation() async throws -> SWBBuildOperation {
+        try await sessionManager.createBuildOperation(request: mainBuildRequest())
+    }
+
+    struct SourceFile: Sendable {
+        var path: String
+        var language: SWBSourceLanguage?
+        var target: SWBConfiguredTargetIdentifier
+        /// The toolchain used to build `target`, if known.
+        var toolchain: String?
+    }
+
+    /// The source files of every target in the main build.
+    func sourceFiles() async throws -> [SourceFile] {
+        let buildDescription = try await retainedBuildDescription()
+        let request = try mainBuildRequest()
+        let targets = try await sessionManager.session.configuredTargets(
+            buildDescription: buildDescription,
+            buildRequest: request
+        )
+        let toolchains = Dictionary(
+            targets.map { ($0.identifier, $0.toolchain?.pathString) },
+            uniquingKeysWith: { first, _ in first }
+        )
+        return try await sessionManager.session.sources(
+            of: targets.map(\.identifier),
+            buildDescription: buildDescription,
+            buildRequest: request
+        ).flatMap { info in
+            info.sourceFiles.map {
+                SourceFile(
+                    path: $0.path.pathString,
+                    language: $0.language,
+                    target: info.configuredTarget,
+                    toolchain: toolchains[info.configuredTarget] ?? nil
+                )
+            }
+        }
+    }
+
+    struct RecompileCommand: Sendable {
+        /// The frontend invocation, starting with the frontend executable.
+        var commandLine: [String]
+        /// Where `commandLine` writes the object file.
+        var objectFile: String
+        /// The SDK and target triple to link `objectFile` against.
+        var sdk: String
+        var target: String
+    }
+
+    /// A frontend command that recompiles `file` in the context of its module in the main build.
+    ///
+    /// Requires `hotReloadable`.
+    func recompileCommand(for file: SourceFile) async throws -> RecompileCommand {
+        let guid = file.target.targetGUID.rawValue
+        // XOJIT preview "thunks" are the original file compiled as the primary file of its module.
+        let infos = try await sessionManager.generatePreviewInfo(
+            request: mainBuildRequest(),
+            targetID: guid,
+            sourceFile: file.path,
+            thunkVariantSuffix: "xtool"
+        )
+        guard let info = infos.first(where: { !$0.compileCommandLine.isEmpty }) else {
+            throw Console.Error("Could not determine compile command for \(file.path)")
+        }
+        return RecompileCommand(
+            commandLine: info.compileCommandLine,
+            objectFile: info.thunkObjectFile,
+            sdk: try await evaluate("SDKROOT", target: guid, arch: info.architecture),
+            // what the Swift compiler spec passes as -target
+            target: try await evaluate("SWIFT_TARGET_TRIPLE", target: guid, arch: info.architecture)
+        )
+    }
+
+    private func evaluate(_ macro: String, target guid: String, arch: String) async throws -> String {
+        try await sessionManager.session.evaluateMacroAsString(
+            macro, level: .target(guid),
+            buildParameters: buildRequest.parameters,
+            // only set per-arch during task construction
+            overrides: ["CURRENT_ARCH": arch],
+        )
+    }
+
+    private func retainedBuildDescription() async throws -> SWBBuildDescriptionID {
+        if let buildDescriptionID { return buildDescriptionID }
+        // after a build, this is served from Swift Build's build description cache
+        let operation = try await sessionManager.createRetainedBuildDescriptionOperation(
+            request: mainBuildRequest()
+        )
+        var id: SWBBuildDescriptionID?
+        for await event in try await operation.start() {
+            if case .reportBuildDescription(let info) = event {
+                id = SWBBuildDescriptionID(info.buildDescriptionID)
+            }
+        }
+        await operation.waitForCompletion()
+        guard operation.state == .succeeded, let id else {
+            throw Console.Error("Failed to compute build description")
+        }
+        // a concurrent call may have beaten us to it
+        if let buildDescriptionID {
+            await sessionManager.session.releaseBuildDescription(id: id)
+            return buildDescriptionID
+        }
+        buildDescriptionID = id
+        return id
     }
 }
 
