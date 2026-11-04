@@ -178,7 +178,7 @@ public struct ADIDataProvider: AnisetteDataProvider {
             request.headerFields[.init(key)!] = value
         }
 
-        let (_, response) = try await self.httpClient.makeRequest(request, body: body)
+        let (_, response) = try await self.httpClient.makeRequest(request, body: body, ephemeral: true)
 
         return try GrandSlamOperationDecoder<Response>.decode(data: response)
     }

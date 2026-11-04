@@ -1,3 +1,4 @@
+import XUtils
 import Foundation
 import ArgumentParser
 import XKit
@@ -33,57 +34,57 @@ struct DSCertificatesListCommand: AsyncParsableCommand {
         .reduce(into: [], +=)
 
         for certificate in certificates {
-            print("- id: \(certificate.id)")
+            d.out.print("- id: \(certificate.id)")
             guard let attributes = certificate.attributes else {
                 continue
             }
 
             if let name = attributes.name {
-                print("  name: \(name)")
+                d.out.print("  name: \(name)")
             }
 
             if let certificateType = attributes.certificateType {
-                print("  type: \(certificateType.rawValue)")
+                d.out.print("  type: \(certificateType.rawValue)")
             }
 
             if let displayName = attributes.displayName {
-                print("  display name: \(displayName)")
+                d.out.print("  display name: \(displayName)")
             }
 
             if let serialNumber = attributes.serialNumber {
-                print("  serial number: \(serialNumber)")
+                d.out.print("  serial number: \(serialNumber)")
             }
 
             if let platform = attributes.platform {
-                print("  platform: \(platform.rawValue)")
+                d.out.print("  platform: \(platform.rawValue)")
             }
 
             if let expirationDate = attributes.expirationDate {
-                print("  expiry: \(expirationDate.formatted(.dateTime))")
+                d.out.print("  expiry: \(expirationDate.formatted(.dateTime))")
             }
 
             if let contentString = attributes.certificateContent {
                 guard let content = Data(base64Encoded: contentString) else {
-                    print("  content: error: bad base64")
+                    d.out.print("  content: error: bad base64")
                     continue
                 }
                 do {
                     let certificate = try Certificate(data: content)
-                    print("  content:")
+                    d.out.print("  content:")
                     switch Result(catching: { try certificate.developerIdentity() }) {
                     case .success(let id):
-                        print("    common name: \(id)")
+                        d.out.print("    common name: \(id)")
                     case .failure(let error):
-                        print("    common name: error: \(error)")
+                        d.out.print("    common name: error: \(error)")
                     }
                     switch Result(catching: { try certificate.teamID() }) {
                     case .success(let teamID):
-                        print("    team id: \(teamID)")
+                        d.out.print("    team id: \(teamID)")
                     case .failure(let error):
-                        print("    team id: error: \(error)")
+                        d.out.print("    team id: error: \(error)")
                     }
                 } catch {
-                    print("  content: error: \(error)")
+                    d.out.print("  content: error: \(error)")
                 }
             }
         }

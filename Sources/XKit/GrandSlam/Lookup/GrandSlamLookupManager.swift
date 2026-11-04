@@ -42,7 +42,7 @@ actor GrandSlamLookupManager {
             request.headerFields[.init(key)!] = value
         }
 
-        let (_, body) = try await httpClient.makeRequest(request)
+        let (_, body) = try await httpClient.makeRequest(request, ephemeral: true)
 
         return try self.decoder.decode(Response.self, from: body).urls
     }

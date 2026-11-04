@@ -1,3 +1,4 @@
+import XUtils
 import Foundation
 import ArgumentParser
 import XKit
@@ -32,21 +33,21 @@ struct DSIdentifiersListCommand: AsyncParsableCommand {
         .reduce(into: [], +=)
 
         for bundleID in bundleIDs {
-            print("- id: \(bundleID.id)")
+            d.out.print("- id: \(bundleID.id)")
             guard let attributes = bundleID.attributes else {
                 continue
             }
             if let name = attributes.name {
-                print("  name: \(name)")
+                d.out.print("  name: \(name)")
             }
             if let identifier = attributes.identifier {
-                print("  identifier: \(identifier)")
+                d.out.print("  identifier: \(identifier)")
             }
             if let platform = attributes.platform {
-                print("  platform: \(platform.rawValue)")
+                d.out.print("  platform: \(platform.rawValue)")
             }
             if let seedId = attributes.seedId {
-                print("  seedId: \(seedId)")
+                d.out.print("  seedId: \(seedId)")
             }
         }
     }

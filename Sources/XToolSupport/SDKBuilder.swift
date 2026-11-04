@@ -1,3 +1,4 @@
+import XCLIUtils
 import Foundation
 import Dependencies
 import libunxip
@@ -135,13 +136,13 @@ struct SDKBuilder {
         let iPhoneSimSDK = try sdk(platform: "iPhoneSimulator", prefix: "iPhoneSimulator")
         let macOSSDK = try sdk(platform: "MacOSX", prefix: "MacOSX")
 
-        print("""
+        d.out.print("""
         - \(iPhoneOSSDK)
         - \(iPhoneSimSDK)
         - \(macOSSDK)
         """)
 
-        print("[Writing metadata]")
+        d.out.print("[Writing metadata]")
         try """
         {
             "schemaVersion": "1.0",
@@ -246,7 +247,7 @@ struct SDKBuilder {
         if let envOverride, let path = ProcessInfo.processInfo.environment[envOverride] {
             let source = URL(fileURLWithPath: path)
             if source.dirExists {
-                print("[Copying \(displayName)] \(source.path)")
+                d.out.print("[Copying \(displayName)] \(source.path)")
                 try await Subprocess.run(
                     .name("cp"),
                     arguments: ["-RL", "\(source.path)/.", "."],
@@ -267,7 +268,7 @@ struct SDKBuilder {
                 return
             }
 
-            print("[Extracting \(displayName)] \(source.path)")
+            d.out.print("[Extracting \(displayName)] \(source.path)")
             try await Subprocess.run(
                 .name("tar"),
                 arguments: ["xzf", source.path],
@@ -289,7 +290,7 @@ struct SDKBuilder {
         case .unknown: nil
         }
 
-        defer { print() }
+        defer { d.out.print() }
         try await Subprocess.run(
             .name("tar"),
             arguments: ["xzf", "-"],
@@ -308,8 +309,7 @@ struct SDKBuilder {
 
                     guard let length else { continue }
                     let progress = Int(Double(totalWritten) / Double(length) * 100)
-                    print("\r[Downloading \(displayName)] \(progress)%", terminator: "")
-                    fflush(stdoutSafe)
+                    d.out.print("\r[Downloading \(displayName)] \(progress)%", terminator: "", flush: true)
                 }
             }
             try await execution.standardInputWriter.finish()
@@ -525,7 +525,7 @@ struct SDKBuilder {
             let sourceContentsDir = source.appendingPathComponent("Contents")
             let expectedContentsDir = expectedAppDir.appendingPathComponent("Contents")
             try FileManager.default.createDirectory(at: expectedContentsDir, withIntermediateDirectories: true)
-            print("[Copying Xcode.app] This might take a minute...")
+            d.out.print("[Copying Xcode.app] This might take a minute...")
             for child in Self.expectedXcodeChildren {
                 let expectedFile = expectedContentsDir.appendingPathComponent(child)
                 let sourceFile = sourceContentsDir.appendingPathComponent(child)
@@ -559,13 +559,11 @@ struct SDKBuilder {
                 count += 1
                 if let wanted {
                     let progress = Int(Double(count) / Double(wanted) * 100)
-                    print("\r[Installing SDKs] \(progress)%", terminator: "")
-                    fflush(stdoutSafe)
+                    d.out.print("\r[Installing SDKs] \(progress)%", terminator: "", flush: true)
                 }
                 if count % 100 == 0 {
                     if wanted == nil {
-                        print("\r[Installing SDKs] Installed \(count) files", terminator: "")
-                        fflush(stdoutSafe)
+                        d.out.print("\r[Installing SDKs] Installed \(count) files", terminator: "", flush: true)
                     }
                     await Task.yield()
                 }
@@ -589,16 +587,16 @@ struct SDKBuilder {
 
         if wanted != nil {
             // otherwise the last log might say 99%
-            print("\r[Installing SDKs] 100%", terminator: "")
+            d.out.print("\r[Installing SDKs] 100%", terminator: "")
         }
-        print()
+        d.out.print()
 
         if let cleanupStageDir {
-            print("[Cleaning up]")
+            d.out.print("[Cleaning up]")
             try FileManager.default.removeItem(at: cleanupStageDir)
         }
 
-        print("[Finalizing SDKs]")
+        d.out.print("[Finalizing SDKs]")
 
         for platform in ["iPhoneOS", "MacOSX", "iPhoneSimulator"] {
             let lib = "../../../../../Library"
@@ -749,8 +747,7 @@ struct SDKBuilder {
             for try await chunk in observer {
                 read += chunk.count
                 let progress = Int(Double(read) / Double(length) * 100)
-                print("\r[Extracting XIP] \(progress)%", terminator: "")
-                fflush(stdoutSafe)
+                d.out.print("\r[Extracting XIP] \(progress)%", terminator: "", flush: true)
                 if read == length { break }
             }
         }()
@@ -786,7 +783,7 @@ struct SDKBuilder {
         }
         _ = try await readTask
 
-        print()
+        d.out.print()
 
         return wanted
     }

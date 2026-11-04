@@ -1,3 +1,5 @@
+import XCLIUtils
+import XUtils
 import Foundation
 import ArgumentParser
 import XKit
@@ -27,7 +29,7 @@ struct DSTeamsListCommand: AsyncParsableCommand {
         }
         let client = DeveloperServicesClient(authData: authData)
         let teams: [DeveloperServicesTeam] = try await client.send(DeveloperServicesListTeamsRequest())
-        print(
+        d.out.print(
             teams.map {
                 "\($0.name) [\($0.status)]: \($0.id.rawValue)" +
                     $0.memberships.map { "\n- \($0.name) (\($0.platform))" }.joined()
