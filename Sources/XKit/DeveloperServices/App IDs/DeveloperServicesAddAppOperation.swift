@@ -50,7 +50,7 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
         entitlements: Entitlements,
         isFreeTeam: Bool
     ) async throws -> Components.Schemas.BundleId {
-        let newBundleID = ProvisioningIdentifiers.identifier(fromSanitized: bundleID, context: self.context)
+        let newBundleID = ProvisioningIdentifiers.bundleID(from: bundleID, context: self.context)
 
         let existing = try await context.developerAPIClient
             .bundleIdsGetCollection(query: .init(

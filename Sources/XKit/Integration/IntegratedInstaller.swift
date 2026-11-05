@@ -293,10 +293,14 @@ public actor IntegratedInstaller {
     public func signInPlace(
         app: URL,
         targetDevice: SigningContext.TargetDevice? = nil,
+        platform: SigningPlatform = .iOS,
+        preserveBundleID: Bool = false,
     ) async throws -> String {
         let context = SigningContext(
             auth: auth,
             targetDevice: targetDevice,
+            platform: platform,
+            preserveBundleID: preserveBundleID,
         )
 
         let signer = AutoSigner(context: context) { certs in
