@@ -60,13 +60,21 @@ public struct DeveloperServicesFetchProfileOperation: DeveloperServicesOperation
             // Several profiles (one made by Xcode or another tool next to ours): keep theirs, but
             // the one xtool made earlier must go, or creating it again fails on its name
             // (409 "Multiple profiles found with the name 'XTL profile …'").
+            // Only this bundle ID's profiles of that name are deleted; one already gone (another
+            // install of the same bundle ID deleting it first) is fine.
             let ownName = "XTL profile \(bundleID.id)"
+            let bundleProfileIDs = Set(profiles.map(\.id))
             let own = try await context.developerAPIClient
                 .profilesGetCollection(query: .init(filter_lbrack_name_rbrack_: [ownName]))
                 .ok.body.json.data
-                .filter { $0.attributes?.name == ownName }
+                .filter { $0.attributes?.name == ownName && bundleProfileIDs.contains($0.id) }
             for profile in own {
-                _ = try await context.developerAPIClient.profilesDeleteInstance(path: .init(id: profile.id)).noContent
+                switch try await context.developerAPIClient.profilesDeleteInstance(path: .init(id: profile.id)) {
+                case .noContent, .notFound:
+                    break
+                case let other:
+                    _ = try other.noContent
+                }
             }
         }
 
