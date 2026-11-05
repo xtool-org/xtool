@@ -25,8 +25,8 @@ public struct DeveloperAPIPages<Page>: AsyncSequence {
     public var getNext: @Sendable (Page) -> String?
 
     public init(
+        _ getNext: @escaping @Sendable (Page) -> String?,
         request: @escaping @Sendable () async throws -> Page,
-        next getNext: @escaping @Sendable (Page) -> String?
     ) {
         self.request = request
         self.getNext = getNext
