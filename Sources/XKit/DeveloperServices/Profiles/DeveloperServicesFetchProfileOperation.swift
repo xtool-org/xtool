@@ -69,7 +69,11 @@ public struct DeveloperServicesFetchProfileOperation: DeveloperServicesOperation
         }
         .map(\.data)
         .reduce(into: [], +=)
-        .filter { $0.attributes?.deviceClass?.value1?.supportsIOSApps == true }
+        // A disabled device makes the profile invalid: enabled, iOS-capable devices only
+        .filter {
+            $0.attributes?.status?.value1 != .disabled &&
+                $0.attributes?.deviceClass?.value1?.supportsIOSApps == true
+        }
 
         // DeveloperAPIPages ends early, without an error, when the task is cancelled: never
         // create the profile from a partial device list.
