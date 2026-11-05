@@ -72,9 +72,16 @@ public struct DeveloperServicesFetchProfileOperation: DeveloperServicesOperation
         .reduce(into: [], +=)
         .filter { $0.attributes?.serialNumber.map(signingInfo.certificate.hasSerialNumber) == true }
 
-        let allDevices = try await context.developerAPIClient.devicesGetCollection()
-            .ok.body.json.data
-            .filter { $0.attributes?.deviceClass?.value1?.supportsIOSApps == true }
+        // Every page: the API returns 20 devices per page by default, and a device left out
+        // of the profile is refused at install (0xe8008015, no valid provisioning profile).
+        let allDevices = try await DeveloperAPIPages {
+            try await context.developerAPIClient.devicesGetCollection().ok.body.json
+        } next: {
+            $0.links.next
+        }
+        .map(\.data)
+        .reduce(into: [], +=)
+        .filter { $0.attributes?.deviceClass?.value1?.supportsIOSApps == true }
 
         let response = try await context.developerAPIClient.profilesCreateInstance(
             body: .json(
