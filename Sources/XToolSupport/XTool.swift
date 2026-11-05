@@ -32,6 +32,7 @@ private struct XToolCommand: AsyncParsableCommand {
                     NewCommand.self,
                     DevCommand.self,
                     DSCommand.self,
+                    SignCommand.self,
                 ]
             ),
             CommandGroup(

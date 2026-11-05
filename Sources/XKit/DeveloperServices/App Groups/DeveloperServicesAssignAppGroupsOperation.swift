@@ -45,7 +45,7 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
         let groupID = ProvisioningIdentifiers.groupID(fromSanitized: sanitized, context: context)
         let name = ProvisioningIdentifiers.groupName(fromSanitized: sanitized)
         let request = DeveloperServicesAddAppGroupRequest(
-            platform: .iOS,
+            platform: context.platform.developerServicesPlatform,
             teamID: xcodeAuthData.teamID,
             name: name,
             groupID: groupID
@@ -55,7 +55,7 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
 
     public func perform() async throws -> [DeveloperServicesAppGroup.GroupID] {
         let existing = try await client.send(DeveloperServicesListAppGroupsRequest(
-            platform: .iOS, teamID: xcodeAuthData.teamID
+            platform: context.platform.developerServicesPlatform, teamID: xcodeAuthData.teamID
         ))
         let sanitized = existing.map { (ProvisioningIdentifiers.sanitize(groupID: $0.groupID), $0) }
         let dict = Dictionary(sanitized, uniquingKeysWith: { $1 })
@@ -65,7 +65,7 @@ public struct DeveloperServicesAssignAppGroupsOperation: DeveloperServicesOperat
 
         _ = try await client.send(
             DeveloperServicesAssignAppGroupRequest(
-                platform: .iOS,
+                platform: context.platform.developerServicesPlatform,
                 teamID: xcodeAuthData.teamID,
                 appIDID: appID.id,
                 groupIDs: groups.map(\.id)

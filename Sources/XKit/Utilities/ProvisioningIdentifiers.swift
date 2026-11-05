@@ -26,6 +26,11 @@ extension ProvisioningIdentifiers {
         return "\(Self.idPrefix)\(uuid).\(sanitized)"
     }
 
+    static func bundleID(from original: String, context: SigningContext) -> String {
+        if context.preserveBundleID { return original }
+        return identifier(fromSanitized: original, context: context)
+    }
+
     static func safeify(identifier: String) -> String {
         identifier.replacingOccurrences(of: ".", with: " ")
     }
