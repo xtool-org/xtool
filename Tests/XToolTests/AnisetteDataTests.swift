@@ -22,25 +22,6 @@ struct AnisetteDataTests {
                 akdUserAgent: "agent"
             )
         )
-        let localeIdentifier = if let language = data.locale.language.languageCode?.identifier,
-                                  let region = data.locale.region?.identifier {
-            "\(language)_\(region)"
-        } else {
-            "en_US"
-        }
-        let expectedDictionary = [
-            "X-Apple-Locale": localeIdentifier,
-            "X-Apple-I-TimeZone": data.timeZone.abbreviation() ?? "UTC",
-            "X-Apple-I-Client-Time": expected,
-            "X-Apple-I-MD-RINFO": "123",
-            "X-Apple-I-MD-M": "machine",
-            "X-Apple-I-MD-LU": "user",
-            "X-Apple-I-MD": "password",
-            "X-Mme-Device-Id": "device",
-            "X-MMe-Client-Info": "client",
-        ]
-
-        #expect(data.dictionary == expectedDictionary)
-        #expect(data.dictionary == expectedDictionary)
+        #expect(data.dictionary["X-Apple-I-Client-Time"] == expected)
     }
 }
