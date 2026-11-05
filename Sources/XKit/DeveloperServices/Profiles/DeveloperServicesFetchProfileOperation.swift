@@ -57,8 +57,17 @@ public struct DeveloperServicesFetchProfileOperation: DeveloperServicesOperation
         case 1:
             _ = try await context.developerAPIClient.profilesDeleteInstance(path: .init(id: profiles[0].id)).noContent
         default:
-            // if the user has >1 profile, it's probably okay to add another one (acceptable for non-free accounts?)
-            break
+            // Several profiles (one made by Xcode or another tool next to ours): keep theirs, but
+            // the one xtool made earlier must go, or creating it again fails on its name
+            // (409 "Multiple profiles found with the name 'XTL profile …'").
+            let ownName = "XTL profile \(bundleID.id)"
+            let own = try await context.developerAPIClient
+                .profilesGetCollection(query: .init(filter_lbrack_name_rbrack_: [ownName]))
+                .ok.body.json.data
+                .filter { $0.attributes?.name == ownName }
+            for profile in own {
+                _ = try await context.developerAPIClient.profilesDeleteInstance(path: .init(id: profile.id)).noContent
+            }
         }
 
         // Match locally rather than with filter[serialNumber]: the API lists serials with a
