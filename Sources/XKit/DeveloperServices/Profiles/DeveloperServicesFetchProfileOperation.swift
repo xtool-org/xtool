@@ -83,6 +83,10 @@ public struct DeveloperServicesFetchProfileOperation: DeveloperServicesOperation
         .reduce(into: [], +=)
         .filter { $0.attributes?.deviceClass?.value1?.supportsIOSApps == true }
 
+        // DeveloperAPIPages ends early, without an error, when the task is cancelled: never
+        // create the profile from a partial device list.
+        try Task.checkCancellation()
+
         let response = try await context.developerAPIClient.profilesCreateInstance(
             body: .json(
                 .init(
