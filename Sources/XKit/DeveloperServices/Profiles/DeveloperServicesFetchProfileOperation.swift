@@ -49,18 +49,6 @@ public struct DeveloperServicesFetchProfileOperation: DeveloperServicesOperation
             throw Errors.tooManyMatchingBundleIDs
         }
 
-        let profiles = bundleID.relationships?.profiles?.data ?? []
-        switch profiles.count {
-        case 0:
-            // we're good
-            break
-        case 1:
-            _ = try await context.developerAPIClient.profilesDeleteInstance(path: .init(id: profiles[0].id)).noContent
-        default:
-            // if the user has >1 profile, it's probably okay to add another one (acceptable for non-free accounts?)
-            break
-        }
-
         // Match locally rather than with filter[serialNumber]: the API lists serials with a
         // leading zero nibble ("0E41…") but its filter only matches them without it ("E41…").
         let certs = try await DeveloperAPIPages {
@@ -86,6 +74,21 @@ public struct DeveloperServicesFetchProfileOperation: DeveloperServicesOperation
         // DeveloperAPIPages ends early, without an error, when the task is cancelled: never
         // create the profile from a partial device list.
         try Task.checkCancellation()
+
+        // The old profile goes only now, once every page is read: a failed or cancelled
+        // paging leaves it in place. It must still go before the create, which refuses a
+        // second profile of the same name.
+        let profiles = bundleID.relationships?.profiles?.data ?? []
+        switch profiles.count {
+        case 0:
+            // we're good
+            break
+        case 1:
+            _ = try await context.developerAPIClient.profilesDeleteInstance(path: .init(id: profiles[0].id)).noContent
+        default:
+            // if the user has >1 profile, it's probably okay to add another one (acceptable for non-free accounts?)
+            break
+        }
 
         let response = try await context.developerAPIClient.profilesCreateInstance(
             body: .json(
