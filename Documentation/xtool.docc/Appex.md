@@ -140,4 +140,6 @@ struct HelloWidget: Widget {
 
 > Note: Blindly refreshing once an hour isn't a great strategy in practice but it makes for a short snippet. I never said this was a tutorial on writing _good_ WidgetKit code; there's plenty of other resources online if that's your goal, including Apple's own [documentation](https://developer.apple.com/documentation/widgetkit).
 
+> Note: xtool links the extension with `_NSExtensionMain` as the entry point and, unless the extension declares `NSExtensionPrincipalClass` or `NSExtensionMainStoryboard` in its `NSExtension` dictionary, forces the linker to keep the `main` symbol (`-u _main`). Such an extension (for example WidgetKit) must define one in its library: a `@main` type, as above, or top-level code, otherwise it fails to link with an undefined `_main` symbol. An extension with a principal class or main storyboard is instantiated by the runtime and needs no `main`.
+
 Finally, build and run with `xtool dev`. You should be able to locate the widget in your widget library and add it to your home screen!
