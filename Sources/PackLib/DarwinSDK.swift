@@ -126,6 +126,27 @@ public struct DarwinSDK {
         return DarwinSDK(bundle: bundle)
     }
 
+    public func sdkRoot(for triple: String) throws -> URL {
+        struct Definition: Decodable {
+            struct Target: Decodable {
+                let sdkRootPath: String
+            }
+            let targetTriples: [String: Target]
+        }
+        let data = try Data(contentsOf: bundle.appendingPathComponent("swift-sdk.json"))
+        let definition = try JSONDecoder().decode(Definition.self, from: data)
+        guard let target = definition.targetTriples[triple] else {
+            throw StringError("""
+            The installed Darwin SDK does not contain target '\(triple)'. Rebuild it with the required platform SDK.
+            """)
+        }
+        let root = bundle.appendingPathComponent(target.sdkRootPath, isDirectory: true)
+        guard root.dirExists else {
+            throw StringError("The installed Darwin SDK is missing the SDK root for '\(triple)': '\(root.path)'")
+        }
+        return root
+    }
+
     public func remove() throws {
         try FileManager.default.removeItem(at: bundle)
     }
