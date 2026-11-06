@@ -39,12 +39,12 @@ private struct UnimplementedSigner: Signer {
         deep: Bool,
         progress: @escaping @Sendable (Double?) -> Void
     ) async throws {
-        let operation: () throws -> Void = unimplemented()
-        try operation()
+        reportIssue("Unimplemented: Signer.sign")
+        throw UnimplementedFailure(description: "Signer.sign")
     }
 
     func analyze(executable: URL) async throws -> Data? {
-        let operation: () throws -> Data? = unimplemented()
-        return try operation()
+        reportIssue("Unimplemented: Signer.analyze")
+        throw UnimplementedFailure(description: "Signer.analyze")
     }
 }
