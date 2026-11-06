@@ -1,0 +1,50 @@
+require_relative '../node_modules/react-native/scripts/react_native_pods'
+require 'json'
+
+platform :ios, '15.1'
+install! 'cocoapods', :integrate_targets => false, :deterministic_uuids => false
+
+# RN's host-Xcode version/Rosetta probes don't apply to this Linux toolchain.
+# scripts/env.sh validates the explicit Apple SDK before CocoaPods runs.
+class ::ReactNativePodsUtils
+  def self.check_minimum_required_xcode(**options)
+    Pod::UI.puts 'Linux: using the configured Apple SDK and native Clang/LLD'
+  end
+  def self.warn_if_not_on_arm64; end
+end
+
+target 'OmarchyReactNative' do
+  use_react_native!(
+    :path => '../node_modules/react-native',
+    :app_path => File.expand_path('..', __dir__),
+    :hermes_enabled => false,
+    :fabric_enabled => false,
+    :new_arch_enabled => false,
+    :privacy_file_aggregation_enabled => false
+  )
+end
+
+post_install do |installer|
+  targets = installer.pod_targets.map do |target|
+    native = installer.pods_project.targets.find { |candidate| candidate.name == target.label }
+    next unless native && native.respond_to?(:source_build_phase)
+    config = native.build_configurations.find { |candidate| candidate.name == 'Release' }
+    files = native.source_build_phase.files.filter_map do |build_file|
+      next unless build_file.file_ref
+      path = build_file.file_ref.real_path.to_s
+      next unless path.match?(/\.(m|mm|c|cc|cpp|cxx|S)$/)
+      { :path => path, :flags => (build_file.settings || {})['COMPILER_FLAGS'] }
+    end
+    {
+      :name => target.label,
+      :root => target.file_accessors.first.path_list.root.to_s,
+      :files => files,
+      :frameworks => target.spec_consumers.flat_map(&:frameworks).uniq,
+      :weak_frameworks => target.spec_consumers.flat_map(&:weak_frameworks).uniq,
+      :libraries => target.spec_consumers.flat_map(&:libraries).uniq,
+      :xcconfig => config.base_configuration_reference.real_path.to_s,
+      :settings => config.build_settings
+    }
+  end.compact
+  File.write(File.expand_path('../native-build-manifest.json', __dir__), JSON.pretty_generate(targets))
+end
