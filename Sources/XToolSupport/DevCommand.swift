@@ -3,7 +3,6 @@ import Foundation
 import ArgumentParser
 import PackLib
 import XKit
-import Dependencies
 import XUtils
 
 struct PackOperation {
@@ -179,7 +178,8 @@ struct DevBuildCommand: AsyncParsableCommand {
 
         let finalURL: URL
         if ipa {
-            @Dependency(\.zipCompressor) var compressor
+            // an .ipa is meant to be distributed, so compress it
+            let compressor = ZIPCompressor.process(compressionLevel: 9)
             finalURL = url.deletingPathExtension().appendingPathExtension("ipa")
             let tmpDir = try TemporaryDirectory(name: "Payload")
             let payloadDir = tmpDir.url
