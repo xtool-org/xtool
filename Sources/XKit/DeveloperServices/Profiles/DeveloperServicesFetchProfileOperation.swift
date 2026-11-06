@@ -49,32 +49,45 @@ public struct DeveloperServicesFetchProfileOperation: DeveloperServicesOperation
             throw Errors.tooManyMatchingBundleIDs
         }
 
-        let profiles = bundleID.relationships?.profiles?.data ?? []
-        switch profiles.count {
-        case 0:
-            // we're good
-            break
-        case 1:
-            _ = try await context.developerAPIClient.profilesDeleteInstance(path: .init(id: profiles[0].id)).noContent
-        default:
-            // if the user has >1 profile, it's probably okay to add another one (acceptable for non-free accounts?)
-            break
-        }
-
-        // Match locally rather than with filter[serialNumber]: the API lists serials with a
-        // leading zero nibble ("0E41…") but its filter only matches them without it ("E41…").
-        let certs = try await DeveloperAPIPages {
+        // match locally rather than with filter[serialNumber]: server-side matching bugs out
+        // when the serial has leading zeroes (#305)
+        let certs = try await DeveloperAPIPages(\.links.next) {
             try await context.developerAPIClient.certificatesGetCollection().ok.body.json
-        } next: {
-            $0.links.next
         }
         .map(\.data)
         .reduce(into: [], +=)
         .filter { $0.attributes?.serialNumber.map(signingInfo.certificate.hasSerialNumber) == true }
 
-        let allDevices = try await context.developerAPIClient.devicesGetCollection()
+        let allDevices = try await DeveloperAPIPages(\.links.next) {
+            try await context.developerAPIClient.devicesGetCollection().ok.body.json
+        }
+        .map(\.data)
+        .reduce(into: [], +=)
+        .filter {
+            $0.attributes?.status?.value1 != .disabled
+            && $0.attributes?.deviceClass?.value1?.supportsIOSApps == true
+        }
+
+        try Task.checkCancellation()
+
+        let profileName = "XTL profile \(bundleID.id)"
+
+        let profiles = bundleID.relationships?.profiles?.data ?? []
+        if !profiles.isEmpty {
+            // we can't create multiple profiles with the same name, so
+            // if there's already one delete it first
+            let matchingProfiles = try await context.developerAPIClient.profilesGetCollection(query: .init(
+                filter_lbrack_name_rbrack_: [profileName],
+                filter_lbrack_id_rbrack_: profiles.map(\.id),
+                fields_lbrack_profiles_rbrack_: [.name],
+            ))
             .ok.body.json.data
-            .filter { $0.attributes?.deviceClass?.value1?.supportsIOSApps == true }
+            .filter { $0.attributes?.name == profileName }
+
+            _ = try await matchingProfiles.concurrentMap {
+                try await context.developerAPIClient.profilesDeleteInstance(path: .init(id: $0.id)).noContent
+            }
+        }
 
         let response = try await context.developerAPIClient.profilesCreateInstance(
             body: .json(
@@ -82,7 +95,7 @@ public struct DeveloperServicesFetchProfileOperation: DeveloperServicesOperation
                     data: .init(
                         _type: .profiles,
                         attributes: .init(
-                            name: "XTL profile \(bundleID.id)",
+                            name: profileName,
                             profileType: .init(.iosAppDevelopment)
                         ),
                         relationships: .init(

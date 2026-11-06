@@ -24,10 +24,8 @@ struct DSIdentifiersListCommand: AsyncParsableCommand {
     func run() async throws {
         let client = DeveloperAPIClient(auth: try AuthToken.saved().authData())
 
-        let bundleIDs = try await DeveloperAPIPages {
+        let bundleIDs = try await DeveloperAPIPages(\.links.next) {
             try await client.bundleIdsGetCollection().ok.body.json
-        } next: {
-            $0.links.next
         }
         .map(\.data)
         .reduce(into: [], +=)
