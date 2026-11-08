@@ -256,6 +256,11 @@ extension Plan.Product {
             .unsafeFlags([
                 // Set the entry point to Foundation`_NSExtensionMain
                 "-Xlinker", "-e", "-Xlinker", "_NSExtensionMain",
+                // _NSExtensionMain calls main if there is one (e.g. a SwiftUI @main
+                // WidgetBundle), but nothing references it so it would be dead stripped.
+                // Keep it alive, and allow it to be missing for principal class extensions
+                "-Xlinker", "-u", "-Xlinker", "_main",
+                "-Xlinker", "-U", "-Xlinker", "_main",
                 // Include frameworks that the host app may use
                 "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks",
                 // ...as well as our own
