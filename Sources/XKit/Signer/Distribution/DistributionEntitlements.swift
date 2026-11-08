@@ -17,6 +17,11 @@ public enum DistributionEntitlements {
     /// Granted by the profile and claimed whether or not the app asks for them (Xcode does the same).
     private static let alwaysClaimedKeys: Set<String> = ["beta-reports-active"]
 
+    /// Claimed with the profile's value when the app asks for them, whatever value it asks for. An
+    /// app's entitlements file says `aps-environment` = `development` for debug builds; Xcode
+    /// switches it to the profile's `production` when exporting for distribution.
+    private static let profileValuedKeys: Set<String> = ["aps-environment"]
+
     public static func resolve(
         profile: DistributionProfile,
         bundleID: String,
@@ -34,7 +39,9 @@ public enum DistributionEntitlements {
 
         var result: [String: Any] = [:]
         for (key, grant) in granted where !profileOwnedKeys.contains(key) {
-            if let request = requested[key] {
+            if requested[key] != nil, profileValuedKeys.contains(key) {
+                result[key] = grant
+            } else if let request = requested[key] {
                 guard permits(grant: grant, request: request) else {
                     throw DistributionSigningError.entitlementNotInProfile(key: key, profile: profile.name)
                 }

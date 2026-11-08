@@ -219,13 +219,16 @@ private func resolved(
         #expect(!DistributionEntitlements.permits(grant: ["group.a"], request: "group.b"))
     }
 
+    @Test func takesThePushEnvironmentFromTheProfile() throws {
+        // the app's entitlements file says development, as for every debug build; like Xcode's
+        // export, the distribution signature claims the profile's production environment
+        let ents = try resolved(SigningFixtures.appstoreProfile, requested: ["aps-environment": "development"])
+        #expect(ents["aps-environment"] as? String == "production")
+    }
+
     @Test func rejectsEntitlementsTheProfileDoesNotAllow() throws {
         #expect(throws: DistributionSigningError.self) {
             try resolved(SigningFixtures.appstoreProfile, requested: ["com.apple.developer.healthkit": true])
-        }
-        // a development push environment in a production profile
-        #expect(throws: DistributionSigningError.self) {
-            try resolved(SigningFixtures.appstoreProfile, requested: ["aps-environment": "development"])
         }
         // an app group the profile doesn't list
         #expect(throws: DistributionSigningError.self) {
