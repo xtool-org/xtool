@@ -80,6 +80,24 @@ private func messages(_ findings: [IPAFinding]) -> String {
         ))
     }
 
+    @Test func requiresIPadOrientationsForIPadBuilds() throws {
+        var fixture = IPAFixture()
+        fixture.infoPlist?["UIDeviceFamily"] = [1, 2]
+        let report = try fixture.report()
+        #expect(report.errors.count == 1)
+        #expect(messages(report.errors).contains("UISupportedInterfaceOrientations~ipad"))
+        #expect(messages(report.errors).contains("ITMS-90474"))
+
+        fixture.infoPlist?["UISupportedInterfaceOrientations~ipad"] = ["UIInterfaceOrientationPortrait"]
+        #expect(try fixture.report().findings.isEmpty)
+    }
+
+    @Test func doesNotRequireIPadOrientationsForIPhoneOnlyBuilds() throws {
+        var fixture = IPAFixture()
+        fixture.infoPlist?["UIDeviceFamily"] = [1]
+        #expect(try fixture.report().findings.isEmpty)
+    }
+
     @Test func warnsAboutKeysThatXcodeStamps() throws {
         var fixture = IPAFixture()
         fixture.infoPlist?["DTXcode"] = nil

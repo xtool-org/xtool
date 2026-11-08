@@ -107,6 +107,7 @@ public struct IPAInspector: Sendable {
         }
 
         checkIcon(in: info, app: app, error: { error($0) })
+        checkIPadOrientations(in: info, error: { error($0) })
         checkProfile(in: app, bundleID: values["CFBundleIdentifier"], error: { error($0) })
 
         let missing = xcodeStampedKeys.filter { info[$0] == nil }
@@ -156,6 +157,18 @@ public struct IPAInspector: Sendable {
         }
         if !FileManager.default.fileExists(atPath: app.appendingPathComponent("Assets.car").path) {
             error("The app has no Assets.car: the asset catalog must be compiled for App Store Connect.")
+        }
+    }
+
+    private static func checkIPadOrientations(in info: [String: Any], error: (String) -> Void) {
+        let family = (info["UIDeviceFamily"] as? [Any])?.compactMap { ($0 as? NSNumber)?.intValue } ?? []
+        guard family.contains(2) else { return }
+        let orientations = info["UISupportedInterfaceOrientations~ipad"] as? [Any] ?? []
+        if orientations.isEmpty {
+            error(
+                "Info.plist supports iPad (UIDeviceFamily contains 2) but has no UISupportedInterfaceOrientations~ipad. "
+                    + "App Store Connect rejects this with ITMS-90474."
+            )
         }
     }
 
