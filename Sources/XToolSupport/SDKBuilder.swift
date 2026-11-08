@@ -77,7 +77,42 @@ struct SDKBuilder {
     let mode: Mode
 
     // bump this when the sdk builder logic changes
-    static let sdkEpoch = 4
+    static let sdkEpoch = 5
+
+    static let platforms = ["iPhoneOS", "MacOSX", "iPhoneSimulator", "AppleTVOS", "AppleTVSimulator"]
+
+    static func sdkDefinition(sdks: [String: String]) -> SDKDefinition {
+        func triple(platform: String, sdk: String, catalyst: Bool) -> SDKDefinition.Triple {
+            let root = "Developer/Platforms/\(platform).platform/Developer/SDKs/\(sdk)"
+            let platformLibrary = "Developer/Platforms/\(platform).platform/Developer/usr/lib"
+            return SDKDefinition.Triple(
+                sdkRootPath: root,
+                includeSearchPaths: [platformLibrary] + (catalyst ? ["\(root)/System/iOSSupport/usr/include"] : []),
+                librarySearchPaths: [platformLibrary] + (catalyst ? ["\(root)/System/iOSSupport/usr/lib"] : []),
+                swiftResourcesPath: "Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift",
+                swiftStaticResourcesPath: "Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift_static",
+                toolsetPaths: ["toolset.json"]
+            )
+        }
+
+        let triplesByPlatform = [
+            "iPhoneOS": ["arm64-apple-ios"],
+            "iPhoneSimulator": ["arm64-apple-ios-simulator", "x86_64-apple-ios-simulator"],
+            "MacOSX": [
+                "arm64-apple-macosx", "x86_64-apple-macosx",
+                "arm64-apple-ios-macabi", "x86_64-apple-ios-macabi",
+            ],
+            "AppleTVOS": ["arm64-apple-tvos"],
+            "AppleTVSimulator": ["arm64-apple-tvos-simulator", "x86_64-apple-tvos-simulator"],
+        ]
+        var targetTriples: [String: SDKDefinition.Triple] = [:]
+        for (platform, sdk) in sdks {
+            for target in triplesByPlatform[platform] ?? [] {
+                targetTriples[target] = triple(platform: platform, sdk: sdk, catalyst: target.hasSuffix("-macabi"))
+            }
+        }
+        return SDKDefinition(schemaVersion: "4.0", targetTriples: targetTriples)
+    }
 
     // tag from https://github.com/xtool-org/darwin-tools-linux-llvm
     static let darwinToolsVersion = "1.1.0"
@@ -90,7 +125,18 @@ struct SDKBuilder {
         """
     }
 
-    // swiftlint:disable:next function_body_length
+    static func sdkName(in directory: URL, platform: String, prefix: String) throws -> String? {
+        let names = try directory.contents().map(\.lastPathComponent)
+        let regex = try NSRegularExpression(pattern: #"^\#(prefix)\d+\.\d+\.sdk$"#)
+        guard let name = names.first(where: {
+            regex.firstMatch(in: $0, range: NSRange($0.startIndex..., in: $0)) != nil
+        }) else {
+            if platform.hasPrefix("AppleTV") { return nil }
+            throw Console.Error("Could not find SDK for \(platform)/\(prefix)")
+        }
+        return name
+    }
+
     func buildSDK() async throws {
         let sdkVersion = Self.currentSDKVersion
 
@@ -109,38 +155,15 @@ struct SDKBuilder {
 
         let dev = try await installDeveloper(in: output)
 
-        func sdk(platform: String, prefix: String) throws -> String {
-            let regex = try NSRegularExpression(pattern: #"^\#(prefix)\d+\.\d+\.sdk$"#)
-            let dir = dev.appendingPathComponent("Platforms/\(platform).platform/Developer/SDKs")
-            let names = try dir.contents().map(\.lastPathComponent)
-            guard let name = names.first(where: {
-                regex.firstMatch(in: $0, range: NSRange($0.startIndex..., in: $0)) != nil
-            }) else {
-                throw Console.Error("Could not find SDK for \(platform)/\(prefix)")
-            }
-            return name
+        var sdks: [String: String] = [:]
+        for platform in Self.platforms {
+            let sdkDirectory = dev.appendingPathComponent("Platforms/\(platform).platform/Developer/SDKs")
+            // Xcode installations may omit optional tvOS SDKs. Do not advertise unavailable triples.
+            if platform.hasPrefix("AppleTV") && !sdkDirectory.dirExists { continue }
+            guard let name = try Self.sdkName(in: sdkDirectory, platform: platform, prefix: platform) else { continue }
+            sdks[platform] = name
+            d.out.print("- \(name)")
         }
-
-        func triple(platform: String, sdk: String) -> SDKDefinition.Triple {
-            SDKDefinition.Triple(
-                sdkRootPath: "Developer/Platforms/\(platform).platform/Developer/SDKs/\(sdk)",
-                includeSearchPaths: ["Developer/Platforms/\(platform).platform/Developer/usr/lib"],
-                librarySearchPaths: ["Developer/Platforms/\(platform).platform/Developer/usr/lib"],
-                swiftResourcesPath: "Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift",
-                swiftStaticResourcesPath: "Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift_static",
-                toolsetPaths: ["toolset.json"]
-            )
-        }
-
-        let iPhoneOSSDK = try sdk(platform: "iPhoneOS", prefix: "iPhoneOS")
-        let iPhoneSimSDK = try sdk(platform: "iPhoneSimulator", prefix: "iPhoneSimulator")
-        let macOSSDK = try sdk(platform: "MacOSX", prefix: "MacOSX")
-
-        d.out.print("""
-        - \(iPhoneOSSDK)
-        - \(iPhoneSimSDK)
-        - \(macOSSDK)
-        """)
 
         d.out.print("[Writing metadata]")
         try """
@@ -213,16 +236,7 @@ struct SDKBuilder {
             encoding: .utf8
         )
 
-        let sdkDefinition = SDKDefinition(
-            schemaVersion: "4.0",
-            targetTriples: [
-                "arm64-apple-ios": triple(platform: "iPhoneOS", sdk: iPhoneOSSDK),
-                "arm64-apple-ios-simulator": triple(platform: "iPhoneSimulator", sdk: iPhoneSimSDK),
-                "x86_64-apple-ios-simulator": triple(platform: "iPhoneSimulator", sdk: iPhoneSimSDK),
-                "arm64-apple-macosx": triple(platform: "MacOSX", sdk: macOSSDK),
-                "x86_64-apple-macosx": triple(platform: "MacOSX", sdk: macOSSDK),
-            ]
-        )
+        let sdkDefinition = Self.sdkDefinition(sdks: sdks)
 
         let encoder = JSONEncoder()
         try encoder
@@ -543,6 +557,10 @@ struct SDKBuilder {
         }
         try Task.checkCancellation()
 
+        try FileManager.default.copyItem(
+            at: appDir.appendingPathComponent("Contents/version.plist"),
+            to: output.appendingPathComponent("xcode-version.plist")
+        )
         try FileManager.default.createDirectory(at: dev, withIntermediateDirectories: false)
 
         var toDoDirs: [String] = ["Contents/Developer"]
@@ -598,9 +616,12 @@ struct SDKBuilder {
 
         d.out.print("[Finalizing SDKs]")
 
-        for platform in ["iPhoneOS", "MacOSX", "iPhoneSimulator"] {
+        for platform in Self.platforms {
             let lib = "../../../../../Library"
             let platformDir = dev.appending(path: "Platforms/\(platform).platform")
+            let sdkDirectory = platformDir.appending(path: "Developer/SDKs")
+            guard sdkDirectory.dirExists else { continue }
+            guard try Self.sdkName(in: sdkDirectory, platform: platform, prefix: platform) != nil else { continue }
 
             try patchPlatformManifest(path: platformDir.appending(path: "Info.plist"))
 
@@ -857,24 +878,27 @@ struct SDKEntry {
         return parts.dropFirst().reduce(SDKEntry(parts.first!, values)) { SDKEntry($1, [$0]) }
     }
 
-    static let wanted = E("Contents/Developer", [
-        E("Toolchains/XcodeDefault.xctoolchain/usr/lib", [
-            E("swift"),
-            E("swift_static"),
-            E("clang"),
-        ]),
-        E("Platforms", ["iPhoneOS", "MacOSX", "iPhoneSimulator"].map {
-            E("\($0).platform", [
-                E("Info.plist"),
-                E("Developer", [
-                    E("SDKs"),
-                    E("Library", [
-                        E("Frameworks"),
-                        E("PrivateFrameworks"),
-                    ]),
-                    E("usr/lib"),
+    static let wanted = E("Contents", [
+        E("version.plist"),
+        E("Developer", [
+            E("Toolchains/XcodeDefault.xctoolchain/usr/lib", [
+                E("swift"),
+                E("swift_static"),
+                E("clang"),
+            ]),
+            E("Platforms", SDKBuilder.platforms.map {
+                E("\($0).platform", [
+                    E("Info.plist"),
+                    E("Developer", [
+                        E("SDKs"),
+                        E("Library", [
+                            E("Frameworks"),
+                            E("PrivateFrameworks"),
+                        ]),
+                        E("usr/lib"),
+                    ])
                 ])
-            ])
-        }),
+            }),
+        ]),
     ])
 }

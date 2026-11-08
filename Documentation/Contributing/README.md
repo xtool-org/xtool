@@ -18,6 +18,12 @@ After building, a symlink to the product will be created at `./macOS/Build/xtool
 
 You need to have a few dependencies on Linux; see [Dockerfile](/Dockerfile) for specifics. It's often easiest to develop within Docker itself: see [Linux/README.md](/Linux/README.md) for details.
 
+With an installed Darwin Swift SDK, `integration-tests/check-catalyst-sdk.sh <Catalyst SDK root>`
+checks the documented direct SwiftPM framework options. Use the absolute SDK root reported by
+`xtool sdk status --triple arm64-apple-ios-macabi`. The probe compiles a UIKit Swift overlay API;
+it does not link or run an app. Additional arguments are passed to `swift build`, including
+`--swift-sdks-path` when testing an isolated SDK directory.
+
 ## Debugging
 
 Check out [./Debugging.md](./Debugging.md) for help with debugging xtool issues during development.
