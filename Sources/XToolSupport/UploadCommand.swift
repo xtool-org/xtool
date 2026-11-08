@@ -1,5 +1,7 @@
 import Foundation
 import XKit
+import XUtils
+import XCLIUtils
 import ArgumentParser
 
 struct UploadCommand: AsyncParsableCommand {
@@ -46,11 +48,11 @@ struct UploadCommand: AsyncParsableCommand {
 
         let report = try await IPAInspector().inspect(ipa: ipa)
         for finding in report.findings {
-            print(finding)
+            d.out.print(finding)
         }
         if check {
             guard report.errors.isEmpty else { throw ExitCode.failure }
-            print("No errors found.")
+            d.out.print("No errors found.")
             return
         }
         if !report.errors.isEmpty && !skipCheck {
@@ -76,9 +78,9 @@ struct UploadCommand: AsyncParsableCommand {
             appID = try await uploader.resolveApp(bundleID: info.bundleID)
         }
 
-        print("\(info.bundleID) \(info.version) (\(info.build)), \(info.platform), app \(appID)")
+        d.out.print("\(info.bundleID) \(info.version) (\(info.build)), \(info.platform), app \(appID)")
         if dryRun {
-            print("Dry run: nothing was uploaded.")
+            d.out.print("Dry run: nothing was uploaded.")
             return
         }
 
@@ -86,30 +88,30 @@ struct UploadCommand: AsyncParsableCommand {
             ipa: ipa, info: info, appID: appID, wait: wait, onEvent: Self.printEvent
         )
         for message in result.warnings {
-            print("warning: \(message)")
+            d.out.print("warning: \(message)")
         }
         for message in result.infos {
-            print("note: \(message)")
+            d.out.print("note: \(message)")
         }
         if wait {
-            print("Build \(info.build) was accepted by App Store Connect.")
+            d.out.print("Build \(info.build) was accepted by App Store Connect.")
         } else {
-            print("Uploaded. App Store Connect is processing the build (state: \(result.state)). Use --wait to follow it.")
+            d.out.print("Uploaded. App Store Connect is processing the build (state: \(result.state)). Use --wait to follow it.")
         }
     }
 
     private static func printEvent(_ event: BuildUploader.Event) {
         switch event {
         case .createdUpload(let id):
-            print("Created upload \(id)")
+            d.out.print("Created upload \(id)")
         case .reservedFile(let parts):
-            print("Uploading \(parts) part\(parts == 1 ? "" : "s")...")
+            d.out.print("Uploading \(parts) part\(parts == 1 ? "" : "s")...")
         case .uploadedPart(let completed, let total):
-            print("Uploaded part \(completed)/\(total)")
+            d.out.print("Uploaded part \(completed)/\(total)")
         case .committedFile:
-            print("Upload finished.")
+            d.out.print("Upload finished.")
         case .processing(let state):
-            print("Processing: \(state)")
+            d.out.print("Processing: \(state)")
         }
     }
 }
