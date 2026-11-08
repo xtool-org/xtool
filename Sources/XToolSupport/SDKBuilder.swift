@@ -2,6 +2,7 @@ import XCLIUtils
 import Foundation
 import Dependencies
 import libunxip
+import PackLib
 import Subprocess
 import XKit // HTTPClient, stdoutSafe
 import XUtils // System.File{Path,Descriptor}
@@ -590,6 +591,17 @@ struct SDKBuilder {
             d.out.print("\r[Installing SDKs] 100%", terminator: "")
         }
         d.out.print()
+
+        // Slim SDKs drop the version.plist files, so record what the DT* Info.plist keys need.
+        // This has to happen before the staging copy of appDir is removed.
+        let buildInfo = SDKBuildInfo.collect(
+            xcodeContents: appDir.appendingPathComponent("Contents"),
+            developer: appDir.appendingPathComponent("Contents/Developer")
+        )
+        if !buildInfo.missingFields.isEmpty {
+            print("warning: could not determine \(buildInfo.missingFields.joined(separator: ", ")) from Xcode")
+        }
+        try buildInfo.write(to: output)
 
         if let cleanupStageDir {
             d.out.print("[Cleaning up]")

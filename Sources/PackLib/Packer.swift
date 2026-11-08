@@ -5,10 +5,72 @@ import Subprocess
 public struct Packer: Sendable {
     public let buildSettings: BuildSettings
     public let plan: Plan
+    private let sdkBuildInfo: SDKBuildInfo?
 
     public init(buildSettings: BuildSettings, plan: Plan) {
+        self.init(buildSettings: buildSettings, plan: plan, sdkBuildInfo: (try? DarwinSDK.current())?.buildInfo)
+    }
+
+    package init(buildSettings: BuildSettings, plan: Plan, sdkBuildInfo: SDKBuildInfo?) {
         self.plan = plan
         self.buildSettings = buildSettings
+        self.sdkBuildInfo = sdkBuildInfo
+    }
+
+    /// Environment variable that sets `BuildMachineOSBuild` (e.g. `25G83`) in the packed Info.plists.
+    package static let buildMachineOSBuildVariable = "XTOOL_BUILD_MACHINE_OS_BUILD"
+
+    /// Value stamped for `BuildMachineOSBuild`, the build number of the macOS that ran the build.
+    ///
+    /// Xcode always sets it, but a Linux host has no honest value, so by default the key is omitted
+    /// (SwiftBuild drops it when empty). If App Store Connect turns out to require it, change
+    /// the default here, or set the environment variable to try a value without rebuilding.
+    package static func buildMachineOSBuild(
+        environment: [String: String] = ProcessInfo.processInfo.environment
+    ) -> String? {
+        environment[buildMachineOSBuildVariable].flatMap { $0.isEmpty ? nil : $0 }
+    }
+
+    /// Adds the Apple build keys (`DTXcode`, `DTSDKBuild`, ...) to `info`.
+    ///
+    /// Keys that are already present, e.g. from the user's own Info.plist, are never overwritten.
+    package static func stampBuildInfo(
+        _ buildInfo: SDKBuildInfo,
+        buildMachineOSBuild: String?,
+        into info: inout [String: any Sendable]
+    ) {
+        let keys = buildInfo.infoPlistKeys(buildMachineOSBuild: buildMachineOSBuild)
+        for (key, value) in keys where info[key] == nil {
+            info[key] = value
+        }
+    }
+
+    /// Whether the Apple build keys apply: they describe the iPhoneOS SDK, so device builds only.
+    static func stampsBuildInfo(for triple: String) -> Bool {
+        cfBundleSupportedPlatforms(for: triple) == ["iPhoneOS"]
+    }
+
+    private func warnAboutBuildInfo() {
+        guard Self.stampsBuildInfo(for: buildSettings.triple) else { return }
+        let message: String?
+        if let sdkBuildInfo {
+            let missing = sdkBuildInfo.missingFields
+            message = missing.isEmpty ? nil : """
+            warning: the Darwin SDK is missing build information (\(missing.joined(separator: ", "))), \
+            so some DT* keys are omitted from Info.plist. App Store Connect may reject the build.
+            """
+        } else if (try? DarwinSDK.current()) != nil {
+            message = """
+            warning: the installed Darwin SDK does not record its Xcode build information, so the DT* \
+            keys are omitted from Info.plist. App Store Connect may reject the build. \
+            Reinstall the SDK with `xtool sdk install` to add them.
+            """
+        } else {
+            message = nil
+        }
+        if let message {
+            FileHandle.standardError.write(Data((message + "\n").utf8))
+        }
     }
 
     private func build() async throws {
@@ -87,6 +149,7 @@ public struct Packer: Sendable {
 
     public func pack() async throws -> URL {
         try await build()
+        warnAboutBuildInfo()
 
         let output = try TemporaryDirectory(name: "\(plan.app.product).app")
 
@@ -201,6 +264,14 @@ public struct Packer: Sendable {
                 info["UIRequiredDeviceCapabilities"] = ["arm64"]
                 info["LSRequiresIPhoneOS"] = true
                 info["CFBundleSupportedPlatforms"] = Packer.cfBundleSupportedPlatforms(for: buildSettings.triple)
+            }
+
+            if let sdkBuildInfo, Packer.stampsBuildInfo(for: buildSettings.triple) {
+                Packer.stampBuildInfo(
+                    sdkBuildInfo,
+                    buildMachineOSBuild: Packer.buildMachineOSBuild(),
+                    into: &info
+                )
             }
 
             if let iconPath = product.iconPath {
