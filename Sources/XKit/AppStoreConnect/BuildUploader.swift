@@ -53,7 +53,8 @@ public struct BuildUploader: Sendable {
         case partUploadFailed(partNumber: Int64?, underlying: Swift.Error)
         /// Apple processed the build and rejected it. Each entry is `code: description`.
         case processingFailed(uploadID: String, errors: [String])
-        case timedOut(uploadID: String)
+        /// Processing didn't finish in time. `state` is the last state that was seen.
+        case timedOut(uploadID: String, state: String, version: String, build: String)
 
         public var description: String {
             switch self {
@@ -71,9 +72,11 @@ public struct BuildUploader: Sendable {
             case .processingFailed(let uploadID, let errors):
                 "App Store Connect rejected the build (upload \(uploadID)):\n"
                     + errors.map { "- \($0)" }.joined(separator: "\n")
-            case .timedOut(let uploadID):
-                "Timed out waiting for App Store Connect to process upload \(uploadID). "
-                    + "It may still complete: check App Store Connect."
+            case .timedOut(let uploadID, let state, let version, let build):
+                "Timed out: build \(version) (\(build)) (upload \(uploadID)) is still \(state) in App Store Connect. "
+                    + "It may still complete, check its status there. "
+                    + "A build stuck in PROCESSING with no error has been seen when the ipa's asset catalog "
+                    + "was not compiled by actool."
             }
         }
 
@@ -198,7 +201,7 @@ public struct BuildUploader: Sendable {
         onEvent(.committedFile)
 
         if wait {
-            return try await waitForProcessing(uploadID: uploadID, onEvent: onEvent)
+            return try await waitForProcessing(uploadID: uploadID, info: info, onEvent: onEvent)
         } else {
             return try await status(of: uploadID)
         }
@@ -384,7 +387,7 @@ public struct BuildUploader: Sendable {
         )
     }
 
-    private func waitForProcessing(uploadID: String, onEvent: (Event) -> Void) async throws -> Result {
+    private func waitForProcessing(uploadID: String, info: IPAInfo, onEvent: (Event) -> Void) async throws -> Result {
         var interval = configuration.pollInterval
         var elapsed = Duration.zero
         while true {
@@ -413,7 +416,9 @@ public struct BuildUploader: Sendable {
                 break
             }
 
-            guard elapsed < configuration.timeout else { throw Error.timedOut(uploadID: uploadID) }
+            guard elapsed < configuration.timeout else { throw Error.timedOut(
+                uploadID: uploadID, state: name, version: info.version, build: info.build
+            ) }
             try await clock.sleep(for: interval)
             elapsed += interval
             interval = min(interval * 1.5, configuration.maxPollInterval)

@@ -215,11 +215,18 @@ private func happyPath(
                 try await BuildUploader(key: makeKey()).upload(ipa: ipa, info: info, appID: "APP1", wait: true)
             }
         }
-        guard case .timedOut(let uploadID) = error else {
+        guard case .timedOut(let uploadID, let state, let version, let build) = error else {
             Issue.record("unexpected error \(String(describing: error))")
             return
         }
         #expect(uploadID == "U1")
+        #expect(state == "PROCESSING")
+        #expect(version == info.version)
+        #expect(build == info.build)
+        let message = error?.description ?? ""
+        #expect(message.contains("still PROCESSING"))
+        #expect(message.contains("\(info.version) (\(info.build))"))
+        #expect(message.contains("actool"))
     }
 
     @Test func retriesAPartThatFailsTemporarily() async throws {
