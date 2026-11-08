@@ -236,6 +236,19 @@ public struct DeveloperServicesAddAppOperation: DeveloperServicesOperation {
             signingInfo: signingInfo
         ).perform()
 
+        // the profile is created last and doesn't necessarily grant everything we're about to claim
+        let profile = try mobileprovision.digest()
+        let reconciled = try EntitlementsReconciler.reconcile(
+            entitlements, with: profile.entitlements, profileName: profile.name
+        )
+        entitlements = reconciled.entitlements
+        for key in reconciled.removed {
+            FileHandle.standardError.write(Data((
+                "warning: dropping the entitlement '\(key)' from \(bundleID): it only applies to "
+                    + "distribution builds and the development profile doesn't grant it\n"
+            ).utf8))
+        }
+
         return ProvisioningInfo(
             newBundleID: newBundleID,
             entitlements: entitlements,
