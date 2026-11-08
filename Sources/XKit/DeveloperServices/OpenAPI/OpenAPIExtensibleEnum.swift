@@ -19,6 +19,8 @@ extension OpenAPIExtensibleEnum {
     }
 }
 
+extension Components.Schemas.AppMediaAssetState.StatePayload: OpenAPIExtensibleEnum {}
+extension Components.Schemas.BuildUploadState: OpenAPIExtensibleEnum {}
 extension Components.Schemas.BundleIdPlatform: OpenAPIExtensibleEnum {}
 extension Components.Schemas.CapabilityOption.KeyPayload: OpenAPIExtensibleEnum {}
 extension Components.Schemas.CapabilitySetting.KeyPayload: OpenAPIExtensibleEnum {}
