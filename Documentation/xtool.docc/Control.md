@@ -44,6 +44,26 @@ the app and its extensions. Missing required provenance causes an error instead 
 Its `.macCatalyst` deployment version controls compilation; `.macOS` supplies the separate
 `LSMinimumSystemVersion` value in the bundle's `Info.plist`.
 
+For Catalyst, use `xtool dev build` to supply the framework search paths as well as the generated
+Swift SDK's header and library paths. A direct `swift build --swift-sdk darwin` invocation needs
+explicit framework options. Swift SDK metadata schema 4 does not represent framework search paths,
+and Swift 6.4.1 does not add the SDK's `System/iOSSupport` frameworks automatically. Without these
+options, even `import UIKit` fails. For a direct SwiftPM library build, set `catalyst_sdk` to the
+absolute `SDK root` printed by `xtool sdk status --triple arm64-apple-ios-macabi`, then run:
+
+```bash
+catalyst_frameworks="$catalyst_sdk/System/iOSSupport/System/Library/Frameworks"
+swift build --build-system native --swift-sdk darwin --triple arm64-apple-ios-macabi \
+    -Xswiftc -F -Xswiftc "$catalyst_frameworks" \
+    -Xcc -F -Xcc "$catalyst_frameworks" \
+    -Xlinker "-F$catalyst_frameworks"
+```
+
+The Swift compiler needs its own framework option to load Swift overlays. Passing a framework path
+only to Clang can expose Objective-C declarations while leaving Swift-only APIs unavailable. Direct
+SwiftPM executable builds also need a compatible linker; the xtool linker override below applies
+to `xtool dev build`.
+
 `xtool dev build --print-supported-platforms` prints the platform names without building or requiring
 an installed SDK. This reports xtool's packaging capabilities; use the SDK status command to check
 the SDKs actually available on a machine.
@@ -55,9 +75,9 @@ Apple SDK. Set `XTOOL_LD64_LLD` to an absolute path to an updated `ld64.lld` exe
 the installed toolset's linker. The SDK status command checks this prerequisite for Catalyst targets.
 
 macOS and Mac Catalyst produce a `YourApp.app/Contents` bundle with `MacOS`, `Resources`, `Frameworks`,
-and `PlugIns` directories as needed. Their `Info.plist` is in `Contents`. These apps are left unsigned;
-apply entitlements and sign them with a macOS-capable signing tool. `--ipa` and automatic development
-signing are unavailable for these bundles. Automatic development signing remains limited to iOS.
+and `PlugIns` directories as needed. Their `Info.plist` is in `Contents`. When entitlements are configured,
+xtool applies them with an ad hoc signature. Sign with an appropriate identity separately. `--ipa` and
+automatic development signing are unavailable for these bundles. Automatic development signing remains limited to iOS.
 
 macOS and Mac Catalyst apps with Swift package resource bundles require SwiftBuild, selected
 automatically with Swift 6.4 or newer. Native SwiftPM builds of these apps fail with a diagnostic
