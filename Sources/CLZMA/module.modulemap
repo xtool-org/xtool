@@ -1,0 +1,5 @@
+module CLZMA [system] {
+    header "shim.h"
+    link "lzma"
+    export *
+}

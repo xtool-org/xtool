@@ -124,6 +124,25 @@ let package = Package(
             ],
             swiftSettings: swiftSettings,
         ),
+        .systemLibrary(
+            name: "CLZMA",
+            pkgConfig: "liblzma",
+            providers: [
+                .apt(["liblzma-dev"]),
+            ]
+        ),
+        // Apple Archive (.aar) and Apple Encrypted Archive (.aea) support
+        .target(
+            name: "XAppleArchive",
+            dependencies: [
+                "XUtils",
+                .target(name: "CLZMA", condition: .when(platforms: [.linux])),
+                .product(name: "Crypto", package: "swift-crypto"),
+                .product(name: "Dependencies", package: "swift-dependencies"),
+                .product(name: "X509", package: "swift-certificates"),
+            ],
+            swiftSettings: swiftSettings,
+        ),
         .target(
             name: "XKit",
             dependencies: [
@@ -173,6 +192,17 @@ let package = Package(
                 .product(name: "X509", package: "swift-certificates"),
                 .product(name: "CustomDump", package: "swift-custom-dump"),
             ],
+            swiftSettings: swiftSettings,
+        ),
+        .testTarget(
+            name: "XAppleArchiveTests",
+            dependencies: [
+                "XAppleArchive",
+                "XUtils",
+                .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
+                .product(name: "Crypto", package: "swift-crypto"),
+            ],
+            exclude: ["Fixtures"],
             swiftSettings: swiftSettings,
         ),
         .target(
