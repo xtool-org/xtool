@@ -17,7 +17,7 @@ extension EntitlementContainer {
         TeamIdentifierEntitlement.self,
         KeychainAccessGroupsEntitlement.self,
         GetTaskAllowEntitlement.self,
-//        AssociatedDomainsEntitlement.self,
+        AssociatedDomainsEntitlement.self,
         APSEnvironmentEntitlement.self,
         AppGroupEntitlement.self,
 //        NetworkExtensionEntitlement.self,
