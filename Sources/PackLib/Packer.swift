@@ -255,7 +255,9 @@ extension Plan.Product {
             // storyboard: the runtime instantiates it and `main` may not exist.
             // Otherwise (WidgetKit-style `@main`) it must come from the extension's
             // own library, as the builder's stub.c is empty. See Appex.md.
-            + (needsMainSymbol ? ["-Xlinker", "-u", "-Xlinker", "_main"] : [])
+            // For a principal class or storyboard, nothing references the classes
+            // the runtime looks up by name either: `-ObjC` keeps them.
+            + (needsMainSymbol ? ["-Xlinker", "-u", "-Xlinker", "_main"] : ["-Xlinker", "-ObjC"])
             // Include frameworks that the host app may use
             + ["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks"]
             // ...as well as our own

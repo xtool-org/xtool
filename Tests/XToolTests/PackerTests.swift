@@ -42,12 +42,15 @@ private func product(
     let plist: [String: any Sendable] = ["NSExtension": ["NSExtensionPointIdentifier": "com.apple.widgetkit-extension"]]
     let flags = product(.appExtension, infoPlist: plist).linkerFlags
     #expect(flags.contains(["-Xlinker", "-u", "-Xlinker", "_main"]))
+    #expect(!flags.contains("-ObjC"))
 }
 
 @Test func appExtensionWithPrincipalClassOmitsMainSymbol() {
     let plist: [String: any Sendable] = ["NSExtension": ["NSExtensionPrincipalClass": "NotificationService"]]
     let flags = product(.appExtension, infoPlist: plist).linkerFlags
     #expect(!flags.contains("-u"))
+    // the runtime looks the principal class up by name: keep the ObjC classes
+    #expect(flags.contains(["-Xlinker", "-ObjC"]))
     #expect(flags.contains(["-Xlinker", "-e", "-Xlinker", "_NSExtensionMain"]))
     #expect(flags.contains("@executable_path/../../Frameworks"))
 }
@@ -56,6 +59,7 @@ private func product(
     let plist: [String: any Sendable] = ["NSExtension": ["NSExtensionMainStoryboard": "MainInterface"]]
     let flags = product(.appExtension, infoPlist: plist).linkerFlags
     #expect(!flags.contains("-u"))
+    #expect(flags.contains(["-Xlinker", "-ObjC"]))
     #expect(flags.contains(["-Xlinker", "-e", "-Xlinker", "_NSExtensionMain"]))
 }
 
