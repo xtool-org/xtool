@@ -25,10 +25,8 @@ struct DSCertificatesListCommand: AsyncParsableCommand {
     func run() async throws {
         let client = DeveloperAPIClient(auth: try AuthToken.saved().authData())
 
-        let certificates = try await DeveloperAPIPages {
+        let certificates = try await DeveloperAPIPages(\.links.next) {
             try await client.certificatesGetCollection().ok.body.json
-        } next: {
-            $0.links.next
         }
         .map(\.data)
         .reduce(into: [], +=)

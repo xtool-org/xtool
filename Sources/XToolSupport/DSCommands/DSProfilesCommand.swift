@@ -27,10 +27,8 @@ struct DSProfilesListCommand: AsyncParsableCommand {
     func run() async throws {
         let client = DeveloperAPIClient(auth: try AuthToken.saved().authData())
 
-        let profiles = try await DeveloperAPIPages {
+        let profiles = try await DeveloperAPIPages(\.links.next) {
             try await client.profilesGetCollection().ok.body.json
-        } next: {
-            $0.links.next
         }
         .map(\.data)
         .reduce(into: [], +=)
