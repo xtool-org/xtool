@@ -13,6 +13,11 @@ import Dependencies
 public struct SigningInfo: Codable, Sendable {
     public let privateKey: PrivateKey
     public let certificate: Certificate
+
+    public init(privateKey: PrivateKey, certificate: Certificate) {
+        self.privateKey = privateKey
+        self.certificate = certificate
+    }
 }
 
 public protocol SigningInfoManager: Sendable {

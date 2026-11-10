@@ -20,7 +20,7 @@ struct CodesignToolTests {
         // Use the same RSA key representation as provisioning, with a temporary
         // self-signed certificate so this test needs no developer account.
         let key = try Keypair().privateKey()
-        let privateKey = try X509.Certificate.PrivateKey(pemEncoded: String(decoding: key.data, as: UTF8.self))
+        let privateKey = try X509.Certificate.PrivateKey(pemEncoded: String(decoding: key.pemData(), as: UTF8.self))
         let name = try DistinguishedName { CommonName("xtool signing tests") }
         let now = Date()
         let certificate = try XKit.Certificate(raw: X509.Certificate(

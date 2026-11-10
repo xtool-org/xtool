@@ -33,10 +33,27 @@ private let leadingZeroSerial: [UInt8] = [
     #expect(!certificate.hasSerialNumber(""))
 }
 
+@Test func certificateIsPairedWithItsPrivateKey() throws {
+    let key = P256.Signing.PrivateKey()
+    let certificate = try makeCertificate(serialNumber: leadingZeroSerial, key: key)
+    #expect(certificate.isPaired(with: try XKit.PrivateKey(pemEncoded: key.pemRepresentation)))
+    // `openssl pkcs12 -nocerts` prefixes the key with its bag attributes
+    let bagged = "Bag Attributes\n    localKeyID: 01 02 03\nKey Attributes: <No Attributes>\n" + key.pemRepresentation
+    #expect(certificate.isPaired(with: try XKit.PrivateKey(pemEncoded: bagged)))
+    let other = try XKit.PrivateKey(pemEncoded: P256.Signing.PrivateKey().pemRepresentation)
+    #expect(!certificate.isPaired(with: other))
+}
+
+@Test func privateKeyRejectsInvalidPEM() {
+    #expect(throws: (any Error).self) { try XKit.PrivateKey(pemEncoded: "not a key") }
+}
+
 /// Creates a self-signed certificate and round-trips it through DER,
 /// like the certificates we get from the developer API.
-private func makeCertificate(serialNumber: [UInt8]) throws -> XKit.Certificate {
-    let key = P256.Signing.PrivateKey()
+private func makeCertificate(
+    serialNumber: [UInt8],
+    key: P256.Signing.PrivateKey = .init()
+) throws -> XKit.Certificate {
     let name = try DistinguishedName {
         CommonName("xtool tests")
     }
@@ -54,4 +71,13 @@ private func makeCertificate(serialNumber: [UInt8]) throws -> XKit.Certificate {
         issuerPrivateKey: .init(key)
     )
     return try XKit.Certificate(data: XKit.Certificate(raw: certificate).data())
+}
+
+@Test func privateKeyRoundTripsThroughStorage() throws {
+    // SigningInfoManager persists keys as `{data: <PEM>}`
+    let pem = try Keypair().privateKey().pemData()
+    let stored = try PropertyListEncoder().encode(["data": pem])
+    let decoded = try PropertyListDecoder().decode(XKit.PrivateKey.self, from: stored)
+    #expect(try decoded.pemData() == pem)
+    #expect(try PropertyListEncoder().encode(decoded) == stored)
 }

@@ -76,6 +76,11 @@ public struct Certificate: Codable, Sendable {
         return normalized(serialNumber) == normalized(self.serialNumber())
     }
 
+    /// Whether `privateKey` is the private counterpart of this certificate's public key.
+    public func isPaired(with privateKey: PrivateKey) -> Bool {
+        privateKey.raw.publicKey == raw.publicKey
+    }
+
     public func wasIssuedBefore(_ other: Certificate) -> Bool {
         raw.notValidBefore < other.raw.notValidBefore
     }
