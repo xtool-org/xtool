@@ -72,7 +72,7 @@ private actor ConnectionManager {
             let client = try LockdownClient(
                 device: device,
                 label: LockdownClient.installerLabel,
-                performHandshake: false
+                performHandshake: key.connectionType == .network
             )
             let deviceName = try client.deviceName()
 
