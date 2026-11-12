@@ -133,7 +133,7 @@ public struct Packer: Sendable {
         return dest
     }
 
-    @Sendable private func pack(
+    @Sendable func pack(
         product: Plan.Product,
         binDir: URL,
         outputURL: URL,
@@ -163,7 +163,12 @@ public struct Packer: Sendable {
             group.addTask {
                 switch command {
                 case .bundle(let package, let target):
-                    try await packFile(srcName: "\(package)_\(target).bundle")
+                    let name = "\(package)_\(target).bundle"
+                    // `swift package describe` drops platform conditions on dependencies, so the plan
+                    // can include bundles of targets SwiftPM never built for this platform. Skip those.
+                    let path = URL(fileURLWithPath: name, relativeTo: binDir).path
+                    guard FileManager.default.fileExists(atPath: path) else { break }
+                    try await packFile(srcName: name)
                 case .binaryTarget(let name):
                     let src = URL(fileURLWithPath: "\(name).framework/\(name)", relativeTo: binDir)
                     let magic = Data("!<arch>\n".utf8)
