@@ -237,14 +237,24 @@ public struct Planner: Sendable {
     }
 
     private func dumpPackage(at path: String) async throws -> PackageDump {
-        let data = try await _dumpAction(arguments: ["-q", "describe", "--type", "json"], path: path)
+        async let describeData = _dumpAction(arguments: ["-q", "describe", "--type", "json"], path: path)
+        async let manifestData = _dumpAction(arguments: ["-q", "dump-package"], path: path)
+        var dump = try await Self.decoder.decode(PackageDump.self, from: Self.dropToBrace(describeData))
+        let manifest = try await Self.decoder.decode(PackageManifest.self, from: Self.dropToBrace(manifestData))
         try Task.checkCancellation()
 
-        // As in dumpDependencies, we may end up with extraneous data, but `describe`
-        // doesn't have a `-o` flag for a clean workaround. Resort to a heuristic,
-        // looking for the opening brace.
-        let fromBrace = data.drop(while: { $0 != Character("{").asciiValue })
-        return try Self.decoder.decode(PackageDump.self, from: fromBrace)
+        // `describe` lists target dependencies without their platform conditions,
+        // so drop the ones that SwiftPM won't build for iOS. Otherwise we'd plan
+        // resource bundles that never get built.
+        dump.removeDependencies(manifest.dependenciesExcluded(onPlatform: "ios"))
+        return dump
+    }
+
+    // As in dumpDependencies, we may end up with extraneous data, but `describe`
+    // and `dump-package` don't have a `-o` flag for a clean workaround. Resort to
+    // a heuristic, looking for the opening brace.
+    private static func dropToBrace(_ data: Data) -> Data {
+        data.drop(while: { $0 != Character("{").asciiValue })
     }
 
     private func _dumpAction(arguments: [String], path: String) async throws -> Data {
@@ -413,8 +423,8 @@ private struct PackageDump: Decodable {
         let name: String
         let moduleType: String
         let type: String?
-        let productDependencies: [String]?
-        let targetDependencies: [String]?
+        var productDependencies: [String]?
+        var targetDependencies: [String]?
         let resources: [Resource]?
     }
 
@@ -429,8 +439,98 @@ private struct PackageDump: Decodable {
 
     let name: String
     let products: [Product]?
-    let targets: [Target]?
+    var targets: [Target]?
     let platforms: [Platform]?
+
+    /// Removes dependencies by name, keyed by the name of the target that declares them.
+    mutating func removeDependencies(_ excluded: [String: Set<String>]) {
+        guard let targets else { return }
+        self.targets = targets.map { target in
+            guard let names = excluded[target.name] else { return target }
+            var target = target
+            target.targetDependencies?.removeAll(where: names.contains)
+            target.productDependencies?.removeAll(where: names.contains)
+            return target
+        }
+    }
+}
+
+/// The subset of `swift package dump-package` output that `describe` omits:
+/// the platform conditions on each target dependency.
+struct PackageManifest: Decodable {
+    struct Target: Decodable {
+        let name: String
+        let dependencies: [Dependency]
+    }
+
+    /// A dependency is encoded as a single-key object (`target`, `product`, or `byName`)
+    /// whose value is an array starting with the name and ending with the condition.
+    struct Dependency: Decodable {
+        let name: String
+        let platformNames: [String]?
+
+        private struct AnyKey: CodingKey {
+            var stringValue: String
+            var intValue: Int? { nil }
+            init(stringValue: String) { self.stringValue = stringValue }
+            init?(intValue: Int) { nil }
+        }
+
+        private struct Condition: Decodable {
+            let platformNames: [String]?
+        }
+
+        /// Any element after the name: a string, null, module aliases, or the condition.
+        private struct Element: Decodable {
+            let condition: Condition?
+
+            init(from decoder: Decoder) throws {
+                let container = try decoder.singleValueContainer()
+                condition = container.decodeNil() ? nil : try? container.decode(Condition.self)
+            }
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: AnyKey.self)
+            guard let key = container.allKeys.first else {
+                throw DecodingError.dataCorrupted(.init(
+                    codingPath: decoder.codingPath,
+                    debugDescription: "Expected a target, product, or byName dependency"
+                ))
+            }
+            var values = try container.nestedUnkeyedContainer(forKey: key)
+            name = try values.decode(String.self)
+            // The condition is the last element; the elements in between are
+            // the package name and module aliases for product dependencies.
+            var condition: Condition?
+            while !values.isAtEnd {
+                condition = try values.decode(Element.self).condition
+            }
+            platformNames = condition?.platformNames
+        }
+
+        func isExcluded(onPlatform platform: String) -> Bool {
+            guard let platformNames, !platformNames.isEmpty else { return false }
+            return !platformNames.contains(platform)
+        }
+    }
+
+    let targets: [Target]
+
+    /// The names of dependencies that don't apply on `platform`, keyed by the name of
+    /// the target that declares them. Targets with none are omitted.
+    func dependenciesExcluded(onPlatform platform: String) -> [String: Set<String>] {
+        var result: [String: Set<String>] = [:]
+        for target in targets {
+            let names = target.dependencies
+                .filter { $0.isExcluded(onPlatform: platform) }
+                .map(\.name)
+            if !names.isEmpty {
+                result[target.name] = Set(names)
+            }
+        }
+        return result
+    }
 }
 
 private struct PackageGraph {
