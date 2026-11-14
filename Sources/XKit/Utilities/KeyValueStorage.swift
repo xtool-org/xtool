@@ -104,7 +104,7 @@ public struct DirectoryStorage: KeyValueStorage {
             try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         }
         if let data = data {
-            try data.write(to: url)
+            try data.write(to: url, options: .atomic)
         } else {
             try FileManager.default.removeItem(at: url)
         }
@@ -165,17 +165,27 @@ public struct KeychainStorage: KeyValueStorage {
         lock.lock()
         defer { lock.unlock() }
 
-        // remove old before setting new value
-        try Self.check(SecItemDelete(makeQuery(forKey: key, [:])), ignoreNotFound: true)
+        let query = makeQuery(forKey: key, [:])
+        guard let data else {
+            try Self.check(SecItemDelete(query), ignoreNotFound: true)
+            return
+        }
 
-        guard let data = data else { return }
-
-        let query = makeQuery(forKey: key, [
-            kSecValueData: data,
-            kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlock
-        ])
-
-        try Self.check(SecItemAdd(query, nil))
+        let update = SecItemUpdate(query, [kSecValueData: data] as CFDictionary)
+        if update == errSecItemNotFound {
+            let add = makeQuery(forKey: key, [
+                kSecValueData: data,
+                kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlock
+            ])
+            let result = SecItemAdd(add, nil)
+            if result == errSecDuplicateItem {
+                try Self.check(SecItemUpdate(query, [kSecValueData: data] as CFDictionary))
+            } else {
+                try Self.check(result)
+            }
+        } else {
+            try Self.check(update)
+        }
     }
 
 }
