@@ -78,11 +78,18 @@ struct AuthOperation {
     }
 
     private func logInWithPassword() async throws -> AuthToken {
+        let anisetteNote = d.rawADIProvider.isLocal ? """
+          Anisette data is generated locally using Apple's ADI code. The first login
+          downloads and verifies the required runtime and Apple files.
+          Your credentials are only ever sent to Apple.
+        """ : """
+          We use a third-party service to create a randomized device ID token
+          (Anisette Data) but your credentials are only ever sent to Apple.
+        """
         d.out.print("""
         Heads up:
           This works by emulating a virtual Mac to interact with Apple services.
-          We use a third-party service to create a randomized device ID token
-          (Anisette Data) but your credentials are only ever sent to Apple.
+        \(anisetteNote)
           Still, consider using a secondary Apple ID since this is a private API.
         """)
 

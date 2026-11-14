@@ -1,5 +1,5 @@
 {
-  "originHash" : "2ccd077fc130f0f1b1279d87aa61d1fc243964d7ad49489a12021577c54df9de",
+  "originHash" : "20cf2946fd0e379a1edfe10068ea6508504ae98b1636b0b340ab201c83995e6c",
   "pins" : [
     {
       "identity" : "aexml",
@@ -35,6 +35,39 @@
       "state" : {
         "revision" : "114354e8c1667a2edc4993700fb9fa4f90157b56",
         "version" : "1.2.2"
+      }
+    },
+    {
+      "identity" : "libzbitmap",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/KishanBagaria/libzbitmap",
+      "state" : {
+        "revision" : "8408434bf13d4601f5de808b64037629b22d4a3e"
+      }
+    },
+    {
+      "identity" : "lzfse-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/KishanBagaria/lzfse-swift",
+      "state" : {
+        "revision" : "bfdc057250a065ac1cb76dabc7b2484ba800b7c6"
+      }
+    },
+    {
+      "identity" : "machokit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/p-x9/MachOKit",
+      "state" : {
+        "revision" : "86e3a0734c9f7fbb959ccbd4be233b378ed59815"
+      }
+    },
+    {
+      "identity" : "objectarchivekit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/p-x9/ObjectArchiveKit.git",
+      "state" : {
+        "revision" : "96d782a576273b73b277b577943a2a25b00b919e",
+        "version" : "0.5.0"
       }
     },
     {
@@ -83,6 +116,15 @@
       }
     },
     {
+      "identity" : "swift-anisette",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/KishanBagaria/swift-anisette",
+      "state" : {
+        "branch" : "main",
+        "revision" : "9cc134befa7b99ad24143454ae7ae6a9757135c4"
+      }
+    },
+    {
       "identity" : "swift-argument-parser",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-argument-parser.git",
@@ -116,6 +158,15 @@
       "state" : {
         "revision" : "0442cb5a3f98ab802acb777929fdb446bda11a34",
         "version" : "1.3.1"
+      }
+    },
+    {
+      "identity" : "swift-binary-parse-support",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/p-x9/swift-binary-parse-support.git",
+      "state" : {
+        "revision" : "b4042df3819fde93ce952a111607ec8ffc4ee704",
+        "version" : "0.3.0"
       }
     },
     {
@@ -215,6 +266,24 @@
       "state" : {
         "revision" : "b45d1f2ed151d057b54504d653e0da5552844e34",
         "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "swift-fileio",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/p-x9/swift-fileio.git",
+      "state" : {
+        "revision" : "13a83389fb4844f279b43012c4b8d7a3f95773bf",
+        "version" : "0.15.1"
+      }
+    },
+    {
+      "identity" : "swift-fileio-extra",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/p-x9/swift-fileio-extra.git",
+      "state" : {
+        "revision" : "8e7d47436bd3b2d73ddd4e0be0c689b3c8aa1b87",
+        "version" : "0.4.0"
       }
     },
     {

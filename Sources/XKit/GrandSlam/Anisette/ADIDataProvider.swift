@@ -1,9 +1,16 @@
 import Foundation
-import Crypto
 import ConcurrencyExtras
 import Dependencies
+import XUtils
 
 public protocol RawADIProvider: Sendable {
+    var providerID: String { get }
+
+    /// Whether anisette is generated on this machine rather than by a remote service.
+    var isLocal: Bool { get }
+
+    func localUserID(for userID: UUID) -> String
+
     func clientInfo() async throws -> ClientInfoWithUserAgent
 
     func startProvisioning(
@@ -14,7 +21,7 @@ public protocol RawADIProvider: Sendable {
     func requestOTP(
         userID: UUID,
         routingInfo: inout UInt64,
-        provisioningInfo: Data
+        provisioningInfo: inout Data
     ) async throws -> (machineID: Data, otp: Data)
 }
 
@@ -24,6 +31,14 @@ public struct ClientInfoWithUserAgent: Sendable {
 }
 
 private struct UnimplementedRawADIProvider: RawADIProvider {
+    let providerID = "unimplemented"
+    let isLocal = false
+
+    func localUserID(for userID: UUID) -> String {
+        let closure: (UUID) -> String = unimplemented(placeholder: "")
+        return closure(userID)
+    }
+
     func startProvisioning(
         spim: Data,
         userID: UUID
@@ -35,10 +50,10 @@ private struct UnimplementedRawADIProvider: RawADIProvider {
     func requestOTP(
         userID: UUID,
         routingInfo: inout UInt64,
-        provisioningInfo: Data
+        provisioningInfo: inout Data
     ) async throws -> (machineID: Data, otp: Data) {
-        let closure: (UUID, inout UInt64, Data) async throws -> (Data, Data) = unimplemented()
-        return try await closure(userID, &routingInfo, provisioningInfo)
+        let closure: (UUID, inout UInt64, inout Data) async throws -> (Data, Data) = unimplemented()
+        return try await closure(userID, &routingInfo, &provisioningInfo)
     }
 
     func clientInfo() async throws -> ClientInfoWithUserAgent {
@@ -47,9 +62,29 @@ private struct UnimplementedRawADIProvider: RawADIProvider {
     }
 }
 
-private enum RawADIProviderDependencyKey: DependencyKey {
+enum RawADIProviderDependencyKey: DependencyKey {
     static let testValue: RawADIProvider = UnimplementedRawADIProvider()
-    static let liveValue: RawADIProvider = OmnisetteADIProvider()
+    static let liveValue: RawADIProvider = provider(named: ProcessInfo.processInfo.environment["XTL_ANISETTE_PROVIDER"])
+
+    /// `XTL_ANISETTE_PROVIDER` selects `local` (Anisette, macOS/Linux only) or `omnisette`.
+    /// The remote provider is a fallback for when local ADI's pinned Apple or Unicorn
+    /// downloads become unavailable.
+    static func provider(named name: String?) -> RawADIProvider {
+        switch name {
+        case nil, "": break
+        case "omnisette": return OmnisetteADIProvider()
+        #if os(macOS) || os(Linux)
+        case "local": return AnisetteProvider()
+        #endif
+        case let name?:
+            stderrPrint("warning: Ignoring unsupported XTL_ANISETTE_PROVIDER value '\(name)'.")
+        }
+        #if os(macOS) || os(Linux)
+        return AnisetteProvider()
+        #else
+        return OmnisetteADIProvider()
+        #endif
+    }
 }
 
 extension DependencyValues {
@@ -65,6 +100,26 @@ public protocol RawADIProvisioningSession: Sendable {
         ptm: Data,
         tk: Data
     ) async throws -> Data
+}
+
+private actor ADIStateGate {
+    static let shared = ADIStateGate()
+
+    private var occupied = false
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+
+    func run<T: Sendable>(_ operation: @Sendable () async throws -> T) async throws -> T {
+        if occupied {
+            await withCheckedContinuation { waiters.append($0) }
+        } else {
+            occupied = true
+        }
+        defer {
+            if waiters.isEmpty { occupied = false } else { waiters.removeFirst().resume() }
+        }
+        try Task.checkCancellation()
+        return try await operation()
+    }
 }
 
 // uses CoreADI APIs
@@ -89,6 +144,7 @@ public struct ADIDataProvider: AnisetteDataProvider {
 
     public init() {
         @Dependency(\.keyValueStorage) var storage
+        @Dependency(\.rawADIProvider) var rawProvider
 
         if let localUserUIDString = try? storage.string(forKey: Self.localUserUIDKey),
            let localUserUID = UUID(uuidString: localUserUIDString) {
@@ -98,14 +154,20 @@ public struct ADIDataProvider: AnisetteDataProvider {
             try? storage.setString(localUserUID.uuidString, forKey: Self.localUserUIDKey)
             self.localUserUID = localUserUID
         }
-        // localUserID = SHA256(local user UID)
-        self.localUserID = SHA256.hash(data: Data(localUserUID.uuidString.utf8))
-            .map { String(format: "%02X", $0) }
-            .joined()
+        self.localUserID = rawProvider.localUserID(for: localUserUID)
+    }
 
-        if (try? storage.string(forKey: Self.providerIDKey)) != Self.providerID {
-            self.resetProvisioning()
-            try? storage.setString(Self.providerID, forKey: Self.providerIDKey)
+    private static var stateLockURL: URL {
+        XToolCache.directory.appendingPathComponent("anisette-state.lock")
+    }
+
+    /// Serializes the read → generate → persist transaction on the stored ADI state.
+    private func withStateLock<T: Sendable>(_ operation: @Sendable () async throws -> T) async throws -> T {
+        try await ADIStateGate.shared.run {
+            // Local ADI advances the stored state as it issues OTPs, so other xtool
+            // processes have to be kept out too. Remote state never changes.
+            guard rawProvider.isLocal else { return try await operation() }
+            return try await withFileLock(at: Self.stateLockURL, operation)
         }
     }
 
@@ -168,6 +230,8 @@ public struct ADIDataProvider: AnisetteDataProvider {
         var request = HTTPRequest(url: endpointURL)
         request.method = .post
         request.headerFields = [
+            .accept: "*/*",
+            .userAgent: try await clientInfo().akdUserAgent,
             .contentType: "text/x-xml-plist",
             .acceptLanguage: "en_US",
             .init(AnisetteData.localUserIDKey)!: self.localUserID,
@@ -218,15 +282,23 @@ public struct ADIDataProvider: AnisetteDataProvider {
         routingInfo: UInt64,
         provisioningInfo: Data
     ) async throws -> AnisetteData {
-        let requestTime = Date()
+        let originalRoutingInfo = routingInfo
+        let originalProvisioningInfo = provisioningInfo
         var routingInfo = routingInfo
+        var provisioningInfo = provisioningInfo
         let (mid, otp) = try await rawProvider.requestOTP(
             userID: localUserUID,
             routingInfo: &routingInfo,
-            provisioningInfo: provisioningInfo
+            provisioningInfo: &provisioningInfo
         )
+        if provisioningInfo != originalProvisioningInfo {
+            try storage.setData(provisioningInfo, forKey: Self.provisioningKey)
+        }
+        if routingInfo != originalRoutingInfo {
+            try storage.setString("\(routingInfo)", forKey: Self.routingInfoKey)
+        }
         return AnisetteData(
-            clientTime: requestTime,
+            clientTime: Date(),
             routingInfo: routingInfo,
             machineID: mid.base64EncodedString(),
             localUserID: self.localUserID,
@@ -235,19 +307,20 @@ public struct ADIDataProvider: AnisetteDataProvider {
         )
     }
 
-    public func resetProvisioning() {
+    private func clearProvisioning() {
         try? storage.setData(nil, forKey: Self.provisioningKey)
         try? storage.setString(nil, forKey: Self.routingInfoKey)
     }
 
-    private static var providerID: String? {
-        "mac-omnisette"
+    public func resetProvisioning() async {
+        try? await withStateLock { clearProvisioning() }
     }
 
-    public var providerID: String? { Self.providerID }
+    public var providerID: String? { rawProvider.providerID }
 
     public func provisioningData() -> ProvisioningData? {
-        guard let provisioningInfo = try? storage.data(forKey: Self.provisioningKey),
+        guard (try? storage.string(forKey: Self.providerIDKey)) == rawProvider.providerID,
+              let provisioningInfo = try? storage.data(forKey: Self.provisioningKey),
               let routingInfoString = try? storage.string(forKey: Self.routingInfoKey),
               let routingInfo = UInt64(routingInfoString)
         else { return nil }
@@ -259,6 +332,14 @@ public struct ADIDataProvider: AnisetteDataProvider {
     }
 
     public func fetchAnisetteData() async throws -> AnisetteData {
+        try await withStateLock { try await fetchLockedAnisetteData() }
+    }
+
+    private func fetchLockedAnisetteData() async throws -> AnisetteData {
+        if (try? storage.string(forKey: Self.providerIDKey)) != rawProvider.providerID {
+            clearProvisioning()
+            try storage.setString(rawProvider.providerID, forKey: Self.providerIDKey)
+        }
         if let provisioningInfo = try storage.data(forKey: Self.provisioningKey),
                   let routingInfoString = try storage.string(forKey: Self.routingInfoKey),
                   let routingInfo = UInt64(routingInfoString) {

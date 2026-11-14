@@ -6,6 +6,7 @@ Some environment variables that help with debugging. Use these as e.g. `XTL_FOO=
 
 ### General
 
+- `XTL_ANISETTE_PROVIDER`: Choose how anisette data is generated. `local` (default on macOS/Linux) runs Apple's ADI code in an emulator; `omnisette` uses a remote anisette server (default elsewhere). Use `omnisette` as a fallback if local setup fails. Switching providers requires logging in again.
 - `XTL_DEBUG_ERRORS`: If xtool terminates with an error, it normally prints a user-friendly error description. Set `XTL_DEBUG_ERRORS=1` for more verbose error logging.
 
 ### Disk
