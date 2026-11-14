@@ -1,5 +1,5 @@
 {
-  "originHash" : "20cf2946fd0e379a1edfe10068ea6508504ae98b1636b0b340ab201c83995e6c",
+  "originHash" : "3d7f8a45f4c588ed3d5c6c9bb893785aa5d6c6c7b0edf0e2f04ef7f317b22a76",
   "pins" : [
     {
       "identity" : "aexml",
@@ -42,7 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/KishanBagaria/libzbitmap",
       "state" : {
-        "revision" : "8408434bf13d4601f5de808b64037629b22d4a3e"
+        "revision" : "9163616ae7bf724f17907dde761a05f3788f3540",
+        "version" : "0.1.0"
       }
     },
     {
@@ -50,15 +51,17 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/KishanBagaria/lzfse-swift",
       "state" : {
-        "revision" : "bfdc057250a065ac1cb76dabc7b2484ba800b7c6"
+        "revision" : "db5882fb7aa4e7abd6af56b63eb2617991359601",
+        "version" : "1.0.2"
       }
     },
     {
       "identity" : "machokit",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/p-x9/MachOKit",
+      "location" : "https://github.com/KishanBagaria/MachOKit",
       "state" : {
-        "revision" : "86e3a0734c9f7fbb959ccbd4be233b378ed59815"
+        "revision" : "86e3a0734c9f7fbb959ccbd4be233b378ed59815",
+        "version" : "0.55.1"
       }
     },
     {
@@ -120,8 +123,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/KishanBagaria/swift-anisette",
       "state" : {
-        "branch" : "main",
-        "revision" : "9cc134befa7b99ad24143454ae7ae6a9757135c4"
+        "revision" : "4ac58c2fe9a5fca158bc0d5cc7c4f89764559006",
+        "version" : "0.1.0"
       }
     },
     {

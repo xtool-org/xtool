@@ -50,7 +50,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/KishanBagaria/swift-anisette", branch: "main"),
+        .package(url: "https://github.com/KishanBagaria/swift-anisette", .upToNextMinor(from: "0.1.0")),
         .package(url: "https://github.com/xtool-org/xtool-core", .upToNextMinor(from: "1.5.1")),
         .package(url: "https://github.com/xtool-org/SwiftyMobileDevice", .upToNextMinor(from: "1.7.0")),
         .package(url: "https://github.com/xtool-org/swift-rcodesign", .upToNextMinor(from: "0.2.0")),
