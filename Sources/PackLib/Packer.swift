@@ -164,15 +164,22 @@ public struct Packer: Sendable {
                 switch command {
                 case .bundle(let package, let target):
                     try await packFile(srcName: "\(package)_\(target).bundle")
-                case .binaryTarget(let name):
-                    let src = URL(fileURLWithPath: "\(name).framework/\(name)", relativeTo: binDir)
+                case .binaryTarget(let name, let xcframeworkPath):
+                    guard let framework = try await frameworkName(forBinaryTarget: name, xcframeworkPath: xcframeworkPath) else {
+                        break
+                    }
+                    let src = URL(fileURLWithPath: "\(framework).framework/\(framework)", relativeTo: binDir)
                     guard FileManager.default.fileExists(atPath: src.path) else {
                         // if we can't find the binary, it might be a static framework that SwiftPM
                         // did not copy into the .build directory. we don't need to pack it anyway.
                         break
                     }
                     if try !Self.isStaticArchive(at: src) {
-                        try await packFile(srcName: "\(name).framework", dstName: "Frameworks/\(name).framework", sign: true)
+                        try await packFile(
+                            srcName: "\(framework).framework",
+                            dstName: "Frameworks/\(framework).framework",
+                            sign: true
+                        )
                     }
                 case .library(let name):
                     try await packFile(srcName: "lib\(name).dylib", dstName: "Frameworks/lib\(name).dylib", sign: true)
@@ -211,6 +218,38 @@ public struct Packer: Sendable {
             )
             try encodedPlist.write(to: infoPath)
         }
+    }
+
+    /// The framework that SwiftPM copies into the products directory for a binary target, named by the
+    /// `LibraryPath` that its xcframework lists for the build triple. That name can differ from the target's:
+    /// `Sentry-Dynamic.xcframework` ships `Sentry.framework`. Returns `nil` when the library is not a
+    /// framework (a static `.a`, say), and keeps the `<name>.framework` convention when no xcframework is found.
+    private func frameworkName(forBinaryTarget name: String, xcframeworkPath: String?) async throws -> String? {
+        guard let xcframework = xcframeworkURL(forBinaryTarget: name, xcframeworkPath: xcframeworkPath) else {
+            return name
+        }
+        let infoPlist = try await Data(reading: xcframework.appendingPathComponent("Info.plist"))
+        guard let libraryPath = try Self.xcframeworkLibraryPath(infoPlist: infoPlist, triple: buildSettings.triple) else {
+            return nil
+        }
+        let library = URL(fileURLWithPath: libraryPath)
+        guard library.pathExtension == "framework" else { return nil }
+        return library.deletingPathExtension().lastPathComponent
+    }
+
+    /// The xcframework that a binary target links: the one its package ships in place, or the one that
+    /// SwiftPM downloaded or unzipped into `.build/artifacts/<package>/<target>/`.
+    private func xcframeworkURL(forBinaryTarget name: String, xcframeworkPath: String?) -> URL? {
+        let fileManager = FileManager.default
+        if let xcframeworkPath, URL(fileURLWithPath: xcframeworkPath).dirExists {
+            return URL(fileURLWithPath: xcframeworkPath, isDirectory: true)
+        }
+        let artifacts = URL(fileURLWithPath: ".build/artifacts", isDirectory: true)
+        let packages = (try? fileManager.contentsOfDirectory(at: artifacts, includingPropertiesForKeys: nil)) ?? []
+        return packages.lazy
+            .compactMap { try? fileManager.contentsOfDirectory(at: $0.appendingPathComponent(name), includingPropertiesForKeys: nil) }
+            .compactMap { $0.first { $0.pathExtension == "xcframework" } }
+            .first
     }
 
     static func cfBundleSupportedPlatforms(for triple: String) -> [String] {

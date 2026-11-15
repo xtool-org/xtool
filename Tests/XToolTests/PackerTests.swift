@@ -15,6 +15,38 @@ import Testing
     #expect(Packer.cfBundleSupportedPlatforms(for: "unknown-triple") == ["iPhoneOS"])
 }
 
+@Test func xcframeworkLibraryPathFollowsBuildTriple() throws {
+    let infoPlist = try xcframeworkInfoPlist([
+        ("ios-arm64", "Device.framework", "ios", nil, ["arm64"]),
+        ("ios-arm64_x86_64-simulator", "Simulator.framework", "ios", "simulator", ["arm64", "x86_64"]),
+        ("ios-arm64_x86_64-maccatalyst", "Catalyst.framework", "ios", "maccatalyst", ["arm64", "x86_64"]),
+        ("macos-arm64_x86_64", "Mac.framework", "macos", nil, ["arm64", "x86_64"]),
+        ("tvos-arm64", "TV.framework", "tvos", nil, ["arm64"]),
+        ("xros-arm64", "Vision.framework", "xros", nil, ["arm64"]),
+    ])
+
+    func libraryPath(_ triple: String) throws -> String? {
+        try Packer.xcframeworkLibraryPath(infoPlist: infoPlist, triple: triple)
+    }
+
+    #expect(try libraryPath("arm64-apple-ios") == "Device.framework")
+    #expect(try libraryPath("arm64-apple-ios17.0") == "Device.framework")
+    #expect(try libraryPath("arm64-apple-ios-simulator") == "Simulator.framework")
+    #expect(try libraryPath("x86_64-apple-ios17.0-simulator") == "Simulator.framework")
+    #expect(try libraryPath("arm64-apple-ios-macabi") == "Catalyst.framework")
+    #expect(try libraryPath("arm64-apple-macosx") == "Mac.framework")
+    #expect(try libraryPath("arm64-apple-tvos") == "TV.framework")
+    #expect(try libraryPath("arm64-apple-xros2.0") == "Vision.framework")
+
+    #expect(try libraryPath("arm64e-apple-ios") == nil)
+    #expect(try libraryPath("arm64-apple-watchos") == nil)
+    #expect(try libraryPath("unknown-triple") == nil)
+
+    #expect(throws: (any Error).self) {
+        try Packer.xcframeworkLibraryPath(infoPlist: Data("not a plist".utf8), triple: "arm64-apple-ios")
+    }
+}
+
 @Test func staticArchivesAreDetectedBareAndInsideUniversalBinaries() throws {
     let archive = Data("!<arch>\n".utf8) + Data(repeating: 0, count: 64)
     let thinArchive = Data("!<thin>\n".utf8) + Data(repeating: 0, count: 64)
@@ -35,6 +67,27 @@ import Testing
     #expect(try !isStaticArchive(Data([0xCA, 0xFE, 0xBA, 0xBE, 0xFF, 0xFF, 0xFF, 0xFF])))
     #expect(try !isStaticArchive(universalBinary([archive]).prefix(20)))
     #expect(try !isStaticArchive(universalBinary([archive]).prefix(30)))
+}
+
+private func xcframeworkInfoPlist(
+    _ libraries: [(identifier: String, path: String, platform: String, variant: String?, architectures: [String])]
+) throws -> Data {
+    let availableLibraries = libraries.map { library in
+        var entry: [String: Any] = [
+            "LibraryIdentifier": library.identifier,
+            "LibraryPath": library.path,
+            "SupportedPlatform": library.platform,
+            "SupportedArchitectures": library.architectures,
+        ]
+        entry["SupportedPlatformVariant"] = library.variant
+        return entry
+    }
+    let info: [String: Any] = [
+        "AvailableLibraries": availableLibraries,
+        "CFBundlePackageType": "XFWK",
+        "XCFrameworkFormatVersion": "1.0",
+    ]
+    return try PropertyListSerialization.data(fromPropertyList: info, format: .xml, options: 0)
 }
 
 private func universalBinary(_ slices: [Data], is64: Bool = false) -> Data {
