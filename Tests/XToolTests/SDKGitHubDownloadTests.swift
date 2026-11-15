@@ -329,3 +329,91 @@ func sdkGitHubDownloadTreatsZeroByteBodyAsEmpty(yieldsEmptyChunk: Bool) async th
         }
     }
 }
+
+private final class SleepLog: @unchecked Sendable {
+    var delays: [Duration] = []
+}
+
+private func failingThenOK(
+    _ failures: [HTTPResponse],
+    attempts: AttemptBox
+) -> ScriptedHTTPClient {
+    ScriptedHTTPClient { _ in
+        attempts.count += 1
+        if attempts.count <= failures.count {
+            return (failures[attempts.count - 1], nil)
+        }
+        return (HTTPResponse(status: .ok), HTTPBody(Data("toolset".utf8)))
+    }
+}
+
+private func response(_ code: Int, retryAfter: String?) -> HTTPResponse {
+    var fields = HTTPFields()
+    if let retryAfter { fields[.retryAfter] = retryAfter }
+    return HTTPResponse(status: .init(code: code), headerFields: fields)
+}
+
+@Test func sdkGitHubDownloadDoublesDelayWithoutRetryAfter() async throws {
+    let attempts = AttemptBox()
+    let log = SleepLog()
+    let client = failingThenOK([response(503, retryAfter: nil), response(503, retryAfter: nil)], attempts: attempts)
+    let downloader = SDKGitHubDownloader(
+        maxAttempts: 3, retryDelay: .milliseconds(250), sleep: { log.delays.append($0) }
+    )
+
+    _ = try await withDependencies {
+        $0.httpClient = client
+        $0.out.write = { _, _, _ in }
+    } operation: {
+        try await downloader.body(for: .toolset(arch: .x86_64))
+    }
+    #expect(log.delays == [.milliseconds(250), .milliseconds(500)])
+}
+
+@Test func sdkGitHubDownloadHonorsRetryAfterCappedAtMaximum() async throws {
+    let attempts = AttemptBox()
+    let log = SleepLog()
+    let client = failingThenOK(
+        [response(429, retryAfter: "7"), response(503, retryAfter: "3600")],
+        attempts: attempts
+    )
+    let downloader = SDKGitHubDownloader(
+        maxAttempts: 3, retryDelay: .milliseconds(250), maxRetryAfter: .seconds(60),
+        sleep: { log.delays.append($0) }
+    )
+
+    _ = try await withDependencies {
+        $0.httpClient = client
+        $0.out.write = { _, _, _ in }
+    } operation: {
+        try await downloader.body(for: .toolset(arch: .x86_64))
+    }
+    #expect(log.delays == [.seconds(7), .seconds(60)])
+}
+
+@Test func sdkGitHubDownloadIgnoresMalformedRetryAfter() async throws {
+    let attempts = AttemptBox()
+    let log = SleepLog()
+    let client = failingThenOK([response(429, retryAfter: "soon")], attempts: attempts)
+    let downloader = SDKGitHubDownloader(
+        maxAttempts: 2, retryDelay: .milliseconds(250), sleep: { log.delays.append($0) }
+    )
+
+    _ = try await withDependencies {
+        $0.httpClient = client
+        $0.out.write = { _, _, _ in }
+    } operation: {
+        try await downloader.body(for: .toolset(arch: .x86_64))
+    }
+    #expect(log.delays == [.milliseconds(250)])
+}
+
+@Test func sdkGitHubRetryAfterParsesSecondsAndHTTPDates() {
+    let now = Date(timeIntervalSince1970: 1_700_000_000)
+    #expect(SDKGitHubDownloader.retryAfter("120", now: now) == .seconds(120))
+    #expect(SDKGitHubDownloader.retryAfter("-5", now: now) == nil)
+    #expect(SDKGitHubDownloader.retryAfter("Tue, 14 Nov 2023 22:13:50 GMT", now: now) == .seconds(30))
+    #expect(SDKGitHubDownloader.retryAfter("Tue, 14 Nov 2023 22:00:00 GMT", now: now) == .seconds(0))
+    #expect(SDKGitHubDownloader.retryAfter("not a date", now: now) == nil)
+    #expect(SDKGitHubDownloader.retryAfter(nil, now: now) == nil)
+}

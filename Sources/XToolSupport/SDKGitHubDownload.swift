@@ -90,34 +90,73 @@ enum SDKGitHubDownloadError: Error, Equatable, CustomStringConvertible, Localize
 
 struct SDKGitHubDownloader: Sendable {
     var maxAttempts: Int
+    /// Wait before the first retry when the server sends no `Retry-After`; doubled per attempt.
     var retryDelay: Duration
+    /// Upper bound on a server's `Retry-After`, so a broken value cannot stall setup.
+    var maxRetryAfter: Duration
     var sleep: @Sendable (Duration) async throws -> Void
 
     init(
         maxAttempts: Int = 3,
         retryDelay: Duration = .milliseconds(250),
+        maxRetryAfter: Duration = .seconds(60),
         sleep: @escaping @Sendable (Duration) async throws -> Void = { try await Task.sleep(for: $0) }
     ) {
         self.maxAttempts = maxAttempts
         self.retryDelay = retryDelay
+        self.maxRetryAfter = maxRetryAfter
         self.sleep = sleep
+    }
+
+    /// An HTTP failure plus the server's `Retry-After`, kept out of the public error.
+    private struct StatusFailure: Error {
+        var error: SDKGitHubDownloadError
+        var retryAfter: Duration?
     }
 
     func body(for artifact: SDKGitHubArtifact) async throws -> Data {
         precondition(maxAttempts >= 1, "maxAttempts must be at least 1")
         var lastError: SDKGitHubDownloadError?
         for attempt in 1...maxAttempts {
+            let error: SDKGitHubDownloadError
+            var retryAfter: Duration?
             do {
                 return try await fetch(artifact)
-            } catch let error as CancellationError {
-                throw error
-            } catch let error as SDKGitHubDownloadError {
-                lastError = error
-                guard error.isRetryable, attempt < maxAttempts else { throw error }
-                try await sleep(retryDelay)
+            } catch let thrown as CancellationError {
+                throw thrown
+            } catch let thrown as StatusFailure {
+                error = thrown.error
+                retryAfter = thrown.retryAfter
+            } catch let thrown as SDKGitHubDownloadError {
+                error = thrown
             }
+            lastError = error
+            guard error.isRetryable, attempt < maxAttempts else { throw error }
+            try await sleep(delay(beforeRetry: attempt, retryAfter: retryAfter))
         }
         throw lastError!
+    }
+
+    /// The server's `Retry-After` capped at `maxRetryAfter`, else `retryDelay` doubled per attempt.
+    func delay(beforeRetry attempt: Int, retryAfter: Duration?) -> Duration {
+        if let retryAfter {
+            return min(max(retryAfter, .zero), maxRetryAfter)
+        }
+        return retryDelay * (1 << min(attempt - 1, 16))
+    }
+
+    /// Parses `Retry-After` as delay-seconds or an HTTP-date. A malformed value is nil.
+    static func retryAfter(_ value: String?, now: Date = Date()) -> Duration? {
+        guard let value = value?.trimmingCharacters(in: .whitespaces), !value.isEmpty else { return nil }
+        if let seconds = Int(value) {
+            return seconds >= 0 ? .seconds(seconds) : nil
+        }
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "GMT")
+        formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss zzz"
+        guard let date = formatter.date(from: value) else { return nil }
+        return .seconds(max(0, Int(date.timeIntervalSince(now).rounded(.up))))
     }
 
     private func fetch(_ artifact: SDKGitHubArtifact) async throws -> Data {
@@ -132,7 +171,10 @@ struct SDKGitHubDownloader: Sendable {
             throw SDKGitHubDownloadError.network(artifact, String(describing: error))
         }
         guard response.status == .ok else {
-            throw SDKGitHubDownloadError.httpStatus(artifact, response.status.code)
+            throw StatusFailure(
+                error: .httpStatus(artifact, response.status.code),
+                retryAfter: Self.retryAfter(response.headerFields[.retryAfter])
+            )
         }
         guard let body else {
             throw SDKGitHubDownloadError.emptyBody(artifact)
