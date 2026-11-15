@@ -102,7 +102,7 @@ struct SwiftPMBuildDescriberTests {
         let runnable = try #require(scheme.runnable)
         #expect(runnable.name == "App-App")
         #expect(runnable.objectID == app.objectID.rawValue)
-        #expect(runnable.projectURL == projectURL.resolvingSymlinksInPath())
+        #expect(runnable.projectURL.path == projectURL.resolvingSymlinksInPath().path)
         #expect(scheme.buildTargets.map(\.name) == ["App-App"])
         #expect(scheme.buildImplicitDependencies)
     }
