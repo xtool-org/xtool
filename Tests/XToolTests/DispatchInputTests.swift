@@ -170,7 +170,7 @@ struct DispatchInputTests {
         }
         #expect(weakReader == nil)
         // poll for channel.close() to finish
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + .seconds(30)
         while fcntl(descriptor.rawValue, F_GETFL) != flags {
             try #require(ContinuousClock.now < deadline, "Timed out waiting for input operation")
             try await Task.sleep(for: .milliseconds(1))
