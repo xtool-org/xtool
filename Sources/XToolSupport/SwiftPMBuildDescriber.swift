@@ -158,6 +158,26 @@ struct SwiftPMBuildDescriber {
                 "$(inherited)", "@executable_path/../Frameworks", "@executable_path/../../../../Frameworks",
             ]
         }
+        #if !os(macOS)
+        if !product.isExtension {
+            // swiftc links through clang but only passes --sysroot, which clang's
+            // Darwin driver doesn't use to derive the SDK version for
+            // LC_BUILD_VERSION.sdk (it falls back to the deployment target).
+            // Pass -isysroot explicitly so the recorded SDK matches the one we
+            // linked against. Only the app needs this: extensions link via clang,
+            // which already receives -isysroot from Swift Build.
+            //
+            // LINKER_DRIVER is pinned to swiftc so that -Xclang-linker is always
+            // valid here: "auto" would pick clang for packages without Swift,
+            // which doesn't understand the flag (and doesn't need it anyway).
+            settings[single: "LINKER_DRIVER"] = "swiftc"
+            settings[.OTHER_LDFLAGS] = [
+                "$(inherited)",
+                "-Xclang-linker", "-isysroot",
+                "-Xclang-linker", "$(SDKROOT)",
+            ]
+        }
+        #endif
         return settings
     }
 

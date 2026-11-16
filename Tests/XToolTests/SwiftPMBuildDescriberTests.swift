@@ -219,6 +219,35 @@ struct SwiftPMBuildDescriberTests {
         #expect(!FileManager.default.fileExists(atPath: root.appending(path: "xtool").path))
     }
 
+    #if !os(macOS)
+    @Test func appTargetPassesIsysrootToSwiftDriverLink() throws {
+        let root = try temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try writePlist(["NSExtension": ["NSExtensionPointIdentifier": "com.apple.widgetkit-extension"]],
+                       to: root.appending(path: "Widget.plist"))
+        let schema = try PackSchema(validating: .init(
+            version: .v1, orgID: "com.example", product: "App",
+            extensions: [.init(product: "Widget", infoPath: "Widget.plist")]
+        ))
+        let describer = describer(schema: schema, root: root)
+        let description = try describer.describe(basePIF: pif(root: root, products: ["App", "Widget"]))
+        let targets = description.workspace.projects.flatMap(\.targets)
+        let app = try #require(targets.first { $0.id == "xtool:main-app" })
+        let widget = try #require(targets.first { $0.id == "xtool:extension:Widget" })
+        let expected: [String] = [
+            "$(inherited)", "-Xclang-linker", "-isysroot", "-Xclang-linker", "$(SDKROOT)",
+        ]
+        for config in app.common.buildConfigs {
+            expectNoDifference(config.settings[.OTHER_LDFLAGS], expected)
+            expectNoDifference(config.settings[.LINKER_DRIVER], "swiftc")
+        }
+        // extensions link through clang, which already receives -isysroot
+        for config in widget.common.buildConfigs {
+            #expect(config.settings[.OTHER_LDFLAGS]?.contains("-isysroot") != true)
+        }
+    }
+    #endif
+
     @Test(arguments: [nil, "App", "Tool"] as [String?])
     func selectsLibrariesAlongsideExecutables(expected: String?) async throws {
         let root = try temporaryDirectory()
