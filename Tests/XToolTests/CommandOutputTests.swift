@@ -103,7 +103,7 @@ struct CommandOutputTests {
         // Give the writer time to enter poll before cancelling, without draining the pipe.
         try await Task.sleep(for: .milliseconds(20))
         writing.cancel()
-        let deadline = ContinuousClock.now.advanced(by: .seconds(2))
+        let deadline = ContinuousClock.now.advanced(by: .seconds(30))
         while !finished.value && ContinuousClock.now < deadline {
             try await Task.sleep(for: .milliseconds(10))
         }

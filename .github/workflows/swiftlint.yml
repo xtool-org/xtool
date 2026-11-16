@@ -2,7 +2,6 @@ on:
   push:
     branches:
       - main
-      - pre/**
   pull_request:
     paths:
       - '.github/workflows/swiftlint.yml'
