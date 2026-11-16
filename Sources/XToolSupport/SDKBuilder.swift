@@ -76,16 +76,20 @@ struct SDKBuilder {
     let mode: Mode
 
     // bump this when the sdk builder logic changes
-    static let sdkEpoch = 5
+    static let sdkEpoch = 6
 
     // tag from https://github.com/xtool-org/darwin-tools-linux-llvm
     static let darwinToolsVersion = "1.1.0"
     // tag from https://github.com/xtool-org/OpenAppleMacros
     static let oamVersion = "1.4.1"
 
+    // most EmulatedTools don't need this because we can intercept their invocation
+    // at the SwiftBuild/llbuild level. but for some tools we need a physical path
+    // on disk, which is where this comes in handy.
     // bump sdk epoch when this changes
     static let toolsToEmulate = [
         "strip",
+        "bitcode_strip",
     ]
 
     static var currentSDKVersion: String {
