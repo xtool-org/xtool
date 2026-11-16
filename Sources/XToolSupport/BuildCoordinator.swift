@@ -52,6 +52,8 @@ public actor BuildCoordinator {
             parameters.activeArchitecture = arch
 
             var overrides: [String: String] = [:]
+            var targetLinkerFlags = "$(inherited)"
+            var targetSwiftFlags = "$(inherited)"
 
             let xtoolDir = description.directory.appending(path: "xtool")
             // if you have a macOS Xcode project with a package dependency, and build in debug
@@ -67,6 +69,13 @@ public actor BuildCoordinator {
             overrides["CODE_SIGN_IDENTITY[__destination_platform=YES]"] = "-"
             #endif
             overrides["AD_HOC_CODE_SIGNING_ALLOWED"] = "YES"
+            // when LINKER_DRIVER=swiftc, LC_BUILD_VERSION.sdk is not set correctly by default.
+            // specifically, it invokes the clang linker-driver with `--sysroot ...` but Clang
+            // only looks at `-isysroot` to determine the SDK version. this primarily affects
+            // SwiftPM targets since they use LINKER_DRIVER=auto (instead of `=clang`). fix
+            // by explicitly passing `-isysroot` when the driver is swiftc.
+            overrides["XTL_LDFLAGS_swiftc"] = #"-Xclang-linker -isysroot -Xclang-linker "$(SDKROOT)""#
+            targetLinkerFlags += " $(XTL_LDFLAGS_$(LINKER_DRIVER))"
             if hotReloadable {
                 // lets us ask for per-file compile commands via generatePreviewInfo
                 overrides["ENABLE_XOJIT_PREVIEWS"] = "YES"
@@ -75,11 +84,11 @@ public actor BuildCoordinator {
                 // XOJIT previews would otherwise split the app into a stub executable + debug dylib
                 overrides["ENABLE_DEBUG_DYLIB"] = "NO"
                 // route calls through stubs so that reloaded symbols can be interposed
-                overrides["OTHER_LDFLAGS"] = "$(inherited) -Xlinker -interposable"
+                targetLinkerFlags += " -Xlinker -interposable"
                 // https://kyleye.top/posts/debugreplaceableview-multiple-type-erasers/
                 // https://www.guardsquare.com/blog/behind-swiftui-previews
                 overrides["SWIFT_ENABLE_OPAQUE_TYPE_ERASURE"] = "YES"
-                overrides["OTHER_SWIFT_FLAGS"] = "$(inherited) -Xfrontend -enable-private-imports"
+                targetSwiftFlags += " -Xfrontend -enable-private-imports"
             }
             // Only override deployment targets when the triple explicitly includes a version.
             // Otherwise each package retains the deployment targets from its manifest.
@@ -128,12 +137,14 @@ public actor BuildCoordinator {
             // Use OpenAppleMacrosServer, which reimplements Apple's proprietary macros.
             // Also explicitly enable cross-import-overlays: they're on by default in Apple Swift
             // but off by default in OSS Swift.
-            overrides["OTHER_SWIFT_FLAGS[__destination_platform=YES]"] = """
-            $(inherited) \
+            targetSwiftFlags += " " + """
             -external-plugin-path "\(bundle)/toolset/plugins#\(bundle)/toolset/bin/OpenAppleMacrosServer" \
             -Xfrontend -enable-cross-import-overlays
             """
             #endif
+
+            overrides["OTHER_LDFLAGS[__destination_platform=YES]"] = targetLinkerFlags
+            overrides["OTHER_SWIFT_FLAGS[__destination_platform=YES]"] = targetSwiftFlags
 
             var overridesTable = SWBSettingsTable()
             for (key, value) in overrides {
