@@ -77,6 +77,10 @@ actor XToolInstallerDelegate: IntegratedInstallerDelegate {
         }
     }
 
+    func finish() async {
+        await updateTask.value?.value
+    }
+
     func confirmRevocation(of certificates: [DeveloperServicesCertificate]) async -> Bool {
         output.print("\nThe following certificates must be revoked:")
         output.print(

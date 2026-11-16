@@ -1,5 +1,5 @@
 import Testing
-@testable import PackLib
+@testable import XToolSupport
 
 @Test(arguments: [
     ("6.2", SwiftVersion(6, 2)),

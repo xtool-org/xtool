@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme version="1.3">
+  <BuildAction buildImplicitDependencies="NO">
+    <BuildActionEntries>
+      <BuildActionEntry buildForRunning="YES"><BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="5697D03DAEF4DE9CF8DB7CB1" BuildableName="Features.framework" BlueprintName="Features" ReferencedContainer="container:Features.xcodeproj"/></BuildActionEntry>
+      <BuildActionEntry buildForRunning="YES"><BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="A50000000000000000000001" BuildableName="OtherApp.app" BlueprintName="StaleDisplayName" ReferencedContainer="container:OtherApp.xcodeproj"/></BuildActionEntry>
+      <BuildActionEntry buildForRunning="NO"><BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="A50000000000000000000001" BuildableName="App.app" BlueprintName="App" ReferencedContainer="container:App.xcodeproj"/></BuildActionEntry>
+    </BuildActionEntries>
+  </BuildAction>
+  <LaunchAction buildConfiguration="Release">
+    <BuildableProductRunnable runnableDebuggingMode="0"><BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="A50000000000000000000001" BuildableName="OtherApp.app" BlueprintName="StaleDisplayName" ReferencedContainer="container:OtherApp.xcodeproj"/></BuildableProductRunnable>
+  </LaunchAction>
+</Scheme>

@@ -20,6 +20,7 @@ RUN apt-get update \
     curl libcurl4-openssl-dev \
     zip unzip \
     liblzma-dev zlib1g-dev \
+    libsqlite3-dev libncurses-dev \
     && rm -rf /var/lib/apt/lists/*
 
 

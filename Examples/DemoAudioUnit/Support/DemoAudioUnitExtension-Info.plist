@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>NSExtension</key>
+    <dict>
+        <key>NSExtensionPointIdentifier</key>
+        <string>com.apple.AudioUnit</string>
+        <key>NSExtensionPrincipalClass</key>
+        <string>DemoAudioUnitFactory</string>
+        <key>NSExtensionAttributes</key>
+        <dict>
+            <key>AudioComponents</key>
+            <array>
+                <dict>
+                    <key>name</key>
+                    <string>xtool: DemoAudioUnit</string>
+                    <key>description</key>
+                    <string>xtool extension execution test</string>
+                    <key>manufacturer</key>
+                    <string>Xtoo</string>
+                    <key>type</key>
+                    <string>augn</string>
+                    <key>subtype</key>
+                    <string>ping</string>
+                    <key>version</key>
+                    <integer>1</integer>
+                    <key>sandboxSafe</key>
+                    <true/>
+                    <key>tags</key>
+                    <array>
+                        <string>Generator</string>
+                    </array>
+                </dict>
+            </array>
+        </dict>
+    </dict>
+</dict>
+</plist>
