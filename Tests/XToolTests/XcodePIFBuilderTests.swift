@@ -45,6 +45,8 @@ struct XcodePIFBuilderTests {
         #expect(try XPIF.Container(workspace: XcodePIFBuilder(project: source).build()).data() == data)
     }
 
+    // TODO: needs an installed Darwin SDK on Linux
+    #if os(macOS)
     @Test(.requiresXcode) func generatedWorkspaceIsAcceptedByBuildService() async throws {
         let workspace = try XcodePIFBuilder(project: fixtureProject()).build()
         let description = try BuildDescription(
@@ -59,6 +61,7 @@ struct XcodePIFBuilderTests {
         #expect(try await coordinator.mainProductDetails().output.lastPathComponent == "CustomApp.app")
         await coordinator.close()
     }
+    #endif
 
     @Test func mapsConfigurationConditionsAndXCConfigs() throws {
         var source = try fixtureProject()

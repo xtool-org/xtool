@@ -13,6 +13,8 @@ import XUtils
 @testable import XToolSupport
 
 struct XcodePackagePIFBuilderTests {
+    // TODO: needs an installed Darwin SDK on Linux
+    #if os(macOS)
     @Test(.requiresXcode, .dependencies { $0.out.write = { _, _, _ in } })
     func resolvesPackagesDiscoveredInSynchronizedFolders() async throws {
         let fixtures = fixtureURL("Projects")
@@ -35,6 +37,7 @@ struct XcodePackagePIFBuilderTests {
         #expect(references[0].package.traits == ["Feature"])
         #expect(references[0].isRoot)
     }
+    #endif
 
     @Test(arguments: [
         (XCSchema.SwiftPackageVersionConstraint.revision("abc123"), "revision: \"abc123\""),
@@ -81,6 +84,8 @@ struct XcodePackagePIFBuilderTests {
         #expect(throws: Console.Error.self) { try XcodePackagePIFBuilder.manifest(references: [self.remote(nil)]) }
     }
 
+    // TODO: needs an installed Darwin SDK on Linux
+    #if os(macOS)
     @Test(.requiresXcode, .dependencies { $0.out.write = { _, _, _ in } })
     func buildsAppWithPackageResourcesAndTransitiveTarget() async throws {
         let temporary = try TemporaryDirectory(name: "PackageBuild")
@@ -161,6 +166,7 @@ struct XcodePackagePIFBuilderTests {
         #expect(workspace.projects[0].targets[0].common.dependencies.contains { $0.targetId == product.id })
         #expect(FileManager.default.fileExists(atPath: URL(filePath: package.projectDir).appending(path: "Package.swift").path))
     }
+    #endif
 
     private func remote(_ constraint: XCSchema.SwiftPackageVersionConstraint?) -> XcodePIFBuilder.PackageReference {
         .init(sourceRoot: URL(filePath: "/tmp"), package: .init(location: .remote(.init(

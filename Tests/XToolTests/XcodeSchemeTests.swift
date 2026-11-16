@@ -187,6 +187,8 @@ struct XcodeSchemeTests {
         expectNoDifference(try DevBSPCommand.parse(["--scheme", "Secondary"]).scheme, "Secondary")
     }
 
+    // TODO: needs an installed Darwin SDK on Linux
+    #if os(macOS)
     @Test(.requiresXcode) func configuresBuildServiceWithSchemeTargets() async throws {
         let description = try await describe(scheme: "Secondary")
         let selection = try #require(description.targetSelection)
@@ -205,6 +207,7 @@ struct XcodeSchemeTests {
             throw error
         }
     }
+    #endif
 
     private func projects() -> URL {
         fixtureURL("Projects")

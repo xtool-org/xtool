@@ -172,6 +172,8 @@ struct XcodeWorkspacePIFBuilderTests {
         return try #require(objects[rootObject]?["projectDirPath"] as? String)
     }
 
+    // TODO: needs an installed Darwin SDK on Linux
+    #if os(macOS)
     @Test(.requiresXcode, arguments: [false, true], [false, true])
     func buildsWorkspaceWithLinkedAndEmbeddedFramework(
         implicitDependency: Bool,
@@ -246,6 +248,7 @@ struct XcodeWorkspacePIFBuilderTests {
             throw error
         }
     }
+    #endif
 
     private var remoteReference: XCSchema.GroupTreeReference {
         .namePath(.init(components: [.child("Projects"), .child("Support.xcodeproj")]))
