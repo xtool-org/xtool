@@ -19,6 +19,7 @@ extension EmulatedTools: DependencyKey {
             ChmodTool(),
             CodesignTool(),
             DerqTool(),
+            XCStringsTool(),
         ]
         #endif
         return tools
