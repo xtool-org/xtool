@@ -67,6 +67,10 @@ public actor BuildCoordinator {
             #else
             // on Linux, host targets (eg macros) should not receive Darwin codesigning flags
             overrides["CODE_SIGN_IDENTITY[__destination_platform=YES]"] = "-"
+            // CopyStringsFile can only detect a .strings encoding on Darwin, so files without
+            // an explicit text encoding (e.g. those compiled from String Catalogs) need one.
+            // A value set by the project or the file reference still takes precedence.
+            overrides["STRINGS_FILE_INPUT_ENCODING"] = "$(inherited:default=$(InputFileTextEncoding:default=utf-8))"
             #endif
             overrides["AD_HOC_CODE_SIGNING_ALLOWED"] = "YES"
             // when LINKER_DRIVER=swiftc, LC_BUILD_VERSION.sdk is not set correctly by default.
