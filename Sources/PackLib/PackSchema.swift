@@ -3,6 +3,10 @@ import Yams
 import XUtils
 
 public struct PackSchemaBase: Codable, Sendable {
+    fileprivate enum CodingKeys: String, CodingKey {
+        case version, orgID, bundleID, product, infoPath, entitlementsPath, iconPath, resources, extensions, skipLSP
+    }
+
     public enum Version: Int, Codable, Sendable {
         case v1 = 1
     }
@@ -26,6 +30,10 @@ public struct PackSchemaBase: Codable, Sendable {
     public var skipLSP: Bool?
 
     public struct Extension: Codable, Sendable {
+        fileprivate enum CodingKeys: String, CodingKey {
+            case product, bundleID, infoPath, resources, entitlementsPath
+        }
+
         public var product: String
         public var bundleID: String?
         public var infoPath: String
@@ -85,11 +93,63 @@ public struct PackSchema: Sendable {
 
     public init(url: URL) async throws {
         let data = try await Data(reading: url)
-        let base = try YAMLDecoder().decode(PackSchemaBase.self, from: data)
-        try self.init(validating: base)
+        let config: PackConfigFile
+        do {
+            config = try YAMLDecoder().decode(PackConfigFile.self, from: data)
+        } catch DecodingError.dataCorrupted(let context) {
+            // Yams wraps validation errors in a generic invalid-YAML error.
+            if let error = context.underlyingError as? StringError {
+                throw error
+            }
+            throw DecodingError.dataCorrupted(context)
+        }
+        try self.init(validating: config.base)
     }
 
     public subscript<Subject>(dynamicMember keyPath: KeyPath<PackSchemaBase, Subject>) -> Subject {
         self.base[keyPath: keyPath]
+    }
+}
+
+private struct PackConfigFile: Decodable {
+    let base: PackSchemaBase
+
+    init(from decoder: any Decoder) throws {
+        try Self.checkKeys(PackSchemaBase.CodingKeys.self, in: decoder)
+        let container = try decoder.container(keyedBy: PackSchemaBase.CodingKeys.self)
+        _ = try container.decodeIfPresent([ExtensionKeyCheck].self, forKey: .extensions)
+        base = try PackSchemaBase(from: decoder)
+    }
+
+    private struct ExtensionKeyCheck: Decodable {
+        init(from decoder: any Decoder) throws {
+            let index = decoder.codingPath.last?.intValue
+            let location = index.map { " in extensions[\($0)]" } ?? " in extensions"
+            try PackConfigFile.checkKeys(PackSchemaBase.Extension.CodingKeys.self, in: decoder, location: location)
+        }
+    }
+
+    private struct RawKey: CodingKey {
+        let stringValue: String
+        var intValue: Int? { nil }
+
+        init(stringValue: String) { self.stringValue = stringValue }
+        init?(intValue: Int) { return nil }
+    }
+
+    private static func checkKeys<Key: CodingKey>(
+        _ keyType: Key.Type,
+        in decoder: any Decoder,
+        location: String = ""
+    ) throws {
+        let container = try decoder.container(keyedBy: RawKey.self)
+        let unknownKeys = Set(container.allKeys.map(\.stringValue))
+            .filter { Key(stringValue: $0) == nil }
+            .sorted()
+        guard !unknownKeys.isEmpty else { return }
+
+        let label = unknownKeys.count == 1 ? "key" : "keys"
+        let names = unknownKeys.map { String(reflecting: $0) }.joined(separator: ", ")
+        throw StringError("xtool.yml: Unknown \(label)\(location): \(names).")
     }
 }
