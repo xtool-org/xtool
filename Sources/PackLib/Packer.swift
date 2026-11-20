@@ -56,6 +56,20 @@ public struct Packer: Sendable {
         """
         try Data(contents.utf8).write(to: packageSwift)
 
+        var constValuesOptions: [String] = []
+        if buildSettings.buildSystem == .swiftPM {
+            // Swift Build emits const values for App Intents by itself, SwiftPM's native build doesn't.
+            // The list goes to the frontend directly since the driver's -const-gather-protocols-list
+            // only exists as of Swift 6.4
+            let protocolsFile = URL(fileURLWithPath: packageDir.appendingPathComponent("const-protocols.json").path)
+            try JSONEncoder().encode(AppIntentsMetadata.constValueProtocols).write(to: protocolsFile)
+            constValuesOptions = [
+                "-emit-const-values",
+                "-Xfrontend", "-const-gather-protocols-file",
+                "-Xfrontend", protocolsFile.path,
+            ].flatMap { ["-Xswiftc", $0] }
+        }
+
         for product in plan.allProducts {
             let sources: URL = packageDir.appendingPathComponent("Sources/\(product.targetName)", isDirectory: true)
             try FileManager.default.createDirectory(at: sources, withIntermediateDirectories: true)
@@ -75,7 +89,7 @@ public struct Packer: Sendable {
                     // in order to dump the plan, so we can skip resolution here to skirt
                     // the issue.
                     "--disable-automatic-resolution",
-                ],
+                ] + constValuesOptions,
             )
         try await Subprocess.run(
             buildConfig,
@@ -97,13 +111,20 @@ public struct Packer: Sendable {
         case .swiftPM:
             binPath = "\(buildSettings.triple)/\(buildSettings.configuration.rawValue)"
         case .swiftBuild:
-            let platformName = buildSettings.triple.contains("simulator") ? "iphonesimulator" : "iphoneos"
-            binPath = "out/Products/\(buildSettings.configuration.swiftBuildValue)-\(platformName)"
+            binPath = "out/Products/\(swiftBuildConfigurationDirectory)"
         }
         let binDir = URL(
             fileURLWithPath: ".build/\(binPath)",
             isDirectory: true
         )
+
+        var bundleIDsByModule: [String: [String]] = [:]
+        for product in plan.allProducts {
+            for module in product.modules {
+                bundleIDsByModule[Self.moduleName(module), default: []].append(product.bundleID)
+            }
+        }
+        let sharedBundleIDs = bundleIDsByModule.filter { $1.count > 1 }.mapValues { $0.sorted() }
 
         try await withThrowingTaskGroup(of: Void.self) { group in
             for product in plan.allProducts {
@@ -111,6 +132,7 @@ public struct Packer: Sendable {
                     product: product,
                     binDir: binDir,
                     outputURL: product.directory(inApp: outputURL),
+                    sharedBundleIDs: sharedBundleIDs,
                     &group
                 )
             }
@@ -137,6 +159,7 @@ public struct Packer: Sendable {
         product: Plan.Product,
         binDir: URL,
         outputURL: URL,
+        sharedBundleIDs: [String: [String]],
         _ group: inout ThrowingTaskGroup<Void, Error>
     ) throws {
         @Sendable func packFileToRoot(srcName: String) async throws {
@@ -192,6 +215,9 @@ public struct Packer: Sendable {
             }
         }
         group.addTask {
+            try writeAppIntentsMetadata(product: product, sharedBundleIDs: sharedBundleIDs, outputURL: outputURL)
+        }
+        group.addTask {
             try await packFile(srcName: product.targetName, dstName: product.product)
         }
         group.addTask {
@@ -215,6 +241,88 @@ public struct Packer: Sendable {
                 options: 0
             )
             try encodedPlist.write(to: infoPath)
+        }
+    }
+
+    private var swiftBuildConfigurationDirectory: String {
+        let platformName = buildSettings.triple.contains("simulator") ? "iphonesimulator" : "iphoneos"
+        return "\(buildSettings.configuration.swiftBuildValue)-\(platformName)"
+    }
+
+    // SwiftPM uses a module's c99name for its directory and its type names
+    private static func moduleName(_ target: String) -> String {
+        String(target.map { $0.isLetter || $0.isNumber || $0 == "_" ? $0 : "_" })
+    }
+
+    @Sendable private func writeAppIntentsMetadata(
+        product: Plan.Product,
+        sharedBundleIDs: [String: [String]],
+        outputURL: URL
+    ) throws {
+        // an index among the resources takes precedence
+        let hasOwnMetadata = product.resources.contains {
+            if case .root(let source) = $0 {
+                URL(fileURLWithPath: source).lastPathComponent == "Metadata.appintents"
+            } else {
+                false
+            }
+        }
+        if hasOwnMetadata { return }
+
+        let decoder = JSONDecoder()
+        var entries: [JSONValue] = []
+        for module in product.modules {
+            for file in constValuesFiles(target: module) {
+                entries += try decoder.decode([JSONValue].self, from: Data(contentsOf: file))
+            }
+        }
+        let files: [String: Data]?
+        do {
+            files = try AppIntentsMetadata(entries: entries, sharedBundleIDs: sharedBundleIDs).files()
+        } catch let error as AppIntentsMetadata.Unsupported {
+            print("warning: Skipping the App Intents metadata of \(product.product): \(error)")
+            return
+        }
+        guard let files else { return }
+        let directory = outputURL.appendingPathComponent("Metadata.appintents", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        for (name, data) in files {
+            try data.write(to: directory.appendingPathComponent(name))
+        }
+    }
+
+    private func constValuesFiles(target: String) -> [URL] {
+        func contents(_ url: URL) -> [URL] {
+            (try? FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil)) ?? []
+        }
+        switch buildSettings.buildSystem {
+        case .swiftPM:
+            // one file per module
+            let directory = URL(fileURLWithPath: ".build", isDirectory: true)
+                .appendingPathComponent("\(buildSettings.triple)/\(buildSettings.configuration.rawValue)", isDirectory: true)
+                .appendingPathComponent("\(Self.moduleName(target)).build", isDirectory: true)
+            return contents(directory).filter { $0.pathExtension == "swiftconstvalues" }
+        case .swiftBuild:
+            // one file per source file. The output file map only lists current sources,
+            // unlike the directory, which keeps the files of deleted ones
+            let arch = buildSettings.triple.split(separator: "-").first.map(String.init) ?? "arm64"
+            let intermediates = URL(fileURLWithPath: ".build/out/Intermediates.noindex", isDirectory: true)
+            var files: [URL] = []
+            for package in contents(intermediates) where package.pathExtension == "build" {
+                let objects = package.appendingPathComponent(
+                    "\(swiftBuildConfigurationDirectory)/\(target)-t.build/Objects-normal/\(arch)",
+                    isDirectory: true
+                )
+                for map in contents(objects) where map.lastPathComponent.hasSuffix("-OutputFileMap.json") {
+                    guard let data = try? Data(contentsOf: map),
+                          let outputs = try? JSONDecoder().decode([String: [String: String]].self, from: data)
+                    else { continue }
+                    files += outputs.values.compactMap { $0["const-values"] }
+                        .filter { FileManager.default.fileExists(atPath: $0) }
+                        .map { URL(fileURLWithPath: $0) }
+                }
+            }
+            return files
         }
     }
 
