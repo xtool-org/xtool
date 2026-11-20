@@ -1,0 +1,4 @@
+source 'https://rubygems.org'
+gem 'cocoapods', '1.17.0'
+# Some Linux Ruby distributions package erb separately.
+gem 'erb', '6.0.7'

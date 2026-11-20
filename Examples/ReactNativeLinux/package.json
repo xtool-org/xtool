@@ -1,0 +1,7 @@
+{
+  "name": "omarchy-react-native-demo",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {"react": "18.3.1", "react-native": "0.77.3"},
+  "devDependencies": {"@babel/core":"7.26.10", "@react-native/babel-preset":"0.77.3", "@react-native/metro-config":"0.77.3", "metro":"0.81.5", "metro-config":"0.81.5", "metro-resolver":"0.81.5"}
+}
