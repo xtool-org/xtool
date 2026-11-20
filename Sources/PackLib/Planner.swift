@@ -142,7 +142,7 @@ public struct Planner: Sendable {
             // host-only dependencies (e.g. SwiftSyntaxMacros).
             if target.type == "macro" { continue }
             if target.moduleType == "BinaryTarget" {
-                resources.append(.binaryTarget(name: targetName))
+                resources.append(.binaryTarget(name: targetName, xcframeworkPath: targetPackage.xcframeworkPath(of: target)))
             }
             if target.resources?.isEmpty == false {
                 resources.append(.bundle(package: targetPackage.name, target: targetName))
@@ -305,7 +305,7 @@ public struct Plan: Sendable {
 
     public enum Resource: Codable, Sendable, Hashable {
         case bundle(package: String, target: String)
-        case binaryTarget(name: String)
+        case binaryTarget(name: String, xcframeworkPath: String?)
         case library(name: String)
         case root(source: String)
     }
@@ -411,6 +411,7 @@ private struct PackageDump: Decodable {
 
     struct Target: Decodable {
         let name: String
+        let path: String?
         let moduleType: String
         let type: String?
         let productDependencies: [String]?
@@ -428,9 +429,17 @@ private struct PackageDump: Decodable {
     }
 
     let name: String
+    let path: String?
     let products: [Product]?
     let targets: [Target]?
     let platforms: [Platform]?
+
+    /// The absolute path of a binary target's xcframework when the package ships it unzipped.
+    /// Remote and zipped artifacts are unpacked under `.build/artifacts` instead.
+    func xcframeworkPath(of target: Target) -> String? {
+        guard let path, let targetPath = target.path, targetPath.hasSuffix(".xcframework") else { return nil }
+        return URL(fileURLWithPath: targetPath, relativeTo: URL(fileURLWithPath: path, isDirectory: true)).path
+    }
 }
 
 private struct PackageGraph {
