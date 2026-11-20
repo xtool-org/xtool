@@ -26,10 +26,9 @@ struct GrandSlamTwoFactorAuthenticateOperation {
     unowned let delegate: TwoFactorAuthDelegate
 
     private func performSMSAuth() async throws {
-        // TODO: parse phone number list from o=complete req?
-        let phoneNumberID = 1
+        let phoneNumberID: Int
         do {
-            try await client.send(GrandSlamSMSAuthRequest(loginData: loginData, phoneNumberID: phoneNumberID))
+            phoneNumberID = try await sendSMSCode()
         } catch let error as HTTPResponseError where error.status.code == 403 {
             d.out.print("""
             warning: Could not send verification code via SMS. Falling back to trusted device authentication...
@@ -38,6 +37,33 @@ struct GrandSlamTwoFactorAuthenticateOperation {
             return
         }
         try await validateCode(phoneNumberID: phoneNumberID)
+    }
+
+    /// Sends an SMS code and returns the ID of the phone number it was sent to.
+    private func sendSMSCode() async throws -> Int {
+        do {
+            try await client.send(GrandSlamSMSAuthRequest(loginData: loginData, phoneNumberID: 1))
+            return 1
+        } catch let error as HTTPResponseError where error.status.code == 412 {
+            // Apple rejects an unknown phone number ID with 412 and lists the account's trusted numbers.
+            guard let phoneNumberID = Self.smsPhoneNumberID(in: error.body) else { throw error }
+            try await client.send(GrandSlamSMSAuthRequest(loginData: loginData, phoneNumberID: phoneNumberID))
+            return phoneNumberID
+        }
+    }
+
+    static func smsPhoneNumberID(in body: String?) -> Int? {
+        struct Response: Decodable {
+            struct PhoneNumber: Decodable {
+                let id: Int
+                let pushMode: String?
+            }
+            let trustedPhoneNumbers: [PhoneNumber]
+        }
+        guard let data = body?.data(using: .utf8),
+              let numbers = try? JSONDecoder().decode(Response.self, from: data).trustedPhoneNumbers
+        else { return nil }
+        return (numbers.first { $0.pushMode == "sms" } ?? numbers.first)?.id
     }
 
     private func validateCode(phoneNumberID: Int? = nil) async throws {
