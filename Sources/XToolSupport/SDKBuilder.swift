@@ -1,6 +1,5 @@
 import XCLIUtils
 import Foundation
-import Dependencies
 import libunxip
 import Subprocess
 import XKit // HTTPClient, stdoutSafe
@@ -100,8 +99,9 @@ struct SDKBuilder {
             withIntermediateDirectories: true
         )
 
-        // TODO: parallelize these three steps
-        // we need to synchronize progress reporting though
+        // Download GitHub artifacts before unxip so a toolchain fetch failure
+        // is reported immediately and is not mistaken for a corrupt Xcode.xip.
+        // TODO: parallelize these three steps (need synchronized progress).
 
         try await installMacros(in: output)
 
@@ -234,7 +234,7 @@ struct SDKBuilder {
     }
 
     private func fetchTarball(
-        url: URL,
+        _ artifact: SDKGitHubArtifact,
         destination directory: URL,
         displayName: String,
         envOverride: String? = nil,
@@ -280,52 +280,24 @@ struct SDKBuilder {
             return
         }
 
-        @Dependency(\.httpClient) var httpClient
-        let (response, body) = try await httpClient.send(HTTPRequest(url: url))
-        guard response.status == 200, let body else {
-            throw Console.Error("Could not fetch tarball at \(url)")
-        }
-        let length: Int64? = switch body.length {
-        case .known(let known): known
-        case .unknown: nil
-        }
+        let data = try await download(artifact)
 
         defer { d.out.print() }
         try await Subprocess.run(
             .name("tar"),
             arguments: ["xzf", "-"],
             workingDirectory: FilePath(directory),
-            input: .inputWriter,
+            input: .data(data),
             output: .discarded,
             error: .discarded,
-        ) { execution in
-            var totalWritten: Int64 = 0
-            for try await chunk in body {
-                var remaining = chunk
-                while !remaining.isEmpty {
-                    let written = try await execution.standardInputWriter.write(Array(remaining))
-                    remaining = remaining.dropFirst(written)
-                    totalWritten += Int64(written)
-
-                    guard let length else { continue }
-                    let progress = Int(Double(totalWritten) / Double(length) * 100)
-                    d.out.print("\r[Downloading \(displayName)] \(progress)%", terminator: "", flush: true)
-                }
-            }
-            try await execution.standardInputWriter.finish()
-        }
+        )
         .checkSuccess()
     }
 
-    // swiftlint:disable:next function_body_length
     private func installToolset(in output: URL) async throws {
         let toolsetDir = output.appendingPathComponent("toolset")
-        let url = URL(string: """
-        https://github.com/xtool-org/darwin-tools-linux-llvm/releases/download/\
-        v\(Self.darwinToolsVersion)/toolset-\(arch.rawValue).tar.gz
-        """)!
         try await fetchTarball(
-            url: url,
+            .toolset(arch: arch),
             destination: toolsetDir,
             displayName: "toolset",
             envOverride: "XTL_TOOLSET_TARBALL",
@@ -435,14 +407,18 @@ struct SDKBuilder {
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: ld64.path)
     }
 
+    private func download(_ artifact: SDKGitHubArtifact) async throws -> Data {
+        do {
+            return try await SDKGitHubDownloader().body(for: artifact)
+        } catch let error as SDKGitHubDownloadError {
+            throw Console.Error(error.description)
+        }
+    }
+
     private func installMacros(in output: URL) async throws {
-        let url = URL(string: """
-        https://github.com/xtool-org/OpenAppleMacros/releases/download/\
-        v\(Self.oamVersion)/OpenAppleMacrosServer-\(arch.rawValue).tar.gz
-        """)!
         let macrosDir = output.appendingPathComponent("OpenAppleMacros")
         try await fetchTarball(
-            url: url,
+            .openAppleMacros(arch: arch),
             destination: macrosDir,
             displayName: "OpenAppleMacros",
             envOverride: "XTL_OAM_TARBALL",
