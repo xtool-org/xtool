@@ -11,4 +11,5 @@ import Foundation
 enum GrandSlamAuthMode: String, Decodable {
     case secondaryAuth
     case trustedDeviceSecondaryAuth
+    case repair
 }
