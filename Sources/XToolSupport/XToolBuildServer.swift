@@ -63,6 +63,7 @@ actor XToolBuildServer: QueueBasedMessageHandler {
             let description = try await project.describe(configuration: .debug, triple: triple, scheme: scheme)
             let pif = description.pif
             let coordinator = try await BuildCoordinator(description: description)
+            var buildRequest = await coordinator.buildRequest
             // The transport may have closed while the coordinator was being created.
             guard state == .initializing else {
                 await coordinator.close()
@@ -71,7 +72,6 @@ actor XToolBuildServer: QueueBasedMessageHandler {
             self.coordinator = coordinator
             packageRoot = URL(filePath: pif.workspace.path)
             headersByTargetGUID = Self.headerMapping(in: pif)
-            var buildRequest = coordinator.buildRequest
             buildRequest.configuredTargets = [SWBConfiguredTarget(guid: XPIF.Workspace.umbrellaTargetGUID.value)]
             buildRequest = buildRequest.withIndexBuildArena()
             let server = SWBBuildServer(

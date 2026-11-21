@@ -6,6 +6,7 @@ struct BuildDescription {
     var pif: XPIF.Container
     var configuration: BuildConfiguration
     var triple: String
+    var hotReloadable = false
 
     struct TargetSelection {
         var application: XPIF.GUID
