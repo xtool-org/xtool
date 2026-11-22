@@ -90,6 +90,12 @@ public struct Packer: Sendable {
                     // in order to dump the plan, so we can skip resolution here to skirt
                     // the issue.
                     "--disable-automatic-resolution",
+                    // Dependency scanning does not enable cross-import overlays
+                    // by default, so modules like `_PhotosUI_SwiftUI` never make
+                    // it into the explicit module map and types such as
+                    // `PhotosPickerItem` become unresolvable. Opt in explicitly.
+                    "-Xswiftc", "-Xfrontend",
+                    "-Xswiftc", "-enable-cross-import-overlays",
                 ],
             )
         try await Subprocess.run(
