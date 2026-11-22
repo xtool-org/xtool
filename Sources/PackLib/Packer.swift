@@ -59,7 +59,22 @@ public struct Packer: Sendable {
         for product in plan.allProducts {
             let sources: URL = packageDir.appendingPathComponent("Sources/\(product.targetName)", isDirectory: true)
             try FileManager.default.createDirectory(at: sources, withIntermediateDirectories: true)
-            try Data().write(to: sources.appendingPathComponent("stub.c", isDirectory: false))
+            let stub: String
+            switch product.type {
+            case .application:
+                stub = ""
+            case .appExtension:
+                // The extension links with -e _NSExtensionMain, so nothing
+                // references the user's `main` at link time. Under
+                // -dead_strip that strips the entire extension. A weak
+                // reference anchors `main` when it exists and compiles to
+                // NULL when the extension has none.
+                stub = """
+                extern int main(void) __attribute__((weak_import));
+                __attribute__((used)) static void * const xtool_main_anchor = (void * const)&main;
+                """
+            }
+            try Data(stub.utf8).write(to: sources.appendingPathComponent("stub.c", isDirectory: false))
         }
 
         let buildConfig = try await buildSettings
