@@ -56,11 +56,24 @@ struct MetalToolchain: Sendable {
         return installedComponent(from: result.standardOutput)
     }
 
+    /// Appends this toolchain's search directory to an `EXTERNAL_TOOLCHAINS_DIR` value, keeping existing entries.
+    func externalToolchainsDir(appendingTo existing: String?) -> String {
+        let paths = (existing ?? "").split(separator: ":").map(String.init)
+        return (paths.contains(toolchainSearchPath) ? paths : paths + [toolchainSearchPath]).joined(separator: ":")
+    }
+
     func sessionEnvironment(inheriting environment: [String: String]) -> [String: String] {
         var environment = environment
-        let existing = environment["EXTERNAL_TOOLCHAINS_DIR"].flatMap { $0.isEmpty ? nil : $0 }
-        environment["EXTERNAL_TOOLCHAINS_DIR"] = [existing, toolchainSearchPath].compactMap { $0 }.joined(separator: ":")
+        environment["EXTERNAL_TOOLCHAINS_DIR"] = externalToolchainsDir(appendingTo: environment["EXTERNAL_TOOLCHAINS_DIR"])
         return environment
+    }
+
+    /// Swift Build prefers a process-level `EXTERNAL_TOOLCHAINS_DIR` over the session environment's,
+    /// even when empty, and snapshots the process environment on first use. When the process defines
+    /// the variable, extend it in place; call this before the build service starts.
+    func extendProcessEnvironment() {
+        guard let existing = ProcessInfo.processInfo.environment["EXTERNAL_TOOLCHAINS_DIR"] else { return }
+        setenv("EXTERNAL_TOOLCHAINS_DIR", externalToolchainsDir(appendingTo: existing), 1)
     }
 }
 #endif

@@ -21,8 +21,14 @@ actor BuildSessionManager {
 
     init() async throws {
         #if os(macOS)
-        // Start the Metal toolchain query now so it overlaps build service startup.
-        _ = MetalToolchain.current
+        if ProcessInfo.processInfo.environment["EXTERNAL_TOOLCHAINS_DIR"] != nil {
+            // The process-level value shadows the session environment, so it must be
+            // extended before the build service starts.
+            await MetalToolchain.current.value?.extendProcessEnvironment()
+        } else {
+            // Start the Metal toolchain query now so it overlaps build service startup.
+            _ = MetalToolchain.current
+        }
         #else
         self.darwinSDK = try DarwinSDK.current().orThrow(Console.Error("Darwin SDK not installed"))
         let toolsetPath = darwinSDK.bundle.appending(path: "toolset/bin").path
