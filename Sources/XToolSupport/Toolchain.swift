@@ -74,6 +74,8 @@ public struct ToolchainProvider: DependencyKey, Sendable {
             trimmed = runtimeResourcePath.dropLast("/usr/lib/swift".count)
         } else if runtimeResourcePath.hasSuffix("/usr/local/lib/swift") {
             trimmed = runtimeResourcePath.dropLast("/usr/local/lib/swift".count)
+        } else if runtimeResourcePath.hasSuffix("/lib/swift") {
+            trimmed = runtimeResourcePath.dropLast("/lib/swift".count)
         } else {
             throw Console.Error("Unexpected toolchain resource path: \(runtimeResourcePath)")
         }
