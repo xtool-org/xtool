@@ -63,6 +63,11 @@ public actor BuildCoordinator {
             // force ad-hoc signing during the build process. we'll provision & re-sign
             // with the proper identity later.
             #if os(macOS)
+            if let metalToolchain = sessionManager.metalToolchain {
+                // Registering the search path alone is insufficient: Swift Build must also
+                // select the toolchain before the default toolchain's nonfunctional Metal stubs.
+                overrides["TOOLCHAINS"] = "\(metalToolchain.toolchainIdentifier) $(inherited)"
+            }
             overrides["CODE_SIGN_IDENTITY"] = "-"
             #else
             // on Linux, host targets (eg macros) should not receive Darwin codesigning flags

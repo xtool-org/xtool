@@ -9,7 +9,9 @@ actor BuildSessionManager {
     let service: SWBBuildService
     let session: SWBBuildServiceSession
 
-    #if !os(macOS)
+    #if os(macOS)
+    nonisolated let metalToolchain: MetalToolchain?
+    #else
     nonisolated let darwinSDK: DarwinSDK
     #endif
 
@@ -38,13 +40,15 @@ actor BuildSessionManager {
         Signposter.track("Creating build session")
 
         #if os(macOS)
+        self.metalToolchain = await MetalToolchain.current.value
+        let environment = metalToolchain?.sessionEnvironment(inheriting: ProcessInfo.processInfo.environment)
         let (result, diagnostics) = await service.createSession(
             name: "xtool",
             developerPath: nil,
             resourceSearchPaths: [],
             cachePath: nil,
             inferiorProductsPath: nil,
-            environment: nil,
+            environment: environment,
         )
         #else
         let (result, diagnostics) = await service.createSession(
