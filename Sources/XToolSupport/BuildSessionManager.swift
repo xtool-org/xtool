@@ -20,7 +20,10 @@ actor BuildSessionManager {
     private var hasCalledClose = false
 
     init() async throws {
-        #if !os(macOS)
+        #if os(macOS)
+        // Start the Metal toolchain query now so it overlaps build service startup.
+        _ = MetalToolchain.current
+        #else
         self.darwinSDK = try DarwinSDK.current().orThrow(Console.Error("Darwin SDK not installed"))
         let toolsetPath = darwinSDK.bundle.appending(path: "toolset/bin").path
         // swb looks here for tools first...

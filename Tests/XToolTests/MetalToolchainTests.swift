@@ -32,7 +32,7 @@ struct MetalToolchainTests {
     }
 
     @Test func preservesExistingSearchPaths() {
-        let component = MetalToolchain(status: "installed", toolchainIdentifier: "metal", toolchainSearchPath: "/Metal")
+        let component = MetalToolchain(toolchainIdentifier: "metal", toolchainSearchPath: "/Metal")
         let environment = component.sessionEnvironment(inheriting: [
             "EXTERNAL_TOOLCHAINS_DIR": "/first:/second", "DEVELOPER_DIR": "/Xcode",
         ])
@@ -43,7 +43,9 @@ struct MetalToolchainTests {
     }
 
     @Test(.requiresXcode) func registersAndSelectsInstalledToolchain() async throws {
-        guard let component = await MetalToolchain.current.value else { return }
+        guard let component = await MetalToolchain.current.value else {
+            try Test.cancel("Metal toolchain component is not installed. Run: xcodebuild -downloadComponent MetalToolchain")
+        }
         let directory = try TemporaryDirectory(name: "MetalToolchainTests")
         var settings = XPIF.BuildSettings()
         settings[.SDKROOT] = "auto"
