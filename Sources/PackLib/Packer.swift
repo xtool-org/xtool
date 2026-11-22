@@ -59,21 +59,7 @@ public struct Packer: Sendable {
         for product in plan.allProducts {
             let sources: URL = packageDir.appendingPathComponent("Sources/\(product.targetName)", isDirectory: true)
             try FileManager.default.createDirectory(at: sources, withIntermediateDirectories: true)
-            let stub: String
-            switch product.type {
-            case .application:
-                stub = ""
-            case .appExtension:
-                // The extension links with -e _NSExtensionMain, so nothing
-                // references the user's `main` at link time. Under
-                // -dead_strip that strips the entire extension. A weak
-                // reference anchors `main` when it exists and compiles to
-                // NULL when the extension has none.
-                stub = """
-                extern int main(void) __attribute__((weak_import));
-                __attribute__((used)) static void * const xtool_main_anchor = (void * const)&main;
-                """
-            }
+            let stub = Self.stubSource(for: product.type)
             try Data(stub.utf8).write(to: sources.appendingPathComponent("stub.c", isDirectory: false))
         }
 
@@ -236,6 +222,24 @@ public struct Packer: Sendable {
                 options: 0
             )
             try encodedPlist.write(to: infoPath)
+        }
+    }
+
+    /// The `stub.c` source written into the builder package's target for a product.
+    static func stubSource(for productType: Plan.ProductType) -> String {
+        switch productType {
+        case .application:
+            return ""
+        case .appExtension:
+            // The extension links with -e _NSExtensionMain, so nothing
+            // references the user's `main` at link time. Under
+            // -dead_strip that strips the entire extension. A weak
+            // reference anchors `main` when it exists and compiles to
+            // NULL when the extension has none.
+            return """
+            extern int main(void) __attribute__((weak_import));
+            __attribute__((used)) static void * const xtool_main_anchor = (void * const)&main;
+            """
         }
     }
 

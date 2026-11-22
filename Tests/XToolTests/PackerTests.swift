@@ -13,3 +13,15 @@ import Testing
 
     #expect(Packer.cfBundleSupportedPlatforms(for: "unknown-triple") == ["iPhoneOS"])
 }
+
+@Test func extensionStubAnchorsMainAgainstDeadStripping() {
+    #expect(Packer.stubSource(for: .application) == "")
+
+    let stub = Packer.stubSource(for: .appExtension)
+    // Extensions link with `-e _NSExtensionMain`, so nothing references
+    // the product's `main`; `-dead_strip` then strips all of its code.
+    // The stub must weakly anchor `main` without requiring it to exist.
+    #expect(stub.contains("weak_import"))
+    #expect(stub.contains("&main"))
+    #expect(stub.contains("used"))
+}
