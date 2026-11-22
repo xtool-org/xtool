@@ -17,6 +17,7 @@ extension EmulatedTools: DependencyKey {
             ObjcopyTool(mode: .strip),
             ObjcopyTool(mode: .bitcodeStrip),
             ChmodTool(),
+            TouchTool(),
             CodesignTool(),
             DerqTool(),
         ]
@@ -103,6 +104,26 @@ private struct ChmodTool: EmulatedTool {
         return try await Subprocess.run(
             .name("chmod"),
             arguments: Arguments(remaining),
+            environment: Environment(environment),
+            workingDirectory: workingDirectory.map { FilePath($0) },
+            output: .data(limit: .max),
+            error: .data(limit: .max),
+        )
+        .emulatedToolResult
+    }
+}
+
+private struct TouchTool: EmulatedTool {
+    var name: String { "touch" }
+
+    func execute(
+        commandLine: [String],
+        workingDirectory: String?,
+        environment: [String: String]
+    ) async throws -> EmulatedToolResult {
+        try await Subprocess.run(
+            .name("touch"),
+            arguments: Arguments(Array(commandLine.dropFirst())),
             environment: Environment(environment),
             workingDirectory: workingDirectory.map { FilePath($0) },
             output: .data(limit: .max),
