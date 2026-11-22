@@ -151,7 +151,7 @@ actor HotReloader {
             let swiftc = FilePath(toolchain).appending("usr/bin/swiftc")
             if FileManager.default.isExecutableFile(atPath: swiftc.string) { return swiftc }
         }
-        return try await d.toolchain.toolchainRoot.appending("usr/bin/swiftc")
+        return try await d.toolchain.swiftTool.removingLastComponent().appending("swiftc")
     }
 
     private static func canonicalPath(_ path: String) -> String? {
