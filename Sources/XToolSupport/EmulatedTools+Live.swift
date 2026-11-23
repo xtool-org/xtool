@@ -9,6 +9,7 @@ extension EmulatedTools: DependencyKey {
     static let liveValue = EmulatedTools({
         var tools: [any EmulatedTool] = [
             SwiftCompilerTool(),
+            MetalTool(),
         ]
         #if !os(macOS)
         tools += [
@@ -109,6 +110,61 @@ private struct ChmodTool: EmulatedTool {
             error: .data(limit: .max),
         )
         .emulatedToolResult
+    }
+}
+
+private struct MetalTool: EmulatedTool {
+    var name: String { "metal" }
+
+    #if os(macOS)
+    private actor MetalLocator {
+        static let shared = MetalLocator()
+        private init() {}
+
+        // we don't cache failures, so that if the user installs the
+        // toolchain later then we can retry successfully
+        private var cachedPath: String?
+
+        func path() async throws -> String {
+            if let cachedPath { return cachedPath }
+            // this is re-entrant but that's okay
+            let found = try await Subprocess.run(
+                .path("/usr/bin/xcrun"),
+                arguments: ["-f", "metal"],
+                output: .string(limit: .max),
+            )
+            .checkSuccess()
+            .standardOutput
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            cachedPath = found
+            return found
+        }
+    }
+    #endif
+
+    func execute(
+        commandLine: [String],
+        workingDirectory: String?,
+        environment: [String: String]
+    ) async throws -> EmulatedToolResult {
+        #if os(macOS)
+        // SwiftBuild needs some help finding Metal: it's installed via a cryptex
+        // on macOS, which `xcrun -f` can help us locate. If the Metal toolchain
+        // isn't installed, this points to a stub in XcodeDefault.xctoolchain,
+        // which exits with an error instructing to install the toolchain.
+        return try await Subprocess.run(
+            .path(FilePath(MetalLocator.shared.path())),
+            arguments: Arguments(Array(commandLine.dropFirst())),
+            environment: Environment(environment),
+            workingDirectory: workingDirectory.map { FilePath($0) },
+            output: .data(limit: .max),
+            error: .data(limit: .max),
+        )
+        .emulatedToolResult
+        #else
+        // TODO: use Wine + Metal Developer Tools for Windows
+        throw Console.Error("xtool does not yet support compiling Metal code on Linux")
+        #endif
     }
 }
 
