@@ -110,6 +110,9 @@ struct GrandSlamAuthenticateOperation {
             // 2FA
             guard !isRetry else { throw Error.failedSecondaryAuth }
             let authMode = response.url.flatMap { GrandSlamAuthMode(rawValue: $0) }
+            if authMode == .repair {
+                return loginData
+            }
             return try await authenticateTwoFactor(
                 mode: authMode,
                 loginData: loginData
