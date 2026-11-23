@@ -18,26 +18,47 @@ public struct DarwinSDK: Sendable {
 
             // Strip macOS AppleDouble metadata files (._*) that can sneak into prebuilt
             // .xtoolsdk archives transferred from macOS and break SwiftBuild platform discovery.
-            Self.stripAppleDoubleFiles(in: url)
+            try Self.stripAppleDoubleFiles(in: url)
 
             let destination = url.deletingLastPathComponent()
                 .appendingPathComponent("darwin.xtoolsdk", isDirectory: true)
             try FileManager.default.moveItem(at: url, to: destination)
         }
 
-        private static func stripAppleDoubleFiles(in root: URL) {
+        private static func stripAppleDoubleFiles(in root: URL) throws {
             guard let enumerator = FileManager.default.enumerator(
                 at: root,
                 includingPropertiesForKeys: nil
             ) else {
-                return
+                throw StringError("Could not enumerate Darwin SDK contents at '\(root.path)'")
             }
             var toRemove: [URL] = []
             for case let fileURL as URL in enumerator where fileURL.lastPathComponent.hasPrefix("._") {
                 toRemove.append(fileURL)
             }
             for fileURL in toRemove {
-                try? FileManager.default.removeItem(at: fileURL)
+                let parentPath = fileURL.deletingLastPathComponent().path
+                let attrs = try? FileManager.default.attributesOfItem(atPath: parentPath)
+                let originalPerms = (attrs?[.posixPermissions] as? NSNumber)?.intValue
+                let madeWritable: Bool
+                if let perms = originalPerms, (perms & 0o200) == 0 {
+                    try FileManager.default.setAttributes(
+                        [.posixPermissions: perms | 0o200],
+                        ofItemAtPath: parentPath
+                    )
+                    madeWritable = true
+                } else {
+                    madeWritable = false
+                }
+                defer {
+                    if madeWritable, let originalPerms {
+                        try? FileManager.default.setAttributes(
+                            [.posixPermissions: originalPerms],
+                            ofItemAtPath: parentPath
+                        )
+                    }
+                }
+                try FileManager.default.removeItem(at: fileURL)
             }
         }
 

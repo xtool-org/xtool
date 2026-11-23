@@ -96,6 +96,15 @@ func installsDarwinSDKInXtoolDirectory(legacy: Bool) async throws {
         try Data("test\n".utf8).write(to: temporaryBundle.url.appending(path: "darwin-sdk-version.txt"))
         try Data("junk".utf8).write(to: platforms.appending(path: "._iPhoneOS.platform"))
         try Data("real".utf8).write(to: platforms.appending(path: "iPhoneOS.platform"))
+        // Simulate a read-only directory (e.g. 0555 preserved from Xcode.app)
+        try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: platforms.path)
+        defer {
+            let installed = homeDirectory.appending(
+                path: "persistent/darwin.xtoolsdk/Xcode.app/Contents/Developer/Platforms"
+            ).path
+            try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: installed)
+            try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: platforms.path)
+        }
         try await temporaryBundle.install()
 
         let installedPlatforms = homeDirectory.appending(
