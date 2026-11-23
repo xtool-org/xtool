@@ -94,6 +94,28 @@ struct DevXcodeCommand: AsyncParsableCommand {
     }
 }
 
+struct DevPreparePackagesCommand: AsyncParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "prepare-packages",
+        abstract: "Prepare an Xcode project's Swift packages without resolving them"
+    )
+
+    func run() async throws {
+        let project = try await XToolProject.discover(start: URL(filePath: "."))
+        guard case .xcode(let xcode) = project else {
+            throw Console.Error("prepare-packages requires an Xcode project")
+        }
+        let builder = try XcodeBuildDescriber(project: xcode).pifBuilder()
+        guard let directory = try XcodePackagePIFBuilder(
+            builder: builder,
+            rootDirectory: xcode.base.rootDirectory
+        ).prepare() else {
+            throw Console.Error("The Xcode project has no Swift package references")
+        }
+        d.out.print(directory.path)
+    }
+}
+
 struct DevBuildCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "build",
@@ -327,6 +349,7 @@ struct DevCommand: AsyncParsableCommand {
         abstract: "Build and run a Swift package or Xcode project",
         subcommands: [
             DevXcodeCommand.self,
+            DevPreparePackagesCommand.self,
             DevBuildCommand.self,
             DevRunCommand.self,
             DevBSPCommand.self,
