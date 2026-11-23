@@ -235,6 +235,9 @@ struct InstallSDKOperation {
             try await builder.buildSDK()
         }
 
+        // Clean AppleDouble metadata before removing the existing SDK so failures preserve it.
+        try temporaryBundle.stripAppleDoubleFiles()
+
         if let sdk = try DarwinSDK.current() {
             d.out.print("Removing existing SDK...")
             try sdk.remove()
@@ -272,6 +275,10 @@ struct UpdateSDKOperation {
         guard DarwinSDK(bundle: temporaryBundle.url) != nil else {
             throw Console.Error("Invalid Darwin SDK at '\(temporaryBundle.url.path)'")
         }
+
+        // Clean AppleDouble metadata before moving Xcode.app or deleting the existing SDK.
+        try temporaryBundle.stripAppleDoubleFiles()
+        try DarwinSDK.stripAppleDoubleFiles(in: xcode)
 
         try FileManager.default.moveItem(
             at: xcode,

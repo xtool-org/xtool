@@ -105,6 +105,7 @@ func installsDarwinSDKInXtoolDirectory(legacy: Bool) async throws {
             try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: installed)
             try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: platforms.path)
         }
+        try temporaryBundle.stripAppleDoubleFiles()
         try await temporaryBundle.install()
 
         let installedPlatforms = homeDirectory.appending(
