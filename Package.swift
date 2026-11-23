@@ -2,20 +2,20 @@
 
 import PackageDescription
 
-let xtoolVersion: String? = {
+let (xtoolVersion, hasUncommittedChanges): (String?, Bool) = {
     if let explicitVersion = Context.environment["XTOOL_VERSION"] {
-        return explicitVersion
+        // when building with an explicit version, consider the tree clean.
+        // we never want "-dirty" in a CI build.
+        return (explicitVersion, false)
     } else if let info = Context.gitInformation {
         let gitCommit = info.currentCommit
         let gitTag = info.currentTag
         let gitRef = gitTag ?? "commit \(gitCommit)"
-        return gitRef
+        return (gitRef, info.hasUncommittedChanges)
     } else {
-        return nil
+        return (nil, false)
     }
 }()
-
-let hasUncommittedChanges = Context.gitInformation?.hasUncommittedChanges ?? false
 
 let cSettings: [CSetting] = [
     .define("_GNU_SOURCE", .when(platforms: [.linux])),
