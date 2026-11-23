@@ -39,7 +39,8 @@ public struct DarwinSDK: Sendable {
             for fileURL in toRemove {
                 let parentPath = fileURL.deletingLastPathComponent().path
                 let attrs = try? FileManager.default.attributesOfItem(atPath: parentPath)
-                let originalPerms = (attrs?[.posixPermissions] as? NSNumber)?.intValue
+                let rawPerms = attrs?[.posixPermissions]
+                let originalPerms = (rawPerms as? Int) ?? (rawPerms as? NSNumber)?.intValue
                 let madeWritable: Bool
                 if let perms = originalPerms, (perms & 0o200) == 0 {
                     try FileManager.default.setAttributes(
