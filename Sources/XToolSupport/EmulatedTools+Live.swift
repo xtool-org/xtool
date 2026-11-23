@@ -121,6 +121,8 @@ private struct TouchTool: EmulatedTool {
         workingDirectory: String?,
         environment: [String: String]
     ) async throws -> EmulatedToolResult {
+        // SwiftBuild typically hardcodes `/usr/bin/touch`, which is absent on some Linux distros
+        // like Nix. This finds it in PATH instead.
         try await Subprocess.run(
             .name("touch"),
             arguments: Arguments(Array(commandLine.dropFirst())),
