@@ -77,6 +77,8 @@ struct GrandSlamTwoFactorAuthenticateOperation {
             try await self.performSMSAuth()
         case .trustedDeviceSecondaryAuth:
             try await self.performTrustedDeviceAuth()
+        case .repair: // should be handled in GrandSlamAuthenticateOperation
+            return
         case nil: // means 2FA was automatically requested
             try await validateCode()
         }
