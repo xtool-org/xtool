@@ -58,15 +58,13 @@ struct PackOperation {
 
         await project.tryEnsureLSPConfig()
 
-        let description = try await project.describe(
+        var description = try await project.describe(
             configuration: buildOptions.configuration,
             triple: triple ?? Self.defaultTriple,
             scheme: buildOptions.scheme
         )
-        let coordinator = try await BuildCoordinator(
-            description: description,
-            hotReloadable: hotReloadable
-        )
+        description.hotReloadable = hotReloadable
+        let coordinator = try await BuildCoordinator(description: description)
         defer { await coordinator.close() }
         let result = try await ProjectBuildOperation(
             buildCoordinator: coordinator,

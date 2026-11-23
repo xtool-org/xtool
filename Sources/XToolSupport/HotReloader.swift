@@ -11,7 +11,7 @@ import XUtils
 /// Recompiles Swift files as they're edited and hands the results to xload,
 /// which interposes the new implementations into the running app.
 ///
-/// The app must be built with `BuildCoordinator(hotReloadable: true)`.
+/// The app must be built with `BuildDescription.hotReloadable == true`.
 actor HotReloader {
     private struct WatchedFile {
         var source: BuildCoordinator.SourceFile
