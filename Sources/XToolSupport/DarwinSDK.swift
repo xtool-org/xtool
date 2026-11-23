@@ -34,15 +34,23 @@ public struct DarwinSDK: Sendable {
     }
 
     package static func stripAppleDoubleFiles(in root: URL) throws {
+        var traversalError: (any Error)?
         guard let enumerator = FileManager.default.enumerator(
             at: root,
-            includingPropertiesForKeys: nil
+            includingPropertiesForKeys: nil,
+            errorHandler: { _, error in
+                traversalError = traversalError ?? error
+                return false
+            }
         ) else {
             throw StringError("Could not enumerate Darwin SDK contents at '\(root.path)'")
         }
         var toRemove: [URL] = []
         for case let fileURL as URL in enumerator where fileURL.lastPathComponent.hasPrefix("._") {
             toRemove.append(fileURL)
+        }
+        if let traversalError {
+            throw traversalError
         }
         for fileURL in toRemove {
             let parentPath = fileURL.deletingLastPathComponent().path

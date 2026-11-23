@@ -116,6 +116,14 @@ func installsDarwinSDKInXtoolDirectory(legacy: Bool) async throws {
     }
 }
 
+@Test func stripAppleDoubleFilesThrowsOnMissingRoot() {
+    let missingRoot = FileManager.default.temporaryDirectory
+        .appendingPathComponent("DarwinSDKTests-missing-\(UUID().uuidString)", isDirectory: true)
+    #expect(throws: (any Error).self) {
+        try DarwinSDK.stripAppleDoubleFiles(in: missingRoot)
+    }
+}
+
 @Test(arguments: [false, true], ["develop", "normal", "slim"])
 func migratesDarwinSDKToXtoolDirectory(usesXDG: Bool, flavor: String) throws {
     let homeDirectory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
