@@ -251,6 +251,22 @@ struct CodesignToolTests {
         expectNoDifference(Data(try #require(slots[7]).dropFirst(8)), emptyDER)
     }
 
+    @Test func acceptsGeneratePreEncryptHashesFlag() async throws {
+        let root = try temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let path = root.appending(path: "Executable")
+        try machO().write(to: path)
+
+        try await sign([
+            "--preserve-metadata=identifier,entitlements,flags",
+            "--generate-entitlement-der",
+            "--generate-pre-encrypt-hashes",
+            path.path,
+        ], in: root)
+        let slots = try signatureSlots(at: path)
+        #expect(!slots.isEmpty)
+    }
+
     @Test func rejectsInvalidXMLBeforeSigning() async throws {
         let root = try temporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }

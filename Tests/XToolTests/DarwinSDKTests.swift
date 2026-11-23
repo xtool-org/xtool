@@ -83,6 +83,29 @@ func installsDarwinSDKInXtoolDirectory(legacy: Bool) async throws {
     }
 }
 
+@Test func installStripsAppleDoubleMetadataFiles() async throws {
+    let homeDirectory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: homeDirectory) }
+
+    try await withDependencies {
+        $0.persistentDirectory = homeDirectory.appending(path: "persistent")
+    } operation: {
+        let temporaryBundle = try DarwinSDK.prepareTemporaryBundle()
+        let platforms = temporaryBundle.url.appending(path: "Xcode.app/Contents/Developer/Platforms")
+        try FileManager.default.createDirectory(at: platforms, withIntermediateDirectories: true)
+        try Data("test\n".utf8).write(to: temporaryBundle.url.appending(path: "darwin-sdk-version.txt"))
+        try Data("junk".utf8).write(to: platforms.appending(path: "._iPhoneOS.platform"))
+        try Data("real".utf8).write(to: platforms.appending(path: "iPhoneOS.platform"))
+        try await temporaryBundle.install()
+
+        let installedPlatforms = homeDirectory.appending(
+            path: "persistent/darwin.xtoolsdk/Xcode.app/Contents/Developer/Platforms"
+        )
+        #expect(!FileManager.default.fileExists(atPath: installedPlatforms.appending(path: "._iPhoneOS.platform").path))
+        #expect(FileManager.default.fileExists(atPath: installedPlatforms.appending(path: "iPhoneOS.platform").path))
+    }
+}
+
 @Test(arguments: [false, true], ["develop", "normal", "slim"])
 func migratesDarwinSDKToXtoolDirectory(usesXDG: Bool, flavor: String) throws {
     let homeDirectory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)

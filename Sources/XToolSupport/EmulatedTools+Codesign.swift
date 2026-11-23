@@ -78,6 +78,8 @@ struct CodesignTool: EmulatedTool {
         @Option var keychain: String?
         @Flag var verbose = false
         @Flag var generateEntitlementDer = false
+        // Passed by SwiftBuild when signing codeless binary frameworks (e.g. Firebase/GoogleAppMeasurement).
+        @Flag var generatePreEncryptHashes = false
         @Argument var path: String
 
         enum PreservedMetadata: String {
