@@ -78,6 +78,9 @@ struct CodesignTool: EmulatedTool {
         @Option var keychain: String?
         @Flag var verbose = false
         @Flag var generateEntitlementDer = false
+        // we need to accept this flag, but can ignore it
+        // https://github.com/swiftlang/swift-build/blob/d417bbcd/Sources/SWBTaskExecution/TaskActions/CodeSignTaskAction.swift#L33
+        @Flag var generatePreEncryptHashes = false
         @Argument var path: String
 
         enum PreservedMetadata: String {
