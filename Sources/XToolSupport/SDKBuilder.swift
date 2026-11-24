@@ -79,7 +79,7 @@ struct SDKBuilder {
     static let sdkEpoch = 6
 
     // tag from https://github.com/xtool-org/darwin-tools-linux-llvm
-    static let darwinToolsVersion = "1.1.0"
+    static let darwinToolsVersion = "1.2.0"
     // tag from https://github.com/xtool-org/OpenAppleMacros
     static let oamVersion = "1.4.1"
 
@@ -233,14 +233,6 @@ struct SDKBuilder {
             destination: toolsetDir,
             displayName: "toolset",
             envOverride: "XTL_TOOLSET_TARBALL",
-        )
-
-        // swift-build assumes we have an Apple-flavored librarian for Apple platforms
-        // (https://github.com/swiftlang/swift-build/blob/b2433e74e/Sources/SWBCore/SpecImplementations/Tools/LinkerTools.swift#L1735)
-        // but allows us to override this assumption if we explicitly provide the name llvm-lib (look a few lines above in that file)
-        try FileManager.default.moveItem(
-            at: toolsetDir.appending(path: "bin/libtool"),
-            to: toolsetDir.appending(path: "bin/llvm-lib")
         )
 
         let emulatorURL = toolsetDir.appending(path: "bin/xtool-emulate-tool")
