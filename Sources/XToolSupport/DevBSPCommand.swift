@@ -1,10 +1,7 @@
 import XCLIUtils
-import XUtils
 import ArgumentParser
-import Foundation
-import XKit
-import PackLib
-import Subprocess
+import XUtils
+import Dependencies
 
 struct DevBSPCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -15,20 +12,24 @@ struct DevBSPCommand: AsyncParsableCommand {
     @Option
     var triple: String?
 
+    @Option(help: "Xcode scheme to build (overrides xtool.yml)")
+    var scheme: String?
+
     func run() async throws {
-        guard try await SwiftVersion.current.supportsSwiftBuild else {
-            throw Console.Error("`xtool dev build-server` requires Swift 6.4 or later")
+        let transport = BSPCommandTransport()
+        // Only BSP frames may be written to the client's stdout.
+        try await withDependencies {
+            let output = $0.out
+            $0.out = CommandOutput { data, _, flush in output.write(data, .stderr, flush) }
+        } operation: {
+            let server = XToolBuildServer(
+                triple: triple ?? PackOperation.defaultTriple,
+                scheme: scheme,
+                connectionToClient: transport.connection,
+                exitHandler: { _ in transport.connection.close() }
+            )
+            defer { await server.close() }
+            try await transport.run(receiveHandler: server)
         }
-        let settings = try await BuildSettings(
-            configuration: .debug,
-            triple: triple ?? PackOperation.defaultTriple
-        )
-        try await Subprocess.run(
-            settings.buildServerInvocation(),
-            input: .currentStandardInput,
-            output: .currentStandardOutput,
-            error: .currentStandardError,
-        )
-        .checkSuccess()
     }
 }

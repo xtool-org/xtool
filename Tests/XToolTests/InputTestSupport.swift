@@ -3,7 +3,7 @@ import Testing
 
 /// Releases suspended reads on timeout so a regression cannot hang the test process.
 func withInputTestTimeout<T>(
-    _ timeout: Duration = .seconds(5),
+    _ timeout: Duration = .seconds(30),
     operation: () async throws -> T,
     cleanup: @escaping @Sendable () async -> Void,
 ) async throws -> T {

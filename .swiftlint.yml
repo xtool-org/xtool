@@ -51,6 +51,15 @@ custom_rules:
       - identifier
     message: "Use d.out.print instead of print or Swift.print."
     severity: error
+  prefer_xtool_subprocess_output:
+    name: "Subprocess Dependency Output"
+    included: '/Sources/'
+    excluded: '/(Tests|Examples)/'
+    regex: '(?<=\.)\s*currentStandard(?:Output|Error)\b'
+    match_kinds:
+      - identifier
+    message: "Use .xtoolOutput() or .xtoolError() instead of .currentStandardOutput or .currentStandardError, respectively."
+    severity: error
   spaces_not_tabs:
     name: "Spaces not Tabs"
     regex: ^\t
@@ -73,3 +82,4 @@ included:
   - macOS/XToolMac
 excluded:
   - Sources/DeveloperAPI/Generated
+  - Sources/XPIF

@@ -34,7 +34,9 @@ elif [[ "$mode" == run ]]; then
 else
     demos=()
     for demo in "$examples_dir"/Demo*/; do
-        [[ -f "$demo/Package.swift" ]] || continue
+        projects=("$demo"/*.xcodeproj)
+        workspaces=("$demo"/*.xcworkspace)
+        [[ -f "$demo/Package.swift" || ${#projects[@]} -gt 0 || ${#workspaces[@]} -gt 0 ]] || continue
         demo="${demo%/}"
         demos+=("${demo##*/}")
     done

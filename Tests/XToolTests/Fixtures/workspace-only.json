@@ -1,0 +1,12 @@
+[
+  {
+    "type": "workspace",
+    "signature": "workspace-signature",
+    "contents": {
+      "guid": "workspace",
+      "name": "Fixture Workspace",
+      "path": "/tmp/Fixture",
+      "projects": []
+    }
+  }
+]

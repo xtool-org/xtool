@@ -4,9 +4,11 @@ import XKit
 import ArgumentParser
 import XUtils
 import Dependencies
+@_spi(SourceKitLSP) import SKLogging
 
 public enum XTool {
     public static func run(arguments: [String]? = nil) async throws {
+        configureLogging()
         TemporaryDirectory.prepare()
         await XToolCommand.cancellableMain(arguments)
     }
@@ -17,6 +19,9 @@ private struct XToolCommand: AsyncParsableCommand {
         commandName: "xtool",
         abstract: "Cross-platform Xcode replacement",
         version: "xtool \(XTool.version)",
+        subcommands: [
+            EmulateToolCommand.self,
+        ],
         groupedSubcommands: [
             CommandGroup(
                 name: "Configuration",
@@ -24,6 +29,7 @@ private struct XToolCommand: AsyncParsableCommand {
                     SetupCommand.self,
                     AuthCommand.self,
                     SDKCommand.self,
+                    MetalToolchainCommand.self,
                 ]
             ),
             CommandGroup(
@@ -86,5 +92,15 @@ extension ParsableCommand where Self: SendableMetatype {
         cont.finish()
 
         await task.value
+    }
+}
+
+extension XTool {
+    fileprivate static func configureLogging() {
+        // SKLogging (for swift-tools-protocols)
+        LoggingScope.configureDefaultLoggingSubsystem("sh.xtool")
+        LogConfig.logLevel = .default
+        // xtool
+        Signposter.setup()
     }
 }

@@ -19,7 +19,18 @@ enum TestXcode {
 
     @TaskLocal fileprivate static var _current: URL?
 
-    fileprivate static let resolved = Task<URL?, Error> {
+    fileprivate static let resolved = Task<(url: URL, version: String)?, Error> {
+        guard let url = try await resolveURL() else { return nil }
+        let data = try Data(contentsOf: url.appending(path: "Contents/version.plist"))
+        let version = try PropertyListDecoder().decode(Version.self, from: data)
+        return (url, version.CFBundleShortVersionString)
+    }
+
+    private struct Version: Decodable {
+        let CFBundleShortVersionString: String
+    }
+
+    private static func resolveURL() async throws -> URL? {
         if let xcode = ProcessInfo.processInfo.environment["XTL_TEST_XCODE_APP"], !xcode.isEmpty {
             return URL(filePath: xcode)
         }
@@ -42,15 +53,20 @@ enum TestXcode {
 }
 
 struct RequiresXcodeTrait: TestTrait, SuiteTrait, TestScoping {
+    var minimumVersion: String?
+
     func provideScope(
         for test: Test,
         testCase: Test.Case?,
         performing function: () async throws -> Void
     ) async throws {
         guard let xcode = try? await TestXcode.resolved.value else {
-            try Test.cancel("Could not resolve Xcode.app path. Set XTL_TEST_XCODE_APP.")
+            try Test.cancel("Could not resolve Xcode.app path and version. Set XTL_TEST_XCODE_APP.")
         }
-        return try await TestXcode.$_current.withValue(xcode) {
+        if let minimumVersion, xcode.version.compare(minimumVersion, options: .numeric) == .orderedAscending {
+            try Test.cancel("Requires Xcode \(minimumVersion) or later; found \(xcode.version) at \(xcode.url.path).")
+        }
+        return try await TestXcode.$_current.withValue(xcode.url) {
             try await function()
         }
     }
@@ -59,5 +75,10 @@ struct RequiresXcodeTrait: TestTrait, SuiteTrait, TestScoping {
 extension Trait where Self == RequiresXcodeTrait {
     static var requiresXcode: Self {
         Self()
+    }
+
+    /// Requires the resolved Xcode installation to be at least the given version.
+    static func requiresXcode(_ minimumVersion: String) -> Self {
+        Self(minimumVersion: minimumVersion)
     }
 }

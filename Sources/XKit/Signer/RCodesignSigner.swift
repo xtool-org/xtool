@@ -3,17 +3,16 @@ import RCodesign
 
 public actor RCodesignSigner: Signer {
 
-    public enum Error: LocalizedError {
+    public enum Error: CustomStringConvertible, LocalizedError {
         case badFilePath
 
-        public var errorDescription: String? {
+        public var description: String {
             switch self {
-            case .badFilePath:
-                return NSLocalizedString(
-                    "signer_impl.error.bad_file_path", value: "A bad file path was provided", comment: ""
-                )
+            case .badFilePath: "A bad file path was provided"
             }
         }
+
+        public var errorDescription: String? { description }
     }
 
     public init() {}
@@ -47,7 +46,36 @@ public actor RCodesignSigner: Signer {
         case .adhoc:
             signingIdentity = .adHoc
         }
-        try RCodesign.sign(at: app, identity: signingIdentity, options: .init(entitlements: entitlements, shallow: !deep))
+
+        var originalPermissions: [(String, Int)] = []
+        try updatePermissions(dir: app) { path, permissions in
+            originalPermissions.append((path, permissions))
+            permissions = 0o644
+        }
+        let signResult = Result {
+            try RCodesign.sign(at: app, identity: signingIdentity, options: .init(entitlements: entitlements, shallow: !deep))
+        }
+        for (path, permissions) in originalPermissions {
+            try FileManager.default.setAttributes([.posixPermissions: permissions], ofItemAtPath: path)
+        }
+        return try signResult.get()
+    }
+
+    private func updatePermissions(dir: URL, transform: (String, inout Int) throws -> Void) throws {
+        guard let enumerator = FileManager.default.enumerator(
+            at: dir,
+            includingPropertiesForKeys: [.isDirectoryKey]
+        ) else { throw Error.badFilePath }
+        for case let file as URL in enumerator {
+            guard try file.resourceValues(forKeys: [.isDirectoryKey]).isDirectory == false else { continue }
+            let path = file.path
+            let attributes = try FileManager.default.attributesOfItem(atPath: path)
+            guard let permissions = attributes[.posixPermissions] as? Int else { continue }
+            var newValue = permissions
+            try transform(path, &newValue)
+            guard newValue != permissions else { continue }
+            try FileManager.default.setAttributes([.posixPermissions: newValue], ofItemAtPath: path)
+        }
     }
 
     public func analyze(executable: URL) throws -> Data? {
