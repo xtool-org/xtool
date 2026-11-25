@@ -190,21 +190,29 @@ struct XcodeSynchronizedFolderTests {
             ))
             }
         }
-        #expect(XcodeSynchronizedFolder.implicitPhase(for: fileType, in: target)?.kind == expected)
+        #expect(XcodeSynchronizedFolder.implicitPhase(for: XcodeFileType(identifier: fileType), in: target)?.kind == expected)
     }
 
     @Test func detectsFileTypesLikeXcode() {
-        #expect(XcodeFileType.forFile(named: "x.h") == "sourcecode.c.h")
-        #expect(XcodeFileType.forFile(named: "x.H") == "sourcecode.cpp.h")
-        #expect(XcodeFileType.forFile(named: "X.SWIFT") == "sourcecode.swift")
-        #expect(XcodeFileType.forFile(named: "App.entitlements") == "text.plist.entitlements")
-        #expect(XcodeFileType.forFile(named: "Makefile") == "sourcecode.make")
+        #expect(XcodeFileType.forFile(named: "x.h")?.identifier == "sourcecode.c.h")
+        #expect(XcodeFileType.forFile(named: "x.H")?.identifier == "sourcecode.cpp.h")
+        #expect(XcodeFileType.forFile(named: "X.SWIFT")?.identifier == "sourcecode.swift")
+        #expect(XcodeFileType.forFile(named: "App.entitlements")?.identifier == "text.plist.entitlements")
+        #expect(XcodeFileType.forFile(named: "Makefile")?.identifier == "sourcecode.make")
         #expect(XcodeFileType.forFile(named: "Demo.playground") == nil)
         #expect(XcodeFileType.forFile(named: "data.unknown") == nil)
-        #expect(XcodeFileType.forDirectory(named: "Demo.playground") == "file.playground")
-        #expect(XcodeFileType.forDirectory(named: "Assets.xcassets") == "folder.assetcatalog")
+        #expect(XcodeFileType.forDirectory(named: "Demo.playground")?.identifier == "file.playground")
+        #expect(XcodeFileType.forDirectory(named: "Assets.xcassets")?.identifier == "folder.assetcatalog")
         #expect(XcodeFileType.forDirectory(named: "Sources.swift") == nil)
-        #expect(XcodeFileType.ancestry(of: "text.plist.strings") == ["text.plist.strings", "text", "file"])
+        #expect(XcodeFileType(identifier: "text.plist.strings").ancestry.map(\.identifier)
+            == ["text.plist.strings", "text", "file"])
+    }
+
+    @Test func collectsKnownFileTypes() {
+        // Spot-check `@CollectXcodeFileTypes` with the first, a middle, and the last declared type.
+        #expect(XcodeFileType.all.contains(.archive))
+        #expect(XcodeFileType.all.contains(.sourcecodeIig))
+        #expect(XcodeFileType.all.contains(.wrapperXpcService))
     }
 
     private func project(at directory: URL) throws -> XcodeProject {

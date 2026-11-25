@@ -190,23 +190,13 @@ extension XcodePIFProjectBuilder {
 
     private func predominantLanguage(in phases: [XPIF.BuildPhase]) -> String? {
         // Xcode counts build-file memberships by file type, including headers/copy phases.
-        var counts: [String: Int] = [:]
+        var counts: [XcodeFileType: Int] = [:]
         for file in phases.flatMap({ $0.common.files }) {
             guard case .reference(let id) = file.ref, let type = loaded.fileTypes[id] else { continue }
             counts[type, default: 0] += 1
         }
         let languages = counts.compactMap { type, count -> (name: String, count: Int)? in
-            let language: String
-            switch type {
-            case "sourcecode.swift": language = "Swift"
-            case "sourcecode.c.c": language = "C"
-            case "sourcecode.c.objc": language = "Objective-C"
-            case "sourcecode.cpp.cpp": language = "C-Plus-Plus"
-            case "sourcecode.c.h", "sourcecode.cpp.h", "sourcecode.cpp.objcpp": language = "Objective-C-Plus-Plus"
-            case "net.daringfireball.markdown": language = "Markdown"
-            default: return nil
-            }
-            return (language, count)
+            type.sourceCodeLanguage.map { ($0, count) }
         }
         let language = languages.min {
             $0.count == $1.count ? $0.name < $1.name : $0.count > $1.count
@@ -253,7 +243,7 @@ extension XcodePIFProjectBuilder {
             let input: XPIF.BuildRule.Input = if let pattern = rule.filePatterns {
                 .filePattern(pattern)
             } else {
-                .fileType(rule.fileType?.rawValue ?? "file")
+                .fileType((rule.fileType.map(XcodeFileType.init) ?? .file).identifier)
             }
             let action: XPIF.BuildRule.Action = if let script = rule.script {
                 .shellScriptWithFileList(

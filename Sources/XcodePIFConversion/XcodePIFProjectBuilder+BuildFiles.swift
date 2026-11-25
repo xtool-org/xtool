@@ -33,23 +33,16 @@ extension XcodePIFProjectBuilder {
         return file
     }
 
-    /// Like Xcode, only record code generation visibility for intent definitions and Core ML models
-    /// in a sources phase. Swift Build treats a missing visibility as `no_codegen`.
+    /// Like Xcode, only record code generation visibility for sources whose type generates code.
+    /// Swift Build treats a missing visibility as `no_codegen`.
     func generatedCodeVisibility(
         for file: XPIF.BuildFile,
         in phase: XCSchema.BuildPhase
     ) -> XPIF.BuildFile.GeneratedCodeVisibility? {
         guard case .sources = phase,
               case .reference(let id) = file.ref,
-              let type = loaded.fileTypes[id]
+              let fallback = loaded.fileTypes[id]?.inherited(\.defaultGeneratedCodeVisibility)
               else { return nil }
-        let ancestry = XcodeFileType.ancestry(of: type)
-        if ancestry.contains("file.intentdefinition") {
-            return file.generatedCodeVisibility ?? .public
-        } else if ancestry.contains("file.mlmodel") || ancestry.contains("folder.mlpackage") {
-            return file.generatedCodeVisibility ?? .project
-        } else {
-            return nil
-        }
+        return file.generatedCodeVisibility ?? fallback
     }
 }
