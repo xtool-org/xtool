@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+exec "${CLANG:?Set CLANG}" -target arm64-apple-ios15.1 -isysroot "${IOS_SDK:?Set IOS_SDK}" \
+  -mlinker-version=1000 --ld-path="${LD64_LLD:?Set LD64_LLD}" "$@"
