@@ -53,3 +53,20 @@ import Testing
     #expect(!FileManager.default.fileExists(atPath: temporaryURL.path))
     #expect(FileManager.default.fileExists(atPath: installedBundle.path))
 }
+
+@Test func sdkRootRequiresInstalledTargetAndDirectory() throws {
+    let bundle = FileManager.default.temporaryDirectory
+        .appendingPathComponent("DarwinSDKTests-\(UUID())", isDirectory: true)
+    defer { try? FileManager.default.removeItem(at: bundle) }
+    try FileManager.default.createDirectory(at: bundle, withIntermediateDirectories: true)
+    try Data("test".utf8).write(to: bundle.appendingPathComponent("darwin-sdk-version.txt"))
+    try Data("""
+    {"targetTriples":{"arm64-apple-tvos":{"sdkRootPath":"SDKs/AppleTVOS.sdk"}}}
+    """.utf8).write(to: bundle.appendingPathComponent("swift-sdk.json"))
+    let sdk = try #require(DarwinSDK(bundle: bundle))
+    #expect(throws: StringError.self) { try sdk.sdkRoot(for: "arm64-apple-ios") }
+    #expect(throws: StringError.self) { try sdk.sdkRoot(for: "arm64-apple-tvos") }
+    let root = bundle.appendingPathComponent("SDKs/AppleTVOS.sdk", isDirectory: true)
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    #expect(try sdk.sdkRoot(for: "arm64-apple-tvos") == root)
+}

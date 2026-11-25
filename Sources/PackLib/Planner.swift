@@ -20,10 +20,6 @@ public struct Planner: Sendable {
         return decoder
     }()
 
-    // anything older than this requires bundling the stdlib which
-    // is doable but probably not worth the effort
-    private static let minSupportedIOSVersion = "13.0"
-
     private func buildGraph() async throws -> PackageGraph {
         let dependencyRoot = try await dumpDependencies()
 
@@ -164,33 +160,47 @@ public struct Planner: Sendable {
         }
 
         let bundleID = idSpecifier.formBundleID(product: library.name)
-        let deploymentTarget = graph.root.platforms?.first { $0.name == "ios" }?.version
-            ?? Self.minSupportedIOSVersion
+        let platform = buildSettings.platform
+        let (deploymentTarget, macOSBundleMinimum) = try await deploymentTargets(for: graph.root)
 
         var infoPlist: [String: Sendable] = [
             "CFBundleInfoDictionaryVersion": "6.0",
             "CFBundleDevelopmentRegion": "en",
             "CFBundleVersion": "1",
             "CFBundleShortVersionString": "1.0.0",
-            "MinimumOSVersion": deploymentTarget,
             "CFBundleIdentifier": bundleID,
             "CFBundleName": library.name,
             "CFBundleExecutable": library.name,
             "CFBundleDisplayName": library.name,
             "CFBundlePackageType": type.fourCharCode,
         ]
+        if platform.usesContentsDirectory {
+            // Catalyst's deployment version is an iOS version. The macOS minimum is a separate value.
+            infoPlist["LSMinimumSystemVersion"] = macOSBundleMinimum
+        } else {
+            infoPlist["MinimumOSVersion"] = deploymentTarget
+        }
 
         switch type {
         case .application:
-            infoPlist["UIDeviceFamily"] = [1, 2]
-            infoPlist["UISupportedInterfaceOrientations"] = ["UIInterfaceOrientationPortrait"]
-            infoPlist["UISupportedInterfaceOrientations~ipad"] = [
-                "UIInterfaceOrientationPortrait",
-                "UIInterfaceOrientationPortraitUpsideDown",
-                "UIInterfaceOrientationLandscapeLeft",
-                "UIInterfaceOrientationLandscapeRight",
-            ]
-            infoPlist["UILaunchScreen"] = [:] as [String: Sendable]
+            switch platform {
+            case .iOS:
+                infoPlist["UIDeviceFamily"] = [1, 2]
+                infoPlist["UISupportedInterfaceOrientations"] = ["UIInterfaceOrientationPortrait"]
+                infoPlist["UISupportedInterfaceOrientations~ipad"] = [
+                    "UIInterfaceOrientationPortrait",
+                    "UIInterfaceOrientationPortraitUpsideDown",
+                    "UIInterfaceOrientationLandscapeLeft",
+                    "UIInterfaceOrientationLandscapeRight",
+                ]
+                infoPlist["UILaunchScreen"] = [:] as [String: Sendable]
+            case .tvOS:
+                infoPlist["UIDeviceFamily"] = [3]
+            case .macCatalyst:
+                infoPlist["UIDeviceFamily"] = [6]
+            case .macOS:
+                break
+            }
         case .appExtension:
             // Should set default parameters?
             infoPlist["NSExtension"] = [:] as [String: Sendable]
@@ -205,6 +215,10 @@ public struct Planner: Sendable {
                 throw StringError("Info.plist has invalid format: expected a dictionary.")
             }
         }
+        let minimumKey = platform.usesContentsDirectory ? "LSMinimumSystemVersion" : "MinimumOSVersion"
+        let bundleMinimum = platform.usesContentsDirectory ? macOSBundleMinimum : deploymentTarget
+        infoPlist[minimumKey] = [infoPlist[minimumKey] as? String, bundleMinimum]
+            .compactMap { $0 }.max { $0.compare($1, options: .numeric) == .orderedAscending }
 
         return Plan.Product(
             type: type,
@@ -216,6 +230,29 @@ public struct Planner: Sendable {
             iconPath: iconPath,
             entitlementsPath: entitlementsPath
         )
+    }
+
+    private func deploymentTargets(for package: PackageDump) async throws -> (product: String, macOS: String) {
+        let platform = buildSettings.platform
+        let platforms = Dictionary((package.platforms ?? []).map { ($0.name, $0.version) }, uniquingKeysWith: { _, last in last })
+        let swiftVersion = try await SwiftVersion.current
+        let sdkRoot = try await buildSettings.sdkRootURL()
+        let sdkMinimum = try sdkRoot.flatMap {
+            try DarwinSDK.minimumDeploymentTarget(for: buildSettings.sdkTriple, sdkRoot: $0)
+        }
+        let deploymentTarget = platform.effectiveDeploymentTarget(
+            platforms: platforms, swiftVersion: swiftVersion, sdkMinimum: sdkMinimum,
+            tripleMinimum: buildSettings.tripleDeploymentTarget
+        )
+        let macOSMinimum = ApplePlatform.macOS.effectiveDeploymentTarget(
+            platforms: platforms, swiftVersion: swiftVersion, sdkMinimum: nil
+        )
+        let catalystMacOSMinimum = platform == .macCatalyst ? try sdkRoot.flatMap {
+            try DarwinSDK.macOSMinimum(forCatalyst: deploymentTarget, sdkRoot: $0)
+        } : nil
+        let macOSBundleMinimum = [macOSMinimum, catalystMacOSMinimum, platform == .macOS ? deploymentTarget : nil]
+            .compactMap { $0 }.max { $0.compare($1, options: .numeric) == .orderedAscending } ?? macOSMinimum
+        return (deploymentTarget, macOSBundleMinimum)
     }
 
     private func dumpDependencies() async throws -> PackageDependency {
@@ -325,12 +362,16 @@ public struct Plan: Sendable {
         }
 
         public func directory(inApp baseDir: URL) -> URL {
+            directory(inApp: baseDir, platform: .iOS)
+        }
+
+        package func directory(inApp baseDir: URL, platform: ApplePlatform) -> URL {
             switch type {
             case .application:
                 baseDir
                     .appendingPathComponent(".", isDirectory: true)
             case .appExtension:
-                baseDir
+                platform.contentsDirectory(in: baseDir)
                     .appendingPathComponent("PlugIns", isDirectory: true)
                     .appendingPathComponent(product, isDirectory: true)
                     .appendingPathExtension("appex")
