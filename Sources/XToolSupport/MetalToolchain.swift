@@ -99,7 +99,7 @@ struct MetalToolchainManager {
         // on macOS, which `xcrun -f` can help us locate. If the Metal toolchain
         // isn't installed, this points to a stub in XcodeDefault.xctoolchain,
         // which exits with an error instructing to install the toolchain.
-        try await Subprocess.Configuration.init(
+        try await Subprocess.Configuration(
             executable: .path(MetalLocator.shared.path()),
             arguments: Arguments(arguments),
             environment: environment,
