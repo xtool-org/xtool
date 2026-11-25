@@ -278,10 +278,16 @@ extension XcodePIFProjectBuilder {
         _ phase: XCSchema.BuildPhase, target: XCSchema.CommonTargetProperties, index: Int
     ) throws -> XPIF.BuildPhase {
         let id = try identifier(phase.properties.objectID, fallback: loaded.phaseID(phase, target: target, index: index).value)
-        let files = phaseFiles[id] ?? []
+        var files = phaseFiles[id] ?? []
         switch phase {
         case .headers: return .headers(.init(id: id, files: files))
-        case .sources: return .sources(.init(id: id, files: files))
+        case .sources:
+            // Xcode defaults SiriKit sources to public codegen; Swift Build defaults to none.
+            for index in files.indices
+                where files[index].generatedCodeVisibility == nil && intentDefinitionRefs.contains(files[index].ref) {
+                files[index].generatedCodeVisibility = .public
+            }
+            return .sources(.init(id: id, files: files))
         case .frameworks: return .frameworks(.init(id: id, files: files))
         case .resources: return .copyBundleResources(.init(id: id, files: files))
         case .copy(let properties):

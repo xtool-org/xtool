@@ -243,6 +243,50 @@ struct XcodePIFBuilderTests {
         #expect(phase.files.first?.ref == .reference(id: variant.id))
     }
 
+    @Test(arguments: [false, true], [
+        XPIF.BuildFile.GeneratedCodeVisibility.public, .project, .noCodegen,
+    ])
+    func convertsSiriKitSources(localized: Bool, visibility: XPIF.BuildFile.GeneratedCodeVisibility) throws {
+        var source = try fixtureProject()
+        let membership = XCSchema.ProjectBuildFile(
+            objectID: nil, buildPhase: .named(target: .init(targetName: "Probe"), kind: .sources, name: nil),
+            properties: .init(platformFilters: [], additionalBuildFlags: nil, assetTags: [], attributes: .init(
+                headerRole: nil, machInterfaceGeneration: nil, isWeak: false, codeSignOnCopy: false,
+                codeGeneration: visibility == .noCodegen ? .skip : .default, headerPreservation: .keep,
+                decompress: false, codeGenerationVisibility: visibility == .project ? .project : nil
+            ))
+        )
+        let file = XCSchema.FileReference(
+            objectID: nil, path: localized ? "Base.lproj/Intents.intentdefinition" : "Intents.intentdefinition",
+            explicitFileType: nil, expectedSignature: nil, textEncoding: nil, lineEnding: nil,
+            includeInIndex: nil, buildFiles: localized ? [] : [membership]
+        )
+        if localized {
+            source.project.topLevelReferences.append(.variantGroup(.init(
+                objectID: nil, name: "Intents.intentdefinition", path: "", includeInIndex: nil,
+                buildFiles: [membership], children: [file]
+            )))
+        } else {
+            source.project.topLevelReferences.append(.fileReference(file))
+        }
+        let project = try XcodePIFBuilder(project: source).build().projects[0]
+        let reference = try #require(project.mainGroup.subitems.last)
+        let child: XPIF.Reference
+        if case .group(let group) = reference {
+            child = try #require(group.subitems.first)
+        } else {
+            child = reference
+        }
+        guard case .file(let intent) = child,
+              case .sources(let phase) = project.targets[0].common.buildPhases[0] else {
+            Issue.record("Expected a SiriKit file reference and sources phase")
+            return
+        }
+        #expect(intent.fileType == "file.intentdefinition")
+        #expect(intent.regionVariantName == (localized ? "Base" : nil))
+        #expect(phase.files.first { $0.ref == .reference(id: reference.id) }?.generatedCodeVisibility == visibility)
+    }
+
     @Test func convertsAggregateAndExternalTargets() throws {
         var source = try fixtureProject()
         var aggregate = source.project.targets[0].commonProperties

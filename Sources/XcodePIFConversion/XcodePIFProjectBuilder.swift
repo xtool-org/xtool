@@ -7,12 +7,21 @@ struct XcodePIFProjectBuilder {
     let loaded: XcodeLoadedProject
     let packageProjects: [XPIF.Project]
     var project: XCSchema.Project { loaded.project }
+    let intentDefinitionRefs: Set<XPIF.BuildFile.Ref>
     var phaseFiles: [XPIF.GUID: [XPIF.BuildFile]] = [:]
     var usedIDs: Set<XPIF.GUID>
 
     init(loaded: XcodeLoadedProject, packageProjects: [XPIF.Project] = []) {
         self.loaded = loaded
         self.packageProjects = packageProjects
+        func isIntentDefinition(_ reference: XPIF.Reference) -> Bool {
+            switch reference {
+            case .file(let file): file.fileType == "file.intentdefinition"
+            case .group(let group): group.kind == .variantGroup && group.subitems.contains(where: isIntentDefinition)
+            }
+        }
+        let intents = loaded.references.lazy.filter { isIntentDefinition($0.reference) }
+        self.intentDefinitionRefs = Set(intents.map { .reference(id: $0.reference.id) })
         self.usedIDs = loaded.usedIDs
     }
 

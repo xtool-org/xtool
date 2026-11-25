@@ -224,6 +224,7 @@ extension XPIF.FileReference: Codable {
         case "xcdatamodeld": return "wrapper.xcdatamodeld"
         case "xcdatamodel": return "wrapper.xcdatamodel"
         case "xcmappingmodel": return "wrapper.xcmappingmodel"
+        case "intentdefinition": return "file.intentdefinition"
         case "mlmodel": return "file.mlmodel"
         case "mlpackage": return "folder.mlpackage"
         case "referenceobject": return "file.referenceobject"
