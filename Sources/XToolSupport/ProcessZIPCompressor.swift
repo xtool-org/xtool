@@ -8,29 +8,34 @@ import XUtils
 extension ZIPCompressor: DependencyKey {
     // TODO: Use `powershell Compress-Archive` and `powershell Expand-Archive` on Windows
 
-    public static let liveValue = ZIPCompressor(
-        compress: { dir, progress in
-            progress(nil)
+    // stored, since installing unpacks it right away
+    public static let liveValue = process(compressionLevel: 0)
 
-            let dest = dir.deletingLastPathComponent().appendingPathComponent("app.ipa")
+    static func process(compressionLevel: Int) -> ZIPCompressor {
+        ZIPCompressor(
+            compress: { dir, progress in
+                progress(nil)
 
-            try await Subprocess.run(
-                .name("zip"),
-                arguments: ["-yqru0", dest.path, dir.lastPathComponent],
-                workingDirectory: FilePath(dir.deletingLastPathComponent()),
-                output: .discarded,
-            ).checkSuccess()
+                let dest = dir.deletingLastPathComponent().appendingPathComponent("app.ipa")
 
-            return dest
-        },
-        decompress: { ipa, directory, progress in
-            progress(nil)
+                try await Subprocess.run(
+                    .name("zip"),
+                    arguments: ["-yqru\(compressionLevel)", dest.path, dir.lastPathComponent],
+                    workingDirectory: FilePath(dir.deletingLastPathComponent()),
+                    output: .discarded,
+                ).checkSuccess()
 
-            try await Subprocess.run(
-                .name("unzip"),
-                arguments: ["-q", ipa.path, "-d", directory.path],
-                output: .discarded,
-            ).checkSuccess()
-        }
-    )
+                return dest
+            },
+            decompress: { ipa, directory, progress in
+                progress(nil)
+
+                try await Subprocess.run(
+                    .name("unzip"),
+                    arguments: ["-q", ipa.path, "-d", directory.path],
+                    output: .discarded,
+                ).checkSuccess()
+            }
+        )
+    }
 }
