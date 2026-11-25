@@ -189,14 +189,10 @@ extension XcodePIFProjectBuilder {
     }
 
     private func predominantLanguage(in phases: [XPIF.BuildPhase]) -> String? {
-        let fileTypes = Dictionary(uniqueKeysWithValues: loaded.references.compactMap { entry -> (XPIF.GUID, String)? in
-            guard case .file(let file) = entry.reference else { return nil }
-            return (file.id, file.fileType)
-        })
         // Xcode counts build-file memberships by file type, including headers/copy phases.
         var counts: [String: Int] = [:]
         for file in phases.flatMap({ $0.common.files }) {
-            guard case .reference(let id) = file.ref, let type = fileTypes[id] else { continue }
+            guard case .reference(let id) = file.ref, let type = loaded.fileTypes[id] else { continue }
             counts[type, default: 0] += 1
         }
         let languages = counts.compactMap { type, count -> (name: String, count: Int)? in
@@ -278,7 +274,10 @@ extension XcodePIFProjectBuilder {
         _ phase: XCSchema.BuildPhase, target: XCSchema.CommonTargetProperties, index: Int
     ) throws -> XPIF.BuildPhase {
         let id = try identifier(phase.properties.objectID, fallback: loaded.phaseID(phase, target: target, index: index).value)
-        let files = phaseFiles[id] ?? []
+        var files = phaseFiles[id] ?? []
+        for index in files.indices {
+            files[index].generatedCodeVisibility = generatedCodeVisibility(for: files[index], in: phase)
+        }
         switch phase {
         case .headers: return .headers(.init(id: id, files: files))
         case .sources: return .sources(.init(id: id, files: files))

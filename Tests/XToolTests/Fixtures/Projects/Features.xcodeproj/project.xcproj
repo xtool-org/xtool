@@ -48,9 +48,28 @@
             },
           ],
         },
+        {
+          "kind": "variant-group",
+          "id": "E7457505F33C243AF649DE6E",
+          "name": "Phrases.intentdefinition",
+          "target-membership": [
+            { "id": "FD96AF79C76856E6F943E8DE", "build-phase": "id:CAF85B0888D78F1F83771A07" },
+            { "id": "A451AF05B2BD97965F6FA0C5", "build-phase": "id:F77E8395C14206FA0A5A32E1" },
+          ],
+          "children": [
+            {
+              "path": "Base.lproj/Phrases.intentdefinition",
+              "id": "4F6538A896B374F576BBDC61",
+            },
+          ],
+        },
+        { "path": "Predictor.mlmodel", "id": "6AD567020A855E464450B194", "target-membership": [ { "id": "1B26A2F3BDA0FD737012F8F5", "build-phase": "id:CAF85B0888D78F1F83771A07" } ] },
+        { "path": "View.xib", "id": "C6E0EB88FA126268844E5D9F", "encoding": "utf8" },
       ],
     },
     { "path": "Settings.xcconfig", "id": "87E89ABB4C1C551FE08D355D" },
+    { "path": "README.md", "id": "D25782EFECDBBD0784E54773", "encoding": "utf8" },
+    { "path": "<SDK>/System/Library/Frameworks/Intents.framework", "id": "5D6CC01E39B0E475FE0B5897" },
     {
       "kind": "group",
       "id": "4EDC8BFAFC6BD936B849F38C",

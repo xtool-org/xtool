@@ -160,7 +160,7 @@ struct XcodePIFBuilderTests {
         let file = try #require(phase.files.first)
         #expect(file.ref == .targetProduct(id: dependency.targetId))
         #expect(file.headerVisibility == .public)
-        #expect(file.generatedCodeVisibility == .noCodegen)
+        #expect(file.generatedCodeVisibility == nil)
         #expect(file.platformFilters == [.init(platform: "ios")])
         #expect(file.additionalCompilerOptions == .string("-DTEST"))
         #expect(file.shouldLinkWeakly && file.codeSignOnCopy && file.removeHeadersOnCopy && file.decompress)
