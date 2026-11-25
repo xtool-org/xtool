@@ -694,11 +694,28 @@ struct SDKBuilder {
     }
 
     private func extractXIP(inputPath: String, outDir: String) async throws -> Int {
+        if let hint = XIPExtraction.appImageHint() {
+            d.out.print(hint)
+        }
+        let sourceKind = HostFilesystem.kind(of: inputPath)
+        try XIPExtraction.checkFreeSpace(inputPath: inputPath, outDir: outDir, sourceKind: sourceKind)
+        let prepared = try await XIPExtraction.stageIfNeeded(
+            inputPath: inputPath,
+            outDir: outDir,
+            sourceKind: sourceKind
+        )
+        defer { prepared.cleanup() }
+
         // unxip doesn't like cooperative cancellation atm so shield it.
         // if the user does a ^C during unxip, we'll just wait until extraction
         // is over before bailing
-        try await Task {
-            try await _extractXIP(inputPath: inputPath, outDir: outDir)
+        return try await Task {
+            try await _extractXIP(
+                inputPath: prepared.path,
+                outDir: outDir,
+                sourceKind: sourceKind,
+                wasStaged: prepared.stagedPath != nil
+            )
         }.value
     }
 
@@ -724,9 +741,17 @@ struct SDKBuilder {
 
     // returns the number of files we actually want to keep,
     // useful for computing progress % during fs traversal
-    private func _extractXIP(inputPath: String, outDir: String) async throws -> Int {
+    private func _extractXIP(
+        inputPath: String,
+        outDir: String,
+        sourceKind: HostFilesystem.Kind,
+        wasStaged: Bool
+    ) async throws -> Int {
         let fd = try FileDescriptor.open(inputPath, .readOnly)
-        defer { try? fd.close() }
+        // A stall abandons a task that still reads this descriptor and writes
+        // relative to the working directory, so leave both alone in that case.
+        var abandonedExtraction = false
+        defer { if !abandonedExtraction { try? fd.close() } }
 
         let length = try fd.seek(offset: 0, from: .end)
         try fd.seek(offset: 0, from: .start)
@@ -736,25 +761,16 @@ struct SDKBuilder {
         guard FileManager.default.changeCurrentDirectoryPath(outDir) else {
             throw Console.Error("Could not change directory to '\(outDir)'")
         }
-        defer { _ = FileManager.default.changeCurrentDirectoryPath(oldDirectory) }
+        defer { if !abandonedExtraction { _ = FileManager.default.changeCurrentDirectoryPath(oldDirectory) } }
 
         let inputStream = DataReader.data(readingFrom: fd.rawValue)
 
         let (observer, source) = inputStream.lockstepSplit()
-
-        async let readTask: Void = {
-            var read = 0
-            for try await chunk in observer {
-                read += chunk.count
-                let progress = Int(Double(read) / Double(length) * 100)
-                d.out.print("\r[Extracting XIP] \(progress)%", terminator: "", flush: true)
-                if read == length { break }
-            }
-        }()
-
-        let xipToChunks = XIP.transform(
-            DataReader(data: source),
-            options: nil
+        let tracker = XIPProgressTracker(
+            totalBytes: length,
+            sourceKind: sourceKind,
+            wasStaged: wasStaged,
+            isAppImage: ProcessInfo.processInfo.environment["APPIMAGE"] != nil
         )
 
         // ideally we would filter out the files we don't want at this stage,
@@ -764,24 +780,63 @@ struct SDKBuilder {
         // our filter() points to a file outside of it. We might be able to do this
         // with a double-pass system.
 
-        let chunksToFiles = Chunks.transform(
-            xipToChunks,
-            options: nil
-        )
+        let wanted: Int
+        do {
+            wanted = try await XIPExtraction.race {
+                async let readTask: Void = {
+                    var read: Int64 = 0
+                    for try await chunk in observer {
+                        read += Int64(chunk.count)
+                        await tracker.setBytesRead(read)
+                        if read == length { break }
+                    }
+                }()
 
-        let filesToDisk = Files.transform(
-            chunksToFiles,
-            options: .init(
-                compress: false,
-                dryRun: false
-            )
-        )
+                let xipToChunks = XIP.transform(
+                    DataReader(data: source),
+                    options: nil
+                )
+                let chunksToFiles = Chunks.transform(
+                    xipToChunks,
+                    options: nil
+                )
+                let filesToDisk = Files.transform(
+                    chunksToFiles,
+                    options: .init(
+                        compress: false,
+                        dryRun: false
+                    )
+                )
 
-        var wanted = 0
-        for try await file in filesToDisk {
-            wanted += Self.isWanted(file.name[...]) ? 1 : 0
+                var wanted = 0
+                for try await file in filesToDisk {
+                    wanted += Self.isWanted(file.name[...]) ? 1 : 0
+                    await tracker.noteFile()
+                }
+                _ = try await readTask
+                return wanted
+            } watchdog: {
+                // Sampled apart from the heartbeat: statfs can block on the same
+                // mount as a stuck write, and the stall must still be reported.
+                let sampler = Task {
+                    while !Task.isCancelled {
+                        if let freeBytes = HostFilesystem.freeBytes(at: outDir) {
+                            await tracker.noteFreeBytes(freeBytes)
+                        }
+                        try await Task.sleep(for: .seconds(15))
+                    }
+                }
+                defer { sampler.cancel() }
+                while !Task.isCancelled {
+                    try await Task.sleep(for: .seconds(15))
+                    try await tracker.heartbeat()
+                }
+            }
+        } catch let stall as XIPExtraction.Stall {
+            abandonedExtraction = true
+            d.out.print()
+            throw Console.Error(stall.message)
         }
-        _ = try await readTask
 
         d.out.print()
 
