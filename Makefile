@@ -159,7 +159,7 @@ api: openapi/openapi.json
 		--config Sources/DeveloperAPI/openapi-generator-config.yaml \
 		--output-directory Sources/DeveloperAPI/Generated
 	for file in Sources/DeveloperAPI/Generated/*.swift; do \
-		sed -i '' -e 's/[[:<:]]Client[[:>:]]/DeveloperAPIClient/g' $$file; \
+		perl -pi -e 's/\bClient\b/DeveloperAPIClient/g' $$file; \
 	done
 
 .PHONY: update-api
