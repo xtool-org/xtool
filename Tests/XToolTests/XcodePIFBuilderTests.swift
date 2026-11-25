@@ -248,6 +248,11 @@ struct XcodePIFBuilderTests {
     ])
     func convertsSiriKitSources(localized: Bool, visibility: XPIF.BuildFile.GeneratedCodeVisibility) throws {
         var source = try fixtureProject()
+        // Remove App.swift so the intent definition is the only source build file.
+        source.project.topLevelReferences.removeAll { reference in
+            guard case .fileReference(let file) = reference else { return false }
+            return file.path.path == "App.swift"
+        }
         let membership = XCSchema.ProjectBuildFile(
             objectID: nil, buildPhase: .named(target: .init(targetName: "Probe"), kind: .sources, name: nil),
             properties: .init(platformFilters: [], additionalBuildFlags: nil, assetTags: [], attributes: .init(
@@ -284,7 +289,9 @@ struct XcodePIFBuilderTests {
         }
         #expect(intent.fileType == "file.intentdefinition")
         #expect(intent.regionVariantName == (localized ? "Base" : nil))
-        #expect(phase.files.first { $0.ref == .reference(id: reference.id) }?.generatedCodeVisibility == visibility)
+        #expect(phase.files.count == 1)
+        let buildFile = try #require(phase.files.first { $0.ref == .reference(id: reference.id) })
+        #expect(buildFile.generatedCodeVisibility == visibility)
     }
 
     @Test func convertsAggregateAndExternalTargets() throws {
