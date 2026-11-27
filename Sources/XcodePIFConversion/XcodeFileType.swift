@@ -15,6 +15,16 @@ enum XcodeFileType {
         lookup((name as NSString).pathExtension, in: directoryExtensions)
     }
 
+    /// Detects the type of the item at `url`. Items that can't be found on disk (e.g. SDK frameworks
+    /// when cross-compiling, or not-yet-built products) are typed by name alone.
+    static func forItem(at url: URL?, named name: String) -> String? {
+        var directory = ObjCBool(false)
+        guard let url, FileManager.default.fileExists(atPath: url.path, isDirectory: &directory) else {
+            return forFile(named: name) ?? forDirectory(named: name)
+        }
+        return directory.boolValue ? forDirectory(named: name) : forFile(named: name)
+    }
+
     /// The type followed by each of the types it's based on, most specific first.
     static func ancestry(of type: String) -> [String] {
         var result: [String] = []
