@@ -1,17 +1,17 @@
 import Foundation
+import Dependencies
 
 /// Provisions and codesigns.
 public struct AutoSigner {
 
+    @Dependency(\.signer) private var signer
+
     public enum Error: LocalizedError {
-        case noSigners
         case errorReading(String)
         case errorWriting(String)
 
         public var errorDescription: String? {
             switch self {
-            case .noSigners:
-                return NSLocalizedString("signer.error.no_signers", value: "No signers found", comment: "")
             case .errorReading(let file):
                 return "\(file)".withCString {
                     String.localizedStringWithFormat(
@@ -82,13 +82,16 @@ public struct AutoSigner {
             try info.mobileprovision.data().write(to: profURL)
         }
 
-        let entitlements = provisioningDict.mapValues(\.entitlements)
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let entitlements = try provisioningDict.mapValues { try encoder.encode($0.entitlements) }
 
         status(NSLocalizedString("signer.signing", value: "Signing", comment: ""))
-        try await context.signer.sign(
+        try await signer.sign(
             app: app,
             identity: .real(signingInfo.certificate, signingInfo.privateKey),
             entitlementMapping: entitlements,
+            deep: true,
             progress: progress
         )
         progress(1)

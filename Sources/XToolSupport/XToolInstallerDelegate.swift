@@ -1,6 +1,9 @@
+import XCLIUtils
 import Foundation
 import XKit
 import ConcurrencyExtras
+import Dependencies
+import XUtils
 
 final class XToolAuthDelegate: TwoFactorAuthDelegate {
     func fetchCode() async -> String? {
@@ -9,7 +12,8 @@ final class XToolAuthDelegate: TwoFactorAuthDelegate {
 }
 
 actor XToolInstallerDelegate: IntegratedInstallerDelegate {
-    init() {}
+    private nonisolated let _output = Dependency(\.out)
+    private nonisolated var output: CommandOutput { _output.wrappedValue }
 
     private let updateTask = LockIsolated<Task<Void, Never>?>(nil)
 
@@ -23,8 +27,7 @@ actor XToolInstallerDelegate: IntegratedInstallerDelegate {
         case nil:
             text = "Continuing..."
         }
-        print("\n\(text)", terminator: "")
-        fflush(stdoutSafe)
+        output.print("\n\(text)", terminator: "", flush: true)
     }
 
     var prevStage: String?
@@ -52,19 +55,15 @@ actor XToolInstallerDelegate: IntegratedInstallerDelegate {
 
         if stage != prevStage {
             if let progString = progString {
-                print("\n[\(stage)] \(progString)", terminator: "")
-                fflush(stdoutSafe)
+                output.print("\n[\(stage)] \(progString)", terminator: "", flush: true)
             } else {
-                print("\n[\(stage)] ...", terminator: "")
-                fflush(stdoutSafe)
+                output.print("\n[\(stage)] ...", terminator: "", flush: true)
             }
         } else if progString != prevProgress {
             if let progString = progString {
-                print("\r[\(stage)] \(progString)", terminator: "")
-                fflush(stdoutSafe)
+                output.print("\r[\(stage)] \(progString)", terminator: "", flush: true)
             } else {
-                print("\r[\(stage)]", terminator: "")
-                fflush(stdoutSafe)
+                output.print("\r[\(stage)]", terminator: "", flush: true)
             }
         }
     }
@@ -79,8 +78,8 @@ actor XToolInstallerDelegate: IntegratedInstallerDelegate {
     }
 
     func confirmRevocation(of certificates: [DeveloperServicesCertificate]) async -> Bool {
-        print("\nThe following certificates must be revoked:")
-        print(
+        output.print("\nThe following certificates must be revoked:")
+        output.print(
             certificates.map {
                 "- \($0.attributes!.name!) (expires \($0.attributes!.expirationDate!.formatted(date: .abbreviated, time: .shortened)))"
             }.joined(separator: "\n")

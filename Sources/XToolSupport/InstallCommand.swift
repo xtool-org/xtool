@@ -1,3 +1,4 @@
+import XUtils
 import Foundation
 import XKit
 import SwiftyMobileDevice
@@ -20,7 +21,7 @@ struct InstallCommand: AsyncParsableCommand {
 
         let client = try await connectionOptions.client()
 
-        print("Installing to device: \(client.deviceName) (udid: \(client.udid))")
+        d.out.print("Installing to device: \(client.deviceName) (udid: \(client.udid))")
 
         let installDelegate = XToolInstallerDelegate()
         let installer = IntegratedInstaller(
@@ -35,11 +36,11 @@ struct InstallCommand: AsyncParsableCommand {
                 lookupMode: .only(client.connectionType),
                 configureDevice: false,
             )
-            print("\nSuccessfully installed!")
+            d.out.print("\nSuccessfully installed!")
         } catch let error as CancellationError {
             throw error
         } catch {
-            print("\nError: \(error)")
+            d.out.print("\nError: \(error)")
             throw ExitCode.failure
         }
     }

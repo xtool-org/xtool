@@ -84,7 +84,12 @@ jobs:
       - name: Create and publish release
         run: |
           TAG="${{ github.ref_name }}"
-          gh release create "$TAG" --draft --title "v$TAG"
+          FLAGS=(--draft)
+          # e.g. 2.0.0-beta.1
+          if [[ "$TAG" == *-* ]]; then
+            FLAGS+=(--prerelease --latest=false)
+          fi
+          gh release create "$TAG" "${FLAGS[@]}" --title "v$TAG"
           gh release upload "$TAG" output/**/*.{AppImage,AppImage.zsync,app.zip,app.dSYM.zip}
   docker:
     uses: docker/github-builder/.github/workflows/build.yml@v1

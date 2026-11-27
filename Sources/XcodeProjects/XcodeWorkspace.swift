@@ -63,9 +63,18 @@ public struct XcodeWorkspace: Hashable, Sendable {
     }
 
     public var children: [Element]
+    public var url: URL
 
-    public init(children: [Element]) {
+    public init(children: [Element], url: URL) {
         self.children = children
+        self.url = url.standardizedFileURL.resolvingSymlinksInPath()
+    }
+
+    /// Returns a copy at a new workspace location.
+    public func withURL(_ url: URL) -> Self {
+        var copy = self
+        copy.url = url.standardizedFileURL.resolvingSymlinksInPath()
+        return copy
     }
 }
 

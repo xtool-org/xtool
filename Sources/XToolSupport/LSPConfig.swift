@@ -1,3 +1,4 @@
+import XUtils
 import Foundation
 import PackLib
 
@@ -34,7 +35,7 @@ enum LSPConfig {
         do {
             try await ensure(using: schema, quiet: quiet, currentDirectory: directory)
         } catch {
-            print("warning: failed to validate LSP configuration: \(error)")
+            d.out.print("warning: failed to validate LSP configuration: \(error)")
         }
     }
 
@@ -80,7 +81,7 @@ enum LSPConfig {
         }
 
         if !quiet {
-            print("""
+            d.out.print("""
             [LSP] Created \(primary.0) for enhanced IDE support. You may
                   need to restart your editor for the change to take effect.
                   You can disable this with `skipLSP: true` in xtool.yml.

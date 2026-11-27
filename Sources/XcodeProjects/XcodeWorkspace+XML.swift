@@ -4,14 +4,15 @@ private import XcodeProj
 extension XcodeWorkspace {
     public init(url: URL) throws {
         let workspace = try XCWorkspace(pathString: url.path)
-        self.init(workspace.data)
+        self.init(workspace.data, url: url)
     }
 
     public func dataRepresentation() throws -> Data {
         try xcWorkspaceData.dataRepresentation() ?? Data()
     }
 
-    public func write(to url: URL) throws {
+    /// Writes the workspace to its current URL.
+    public func write() throws {
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         try self.dataRepresentation()
             .write(to: url.appendingPathComponent("contents.xcworkspacedata"))
@@ -21,8 +22,8 @@ extension XcodeWorkspace {
 // MARK: - Conversion
 
 extension XcodeWorkspace {
-    fileprivate init(_ xcWorkspaceData: XCWorkspaceData) {
-        self.init(children: xcWorkspaceData.children.map { .init(from: $0) })
+    fileprivate init(_ xcWorkspaceData: XCWorkspaceData, url: URL) {
+        self.init(children: xcWorkspaceData.children.map { .init(from: $0) }, url: url)
     }
 
     fileprivate var xcWorkspaceData: XCWorkspaceData {

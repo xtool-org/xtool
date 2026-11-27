@@ -1,0 +1,14 @@
+on:
+  release:
+    types: [published]
+
+jobs:
+  # When a release is published, update the Homebrew tap
+  update-tap:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Trigger homebrew-tap update
+        env:
+          # fine-grained PAT with actions:write on xtool-org/homebrew-tap
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_GH_TOKEN }}
+        run: gh workflow run update.yml -R xtool-org/homebrew-tap

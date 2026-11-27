@@ -17,6 +17,13 @@ public struct Packer: Sendable {
         try? FileManager.default.removeItem(at: packageDir)
         try FileManager.default.createDirectory(at: packageDir, withIntermediateDirectories: true)
 
+        if URL(fileURLWithPath: "Packages").dirExists {
+            try FileManager.default.createSymbolicLink(
+                atPath: packageDir.appendingPathComponent("Packages").path,
+                withDestinationPath: "../../Packages"
+            )
+        }
+
         let packageSwift = packageDir.appendingPathComponent("Package.swift")
         let contents = """
         // swift-tools-version: 6.0

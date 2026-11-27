@@ -1,3 +1,5 @@
+import XCLIUtils
+import XUtils
 import Foundation
 import XKit
 import SwiftyMobileDevice
@@ -33,7 +35,7 @@ struct LaunchCommand: AsyncParsableCommand {
             throw Console.Error("Could not find an installed app with bundle ID '\(bundleID)'")
         }
 
-        print("Launching \(executable.lastPathComponent)...")
+        d.out.print("Launching \(executable.lastPathComponent)...")
 
         let debugserver = try DebugserverClient(device: client.device, label: "xtool")
         guard try debugserver.launch(executable: executable, arguments: args) == "OK" else {

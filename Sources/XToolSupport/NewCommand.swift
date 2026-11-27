@@ -1,3 +1,5 @@
+import XUtils
+import XCLIUtils
 import ArgumentParser
 import Foundation
 import PackLib
@@ -61,7 +63,7 @@ struct NewCommand: AsyncParsableCommand {
             throw Console.Error("Cannot create \(name): a file already exists at that path.")
         }
 
-        print("Creating package: \(name)")
+        d.out.print("Creating package: \(name)")
 
         let moduleName = name.replacingOccurrences(of: "-", with: "_")
 
@@ -162,7 +164,7 @@ struct NewCommand: AsyncParsableCommand {
                 at: url.deletingLastPathComponent(),
                 withIntermediateDirectories: true
             )
-            print("Creating \(path)")
+            d.out.print("Creating \(path)")
             try "\(contents)\n".write(to: url, atomically: true, encoding: .utf8)
         }
 
@@ -172,8 +174,8 @@ struct NewCommand: AsyncParsableCommand {
             currentDirectory: baseURL,
         )
 
-        print("\nFinished generating project \(name). Next steps:")
-        print("- Enter the directory with `cd \(name)`")
-        print("- Build and run with `xtool dev`")
+        d.out.print("\nFinished generating project \(name). Next steps:")
+        d.out.print("- Enter the directory with `cd \(name)`")
+        d.out.print("- Build and run with `xtool dev`")
     }
 }

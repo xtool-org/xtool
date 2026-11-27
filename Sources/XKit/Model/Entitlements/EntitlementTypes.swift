@@ -29,6 +29,7 @@ extension EntitlementContainer {
         WiFiAwareEntitlement.self,
         HomeKitEntitlement.self,
         HealthKitEntitlement.self,
+        AppleSignInEntitlement.self,
     ]
 }
 
@@ -86,6 +87,21 @@ public struct GetTaskAllowEntitlement: Entitlement, RawRepresentable {
 
 public struct AssociatedDomainsEntitlement: Entitlement, RawRepresentable {
     public static let identifier = "com.apple.developer.associated-domains"
+
+    public var rawValue: [String]
+    public init(rawValue: [String]) { self.rawValue = rawValue }
+
+    public init(from decoder: Decoder) throws {
+        rawValue = try decoder.singleValueContainer().decode([String].self)
+    }
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+}
+
+public struct AppleSignInEntitlement: Entitlement, RawRepresentable {
+    public static let identifier = "com.apple.developer.applesignin"
 
     public var rawValue: [String]
     public init(rawValue: [String]) { self.rawValue = rawValue }

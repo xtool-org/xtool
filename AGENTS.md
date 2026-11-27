@@ -13,4 +13,7 @@ The `xtool` CLI supports macOS, Linux, WSL. The lower-level XKit (provisioning a
 ## Conventions
 
 - Use modern Swift 6. Strict concurrency is enabled.
-- Use swift-dependencies for Dependency Injection. Passing dependencies around as arguments is an anti-pattern.
+- Use swift-dependencies (`@Dependency(\.foo)` / `d.foo`) for Dependency Injection. Passing dependencies around as arguments is an anti-pattern.
+- Commits should be in the format `subsystem: imperative description` e.g. `auth: support reading password from stdin`.
+- Don't use `Task.detached { ... }`. If you need to escape isolation, you want `Task { @concurrent in ... }` instead.
+- Uphold API stability guarantees for consumers who use xtool via the command line interface (e.g. don't remove subcommands or config fields). However, the Swift interface (including `public` types) when consuming xtool itself as a Swift Package is _NOT_ API stable; it's okay to break Swift API.

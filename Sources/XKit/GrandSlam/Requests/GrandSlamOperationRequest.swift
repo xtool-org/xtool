@@ -69,12 +69,12 @@ extension GrandSlamOperationRequest {
 
     static var endpoint: GrandSlamEndpoint { .lookup(\.gsService) }
 
-    func configure(request: inout HTTPRequest, deviceInfo: DeviceInfo, anisetteData: AnisetteData) {
+    func configure(request: inout HTTPRequest, anisetteData: AnisetteData) {
         request.headerFields[.accept] = "*/*"
-        request.headerFields[.userAgent] = deviceInfo.clientInfo.userAgent
+        request.headerFields[.userAgent] = anisetteData.deviceInfo.akdUserAgent
     }
 
-    func method(deviceInfo: DeviceInfo, anisetteData: AnisetteData) -> GrandSlamMethod {
+    func content(anisetteData: AnisetteData) -> GrandSlamRequestContent {
         var clientData: [String: Any] = [
             "bootstrap": true,
             "icscrec": true,
@@ -83,7 +83,6 @@ extension GrandSlamOperationRequest {
             "svct": "iCloud",
             "loc": Locale.current.identifier
         ]
-        clientData.merge(deviceInfo.dictionary) { _, b in b }
         clientData.merge(anisetteData.dictionary) { _, b in b }
 
         var request: [String: Any] = [

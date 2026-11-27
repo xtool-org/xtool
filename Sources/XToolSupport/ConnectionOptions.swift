@@ -1,3 +1,5 @@
+import XUtils
+import XCLIUtils
 import Foundation
 import XKit
 import ArgumentParser
@@ -17,7 +19,7 @@ struct ConnectionOptions: ParsableArguments {
 
 extension ConnectionOptions.WithoutSearchMode {
     func client(searchMode search: ClientDevice.SearchMode) async throws -> ClientDevice {
-        print("Waiting for device to be connected...")
+        d.out.print("Waiting for device to be connected...")
 
         let stream = try await ClientDevice.search(mode: search)
         for await devices in stream {

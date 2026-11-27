@@ -1,3 +1,4 @@
+import XUtils
 import Foundation
 import XKit
 import ArgumentParser
@@ -31,10 +32,10 @@ struct DevicesCommand: AsyncParsableCommand {
             guard wait else { break }
             if shouldPrint {
                 shouldPrint = false
-                print("Waiting for devices to be connected...")
+                d.out.print("Waiting for devices to be connected...")
             }
         }
 
-        print(foundDevices.map { "\($0.deviceName) [\($0.connectionType)]: \($0.udid)" }.joined(separator: "\n"))
+        d.out.print(foundDevices.map { "\($0.deviceName) [\($0.connectionType)]: \($0.udid)" }.joined(separator: "\n"))
     }
 }

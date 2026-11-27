@@ -10,14 +10,14 @@ import Foundation
 
 public struct AnisetteData {
 
-    private static let dateFormatter: DateFormatter = {
-        let dateFormatter = DateFormatter()
-        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-        dateFormatter.calendar = Calendar(identifier: .gregorian)
-        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
-        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
-        return dateFormatter
-    }()
+    private static let clientTimeFormat = Date.ISO8601FormatStyle(
+        dateSeparator: .dash,
+        dateTimeSeparator: .standard,
+        timeSeparator: .colon,
+        timeZoneSeparator: .omitted,
+        includingFractionalSeconds: false,
+        timeZone: .gmt
+    )
 
     /// `X-Apple-I-Locale`
     static let iLocaleKey = "X-Apple-I-Locale"
@@ -49,10 +49,9 @@ public struct AnisetteData {
     static let oneTimePasswordKey = "X-Apple-I-MD"
     public let oneTimePassword: String
 
-    static let deviceIDKey = "X-Mme-Device-Id"
-    public var deviceID: String?
+    public let deviceInfo: DeviceInfo
 
-    var dictionary: [String: String] {
+    public var dictionary: [String: String] {
         // GSA doesn't like "en_US@rg=..."; it has to be just "en_US".
         let localeIdentifier = if let language = locale.language.languageCode?.identifier,
                                   let region = locale.region?.identifier {
@@ -60,19 +59,16 @@ public struct AnisetteData {
         } else {
             "en_US"
         }
-        var dictionary = [
+        return [
             Self.localeKey: localeIdentifier,
             Self.timeZoneKey: timeZone.abbreviation() ?? "UTC",
-            Self.clientTimeKey: Self.dateFormatter.string(from: clientTime),
+            Self.clientTimeKey: clientTime.formatted(Self.clientTimeFormat),
             Self.routingInfoKey: "\(routingInfo)",
             Self.machineIDKey: machineID,
             Self.localUserIDKey: localUserID,
             Self.oneTimePasswordKey: oneTimePassword,
         ]
-        if let deviceID {
-            dictionary[Self.deviceIDKey] = deviceID
-        }
-        return dictionary
+        .merging(deviceInfo.dictionary) { _, b in b }
     }
 
 }

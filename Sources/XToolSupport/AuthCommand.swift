@@ -1,3 +1,5 @@
+import XUtils
+import XCLIUtils
 import Foundation
 import XKit
 import ArgumentParser
@@ -27,7 +29,7 @@ struct AuthOperation {
     func run() async throws {
         if let token = try? AuthToken.saved(), !logoutFromExisting {
             if !quiet {
-                print("Logged in.\n\(token)")
+                d.out.print("Logged in.\n\(token)")
             }
             return
         }
@@ -52,7 +54,7 @@ struct AuthOperation {
         }
         try token.save()
 
-        print("Logged in.\n\(token)")
+        d.out.print("Logged in.\n\(token)")
     }
 
     private func logInWithKey() async throws -> AuthToken {
@@ -76,10 +78,12 @@ struct AuthOperation {
     }
 
     private func logInWithPassword() async throws -> AuthToken {
-        print("""
+        d.out.print("""
         Heads up:
-          This works by emulating a Pixel phone/Windows PC to interact with Apple services;
-          consider using a secondary Apple ID. Credentials are only ever sent to Apple.
+          This works by emulating a virtual Mac to interact with Apple services.
+          We use a third-party service to create a randomized device ID token
+          (Anisette Data) but your credentials are only ever sent to Apple.
+          Still, consider using a secondary Apple ID since this is a private API.
         """)
 
         let username = try await Console.promptRequired("Apple ID: ", existing: username)
@@ -94,7 +98,7 @@ struct AuthOperation {
             throw Console.Error("Password cannot be empty.")
         }
 
-        print("Logging in...")
+        d.out.print("Logging in...")
 
         let authDelegate = XToolAuthDelegate()
         let manager = DeveloperServicesLoginManager()
@@ -173,15 +177,15 @@ struct AuthLogoutCommand: AsyncParsableCommand {
     func run() async throws {
         if (try? AuthToken.saved()) != nil {
             try AuthToken.clear()
-            print("Logged out")
+            d.out.print("Logged out")
         } else {
-            print("Already logged out")
+            d.out.print("Already logged out")
         }
 
         if reset2FA {
             @Dependency(\.anisetteDataProvider) var anisetteProvider
             await anisetteProvider.resetProvisioning()
-            print("Forgot device")
+            d.out.print("Forgot device")
         }
     }
 }
@@ -194,9 +198,9 @@ struct AuthStatusCommand: AsyncParsableCommand {
 
     func run() async throws {
         if let token = try? AuthToken.saved() {
-            print("Logged in.\n\(token)")
+            d.out.print("Logged in.\n\(token)")
         } else {
-            print("Logged out")
+            d.out.print("Logged out")
         }
     }
 }
