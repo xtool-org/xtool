@@ -1,5 +1,6 @@
 // swift-tools-version:6.2
 
+import CompilerPluginSupport
 import PackageDescription
 
 let (xtoolVersion, hasUncommittedChanges): (String?, Bool) = {
@@ -20,6 +21,14 @@ let (xtoolVersion, hasUncommittedChanges): (String?, Bool) = {
 let cSettings: [CSetting] = [
     .define("_GNU_SOURCE", .when(platforms: [.linux])),
 ]
+
+let cxkitCSettings: [CSetting] = cSettings + [
+    .define("XTOOL_HAS_UNCOMMITTED_CHANGES", to: hasUncommittedChanges ? "1" : "0"),
+] + (
+    xtoolVersion
+        .map { [.define("XTOOL_VERSION", to: "\"\($0)\"")] }
+        ?? []
+)
 
 let swiftSettings: [SwiftSetting] = {
     var settings: [SwiftSetting] = []
@@ -71,6 +80,7 @@ let package = Package(
 
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.0.0"),
         .package(url: "https://github.com/swiftlang/swift-subprocess", from: "1.0.0"),
+        .package(url: "https://github.com/swiftlang/swift-syntax", from: "604.0.0"),
 
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.0"),
         .package(url: "https://github.com/swift-server/swift-openapi-async-http-client", from: "1.0.0"),
@@ -105,7 +115,17 @@ let package = Package(
             dependencies: [
                 "XPIF",
                 "XcodeProjects",
+                "XToolMacros",
                 .product(name: "OrderedCollections", package: "swift-collections"),
+            ],
+            swiftSettings: swiftSettings,
+        ),
+        .macro(
+            name: "XToolMacros",
+            dependencies: [
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
+                .product(name: "SwiftDiagnostics", package: "swift-syntax"),
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
             ],
             swiftSettings: swiftSettings,
         ),
@@ -114,13 +134,7 @@ let package = Package(
             dependencies: [
                 .product(name: "OpenSSL", package: "xtool-core")
             ],
-            cSettings: cSettings + [
-                .define("XTOOL_HAS_UNCOMMITTED_CHANGES", to: hasUncommittedChanges ? "1" : "0"),
-            ] + (
-                xtoolVersion
-                    .map { [.define("XTOOL_VERSION", to: "\"\($0)\"")] }
-                    ?? []
-            )
+            cSettings: cxkitCSettings
         ),
         .target(
             name: "DeveloperAPI",

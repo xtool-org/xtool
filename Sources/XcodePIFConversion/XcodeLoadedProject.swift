@@ -14,7 +14,7 @@ struct XcodeLoadedProject {
     let products: [XPIF.GUID: XPIF.GUID]
     let usedIDs: Set<XPIF.GUID>
     /// File types of file references, and of variant groups (taken from their first file).
-    let fileTypes: [XPIF.GUID: String]
+    let fileTypes: [XPIF.GUID: XcodeFileType]
 
     var sourceRoot: URL { xcodeProject.sourceRoot }
     var project: XCSchema.Project { xcodeProject.project }
@@ -47,14 +47,14 @@ struct XcodeLoadedProject {
         self.memberships = loader.memberships
         self.products = loader.products
         self.usedIDs = loader.usedIDs
-        var fileTypes: [XPIF.GUID: String] = [:]
+        var fileTypes: [XPIF.GUID: XcodeFileType] = [:]
         for entry in loader.references {
             switch entry.reference {
             case .file(let file):
-                fileTypes[file.id] = file.fileType
+                fileTypes[file.id] = XcodeFileType(identifier: file.fileType)
             case .group(let group) where group.kind == .variantGroup:
-                fileTypes[group.id] = group.subitems.lazy.compactMap { item -> String? in
-                    if case .file(let file) = item { file.fileType } else { nil }
+                fileTypes[group.id] = group.subitems.lazy.compactMap { item -> XcodeFileType? in
+                    if case .file(let file) = item { XcodeFileType(identifier: file.fileType) } else { nil }
                 }.first
             default:
                 break

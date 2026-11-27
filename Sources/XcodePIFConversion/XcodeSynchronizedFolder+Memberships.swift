@@ -1,7 +1,7 @@
 import XcodeProjects
 
 extension XcodeSynchronizedFolder {
-    func buildFiles(for members: [XCSchema.FolderMemberID], fileType: String) throws -> [XCSchema.ProjectBuildFile] {
+    func buildFiles(for members: [XCSchema.FolderMemberID], fileType: XcodeFileType) throws -> [XCSchema.ProjectBuildFile] {
         var result = project.targets.compactMap { target in
             buildFile(for: target.commonProperties, members: members, fileType: fileType)
         }
@@ -26,7 +26,7 @@ extension XcodeSynchronizedFolder {
     }
 
     private func buildFile(
-        for target: XCSchema.CommonTargetProperties, members: [XCSchema.FolderMemberID], fileType: String
+        for target: XCSchema.CommonTargetProperties, members: [XCSchema.FolderMemberID], fileType: XcodeFileType
     ) -> XCSchema.ProjectBuildFile? {
         let targetReference = XCSchema.LocalTargetReference(targetName: target.name)
         var includedMembers = folder.targets.contains(targetReference) ? Set(members) : []

@@ -97,18 +97,17 @@ extension XcodeLoadedProject.Loader {
     static func fileReference(_ file: XCSchema.FileReference, id: XPIF.GUID, url: URL?) throws -> XPIF.FileReference {
         let name = (file.path.path as NSString).lastPathComponent
         // Like Xcode, detect the type of files without an explicit one (the format drops lastKnownFileType).
-        let fileType = file.explicitFileType?.rawValue ?? XcodeFileType.forItem(at: url, named: name) ?? "file"
+        let fileType = file.explicitFileType.map(XcodeFileType.init) ?? .forItem(at: url, named: name) ?? .file
         var ref = XPIF.FileReference(
             id: id,
             path: file.path.path,
             pathBase: pathBase(file.path.base),
             name: name,
-            fileType: fileType,
+            fileType: fileType.identifier,
         )
         ref.expectedSignature = file.expectedSignature
         // Xcode drops the encoding of non-text files (e.g. xibs).
-        let isText = XcodeFileType.ancestry(of: fileType).contains("text")
-        ref.fileTextEncoding = try (isText ? file.textEncoding : nil).map { encoding in
+        ref.fileTextEncoding = try (fileType.conforms(to: .text) ? file.textEncoding : nil).map { encoding in
             guard let name = encoding.rawValue.backportedIANAName else {
                 throw ConversionError("Unsupported Xcode file text encoding: \(encoding.rawValue.rawValue)")
             }

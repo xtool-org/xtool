@@ -43,9 +43,9 @@ struct XcodeSynchronizedFolder {
             var type = fileType(for: path, isDirectory: isDirectory(url))
             // Xcode treats a discovered Swift package as one opaque reference. Its
             // sources belong to the package graph, not the enclosing native target.
-            if type == "file", isDirectory(url),
+            if type == .file, isDirectory(url),
                FileManager.default.fileExists(atPath: url.appending(path: "Package.swift").path) {
-                type = "wrapper"
+                type = .wrapper
             }
             if isDirectory(url), !isOpaque(path, type: type) {
                 if url.pathExtension == "lproj" {
@@ -59,18 +59,18 @@ struct XcodeSynchronizedFolder {
                         children: try references(at: url, relativePath: path + "/", ancestors: ancestors)
                     )))
                 }
-            } else if isDirectory(url), type == "wrapper.xcdatamodeld" {
+            } else if isDirectory(url), type == .wrapperXcdatamodeld {
                 let children = try contents(of: url).filter { $0.pathExtension == "xcdatamodel" }.map { child in
                     try file(at: child, path: path + "/" + child.lastPathComponent, filePath: child.lastPathComponent,
-                             type: "wrapper.xcdatamodel", buildFiles: [])
+                             type: .wrapperXcdatamodel, buildFiles: [])
                 }
                 result.append(.versionGroup(.init(
                     objectID: objectID(path, kind: "VERSION"), name: name, path: try groupPath(name), currentVersion: nil,
-                    versionedFileType: .init(rawValue: type), includeInIndex: nil,
+                    versionedFileType: type.fileTypeID, includeInIndex: nil,
                     buildFiles: try buildFiles(for: [.init(value: path)], fileType: type), children: children
                 )))
             } else {
-                let type = isDirectory(url) && type == "file" ? "folder" : type
+                let type = isDirectory(url) && type == .file ? .folder : type
                 result.append(.fileReference(try file(
                     at: url, path: path, filePath: name, type: type,
                     buildFiles: buildFiles(for: [.init(value: path)], fileType: type)
@@ -139,28 +139,27 @@ struct XcodeSynchronizedFolder {
         return FileManager.default.fileExists(atPath: url.path, isDirectory: &directory) && directory.boolValue
     }
 
-    private func isOpaque(_ path: String, type: String) -> Bool {
-        folder.explicitOpaqueFolders.contains(.init(value: path)) || type != "file"
+    private func isOpaque(_ path: String, type: XcodeFileType) -> Bool {
+        folder.explicitOpaqueFolders.contains(.init(value: path)) || type != .file
     }
 
-    private func fileType(for path: String, isDirectory: Bool) -> String {
-        if let type = folder.explicitFileTypes[.init(value: path)] { return type.rawValue }
+    private func fileType(for path: String, isDirectory: Bool) -> XcodeFileType {
+        if let type = folder.explicitFileTypes[.init(value: path)] { return XcodeFileType(type) }
         let name = (path as NSString).lastPathComponent
         let type = isDirectory ? XcodeFileType.forDirectory(named: name) : XcodeFileType.forFile(named: name)
-        return type ?? "file"
+        return type ?? .file
     }
 
     private func file(
-        at url: URL, path: String, filePath: String, type: String, buildFiles: [XCSchema.ProjectBuildFile]
+        at url: URL, path: String, filePath: String, type: XcodeFileType, buildFiles: [XCSchema.ProjectBuildFile]
     ) throws -> XCSchema.FileReference {
-        .init(objectID: objectID(path, kind: "FILE"), path: try groupPath(filePath), explicitFileType: .init(rawValue: type),
+        .init(objectID: objectID(path, kind: "FILE"), path: try groupPath(filePath), explicitFileType: type.fileTypeID,
               expectedSignature: nil, textEncoding: try textEncoding(at: url, fileType: type),
               lineEnding: nil, includeInIndex: nil, buildFiles: buildFiles)
     }
 
-    private func textEncoding(at url: URL, fileType: String) throws -> XCSchema.TextEncoding? {
-        guard fileType == "text.plist.strings" else { return nil }
-        // Swift Build cannot autodetect strings-file encodings on Linux.
+    private func textEncoding(at url: URL, fileType: XcodeFileType) throws -> XCSchema.TextEncoding? {
+        guard fileType.requiresExplicitTextEncoding else { return nil }
         var encoding = String.Encoding.utf8
         _ = try String(contentsOf: url, usedEncoding: &encoding)
         return .init(rawValue: encoding == .ascii ? .utf8 : encoding)
