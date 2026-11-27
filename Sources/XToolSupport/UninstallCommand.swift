@@ -19,15 +19,10 @@ struct UninstallCommand: AsyncParsableCommand {
     func run() async throws {
         let client = try await connectionOptions.client()
         let installProxy = try InstallationProxyClient(device: client.device, label: "xtool-inst")
-        do {
-            try await installProxy.uninstall(
-                bundleID: bundleID,
-                progress: { _ in }
-            )
-        } catch {
-            d.out.print("Failed: \(error)")
-            return
-        }
+        try await installProxy.uninstall(
+            bundleID: bundleID,
+            progress: { _ in }
+        )
         d.out.print("Success!")
     }
 }
