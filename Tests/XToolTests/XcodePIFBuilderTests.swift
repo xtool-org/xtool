@@ -286,6 +286,17 @@ struct XcodePIFBuilderTests {
         #expect(throws: XcodePIFConversionError.self) { try XcodePIFBuilder(project: source).build() }
     }
 
+    @Test func rejectsBuildToolPluginsOnXcodeTargets() throws {
+        var source = try fixtureProject()
+        var app = source.project.targets[0].commonProperties
+        app.dependencies.append(.package(.init(
+            objectID: nil, package: nil, productName: "GreetingPlugin", productType: .buildToolPlugin
+        ), []))
+        source.project.targets[0] = .native(app)
+        let error = #expect(throws: XcodePIFConversionError.self) { try XcodePIFBuilder(project: source).build() }
+        #expect(error?.description.contains("Plugin 'GreetingPlugin' is applied to an Xcode target") == true)
+    }
+
     private func fixtureProject() throws -> XcodeProject {
         let url = fixtureURL("simple-xcode-project.pbxproj")
         return try XcodeProject(project: .init(pbxprojRepresentation: Data(contentsOf: url)), url: projectURL)

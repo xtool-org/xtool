@@ -240,6 +240,34 @@ struct SwiftPMBuildDescriberTests {
         }
     }
 
+    @Test(arguments: ["", "-linux-x86_64"])
+    func relocatesPluginToolsIntoBuildArena(hostSuffix: String) {
+        let root = URL(filePath: "/work/Package")
+        let swiftPMProducts = "/work/Package/.build/out/Products/Debug\(hostSuffix)"
+        let output = "/work/Package/.build/plugins/outputs/package/App/destination/Plugin/Generated.swift"
+        var pif = pif(root: root, products: ["App"])
+        pif.workspace.projects[0].targets[0].common.customTasks = [.init(
+            commandLine: ["/usr/bin/sandbox-exec", "\(swiftPMProducts)/Tool", "--tool=\(swiftPMProducts)/Tool", output],
+            environment: [.init("TOOL", "\(swiftPMProducts)/Tool")],
+            workingDirectory: "/work/Package/.build/plugins/outputs",
+            executionDescription: "Generate Generated.swift",
+            // A sibling package's .build is not SwiftPM's products directory.
+            inputFilePaths: ["\(swiftPMProducts)/Tool", "/work/Other/.build/out/Products/Debug/Tool"],
+            outputFilePaths: [output],
+            enableSandboxing: false,
+            preparesForIndexing: true
+        )]
+
+        let task = pif.relocatingPluginTools().workspace.projects[0].targets[0].common.customTasks[0]
+
+        let tool = "$(BUILD_DIR)/$(CONFIGURATION)\(hostSuffix)/Tool"
+        expectNoDifference(task.commandLine, ["/usr/bin/sandbox-exec", tool, "--tool=\(tool)", output])
+        expectNoDifference(task.environment, [.init("TOOL", tool)])
+        expectNoDifference(task.workingDirectory, "/work/Package/.build/plugins/outputs")
+        expectNoDifference(task.inputFilePaths, [tool, "/work/Other/.build/out/Products/Debug/Tool"])
+        expectNoDifference(task.outputFilePaths, [output])
+    }
+
     private func temporaryDirectory() throws -> URL {
         let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
             .resolvingSymlinksInPath()

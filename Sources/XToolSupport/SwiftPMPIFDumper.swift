@@ -32,7 +32,47 @@ struct SwiftPMPIFDumper: DependencyKey, Sendable {
 
         Signposter.track("Dumped PIF")
 
-        return try XPIF.Container(data: pif)
+        return try XPIF.Container(data: pif).relocatingPluginTools()
+    }
+}
+
+extension XPIF.Container {
+    /// Fixes up build tool plugin command paths.
+    /// 
+    /// `swift package dump-pif` hardcodes absolute paths in ./.build/out, but our DerivedData
+    /// is actually in ./xtool. Rewrite accordingly.
+    func relocatingPluginTools() -> Self {
+        let products = URL(filePath: workspace.path, directoryHint: .isDirectory)
+            .appending(path: ".build/out/Products/Debug")
+            .path
+
+        func relocate(_ value: String) -> String {
+            // the directory is the configuration + the host's suffix, which is empty on macOS
+            // (e.g. `Debug`, `Debug-linux-x86_64`)
+            value
+                .replacing("\(products)/", with: "$(BUILD_DIR)/$(CONFIGURATION)/")
+                .replacing("\(products)-", with: "$(BUILD_DIR)/$(CONFIGURATION)-")
+        }
+
+        var container = self
+        container.workspace.projects = workspace.projects.map { project in
+            var project = project
+            project.targets = project.targets.map { target in
+                var target = target
+                target.common.customTasks = target.common.customTasks.map { task in
+                    var task = task
+                    task.commandLine = task.commandLine.map(relocate)
+                    task.environment = task.environment.map { .init(relocate($0.first), relocate($0.second)) }
+                    task.workingDirectory = task.workingDirectory.map(relocate)
+                    task.inputFilePaths = task.inputFilePaths.map(relocate)
+                    task.outputFilePaths = task.outputFilePaths.map(relocate)
+                    return task
+                }
+                return target
+            }
+            return project
+        }
+        return container
     }
 }
 
