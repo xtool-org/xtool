@@ -2,9 +2,9 @@
 
 Cross-platform Xcode replacement. Build and deploy iOS apps with SwiftPM on Linux, Windows, and macOS.
 
-> [!NOTE]
+> [!IMPORTANT]
 >
-> xtool 2.0 is now in beta, with support for hot reloading, building Xcode projects, and compiling macOS apps! Feedback welcome. See [#449](https://github.com/xtool-org/xtool/pull/449) for details.
+> You're currently looking at a **beta** v2.x branch. The work here is experimental and pre-release. There are no stability guarantees until a non-prerelease 2.0.0 is tagged.
 
 ## Overview
 

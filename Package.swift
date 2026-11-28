@@ -1,5 +1,6 @@
 // swift-tools-version:6.2
 
+import CompilerPluginSupport
 import PackageDescription
 
 let (xtoolVersion, hasUncommittedChanges): (String?, Bool) = {
@@ -21,6 +22,14 @@ let cSettings: [CSetting] = [
     .define("_GNU_SOURCE", .when(platforms: [.linux])),
 ]
 
+let cxkitCSettings: [CSetting] = cSettings + [
+    .define("XTOOL_HAS_UNCOMMITTED_CHANGES", to: hasUncommittedChanges ? "1" : "0"),
+] + (
+    xtoolVersion
+        .map { [.define("XTOOL_VERSION", to: "\"\($0)\"")] }
+        ?? []
+)
+
 let swiftSettings: [SwiftSetting] = {
     var settings: [SwiftSetting] = []
     if Context.environment["XTL_CI"] == "1" {
@@ -36,6 +45,8 @@ let package = Package(
         .macOS(.v14),
     ],
     products: [
+        .library(name: "XPIF", targets: ["XPIF"]),
+        .library(name: "XcodePIFConversion", targets: ["XcodePIFConversion"]),
         .library(
             name: "XKit",
             targets: ["XKit"]
@@ -53,10 +64,12 @@ let package = Package(
         .package(url: "https://github.com/xtool-org/xtool-core", .upToNextMinor(from: "1.5.1")),
         .package(url: "https://github.com/xtool-org/SwiftyMobileDevice", .upToNextMinor(from: "1.7.0")),
         .package(url: "https://github.com/xtool-org/swift-rcodesign", .upToNextMinor(from: "0.2.0")),
+        .package(url: "https://github.com/xtool-org/swift-build", branch: "release/6.4.x"),
 
         .package(url: "https://github.com/apple/swift-system", from: "1.4.0"),
         .package(url: "https://github.com/apple/swift-http-types", from: "1.3.1"),
         .package(url: "https://github.com/apple/swift-certificates", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-asn1.git", from: "1.7.3"),
         .package(url: "https://github.com/apple/swift-crypto", from: "5.0.0"),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.5.0"),
         .package(url: "https://github.com/apple/swift-openapi-generator", from: "1.6.0"),
@@ -67,6 +80,7 @@ let package = Package(
 
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.0.0"),
         .package(url: "https://github.com/swiftlang/swift-subprocess", from: "1.0.0"),
+        .package(url: "https://github.com/swiftlang/swift-syntax", from: "604.0.0"),
 
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.0"),
         .package(url: "https://github.com/swift-server/swift-openapi-async-http-client", from: "1.0.0"),
@@ -88,17 +102,39 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "XPIF",
+            dependencies: [
+                .product(name: "Crypto", package: "swift-crypto"),
+                .product(name: "OrderedCollections", package: "swift-collections"),
+            ],
+            exclude: ["LICENSE.txt", "README.md"],
+            swiftSettings: swiftSettings,
+        ),
+        .target(
+            name: "XcodePIFConversion",
+            dependencies: [
+                "XPIF",
+                "XcodeProjects",
+                "XToolMacros",
+                .product(name: "OrderedCollections", package: "swift-collections"),
+            ],
+            swiftSettings: swiftSettings,
+        ),
+        .macro(
+            name: "XToolMacros",
+            dependencies: [
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
+                .product(name: "SwiftDiagnostics", package: "swift-syntax"),
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+            ],
+            swiftSettings: swiftSettings,
+        ),
+        .target(
             name: "CXKit",
             dependencies: [
                 .product(name: "OpenSSL", package: "xtool-core")
             ],
-            cSettings: cSettings + [
-                .define("XTOOL_HAS_UNCOMMITTED_CHANGES", to: hasUncommittedChanges ? "1" : "0"),
-            ] + (
-                xtoolVersion
-                    .map { [.define("XTOOL_VERSION", to: "\"\($0)\"")] }
-                    ?? []
-            )
+            cSettings: cxkitCSettings
         ),
         .target(
             name: "DeveloperAPI",
@@ -165,14 +201,19 @@ let package = Package(
         .testTarget(
             name: "XToolTests",
             dependencies: [
+                "XPIF",
+                "XcodePIFConversion",
+                "XcodeProjects",
                 "XKit",
                 "XToolSupport",
                 "XCLIUtils",
-                "PackLib",
                 .product(name: "Crypto", package: "swift-crypto"),
                 .product(name: "X509", package: "swift-certificates"),
+                .product(name: "DependenciesTestSupport", package: "swift-dependencies"),
                 .product(name: "CustomDump", package: "swift-custom-dump"),
+                .product(name: "SwiftBuild", package: "swift-build"),
             ],
+            exclude: ["Fixtures"],
             swiftSettings: swiftSettings,
         ),
         .target(
@@ -185,16 +226,39 @@ let package = Package(
             swiftSettings: swiftSettings,
         ),
         .target(
+            name: "CFileSystemMonitoring",
+            dependencies: []
+        ),
+        .target(
+            name: "FileSystemMonitoring",
+            dependencies: [
+                "CFileSystemMonitoring",
+                "XUtils",
+                .product(name: "Dependencies", package: "swift-dependencies"),
+            ]
+        ),
+        .target(
             name: "XToolSupport",
             dependencies: [
+                "XPIF",
+                "XcodePIFConversion",
+                "XcodeProjects",
+                "FileSystemMonitoring",
                 "SwiftyMobileDevice",
                 "XKit",
                 "XCLIUtils",
-                "PackLib",
+                "XUtils",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
                 .product(name: "SystemPackage", package: "swift-system"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
                 .product(name: "libunxip", package: "unxip"),
+                .product(name: "SWBBuildService", package: "swift-build"),
+                .product(name: "SwiftBuild", package: "swift-build"),
+                .product(name: "SWBUtil", package: "swift-build"),
+                .product(name: "SwiftASN1", package: "swift-asn1"),
+                .product(name: "Superutils", package: "xtool-core"),
+                .product(name: "Yams", package: "Yams"),
             ],
             cSettings: cSettings,
             swiftSettings: swiftSettings,
@@ -205,17 +269,6 @@ let package = Package(
                 .product(name: "XcodeProj", package: "XcodeProj"),
                 .product(name: "XcodeProjectFormat", package: "xcode-project-format"),
             ],
-        ),
-        .target(
-            name: "PackLib",
-            dependencies: [
-                "XUtils",
-                "XcodeProjects",
-                .product(name: "Superutils", package: "xtool-core"),
-                .product(name: "Yams", package: "Yams"),
-                .product(name: "XcodeProjectFormat", package: "xcode-project-format"),
-            ],
-            swiftSettings: swiftSettings,
         ),
         .executableTarget(
             name: "xtool",

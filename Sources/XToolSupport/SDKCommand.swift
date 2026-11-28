@@ -3,7 +3,6 @@ import Foundation
 import XKit
 import ArgumentParser
 import Dependencies
-import PackLib
 import XUtils
 import Subprocess
 
@@ -255,7 +254,7 @@ struct UpdateSDKOperation {
             throw Console.Error("Could not locate existing SDK; cannot perform update.")
         }
         let xcode = existing.bundle.appendingPathComponent("Xcode.app")
-        guard xcode.dirExists else {
+        guard existing.flavor != .slim, xcode.dirExists else {
             // This includes prebuilt .xtoolsdk installs and installs created with --slim.
             throw Console.Error("""
             The installed SDK was built in 'slim' mode and cannot be updated in place. \

@@ -1,0 +1,149 @@
+{
+  "id": "AA0000000000000000000001",
+  "root-group-debug-id": "A40000000000000000000001",
+  "configuration-list-debug-id": "A90000000000000000000001",
+  "default-configuration": "Debug",
+  "configurations": [
+    {
+      "id": "A80000000000000000000001",
+      "name": "Debug"
+    },
+    {
+      "id": "A80000000000000000000002",
+      "name": "Release"
+    }
+  ],
+  "localizations": {
+    "development": "en",
+    "supported": [
+      "Base"
+    ]
+  },
+  "files": [
+    {
+      "kind": "group",
+      "id": "A40000000000000000000002",
+      "path": "Sources",
+      "name": "Sources",
+      "children": [
+        {
+          "path": "PackageApp.swift",
+          "id": "A20000000000000000000001",
+          "target-membership": [
+            {
+              "id": "A10000000000000000000001",
+              "build-phase": "id:A70000000000000000000001"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "group",
+      "id": "A40000000000000000000003",
+      "path": "Resources",
+      "name": "Resources",
+      "children": [
+        {
+          "path": "message.txt",
+          "id": "A20000000000000000000003",
+          "target-membership": [
+            {
+              "id": "A10000000000000000000003",
+              "build-phase": "id:A60000000000000000000001"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "group",
+      "id": "A40000000000000000000005",
+      "name": "Products",
+      "children": [
+        {
+          "path": "<PRODUCTS>/App.app",
+          "id": "A20000000000000000000004",
+          "type": "wrapper.application",
+          "index": false
+        }
+      ]
+    }
+  ],
+  "targets": [
+    {
+      "name": "App",
+      "id": "A50000000000000000000001",
+      "configuration-list-debug-id": "A90000000000000000000002",
+      "product": "id:A20000000000000000000004",
+      "product-type": "application",
+      "specialized-configurations": [
+        {
+          "id": "A80000000000000000000003",
+          "name": "Debug"
+        },
+        {
+          "id": "A80000000000000000000004",
+          "name": "Release"
+        }
+      ],
+      "dependencies": [],
+      "build-phases": [
+        {
+          "kind": "compile-sources",
+          "id": "A70000000000000000000001"
+        },
+        {
+          "kind": "frameworks",
+          "id": "A30000000000000000000001"
+        },
+        {
+          "kind": "resources",
+          "id": "A60000000000000000000001"
+        }
+      ],
+      "build-settings": {
+        "CODE_SIGN_STYLE": "Automatic",
+        "GENERATE_INFOPLIST_FILE": "YES",
+        "INFOPLIST_KEY_UIApplicationSceneManifest_Generation": "YES",
+        "INFOPLIST_KEY_UILaunchScreen_Generation": "YES",
+        "LD_RUNPATH_SEARCH_PATHS": "$(inherited) @executable_path/Frameworks",
+        "PRODUCT_BUNDLE_IDENTIFIER": "sh.xtool.tests.Packages",
+        "PRODUCT_NAME": "$(TARGET_NAME)",
+        "TARGETED_DEVICE_FAMILY": "1,2"
+      },
+      "package-product-members": [
+        {
+          "package": "LocalPackage",
+          "product-name": "Library",
+          "id": "AA0000000000000000000099",
+          "build-phase": {
+            "id": "AA0000000000000000000098",
+            "build-phase": "id:A30000000000000000000001"
+          }
+        }
+      ]
+    }
+  ],
+  "build-settings": {
+    "CLANG_ENABLE_MODULES": "YES",
+    "DEBUG_INFORMATION_FORMAT[config=Debug]": "dwarf",
+    "DEBUG_INFORMATION_FORMAT[config=Release]": "dwarf-with-dsym",
+    "ENABLE_TESTABILITY[config=Debug]": "YES",
+    "IPHONEOS_DEPLOYMENT_TARGET": "17.0",
+    "SDKROOT": "iphoneos",
+    "SWIFT_ACTIVE_COMPILATION_CONDITIONS[config=Debug]": "DEBUG",
+    "SWIFT_COMPILATION_MODE[config=Release]": "wholemodule",
+    "SWIFT_OPTIMIZATION_LEVEL[config=Debug]": "-Onone",
+    "SWIFT_OPTIMIZATION_LEVEL[config=Release]": "-O",
+    "SWIFT_VERSION": "6.0"
+  },
+  "products-group": "id:A40000000000000000000005",
+  "last-upgrade": "16.0",
+  "packages": [
+    {
+      "kind": "local",
+      "path": "LocalPackage"
+    }
+  ]
+}

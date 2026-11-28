@@ -1,0 +1,8 @@
+version: 1
+bundleID: sh.xtool.examples.DemoAudioUnit
+product: DemoAudioUnit
+entitlementsPath: Support/DemoAudioUnit.entitlements
+extensions:
+- product: DemoAudioUnitExtension
+  infoPath: Support/DemoAudioUnitExtension-Info.plist
+  entitlementsPath: Support/DemoAudioUnitExtension.entitlements

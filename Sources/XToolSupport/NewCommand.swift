@@ -2,7 +2,6 @@ import XUtils
 import XCLIUtils
 import ArgumentParser
 import Foundation
-import PackLib
 
 struct NewCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
