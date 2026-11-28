@@ -12,11 +12,33 @@ import X509
 import CryptoExtras
 
 public struct PrivateKey: Codable, Sendable {
-    // pem encoded
-    public let data: Data
+    let raw: X509.Certificate.PrivateKey
 
-    public init(data: Data) {
-        self.data = data
+    public init(raw: X509.Certificate.PrivateKey) {
+        self.raw = raw
+    }
+
+    public init(pemEncoded pem: String) throws {
+        try self.init(raw: .init(pemEncoded: pem))
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case data
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let data = try container.decode(Data.self, forKey: .data)
+        try self.init(pemEncoded: String(decoding: data, as: UTF8.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(pemData(), forKey: .data)
+    }
+
+    public func pemData() throws -> Data {
+        Data((try raw.serializeAsPEM().pemString + "\n").utf8)
     }
 }
 
@@ -43,7 +65,7 @@ public struct Keypair {
     }
 
     public func privateKey() throws -> PrivateKey {
-        PrivateKey(data: Data(raw.pemRepresentation.utf8))
+        PrivateKey(raw: .init(raw))
     }
 
     public func generateCSR() throws -> CSR {

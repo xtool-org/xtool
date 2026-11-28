@@ -42,7 +42,7 @@ public actor RCodesignSigner: Signer {
         let signingIdentity: RCodesign.Identity
         switch identity {
         case .real(let certificate, let privateKey):
-            signingIdentity = .certificate(certificateDER: try certificate.data(), privateKeyPEM: privateKey.data)
+            signingIdentity = .certificate(certificateDER: try certificate.data(), privateKeyPEM: try privateKey.pemData())
         case .adhoc:
             signingIdentity = .adHoc
         }
