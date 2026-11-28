@@ -61,6 +61,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(url: "https://github.com/KishanBagaria/swift-anisette", .upToNextMinor(from: "0.1.0")),
         .package(url: "https://github.com/xtool-org/xtool-core", .upToNextMinor(from: "1.5.1")),
         .package(url: "https://github.com/xtool-org/SwiftyMobileDevice", .upToNextMinor(from: "1.7.0")),
         .package(url: "https://github.com/xtool-org/swift-rcodesign", .upToNextMinor(from: "0.2.0")),
@@ -163,6 +164,7 @@ let package = Package(
         .target(
             name: "XKit",
             dependencies: [
+                .product(name: "Anisette", package: "swift-anisette", condition: .when(platforms: [.linux, .macOS])),
                 "DeveloperAPI",
                 "CXKit",
                 "XUtils",
@@ -201,6 +203,7 @@ let package = Package(
         .testTarget(
             name: "XToolTests",
             dependencies: [
+                .product(name: "Anisette", package: "swift-anisette", condition: .when(platforms: [.linux, .macOS])),
                 "XPIF",
                 "XcodePIFConversion",
                 "XcodeProjects",

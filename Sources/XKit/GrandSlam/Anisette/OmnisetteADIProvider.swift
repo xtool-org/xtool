@@ -1,8 +1,18 @@
 import Foundation
+import Crypto
 import Dependencies
 
 struct OmnisetteADIProvider: RawADIProvider {
     @Dependency(\.httpClient) private var client
+
+    let providerID = "mac-omnisette"
+    let isLocal = false
+
+    func localUserID(for userID: UUID) -> String {
+        SHA256.hash(data: Data(userID.uuidString.utf8))
+            .map { String(format: "%02X", $0) }
+            .joined()
+    }
 
     // should implement v3 of https://github.com/SideStore/omnisette-server
     // list: https://servers.sidestore.io/servers.json
@@ -57,7 +67,7 @@ struct OmnisetteADIProvider: RawADIProvider {
     func requestOTP(
         userID: UUID,
         routingInfo: inout UInt64,
-        provisioningInfo: Data
+        provisioningInfo: inout Data
     ) async throws -> (machineID: Data, otp: Data) {
         struct Request: Encodable {
             let identifier: Data

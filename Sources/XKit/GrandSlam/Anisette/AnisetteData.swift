@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct AnisetteData {
+public struct AnisetteData: Sendable {
 
     private static let clientTimeFormat = Date.ISO8601FormatStyle(
         dateSeparator: .dash,

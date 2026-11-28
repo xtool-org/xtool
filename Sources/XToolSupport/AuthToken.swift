@@ -51,15 +51,23 @@ extension AuthToken {
     private static let decoder = JSONDecoder()
 
     static func saved() throws -> Self {
-        guard let token = try savedIfPresent() else {
-            throw Console.Error("Please log in with `xtool auth` before running this command.")
+        let (token, anisetteProviderChanged) = try load()
+        guard let token else {
+            throw Console.Error(anisetteProviderChanged ? """
+            You were logged out because xtool now generates Anisette data differently. \
+            Please log in again with `xtool auth`.
+            """ : "Please log in with `xtool auth` before running this command.")
         }
         return token
     }
 
     static func savedIfPresent() throws -> Self? {
+        try load().token
+    }
+
+    private static func load() throws -> (token: Self?, anisetteProviderChanged: Bool) {
         guard let data = try storage.data(forKey: "XTLAuthToken") else {
-            return nil
+            return (nil, false)
         }
         let decoded = try decoder.decode(AuthToken.self, from: data)
         switch decoded {
@@ -67,12 +75,12 @@ extension AuthToken {
             @Dependency(\.anisetteDataProvider) var anisetteProvider
             guard xcode.anisetteProviderID == anisetteProvider.providerID else {
                 try? clear()
-                return nil
+                return (nil, true)
             }
         case .appStoreConnect:
             break
         }
-        return decoded
+        return (decoded, false)
     }
 
     static func clear() throws {

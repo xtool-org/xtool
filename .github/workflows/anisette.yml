@@ -1,0 +1,39 @@
+# Provisions a throwaway device against Apple's servers using local ADI.
+# This catches Apple or Unicorn download rotations before users hit them,
+# so it runs on a schedule rather than on every push.
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  XTL_CI: "1"
+jobs:
+  anisette-linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        host:
+          - runner: ubuntu-24.04
+          - runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.host.runner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Run live anisette test
+        run: |
+          docker compose run --build -e XTL_CI=1 -e XTOOL_TEST_LOCAL_ADI=1 xtool \
+            swift test --filter AnisetteProviderTests
+  anisette-macos:
+    runs-on: xcode-27
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - uses: ./.github/actions/configure-xcode
+      - name: Run live anisette test
+        env:
+          XTOOL_TEST_LOCAL_ADI: "1"
+        run: |
+          swift test --filter AnisetteProviderTests
