@@ -13,11 +13,9 @@ struct XcodePackagePIFBuilder {
     /// Directory under which xtool stores its package resolution scratch space.
     let rootDirectory: URL
 
-    func build() async throws -> [XPIF.Project] {
-        guard !builder.packageReferences.isEmpty else { return [] }
-        let references = builder.packageReferences
-        let manifest = try Self.manifest(references: references)
-        let rootPaths = Self.rootPaths(references)
+    func prepare() throws -> URL? {
+        guard !builder.packageReferences.isEmpty else { return nil }
+        let manifest = try Self.manifest(references: builder.packageReferences)
         // SwiftPM's checkout paths appear in PIF. Keep the workspace stable across builds.
         let key = SHA256.hash(data: Data(builder.packageWorkspaceURL.path.utf8))
             .map { String(format: "%02x", $0) }.joined()
@@ -31,6 +29,12 @@ struct XcodePackagePIFBuilder {
         if let data = try? Data(contentsOf: resolved) {
             try data.write(to: directory.appending(path: "Package.resolved"), options: .atomic)
         }
+        return directory
+    }
+
+    func build() async throws -> [XPIF.Project] {
+        guard let directory = try prepare() else { return [] }
+        let rootPaths = Self.rootPaths(builder.packageReferences)
         @Dependency(\.swiftPMPIFDumper) var dumper
         let pif = try await dumper.dump(packagePath: directory)
         let defaults = try await XcodePackageSDKDefaults.load()

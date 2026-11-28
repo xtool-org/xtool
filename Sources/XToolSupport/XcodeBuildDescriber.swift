@@ -9,14 +9,16 @@ struct XcodeBuildDescriber {
     let project: XToolProject.Xcode
     var scheme: String?
 
-    func describe() async throws -> (pif: XPIF.Container, targetSelection: BuildDescription.TargetSelection?) {
+    func pifBuilder() throws -> XcodePIFBuilder {
         let container = project.container
-        let builder: XcodePIFBuilder
         if container.pathExtension == "xcworkspace" {
-            builder = try XcodePIFBuilder(workspace: XcodeWorkspace(url: container))
-        } else {
-            builder = try XcodePIFBuilder(project: XcodeProject(url: container))
+            return try XcodePIFBuilder(workspace: XcodeWorkspace(url: container))
         }
+        return try XcodePIFBuilder(project: XcodeProject(url: container))
+    }
+
+    func describe() async throws -> (pif: XPIF.Container, targetSelection: BuildDescription.TargetSelection?) {
+        let builder = try pifBuilder()
         let packages = try await XcodePackagePIFBuilder(
             builder: builder,
             rootDirectory: project.base.rootDirectory
